@@ -44,7 +44,7 @@
 #define PCO_CL_BAUDRATE_115K2	115200
 
 #define PCO_BUFFER_NREVENTS 2
-struct stcXlatCode2Str {
+struct DLL_EXPORT stcXlatCode2Str {
 		int code;
 		char *str;
 };
@@ -54,7 +54,7 @@ struct stcXlatCode2Str {
 
 
 
-struct stcFrame {
+struct DLL_EXPORT stcFrame {
 	BOOL	changed;
 	unsigned int nb;
 	unsigned int done;
@@ -66,7 +66,7 @@ struct stcFrame {
 
 };
 
-class ringLog {
+class DLL_EXPORT ringLog {
         enum { bufferSize = 32 };
         struct data{        
                 time_t timestamp;
@@ -88,14 +88,14 @@ private:
         struct data *buffer;
 };
 
-struct stcTemp {
+struct DLL_EXPORT stcTemp {
 	short wCcd, wCam, wPower;
 	short wMinCoolSet, wMaxCoolSet;
 	short wSetpoint;
 };
 
 
-struct stcPcoData {
+struct DLL_EXPORT stcPcoData {
 	PCO_Description	pcoInfo;	/* camera description structure */
 	PCO_CameraType	stcCamType;
 	char model[MODEL_TYPE_SIZE+1], iface[INTERFACE_TYPE_SIZE+1];
@@ -167,7 +167,7 @@ enum enumPcoStorageMode {
 	Fifo = 1, RecSeq, RecRing,
 };
 
-struct stcRoi {
+struct DLL_EXPORT stcRoi {
 	enumChange changed;	/* have values been changed ? */
 	unsigned int x[2];	/* ROI min/max in x dir.(note starts at 1)*/
 	unsigned int y[2];	/* ROI min/max in y dir.(note starts at 1)*/
@@ -176,7 +176,7 @@ struct stcRoi {
 };
 
 
-struct stcBinning {
+struct DLL_EXPORT stcBinning {
 	enumChange	changed;		/* have values been changed ? */
 	unsigned int x;			/* amount to bin/group x data.                 */
 	unsigned int y;			/* amount to bin/group y data.                 */
