@@ -872,7 +872,7 @@ unsigned long Camera::pcoGetFramesMax(int segmentPco){
 
 
 		if(!_isCameraType(Dimax)) {
-			printf("=== %s> unknow camera type [%d]\n", fnId, _getCameraType());
+			printf("=== %s> unknown camera type [%d]\n", fnId, _getCameraType());
 			return -1;
 		}
 
@@ -1200,14 +1200,14 @@ char *Camera::_pcoGet_Camera_Type(int &error){
 		strcpy_s(m_pcoData->model, MODEL_TYPE_SIZE, ptr);
 		if(error) return m_pcoData->model;
 		//DEB_TRACE() <<   "m_pcoData->model " << m_pcoData->model;
-		//if(error) throw LIMA_HW_EXC(Error, "Unknow model");
+		//if(error) throw LIMA_HW_EXC(Error, "Unknown model");
 		
 		ptr = xlatPcoCode2Str(m_pcoData->stcCamType.wInterfaceType, InterfaceType, error);
 		strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
 		if(error) return m_pcoData->iface;
 
 		//DEB_TRACE() <<   "m_pcoData->iface " << m_pcoData->iface;
-		//if(error) throw LIMA_HW_EXC(Error, "Unknow interface");
+		//if(error) throw LIMA_HW_EXC(Error, "Unknown interface");
 
 		sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s %s", m_pcoData->model, m_pcoData->iface);
 	}
