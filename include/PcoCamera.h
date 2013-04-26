@@ -30,6 +30,8 @@
 #include "HwMaxImageSizeCallback.h"
 //#include "PcoBufferCtrlObj.h"
 
+#define DISABLE_ACQ_ENBL_SIGNAL
+
 #define BUFF_VERSION 1024
 
 #define PCO_EDGE_PIXEL_RATE_MIN 95000000
@@ -44,7 +46,7 @@
 #define PCO_CL_BAUDRATE_115K2	115200
 
 #define PCO_BUFFER_NREVENTS 2
-struct DLL_EXPORT stcXlatCode2Str {
+struct stcXlatCode2Str {
 		int code;
 		char *str;
 };
@@ -54,7 +56,7 @@ struct DLL_EXPORT stcXlatCode2Str {
 
 
 
-struct DLL_EXPORT stcFrame {
+struct stcFrame {
 	BOOL	changed;
 	unsigned int nb;
 	unsigned int done;
@@ -66,7 +68,7 @@ struct DLL_EXPORT stcFrame {
 
 };
 
-class DLL_EXPORT ringLog {
+class ringLog {
         enum { bufferSize = 32 };
         struct data{        
                 time_t timestamp;
@@ -88,16 +90,27 @@ private:
         struct data *buffer;
 };
 
-struct DLL_EXPORT stcTemp {
+struct stcTemp {
 	short wCcd, wCam, wPower;
 	short wMinCoolSet, wMaxCoolSet;
 	short wSetpoint;
 };
 
+#define SIZEARR_stcPcoHWIOSignal 10
+struct stcPcoData {
+	PCO_General stcPcoGeneral;
+	PCO_CameraType	stcPcoCamType;
+	PCO_Sensor stcPcoSensor;
+	PCO_Description	stcPcoDescription;	/* camera description structure */
+	PCO_Timing stcPcoTiming;
+	PCO_Storage stcPcoStorage;
+	PCO_Recording stcPcoRecording;
+	PCO_Single_Signal_Desc stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
+	PCO_Signal stcPcoHWIOSignal[SIZEARR_stcPcoHWIOSignal];
+	WORD wNrPcoHWIOSignal0;
+	WORD wNrPcoHWIOSignal;
 
-struct DLL_EXPORT stcPcoData {
-	PCO_Description	pcoInfo;	/* camera description structure */
-	PCO_CameraType	stcCamType;
+
 	char model[MODEL_TYPE_SIZE+1], iface[INTERFACE_TYPE_SIZE+1];
 	//int	interface_type;
 
@@ -167,7 +180,7 @@ enum enumPcoStorageMode {
 	Fifo = 1, RecSeq, RecRing,
 };
 
-struct DLL_EXPORT stcRoi {
+struct stcRoi {
 	enumChange changed;	/* have values been changed ? */
 	unsigned int x[2];	/* ROI min/max in x dir.(note starts at 1)*/
 	unsigned int y[2];	/* ROI min/max in y dir.(note starts at 1)*/
@@ -176,7 +189,7 @@ struct DLL_EXPORT stcRoi {
 };
 
 
-struct DLL_EXPORT stcBinning {
+struct stcBinning {
 	enumChange	changed;		/* have values been changed ? */
 	unsigned int x;			/* amount to bin/group x data.                 */
 	unsigned int y;			/* amount to bin/group y data.                 */
@@ -192,6 +205,7 @@ namespace lima
     class  DLL_EXPORT  Camera : public HwMaxImageSizeCallbackGen
     {
       friend class Interface;
+	  friend class DetInfoCtrlObj;
       friend class SyncCtrlObj;
       DEB_CLASS_NAMESPC(DebModCamera,"Camera","Pco");
       public:
@@ -228,11 +242,11 @@ namespace lima
 		int pcoGetError() {return m_pcoData->pcoError;}
 
 		char *_pcoSet_RecordingState(int state, int &error);
-		WORD _getCameraType() {return m_pcoData->stcCamType.wCamType ; }
+		WORD _getCameraType() {return m_pcoData->stcPcoCamType.wCamType ; }
 		bool _isCameraType(enum enumPcoFamily tp);
 		bool _isConfig(){return m_config; };
 		void _pco_set_shutter_rolling_edge(int &error);
-		void msgLog(char *s) {m_msgLog->add(s); };
+		void msgLog(char *s);
 
 	private:
 		SyncCtrlObj*	m_sync;
@@ -282,6 +296,17 @@ namespace lima
 
 		bool _isValid_pixelRate(DWORD dwPixelRate);
 		bool _isValid_Roi(struct stcRoi *new_roi);
+		void _set_Roi(struct stcRoi *new_roi, int &error);
+		void _get_Roi(struct stcRoi &roi);
+		void _get_RoiSize(Size& roi_size);
+		void _get_ImageType(ImageType& image_type);
+		void _get_PixelSize(double& x_size,double &y_size);
+		void _set_ImageType(ImageType curr_image_type);
+		void _get_DetectorType(std::string& det_type);
+		void _get_MaxImageSize(Size& max_image_size);
+		void _pco_GetHWIOSignal(int &error);
+		void _pco_SetHWIOSignal(int sigNum, int &error);
+		void _pco_initHWIOSignal(int mode, int &error);
 
 		ringLog *m_msgLog;
 
