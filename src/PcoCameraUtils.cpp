@@ -49,7 +49,7 @@ void print_hex_dump_buff(void *ptr_buff, size_t len);
 char* _timestamp_pcocamerautils() {return ID_TIMESTAMP ;}
 //=========================================================================================================
 
-char *getTimestamp(timestampFmt fmtIdx) {
+char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
    static char timeline[128];
    errno_t err;
 	time_t ltime;
@@ -64,12 +64,22 @@ char *getTimestamp(timestampFmt fmtIdx) {
     case FnFull: fmt = "%Y-%m-%d-%H%M%S"; break;
   }
 
-	time( &ltime );
+	if(xtime == 0) 
+		time( &ltime );
+	else
+		ltime = xtime;
+
+
+
 	err = localtime_s( &today, &ltime );
 	strftime(timeline, 128, fmt, &today );
       
 	return timeline;
 }
+
+
+time_t getTimestamp() { return time(NULL); }
+
 
 //====================================================================
 //====================================================================
@@ -151,6 +161,17 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 					m_roi.x[0], m_roi.x[1],
 					m_roi.y[0], m_roi.y[1],
 					m_roi.x[1] - m_roi.x[0] + 1, m_roi.y[1] - m_roi.y[0] + 1);
+
+			{
+			Point top_left = m_RoiLima.getTopLeft();
+			Point bot_right = m_RoiLima.getBottomRight();
+			Size size = m_RoiLima.getSize();
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* roiLima XY0(%d,%d) XY1(%d,%d) size(%d,%d)\n",  
+					top_left.x, top_left.y,
+					bot_right.x, bot_right.y,
+					size.getWidth(), size.getHeight());
+			}
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* m_cocRunTime=[%g s]\n",  m_pcoData->cocRunTime);
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* m_frameRate=[%g fps]\n", m_pcoData->frameRate);
@@ -264,13 +285,33 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		key = keys[ikey] = "allocatedBuffer";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "(R) TODO";     //----------------------------------------------------------------
 		if(_stricmp(cmd, key) == 0){
-			ptr += sprintf_s(ptr, ptrMax - ptr, "AllocatedBuffer: Done=[%d] Nr=[%d] Size=[%ld][%g MB]\n", 
-				m_pcoData->bAllocatedBufferDone, 
+			ptr += sprintf_s(ptr, ptrMax - ptr, "PCO API allocated buffers:\n"
+												"    allocated=[%s] nr of buffers=[%d] size=[%ld B][%g MB]\n" 
+												"LIMA allocated buffers: \n"
+												"    nr of buffers=[%d] \n", 
+				m_pcoData->bAllocatedBufferDone ? "TRUE" : "FALSE", 
 				m_pcoData->iAllocatedBufferNumber, 
-				m_pcoData->dwAllocatedBufferSize, m_pcoData->dwAllocatedBufferSize/1000000.);
+				m_pcoData->dwAllocatedBufferSize, m_pcoData->dwAllocatedBufferSize/1000000.,
+				m_pcoData->iAllocatedBufferNumberLima);
+
+
+			return output;
+		}
+
+
+		key = keys[ikey] = "timeDimax";     //----------------------------------------------------------------
+		keys_desc[ikey++] = "(R) TODO";     //----------------------------------------------------------------
+		if(_stricmp(cmd, key) == 0){
+			ptr += sprintf_s(ptr, ptrMax - ptr, "timeDimax: \n"
+												"   [%s]  record (ms)=[%ld]\n",
+				getTimestamp(Iso, m_pcoData->msAcqRecTimestamp), m_pcoData->msAcqRec); 
+			
+			ptr += sprintf_s(ptr, ptrMax - ptr, "   [%s]    xfer (ms)=[%ld]\n",
+ 				getTimestamp(Iso, m_pcoData->msAcqXferTimestamp), m_pcoData->msAcqXfer);
 			
 			return output;
 		}
+
 
 		key = keys[ikey] = "testCmd";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "DISABLED / debug tool";     //----------------------------------------------------------------
@@ -382,6 +423,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		keys_desc[ikey++] = "TODO";     //----------------------------------------------------------------
 		if(_stricmp(cmd, key) == 0){
 			int x0, x1, y0, y1, error;
+			Roi new_roi;
 
 			if((tokNr != 0) && (tokNr != 4)){
 					ptr += sprintf_s(ptr, ptrMax - ptr, "syntax ERROR - %s [x0 y0 x1 y1]", cmd);
@@ -395,8 +437,11 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				x1 = roi.x[1]= atoi(tok[3]);
 				y1 = roi.y[1]= atoi(tok[4]);
 
+				new_roi.setTopLeft(Point(x0-1, y0-1));
+				new_roi.setSize(Size(x1-x0+1, y1-y0+1));
 
-				_set_Roi(&roi, error);
+				//_set_Roi(&roi, error);
+				_set_Roi(new_roi, error);
 
 				if(error){
 					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid roi: x0[%d] y0[%d] x1[%d] y1[%d]",
@@ -409,8 +454,42 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 					m_roi.x[0], m_roi.x[1],
 					m_roi.y[0], m_roi.y[1],
 					m_roi.x[1] - m_roi.x[0] + 1, m_roi.y[1] - m_roi.y[0] + 1);
+
+
+			{
+			Point top_left = m_RoiLima.getTopLeft();
+			Point bot_right = m_RoiLima.getBottomRight();
+			Size size = m_RoiLima.getSize();
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* roiLima XY0(%d,%d) XY1(%d,%d) size(%d,%d)\n",  
+					top_left.x, top_left.y,
+					bot_right.x, bot_right.y,
+					size.getWidth(), size.getHeight());
+			}
+
+
 			return output;
 
+		}
+
+
+
+		key = keys[ikey] = "debug";     //----------------------------------------------------------------
+		keys_desc[ikey++] = "(RW) pco debug level [<new value in hex format (0x123)>]";     //----------------------------------------------------------------
+		if(_stricmp(cmd, key) == 0){
+			int nr;
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "0x%llx",  m_pcoData->debugLevel);
+
+			if((tokNr == 1)){
+					nr = sscanf_s(tok[1], "0x%llx",  &m_pcoData->debugLevel);
+					ptr += sprintf_s(ptr, ptrMax - ptr, "   %s>  ",  (nr == 1) ? "changed OK": "NOT changed");
+					ptr += sprintf_s(ptr, ptrMax - ptr, "0x%llx",  m_pcoData->debugLevel);
+			
+					DEB_ALWAYS() << output ;
+			}
+			
+			return output;
 		}
 
 
@@ -757,7 +836,7 @@ int ringLog::add(char *s) {
                 m_size = m_capacity;
         }
         
-        ptr->timestamp = time(NULL);
+        ptr->timestamp = getTimestamp();
         strncpy_s(ptr->str, s,bufferSize);
         return m_size;
 
@@ -822,3 +901,11 @@ int ringLog::dump(char *s, int lgMax, bool direction) {
 		return lg;
 }
 
+//=========================================================================================================
+//=========================================================================================================
+
+unsigned long long Camera::_getDebug(unsigned long long mask = ULLONG_MAX){
+
+		return m_pcoData->debugLevel & mask;
+
+}

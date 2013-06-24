@@ -93,6 +93,87 @@
 			/>
 		</Configuration>
 		<Configuration
+			Name="Release_Win7_Sync|Win32"
+			OutputDirectory="$(SolutionDir)Release"
+			IntermediateDirectory="Release"
+			ConfigurationType="2"
+			InheritedPropertySheets=".\prop.vsprops"
+			CharacterSet="0"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)include&quot;;&quot;$(LimaDir)hardware\include&quot;;&quot;$(LimaDir)common\include&quot;;&quot;$(LimaDir)third-party\Processlib\core\include\WindowSpecific&quot;;&quot;$(LimaDir)third-party\Processlib\core\include&quot;;&quot;$(SolutionDir)sdkPco\include&quot;;&quot;$(LimaDir)..\sdkPco\include&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBLIMAPCO_EXPORTS;LIMA_PROCESSCORE_DLL;LIMA_PROCESSCORE_BUILD;_WIN32_WINNT=0x0600"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
+				AssemblerOutput="0"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="$(SolutionDir)sdkPco\lib\SC2_Cam.lib $(LimaDir)build\msvc\9.0\LimaCore\Release\liblimacore.lib $(LimaDir)third-party\Processlib\build\msvc\9.0\libprocesslib\Release\libprocesslib.lib"
+				OutputFile="$(InputDir)Release\$(ProjectName).dll"
+				LinkIncremental="1"
+				GenerateDebugInformation="true"
+				GenerateMapFile="true"
+				MapExports="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
@@ -203,6 +284,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\src\PcoRoiCtrlObj.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\src\PcoSyncCtrlObj.cpp"
 				>
 			</File>
@@ -237,9 +322,65 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\include\PcoRoiCtrlObj.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\include\PcoSyncCtrlObj.h"
 				>
 			</File>
+			<Filter
+				Name="PCOsdk"
+				>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\Pco_ConvDlgExport.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\Pco_ConvExport.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\Pco_ConvStructures.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\PCO_err.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\PCO_errt.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\PCO_Structures.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\SC2_CamExport.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\sc2_common.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\sc2_defs.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\SC2_DialogExport.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\SC2_SDKAddendum.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\include\sc2_SDKStructures.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -253,6 +394,13 @@
 			<File
 				RelativePath="..\..\..\..\notes\notes.txt"
 				>
+				<FileConfiguration
+					Name="Release_Win7_Sync|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					>

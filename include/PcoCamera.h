@@ -109,6 +109,7 @@ struct stcPcoData {
 	PCO_Signal stcPcoHWIOSignal[SIZEARR_stcPcoHWIOSignal];
 	WORD wNrPcoHWIOSignal0;
 	WORD wNrPcoHWIOSignal;
+	unsigned long long debugLevel;
 
 
 	char model[MODEL_TYPE_SIZE+1], iface[INTERFACE_TYPE_SIZE+1];
@@ -123,6 +124,7 @@ struct stcPcoData {
     WORD    activeRamSegment;				/* active ram segment */
 
       	//WORD		m_acq_mode;
+      	bool		bExtTrigEnabled;
       	WORD		storage_mode;
       	WORD		recorder_submode;
 		unsigned long	frames_per_buffer; 
@@ -149,7 +151,10 @@ struct stcPcoData {
 		unsigned int maxHeight;        //unsigned int ymax;
 
 		WORD wMetaDataMode, wMetaDataSize, wMetaDataVersion;
+		
 		long msAcqRec, msAcqXfer, msAcqTout, msAcqTnow;
+		time_t msAcqRecTimestamp, msAcqXferTimestamp, msAcqToutTimestamp, msAcqTnowTimestamp;
+
 		DWORD dwPixelRate, dwPixelRateRequested;
 		double fTransferRateMHzMax;
 
@@ -158,6 +163,7 @@ struct stcPcoData {
 
 		DWORD dwAllocatedBufferSize;
 		int iAllocatedBufferNumber;
+		int iAllocatedBufferNumberLima;
 		bool bAllocatedBufferDone;
 		bool bRollingShutter;
 
@@ -207,6 +213,9 @@ namespace lima
       friend class Interface;
 	  friend class DetInfoCtrlObj;
       friend class SyncCtrlObj;
+	  friend class RoiCtrlObj;
+	  friend class BufferCtrlObj;
+
       DEB_CLASS_NAMESPC(DebModCamera,"Camera","Pco");
       public:
         Camera(const char *camPar);
@@ -263,7 +272,9 @@ namespace lima
 
         struct stcBinning m_bin;
         struct stcRoi m_roi;
-        //struct stcSize m_size;
+		Roi m_RoiLima;
+		
+		//struct stcSize m_size;
 
 
 		int		m_acq_frame_nb;
@@ -295,18 +306,24 @@ namespace lima
 		char *_set_metadata_mode(WORD wMetaDataMode, int &error);
 
 		bool _isValid_pixelRate(DWORD dwPixelRate);
-		bool _isValid_Roi(struct stcRoi *new_roi);
-		void _set_Roi(struct stcRoi *new_roi, int &error);
-		void _get_Roi(struct stcRoi &roi);
+		
+		bool _isValid_Roi(const Roi &new_roi, Roi &fixed_roi);
+		//bool _isValid_Roi(Roi &new_roi);
+		void _set_Roi(const Roi &roi, int &error);
+		void _get_Roi(Roi &roi);
+		void _get_MaxRoi(Roi &roi);
 		void _get_RoiSize(Size& roi_size);
+
 		void _get_ImageType(ImageType& image_type);
 		void _get_PixelSize(double& x_size,double &y_size);
+		void _get_XYsteps(Point &xy_steps);
 		void _set_ImageType(ImageType curr_image_type);
 		void _get_DetectorType(std::string& det_type);
 		void _get_MaxImageSize(Size& max_image_size);
 		void _pco_GetHWIOSignal(int &error);
 		void _pco_SetHWIOSignal(int sigNum, int &error);
 		void _pco_initHWIOSignal(int mode, int &error);
+		unsigned long long _getDebug(unsigned long long mask);
 
 		ringLog *m_msgLog;
 

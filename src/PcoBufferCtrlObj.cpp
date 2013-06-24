@@ -78,13 +78,15 @@ void BufferCtrlObj::prepareAcq()
 {
 	DEB_MEMBER_FUNCT();
 
-	_pcoAllocBuffers();
+	//_pcoAllocBuffers();
 
 	FrameDim dim;
 
 	getFrameDim(dim);
+
 	m_ImageBufferSize = dim.getMemSize();
 
+	if(m_cam->_getDebug(1)) {DEB_ALWAYS() << DEB_VAR2(dim, m_ImageBufferSize);}
 	DEB_TRACE() << DEB_VAR1(m_ImageBufferSize);
 
 }
@@ -165,7 +167,7 @@ b.) Input parameter:
 //===================================================================================================================
 #define BUFFER_DUMMY_IMG_LEN	(2 * 2016 * 2016)
 
-int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast, DWORD dwRequestedFrames, int bufIdx) {
+int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast, DWORD dwRequestedFrames, int bufIdx, bool live_mode) {
 	
 	DEF_FNID;
 	static char _buffer[2][BUFFER_DUMMY_IMG_LEN]; 
@@ -187,29 +189,46 @@ int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast, 
 
 #ifdef COMPILE_WAIT_CONDITION
 	Sync::Status status;
-	AutoMutex lock(cond.mutex()); 
-	status = m_bufferSync->wait(lima_buffer_nb, timeout);
+	AutoMutex lock(cond.mutex());
 
-	switch(status){
-		case Sync::AVAILABLE:
-			myBuffer = buffer_mgr.getFrameBufferPtr(lima_buffer_nb);
-			break;
-		case Sync::TIMEOUT:
-			msg = "Sync wait TIMEOUT";
-			printf("=== %s> ERROR [%s] lima_buffer_nb [%d] timeout [%g]\n", fnId, msg, lima_buffer_nb, timeout);
-			DEB_TRACE() << msg;
-			return -1;
-		case Sync::INTERRUPTED:
-			msg = "Sync wait INTERRUPTED";
-			printf("=== %s> ERROR [%s] lima_buffer_nb [%d] timeout [%g]\n", fnId, msg, lima_buffer_nb, timeout);
-			DEB_TRACE() << msg;
-			return -1;
-		default:
-			msg = "Sync wait UNKNOWN STATUS";
-			printf("=== %s> ERROR [%s] lima_buffer_nb [%d] timeout [%g]\n", fnId, msg, lima_buffer_nb, timeout);
-			DEB_TRACE() << msg;
-			return -1;
+	Timestamp t0 = Timestamp::now();
+
+	for (bool doit = true; doit; ) {
+		double wait_timeout = timeout - double(Timestamp::now() - t0);
+		if (wait_timeout <= 0) {
+				msg = "Sync wait INTERRUPTED + TIMEOUT";
+				printf("=== %s> ERROR [%s] lima_buffer_nb [%d] timeout [%g]\n", fnId, msg, lima_buffer_nb, timeout);
+				DEB_TRACE() << msg;
+				return -1;
+		}
+
+		status = m_bufferSync->wait(lima_buffer_nb, wait_timeout);
+		if(m_cam->_getDebug(4)) {DEB_ALWAYS() << DEB_VAR3(lima_buffer_nb, timeout, status);}
+
+		switch(status){
+			case Sync::AVAILABLE:
+				myBuffer = buffer_mgr.getFrameBufferPtr(lima_buffer_nb);
+				buffer_mgr.getNbBuffers(m_cam->m_pcoData->iAllocatedBufferNumberLima);
+				doit = false;
+				break;
+			case Sync::TIMEOUT:
+				msg = "Sync wait TIMEOUT";
+				printf("=== %s> ERROR [%s] lima_buffer_nb [%d] timeout [%g]\n", fnId, msg, lima_buffer_nb, timeout);
+				DEB_TRACE() << msg;
+				return -1;
+			case Sync::INTERRUPTED:
+				msg = "Sync wait INTERRUPTED";
+				printf("=== %s> ERROR [%s] lima_buffer_nb [%d] timeout [%g]\n", fnId, msg, lima_buffer_nb, timeout);
+				DEB_TRACE() << msg;
+				break;
+			default:
+				msg = "Sync wait UNKNOWN STATUS";
+				printf("=== %s> ERROR [%s] lima_buffer_nb [%d] timeout [%g]\n", fnId, msg, lima_buffer_nb, timeout);
+				DEB_TRACE() << msg;
+				return -1;
+		}
 	}
+
 #else
 #pragma message ("============================================== BYPASSED ----- COMPILE_WAIT_CONDITION -----")
 
@@ -231,22 +250,31 @@ int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast, 
     DWORD dwLen = wArmWidth * wArmHeight * bytesPerPixel;
     //DWORD dwAllocatedBufferSize = dwMaxWidth * dwMaxHeight * (DWORD) bytesPerPixel;
 
+ 	myBufferLen = m_ImageBufferSize = dwLen;
+
+
+	FrameDim dim;
+	getFrameDim(dim);
+	int dimSize = dim.getMemSize();
+
+	if(m_cam->_getDebug(1)) {DEB_ALWAYS() << DEB_VAR5(dwLen, dimSize, myBuffer, lima_buffer_nb, m_cam->m_pcoData->iAllocatedBufferNumberLima);}
+	
 	if(myBuffer == NULL) {
 		msg = "ERROR myBuffer = NULL";
 		printf("=== %s> ERROR [%s]\n", fnId, msg);
-		DEB_TRACE() << msg;
+		DEB_ALWAYS() << msg;
 		return -1;
 	}
 
 	if(myBufferLen < dwLen) {
 		msg = "ERROR invalid myBufferLen";
-		DEB_TRACE() << msg << DEB_VAR2(myBufferLen, dwLen);
-		printf("=== %s> ERROR [%s]\n", fnId, msg);
+		DEB_ALWAYS() << msg << DEB_VAR2(myBufferLen, dwLen);
+		printf("=== %s> ERROR [%s] myBufferLen[%d] dwLen[%d]\n", fnId, msg, myBufferLen, dwLen);
 		return -1;
 	}
 	if(m_ImageBufferSize < (int) dwLen) {
 		msg = "ERROR invalid m_ImageBufferSize";
-		DEB_TRACE() << msg << DEB_VAR2(m_ImageBufferSize, dwLen);
+		DEB_ALWAYS() << msg << DEB_VAR2(m_ImageBufferSize, dwLen);
 		printf("=== %s> ERROR [%s]\n", fnId, msg);
 		return -1;
 	}
@@ -284,7 +312,7 @@ int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast, 
 	// to the LIMA allocated one
 
 
-	  DWORD dwFrame =  (m_cam->_isCameraType(Edge)) ? 0 :  dwFrameFirst;
+	  DWORD dwFrame =  (m_cam->_isCameraType(Edge) || live_mode) ? 0 :  dwFrameFirst;
 	  sErr =  m_cam->_PcoCheckError(PCO_AddBufferEx(m_handle, \
 				dwFrame, dwFrame, \
 				m_allocBuff.pcoAllocBufferNr[bufIdx], \
@@ -336,6 +364,7 @@ int BufferCtrlObj::_xferImag()
 	int bufIdx;
 	int error;
 	int lima_buffer_nb;
+	bool live_mode;
 
 	int maxWaitTimeout = 10;
 
@@ -343,11 +372,20 @@ int BufferCtrlObj::_xferImag()
 // --------------- get the requested nr of images 
 	int requested_nb_frames;
 	DWORD dwFramesPerBuffer, dwRequestedFrames;
-	DWORD dwRequestedFramesMax =0xFFFFFFFF;
+	DWORD dwRequestedFramesMax =DWORD_MAX;
 
 // --------------- live video -> nr frames = 0 / idx lima buffers 32b (0...ffff)
 	m_sync->getNbFrames(requested_nb_frames);
-	dwRequestedFrames = (requested_nb_frames > 0) ? (DWORD) requested_nb_frames : dwRequestedFramesMax;
+	
+	if(requested_nb_frames > 0){
+		dwRequestedFrames = (DWORD) requested_nb_frames;
+		live_mode =false;
+	} else {
+		dwRequestedFrames = dwRequestedFramesMax;
+		live_mode = true;
+	}
+		
+		dwRequestedFrames = (requested_nb_frames > 0) ? (DWORD) requested_nb_frames : dwRequestedFramesMax;
 	dwFramesPerBuffer = m_cam->pcoGetFramesPerBuffer(); // for dimax = 1
 
 
@@ -362,7 +400,7 @@ int BufferCtrlObj::_xferImag()
 						// --------------- if needed prepare the next buffer 
 		if(dwFrameFirst2assign > dwRequestedFrames) break;
 			bufIdx = i;
-			if(error = _assignImage2Buffer(dwFrameFirst2assign, dwFrameLast2assign, dwRequestedFrames, bufIdx)) {
+			if(error = _assignImage2Buffer(dwFrameFirst2assign, dwFrameLast2assign, dwRequestedFrames, bufIdx,live_mode)) {
 				DEB_TRACE() << "ERROR _assignImage2Buffer";
 					return pcoAcqPcoError;
 			}
@@ -391,14 +429,18 @@ _RETRY:
 		  // lima frame nr is from 0 .... N-1        
 		  lima_buffer_nb = dwFrameIdx -1; // this frame was already readout to the buffer
 
-		DEB_TRACE() << "========================================FOUND " << DEB_VAR3(lima_buffer_nb, dwFrameIdx, bufIdx);
+		 if(m_cam->_getDebug(1)) {	DEB_ALWAYS() << "========================================FOUND " << DEB_VAR3(lima_buffer_nb, dwFrameIdx, bufIdx); }
 
 #ifdef USING_PCO_ALLOCATED_BUFFERS
 		// we are using the PCO allocated buffer, so this buffer must be copied to the lima buffer
 		void * ptrDest = (void *)m_allocBuff.limaAllocBufferPtr[bufIdx];
 		void *ptrSrc = (void *) m_allocBuff.pcoAllocBufferPtr[bufIdx];
+		size_t sizeLima = m_allocBuff.dwLimaAllocBufferSize[bufIdx];
 		size_t size = m_allocBuff.dwPcoAllocBufferSize[bufIdx];
 		SHORT sBufNr = 	m_allocBuff.pcoAllocBufferNr[bufIdx];
+
+		if(m_cam->_getDebug(1)) {DEB_ALWAYS() << "========================================FOUND " << DEB_VAR5(ptrDest, ptrSrc, size, sizeLima, sBufNr);}
+
 		DWORD dwStatusDll, dwStatusDrv;
 		if(	m_requestStop) {return pcoAcqTransferStop;}
 
@@ -411,10 +453,21 @@ _RETRY:
 				dwStatusDll, dwStatusDrv, errPco,
 				m_cam->_PcoCheckError(dwStatusDrv, error));
 		}
+		
 
-		memcpy(ptrDest, ptrSrc, size);
+		if(m_cam->_getDebug(1)) {DEB_ALWAYS() << "===== " << DEB_VAR5(ptrDest, ptrSrc, size, sizeLima, sBufNr);}
+		
+		if(m_cam->_getDebug(0x100)){
+			int val = dwFrameIdx & 0xf;
+			memset(ptrDest, val, size);
+			DEB_ALWAYS() << "===== dummy image!!! " << DEB_VAR1(val);
+		} else {
+			memcpy(ptrDest, ptrSrc, size);
+		}		
+		
+		
+		if(m_cam->_getDebug(2)) {DEB_ALWAYS() << "===== after xfer pco buffer to lima " << DEB_VAR6(ptrDest, ptrSrc, size, sizeLima, sBufNr, dwFrameIdx);}
 
-		DEB_TRACE() << "========================================FOUND " << DEB_VAR3(ptrDest, ptrSrc, size);
 #endif
 
 
@@ -425,10 +478,11 @@ _RETRY:
         //----- the image dwFrameIdx is already in the buffer -> callback!
 		if(m_requestStop) {return pcoAcqTransferStop;}
         if(dwFrameFirst2assign <= dwRequestedFrames) {
-			if(error = _assignImage2Buffer(dwFrameFirst2assign, dwFrameLast2assign, dwRequestedFrames, bufIdx)) {
+			if(error = _assignImage2Buffer(dwFrameFirst2assign, dwFrameLast2assign, dwRequestedFrames, bufIdx, live_mode)) {
 				return pcoAcqPcoError;
 			}
         }
+		if(m_cam->_getDebug(1)) {DEB_ALWAYS() << "===== " << DEB_VAR5(ptrDest, ptrSrc, size, sizeLima, sBufNr);}
         goto _WHILE_CONTINUE;
       }
     } // for
@@ -519,19 +573,27 @@ void BufferCtrlObj::_pcoAllocBuffers() {
 	}
 
 #ifdef USING_PCO_ALLOCATED_BUFFERS 
+	
+	_pcoAllocBuffersFree();
+	
 	// we are using pco allocated buffer, we must to allocate them
     int error = 0;
     char *sErr;
 	DWORD _dwMaxWidth, _dwMaxHeight;
+	WORD _wArmWidth, _wArmHeight;
     WORD _wBitPerPixel;
     unsigned int _bytesPerPixel;
 
 	if(!m_allocBuff.pcoAllocBufferDone){
-		m_cam->getMaxWidthHeight(_dwMaxWidth, _dwMaxHeight);
 		m_cam->getBytesPerPixel(_bytesPerPixel);
 		m_cam->getBitsPerPixel(_wBitPerPixel);
 
-		DWORD _dwAllocatedBufferSize = _dwMaxWidth * _dwMaxHeight * (DWORD) _bytesPerPixel;
+		m_cam->getMaxWidthHeight(_dwMaxWidth, _dwMaxHeight); // max
+		m_cam->getArmWidthHeight(_wArmWidth, _wArmHeight);  // actual
+
+		DWORD _dwAllocatedBufferSize = (DWORD) _wArmWidth * (DWORD) _wArmHeight * (DWORD) _bytesPerPixel;
+
+		if(m_cam->_getDebug(1)) {DEB_ALWAYS() << DEB_VAR4( _dwAllocatedBufferSize, _wArmWidth, _wArmHeight, _bytesPerPixel);}
 
 		m_pcoData->iAllocatedBufferNumber =  PCO_BUFFER_NREVENTS;
 		m_pcoData->dwAllocatedBufferSize = _dwAllocatedBufferSize;
@@ -547,8 +609,8 @@ void BufferCtrlObj::_pcoAllocBuffers() {
 					), error);
 
 				if(error) {
-    				DEB_TRACE() << sErr;
-    				DEB_TRACE() << DEB_VAR1(_dwAllocatedBufferSize);
+    				DEB_ALWAYS() << sErr;
+    				DEB_ALWAYS() << DEB_VAR1(_dwAllocatedBufferSize);
 					THROW_HW_ERROR(NotSupported) << sErr;
 				}
 				m_allocBuff.dwPcoAllocBufferSize[bufIdx] = _dwAllocatedBufferSize;
@@ -560,6 +622,8 @@ void BufferCtrlObj::_pcoAllocBuffers() {
 
 }
 
+//===================================================================================================================
+//===================================================================================================================
 void BufferCtrlObj::_pcoAllocBuffersFree() {
 
 	DEB_MEMBER_FUNCT();
