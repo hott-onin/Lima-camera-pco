@@ -53,6 +53,7 @@ void _pco_acq_thread_dimax(void *argin);
 void _pco_acq_thread_dimax_live(void *argin);
 void _pco_acq_thread_edge(void *argin);
 void _pco_shutter_thread_edge(void *argin);
+void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase);
 
 //=========================================================================================================
 char* _timestamp_pcocamera() {return ID_TIMESTAMP ;}
@@ -141,6 +142,8 @@ stcPcoData::stcPcoData(){
 	char *ptr, *ptrMax;
 	int i;
 
+	memset(this, 0, sizeof(struct stcPcoData));
+
 	ptr = version; *ptr = 0;
 	ptrMax = ptr + sizeof(version) - 1;
 
@@ -175,13 +178,14 @@ stcPcoData::stcPcoData(){
 	msAcqRecTimestamp = msAcqXferTimestamp =
 			getTimestamp();
 
-	msAcqRec = msAcqXfer =
+	/* msAcqRec = msAcqXfer =
 	iAllocatedBufferNumber = 
 	dwAllocatedBufferSize = 
 	iAllocatedBufferNumberLima =
 		0;
 
 	debugLevel = 0;
+	*/
 }
 
 //=========================================================================================================
@@ -761,6 +765,7 @@ void _pco_acq_thread_dimax(void *argin) {
 	// dimax recording time
 	m_pcoData->msAcqRec = msRec = msElapsedTime(tStart);
 	m_pcoData->msAcqRecTimestamp = getTimestamp();
+	m_pcoData->trace_nb_frames = nb_acq_frames;
 
 	msElapsedTimeSet(tStart);
 
@@ -920,12 +925,14 @@ void Camera::reset()
 //=========================================================================================================
 //=========================================================================================================
 int Camera::PcoCheckError(int err) {
+	DEB_MEMBER_FUNCT();
+
 	static char lastErrorMsg[500];
 	if (err != 0) {
 		DWORD dwErr = err;
 		m_pcoData->pcoError = err;
 		PCO_GetErrorText(dwErr, m_pcoData->pcoErrorMsg, ERR_SIZE-14);
-		printf("===> [x%08x][%s]\n", dwErr, m_pcoData->pcoErrorMsg);
+		DEB_ALWAYS() << DEB_VAR1(m_pcoData->pcoErrorMsg);
 		return (err);
 	}
 	return (err);
@@ -1080,16 +1087,52 @@ char * Camera::_pcoSet_Storage_subRecord_Mode(enumPcoStorageMode mode, int &erro
 //=================================================================================================
 //=================================================================================================
 
+// 4294967295.0 = double(DWORD(0xFFFFFFFF)) 
+#define DWORD_MAX_FLOAT 4294967295.0
 
+#define	MAX_DWORD_MS (double(4294967295.0e-3))
+#define	MAX_DWORD_US (double(4294967295.0e-6))
+#define	MAX_DWORD_NS (double(4294967295.0e-9))
+
+
+void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase) {
+	// conversion time(s) to PCO standard DWORD + UNIT(ms, us, ns)
+		// exp & lat time is saved in seconds (LIMA). 
+		// PCO requires them expressed in DWORD as ms(base=2), us(base=1) or ns(base=0)
+		// max DWORD 0xFFFFFFFF = 4294967295.0
+		// find the lowest unit (ns -> us -> ms) which does not overflow DWORD
+    
+	if(exp_time <= MAX_DWORD_NS) {   
+		dwExp = DWORD(exp_time * 1.0e9); wBase = 0; // ns
+	} else 	if(exp_time <= MAX_DWORD_US) {  
+		dwExp = DWORD(exp_time * 1.0e6); wBase = 1; // us
+	} else {  
+		dwExp = DWORD(exp_time * 1.0e3); wBase = 2; // ms
+	}
+
+	DWORD mask = 0x7;
+	DWORD min = 0x1000;
+
+	if(dwExp > min){
+		dwExp |= mask;
+		dwExp ^= mask;
+	}
+
+	return;
+}
+
+
+//=================================================================================================
+//=================================================================================================
 char* Camera::_pcoSet_Exposure_Delay_Time(int &error, int ph){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-    float factor;
 	bool doIt;
+
 
     DWORD dwExposure, dwDelay;
 	WORD wExposure_base, wDelay_base;
-    double _exposure, _delay, val;
+    double _exposure, _delay;
     m_sync->getExpTime(_exposure);
     m_sync->getLatTime(_delay);
 	double _delay0 = _delay;
@@ -1098,7 +1141,6 @@ char* Camera::_pcoSet_Exposure_Delay_Time(int &error, int ph){
 	
 	if(ph != 0){ 
 		doIt = FALSE;
-
 
 		if((_isCameraType(Edge)) && (m_pcoData->dwPixelRate >= PCO_EDGE_PIXEL_RATE_HIGH) ) {
 			double pixels = ((double) m_pcoData->wXResActual)* ((double) m_pcoData->wYResActual);
@@ -1111,45 +1153,24 @@ char* Camera::_pcoSet_Exposure_Delay_Time(int &error, int ph){
 				doIt = TRUE;
 				printf("--- %s> delay forced [%g] -> [%g]\n", fnId, _delay0, _delay);
 			}
-			//if (period > _delay + _exposure) {
-			//	_delay = period  - _exposure;
-			//	printf("--- %s> delay forced [%g] -> [%g]\n", fnId, _delay0, _delay);
-			//}
 		}
 	}
 
 	if(!doIt) return fnId;
 
-		// exp/lat time is saved in s. PCO requires it expressed in ms(=2), us(=1), ns(=0)
-	// test time expressed in ns(=0), us(=1), ms(=2) up not overflow max precision in 32 bits
-    for (wExposure_base = 0; wExposure_base < 3; wExposure_base++) {  // base 0(ns), 1(us), 2(ms)
-        factor = pow((float)10, (int) (wExposure_base * 3 - 9));		// factor 10E-9, 10E-6, 10E-3
-        if ( (val = (_exposure / factor)) <= DWORD_MAX_FLOAT) {		// multiply by 10E9, 10E6, 10E3
-            dwExposure = (DWORD) val;			// exposure max precision in 32 bits, exposure base 0(ns)  1(us)  2(ms)
-            break;
-        }
-    }
-    //====================================== TODO set/get the value of ccd.delay now is 0 
-    for (wDelay_base = 0; wDelay_base < 3; wDelay_base++) {
-        factor = pow((float) 10, (int) (wDelay_base * 3 - 9));
-        if ( (val = (_delay / factor)) <= DWORD_MAX_FLOAT) {
-            dwDelay = (DWORD) val;
-            break;
-        }
-    }
+	_pco_time2dwbase(_exposure, dwExposure, wExposure_base);
+	_pco_time2dwbase(_delay,  dwDelay, wDelay_base);
 
-    if(_getDebug(1)) {
+	error = PcoCheckError(PCO_SetDelayExposureTime(m_handle, dwDelay, dwExposure, wDelay_base, wExposure_base));
+
+	if(error || _getDebug(1)) {
 		DEB_ALWAYS() << DEB_VAR3(_exposure, dwExposure, wExposure_base);
 		DEB_ALWAYS() << DEB_VAR3(_delay,  dwDelay, wDelay_base);
 	}
 
-	error = PcoCheckError(PCO_SetDelayExposureTime(m_handle, dwDelay, dwExposure, wDelay_base, wExposure_base));
 	if(error) {
-		DEB_TRACE() << DEB_VAR2(_exposure, _delay);	
-		DEB_TRACE() << DEB_VAR4(dwDelay, dwExposure, wDelay_base, wExposure_base);	
 		return "PCO_SetDelayExposureTime";
 	}
-
 
 	return fnId;
 }
