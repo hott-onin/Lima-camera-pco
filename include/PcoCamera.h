@@ -34,6 +34,25 @@
 
 #define BUFF_VERSION 1024
 
+//--------------------------------------- debug const for talk
+#define DBG_BUFF           0x00000001
+#define DBG_XFER2LIMA      0x00000002
+#define DBG_LIMABUFF       0x00000004
+#define DBG_EXP            0x00000008
+#define DBG_XFERMULT       0x00000010
+#define DBG_XFERMULT1      0x00000020
+#define DBG_ASSIGN_BUFF    0x00000040
+#define DBG_STATUS		   0x00000080
+
+
+#define DBG_DUMMY_IMG      0x00000100
+#define DBG_ROI            0x00001000
+//---------------------------------------
+
+#define KILOBYTE (1024LL)
+#define MEGABYTE (KILOBYTE * KILOBYTE)
+#define GIGABYTE (KILOBYTE * MEGABYTE)
+
 #define PCO_EDGE_PIXEL_RATE_MIN 95000000
 #define PCO_EDGE_PIXEL_RATE_MAX 286000000
 #define PCO_EDGE_PIXEL_RATE_LOW 100000000
@@ -54,6 +73,8 @@ struct stcXlatCode2Str {
 
 #define PCO_MAXSEGMENTS 4
 
+#define LEN_DUMP 128
+char DLL_EXPORT *_hex_dump_bytes(void *obj, size_t lenObj, char *buff, size_t lenBuff);
 
 
 struct stcFrame {
@@ -96,6 +117,7 @@ struct stcTemp {
 	short wSetpoint;
 };
 
+
 #define SIZEARR_stcPcoHWIOSignal 10
 struct stcPcoData {
 	PCO_General stcPcoGeneral;
@@ -111,6 +133,7 @@ struct stcPcoData {
 	WORD wNrPcoHWIOSignal;
 	unsigned long long debugLevel;
 
+	DWORD dwPixelRateMax;
 
 	char model[MODEL_TYPE_SIZE+1], iface[INTERFACE_TYPE_SIZE+1];
 	//int	interface_type;
@@ -140,7 +163,7 @@ struct stcPcoData {
         char		sensor_type[64];
 
         
-        unsigned int    nr_adc, max_adc;
+        WORD    wNowADC, wNumADC;
         unsigned int    maxwidth_step, maxheight_step;
 
         struct stcTemp temperature;
@@ -150,11 +173,26 @@ struct stcPcoData {
 		unsigned int maxWidth;		// unsigned int xmax;		/* Max size */
 		unsigned int maxHeight;        //unsigned int ymax;
 
-		WORD wMetaDataMode, wMetaDataSize, wMetaDataVersion;
+		WORD bMetaDataAllowed, wMetaDataMode, wMetaDataSize, wMetaDataVersion;
 		
-		long msAcqRec, msAcqXfer, msAcqTout, msAcqTnow;
+		long msAcqRec, msAcqXfer, msAcqTout, msAcqTnow, msAcqAll;
 		time_t msAcqRecTimestamp, msAcqXferTimestamp, msAcqToutTimestamp, msAcqTnowTimestamp;
 		int trace_nb_frames;
+
+		struct stcTraceAcq{
+			DWORD nrImgRecorded;
+			DWORD maxImgCount;
+			int nrImgRequested;
+			int nrImgRequested0;
+			int nrImgAcquired;
+			long msTotal, msRecord, msRecordLoop, msXfer, msTout;
+			double msImgCoc;
+			double sExposure, sDelay;
+			time_t endRecordTimestamp;
+			time_t endXferTimestamp;
+			char *fnId;
+			void init();
+		} traceAcq;
 
 		DWORD dwPixelRate, dwPixelRateRequested;
 		double fTransferRateMHzMax;
@@ -170,9 +208,9 @@ struct stcPcoData {
 
 		char version[BUFF_VERSION];
 
-		double min_exp_time, min_exp_time_err;
+		double min_exp_time, min_exp_time_err, step_exp_time;
 		double max_exp_time, max_exp_time_err;
-		double min_lat_time, min_lat_time_err;
+		double min_lat_time, min_lat_time_err, step_lat_time;
 		double max_lat_time, max_lat_time_err;
 		
 		stcPcoData();
@@ -184,7 +222,12 @@ enum enumChange {
 };
 
 enum enumPcoFamily {
-	Dimax = 1, Edge, EdgeGL, EdgeRolling,
+	Dimax       = 1<<0, 
+	Edge        = 1<<1, 
+	EdgeGL      = 1<<2,
+	EdgeRolling = 1<<3, 
+	Pco2k       = 1<<4,
+	Pco4k       = 1<<5,
 };
 
 enum enumPcoStorageMode {
@@ -256,8 +299,10 @@ namespace lima
 		int pcoGetError() {return m_pcoData->pcoError;}
 
 		char *_pcoSet_RecordingState(int state, int &error);
+		int dumpRecordedImages(int &nrImages, int &error);
+
 		WORD _getCameraType() {return m_pcoData->stcPcoCamType.wCamType ; }
-		bool _isCameraType(enum enumPcoFamily tp);
+		bool _isCameraType(int tp);
 		bool _isConfig(){return m_config; };
 		void _pco_set_shutter_rolling_edge(int &error);
 		void msgLog(char *s);

@@ -6,4 +6,5 @@
 *~
 *target*
 *.vcproj.*user
-/sdk/
+*.tmp
+
