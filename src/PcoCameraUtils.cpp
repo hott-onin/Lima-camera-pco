@@ -38,7 +38,6 @@
 #include "PcoSyncCtrlObj.h"
 #include "PcoBufferCtrlObj.h"
 
-
 using namespace lima;
 using namespace lima::Pco;
 
@@ -57,6 +56,13 @@ char *_xlat_date(char *s1, char *s2, char *s3) ;
 char* _timestamp_pcocamerautils() {return ID_TIMESTAMP ;}
 //=========================================================================================================
 
+//=========================================================================================================
+// dummy comments for test 02ccc
+//=========================================================================================================
+
+
+//=========================================================================================================
+//=========================================================================================================
 char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
    static char timeline[128];
    errno_t err;
@@ -76,15 +82,11 @@ char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
 		time( &ltime );
 	else
 		ltime = xtime;
-
-
-
 	err = localtime_s( &today, &ltime );
 	strftime(timeline, 128, fmt, &today );
       
 	return timeline;
 }
-
 
 time_t getTimestamp() { return time(NULL); }
 
