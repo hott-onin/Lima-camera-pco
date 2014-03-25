@@ -29,6 +29,8 @@
 #include "Constants.h"
 #include "HwMaxImageSizeCallback.h"
 //#include "PcoBufferCtrlObj.h"
+#include "PcoHwEventCtrlObj.h"
+
 
 #define DISABLE_ACQ_ENBL_SIGNAL
 
@@ -43,7 +45,6 @@
 #define DBG_XFERMULT1      0x00000020
 #define DBG_ASSIGN_BUFF    0x00000040
 #define DBG_STATUS		   0x00000080
-
 
 #define DBG_DUMMY_IMG      0x00000100
 #define DBG_ROI            0x00001000
@@ -64,12 +65,13 @@
 
 #define PCO_CL_BAUDRATE_115K2	115200
 
-#define PCO_BUFFER_NREVENTS 2
+#define PCO_BUFFER_NREVENTS 4
 struct stcXlatCode2Str {
 		int code;
 		char *str;
 };
 
+#define LEN_TRACEACQ_MSG 512
 
 #define PCO_MAXSEGMENTS 4
 
@@ -177,7 +179,6 @@ struct stcPcoData {
 		
 		long msAcqRec, msAcqXfer, msAcqTout, msAcqTnow, msAcqAll;
 		time_t msAcqRecTimestamp, msAcqXferTimestamp, msAcqToutTimestamp, msAcqTnowTimestamp;
-		int trace_nb_frames;
 
 		struct stcTraceAcq{
 			DWORD nrImgRecorded;
@@ -191,7 +192,7 @@ struct stcPcoData {
 			time_t endRecordTimestamp;
 			time_t endXferTimestamp;
 			char *fnId;
-			void init();
+			char msg[LEN_TRACEACQ_MSG+1];
 		} traceAcq;
 
 		DWORD dwPixelRate, dwPixelRateRequested;
@@ -214,11 +215,16 @@ struct stcPcoData {
 		double max_lat_time, max_lat_time_err;
 		
 		stcPcoData();
-
+		void traceAcqClean();
+		void traceMsg(char *s);
 };
 
 enum enumChange {
 	Invalid, Valid, Changed,
+};
+
+enum enumStop {
+	stopNone = 0, stopRequest, stopRequestAgain, stopProcessing,
 };
 
 enum enumPcoFamily {
@@ -293,9 +299,11 @@ namespace lima
 
 		WORD pcoGetActiveRamSegment() {return m_pcoData->activeRamSegment;}
 
+		BufferCtrlObj* _getBufferCtrlObj() { return m_buffer;}
 		SyncCtrlObj*	_getSyncCtrlObj() { return m_sync;}
 		struct stcPcoData * _getPcoData() {return  m_pcoData; }
-		char* _PcoCheckError(int err, int&error) ;
+		
+		char* _PcoCheckError(int line, char *file, int err, int&error) ;
 		int pcoGetError() {return m_pcoData->pcoError;}
 
 		char *_pcoSet_RecordingState(int state, int &error);
@@ -308,7 +316,9 @@ namespace lima
 		void msgLog(char *s);
 
 	private:
+		PcoHwEventCtrlObj *m_HwEventCtrlObj;
 		SyncCtrlObj*	m_sync;
+		BufferCtrlObj*  m_buffer;
 
 		std::string m_log;
         //char pcoErrorMsg[ERR_SIZE+1];
@@ -330,8 +340,10 @@ namespace lima
 		int		m_acq_frame_nb;
 		bool m_config;
 
-        int PcoCheckError(int err);
-        void _allocBuffer();
+
+        int PcoCheckError(int line, char *file, int err);
+
+		void _allocBuffer();
 
         char *_talk(char *cmd, char *output, int lg);
 

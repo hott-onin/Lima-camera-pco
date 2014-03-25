@@ -43,6 +43,7 @@ namespace lima
     class BufferCtrlObj;
     class SyncCtrlObj;
     class RoiCtrlObj;
+    class PcoHwEventCtrlObj;
 
     class  DLL_EXPORT Interface : public HwInterface
     {
@@ -76,6 +77,7 @@ namespace lima
       BufferCtrlObj* 	m_buffer;
       SyncCtrlObj* 	m_sync;
       RoiCtrlObj*       m_RoiCtrlObj;
+      PcoHwEventCtrlObj*       m_HwEventCtrlObj;
       static RoiCtrlObj*       m_RoiCtrlObjXXX;
     };
 

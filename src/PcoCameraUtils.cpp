@@ -72,6 +72,7 @@ char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
 
   switch(fmtIdx) {
     case Iso: fmt = "%Y/%m/%d %H:%M:%S"; break;
+    case IsoHMS: fmt = "%H:%M:%S"; break;
     case FnDate: fmt = "%Y-%m-%d"; break;
 
     default:
@@ -196,17 +197,18 @@ char *str_trim(char *s) {
 
 //=========================================================================================================
 //=========================================================================================================
-void stcPcoData::stcTraceAcq::init(){
-	nrImgRecorded = 
-	maxImgCount = 
-	nrImgRequested =
-	nrImgRequested0 =
-	nrImgAcquired = 
-	msTotal = msRecord = msRecordLoop = msXfer = msTout = 0;
-	msImgCoc =
-	sExposure = sDelay = 0;
-	endRecordTimestamp = endXferTimestamp = 0;
-	fnId = NULL;
+
+void stcPcoData::traceAcqClean(){
+	void *ptr = &this->traceAcq;
+	memset(ptr, 0, sizeof(struct stcTraceAcq));
+}
+
+void stcPcoData::traceMsg(char *s){
+	char *ptr = traceAcq.msg;
+	char *dt = getTimestamp(IsoHMS);
+	int lg = strlen(ptr);
+	ptr += lg;
+	snprintf(ptr, LEN_TRACEACQ_MSG - lg,"%s> %s", dt, s);
 }
 
 char *Camera::talk(char *cmd){
@@ -532,6 +534,9 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				m_pcoData->traceAcq.sExposure * 1000.,
 				m_pcoData->traceAcq.sDelay * 1000.);
 
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"%s\n", m_pcoData->traceAcq.msg);
+
 			return output;
 		}
 
@@ -539,6 +544,16 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		key = keys[ikey] = "testCmd";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "DISABLED / debug tool";     //----------------------------------------------------------------
 		if(_stricmp(cmd, key) == 0){
+            //--- test of callback
+			if( (_stricmp(tok[1], "cb")==0)){
+				Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::Default, "test cb");
+				m_HwEventCtrlObj->reportEvent(ev);
+				ptr += sprintf_s(ptr, ptrMax - ptr, "%s> done\n", tok[1]);
+				return output;
+			}
+
+
+
 
 			if((tokNr == 2) &&  (_stricmp(tok[1], "time")==0)){
 				ptr += sprintf_s(ptr, ptrMax - ptr, "sleeping\n"); 
@@ -556,6 +571,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			}
 			return output;
 		}
+
 
 
 		key = keys[ikey] = "rollingShutter";     //----------------------------------------------------------------
@@ -724,7 +740,6 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				_PRINT_DBG( DBG_XFERMULT1 ) ;
 				_PRINT_DBG( DBG_ASSIGN_BUFF ) ;
 				_PRINT_DBG( DBG_STATUS ) ;
-				
 				_PRINT_DBG( DBG_ROI ) ;
 			}
 
@@ -757,9 +772,14 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				PCO_SC2_Hardware_DESC *ptrhw;
 				ptrhw = &m_pcoData->stcPcoCamType.strHardwareVersion.Board[iDev];
 				ptr += sprintf_s(ptr, ptrMax - ptr, "* %20d      %-18s   %4d.%-4d    %4d\n", 
-					iDev, ptrhw->szName, ptrhw->wBatchNo, ptrhw->wRevision, ptrhw->wVariant);
+					iDev, 
+					ptrhw->szName,
+					ptrhw->wBatchNo,
+					ptrhw->wRevision,
+					ptrhw->wVariant
+					);
 			}
-  
+
 			nrDev=m_pcoData->stcPcoCamType.strFirmwareVersion.DeviceNum;
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* Firmware_DESC device[%d]  szName          bMajorRev/Minor   wVariant\n", nrDev);
@@ -768,7 +788,12 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				PCO_SC2_Firmware_DESC *ptrfw;
 				ptrfw = &m_pcoData->stcPcoCamType.strFirmwareVersion.Device[iDev];
 				ptr += sprintf_s(ptr, ptrMax - ptr, "* %20d      %-18s   %4d.%-4d    %4d\n", 
-					iDev, ptrfw->szName, ptrfw->bMajorRev, ptrfw->bMinorRev, ptrfw->wVariant);
+					iDev,
+					ptrfw->szName,
+					ptrfw->bMajorRev,
+					ptrfw->bMinorRev,
+					ptrfw->wVariant
+					);
 			}
 
 			PCO_FW_Vers strFirmwareVersion;
@@ -800,7 +825,6 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			err = PCO_GetADCOperation(m_handle, &wADCOperation);
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* ADC wADCOperation[%d] wNumADCsDESC[%d]\n", 
 					wADCOperation, m_pcoData->stcPcoDescription.wNumADCsDESC);
-
 
 			ptr += sprintf_s(ptr, ptrMax - ptr,"%s\n", m_log.c_str());
 			return output;
@@ -857,7 +881,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			int error;
 			WORD wAcquEnableState;
 
-			error = PcoCheckError(PCO_GetAcqEnblSignalStatus(m_handle, &wAcquEnableState));
+			error = PcoCheckError(__LINE__, __FILE__, PCO_GetAcqEnblSignalStatus(m_handle, &wAcquEnableState));
 			
 			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", wAcquEnableState);
 			

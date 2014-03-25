@@ -120,8 +120,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)include&quot;;&quot;$(LimaDir)hardware\include&quot;;&quot;$(LimaDir)common\include&quot;;&quot;$(LimaDir)third-party\Processlib\core\include\WindowSpecific&quot;;&quot;$(LimaDir)third-party\Processlib\core\include&quot;;&quot;$(SolutionDir)sdkPco\include&quot;;&quot;$(LimaDir)..\sdkPco\include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBLIMAPCO_EXPORTS;LIMA_PROCESSCORE_DLL;LIMA_PROCESSCORE_BUILD;_WIN32_WINNT=0x0600"
+				AdditionalIncludeDirectories="&quot;$(LimaDir)camera\pco\include&quot;;&quot;$(LimaDir)hardware\include&quot;;&quot;$(LimaDir)common\include&quot;;&quot;$(LimaDir)third-party\Processlib\core\include\WindowSpecific&quot;;&quot;$(LimaDir)third-party\Processlib\core\include&quot;;&quot;$(LimaDir)camera\pco\sdkPco\include&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBLIMAPCO_EXPORTS;LIMA_PROCESSCORE_DLL;LIMA_PROCESSCORE_BUILD;_WIN32_WINNT=0x0600;WITH_GIT_VERSION"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -140,7 +140,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(SolutionDir)sdkPco\lib\SC2_Cam.lib $(LimaDir)build\msvc\9.0\LimaCore\Release\liblimacore.lib $(LimaDir)third-party\Processlib\build\msvc\9.0\libprocesslib\Release\libprocesslib.lib"
+				AdditionalDependencies="$(LimaDir)camera\pco\sdkPco\lib\SC2_Cam.lib $(LimaDir)build\msvc\9.0\LimaCore\Release\liblimacore.lib $(LimaDir)third-party\Processlib\build\msvc\9.0\libprocesslib\Release\libprocesslib.lib"
 				OutputFile="$(InputDir)Release\$(ProjectName).dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
@@ -280,6 +280,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\src\PcoHwEventCtrlObj.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\src\PcoInterface.cpp"
 				>
 			</File>
@@ -315,6 +319,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\include\PcoDetInfoCtrlObj.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\include\PcoHwEventCtrlObj.h"
 				>
 			</File>
 			<File
@@ -389,28 +397,14 @@
 			>
 		</Filter>
 		<Filter
-			Name="notes"
+			Name="doc"
 			>
 			<File
-				RelativePath="..\..\..\..\notes\notes.txt"
+				RelativePath="..\..\..\..\doc\notes.txt"
 				>
-				<FileConfiguration
-					Name="Release_Win7_Sync|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\..\notes\pcods_c.txt"
+				RelativePath="..\..\..\..\doc\VERSION.log"
 				>
 			</File>
 		</Filter>

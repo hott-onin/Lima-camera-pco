@@ -21,18 +21,39 @@
  along with this program; if not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 **************************************************************************/
-#ifndef PCOCAMERAUTILS_H
-#define PCOCAMERAUTILS_H
+#ifndef PCOHWEVENTCTRLOBJ_H
+#define PCOHWEVENTCTRLOBJ_H
 
-#include <time.h>
-#include "Compatibility.h"
+#include "Pco.h"
+#include "HwEventCtrlObj.h"
+#include "Debug.h"
 
-enum timestampFmt {Iso=1, IsoHMS, FnFull, FnDate};
+namespace lima
+{
+  namespace Pco
+  {
+    class Camera;
+	class DLL_EXPORT  PcoHwEventCtrlObj : public HwEventCtrlObj
+    {
+      DEB_CLASS_NAMESPC(DebModCamera, "PcoHwEventCtrlObj","Pco");
 
-char *getTimestamp(timestampFmt fmtIdx, time_t xtime = 0) ;
+    public:
+      PcoHwEventCtrlObj();
+      //PcoHwEventCtrlObj(Camera*);
+      //virtual ~PcoHwEventCtrlObj();
 
-time_t getTimestamp();
-char *_checkLogFiles() ;
+	  //virtual void   registerEventCallback(EventCallback& cb);
+	  //virtual void unregisterEventCallback(EventCallback& cb);
+	  //virtual bool hasRegisteredCallback();
 
+	  //virtual void reportEvent(Event *event);
 
-#endif
+    private:
+      //Camera* 			m_cam;
+      //HANDLE& 		m_handle;
+    };
+
+  } // namespace Pco
+} // namespace lima
+
+#endif // PCOHWEVENTCTRLOBJ_H
