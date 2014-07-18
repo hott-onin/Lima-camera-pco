@@ -168,7 +168,7 @@ int Interface::getNbAcquiredFrames()
 //=========================================================================================================
 int Interface::getNbHwAcquiredFrames()
 {
-	int nb_acq_frames;
+	int nb_acq_frames = -1;
 	m_sync->getAcqFrames(nb_acq_frames);
 	return nb_acq_frames;
 }

@@ -1025,6 +1025,10 @@ void _pco_acq_thread_edge(void *argin) {
 	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
 	printf("=== %s> EXIT xfer[%ld] (ms) status[%s]\n", 
 			fnId, msXfer, sPcoAcqStatus[status]);
+
+	//- Test by FL from Roberto
+	m_sync->setStarted(false);
+
 	_endthread();
 }
 
