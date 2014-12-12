@@ -139,10 +139,10 @@ enum TrigMode {
 
 WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 {
-	WORD ret;
+	DEB_MEMBER_FUNCT();
+    DEF_FNID;
 
-	// DONE
-  DEB_MEMBER_FUNCT();
+	WORD pcoAcqMode;
 
 
 	if(!checkTrigMode(m_trig_mode)){
@@ -166,16 +166,16 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 
     switch( m_trig_mode)	{
 	  case IntTrig: // 0 SOFT (spec)
-    	  ret= 0x0000;
+    	  pcoAcqMode= 0x0000;
 			break;
 
 		case ExtTrigMult:
 		//case IntTrigMult: // 1 START (spec)
       case ExtGate:  // 2 GATE (spec)
 #ifdef DISABLE_ACQ_ENBL_SIGNAL
-    	  ret= 0x0000;
+    	  pcoAcqMode= 0x0000;
 #else
-		  ret= 0x0001;
+		  pcoAcqMode= 0x0001;
 #endif
 		  break;
 
@@ -184,8 +184,8 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 
 	}
 
-	DEB_ALWAYS() << "returned values" << DEB_VAR2(ret, m_trig_mode);
-	return ret;
+	DEB_ALWAYS() << fnId << ": " << DEB_VAR2(pcoAcqMode, m_trig_mode);
+	return pcoAcqMode;
 
 }
 
@@ -193,11 +193,10 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 //=========================================================================================================
 
 WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
-	// DONE
-
-	WORD ret;
-
 	DEB_MEMBER_FUNCT();
+    DEF_FNID;
+
+	WORD pcoTrigMode;
 
 	if(!checkTrigMode(m_trig_mode)){
 		throw LIMA_HW_EXC(NotSupported,"Trigger type not supported");
@@ -215,7 +214,7 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 	    default: 
 		case IntTrig: 
 			ext_trig = false;
-			ret= 0x0000;  // 0 = SOFT (spec)
+			pcoTrigMode= 0x0000;  // 0 = SOFT (spec)
 			break;
 
 			// PCO = 0x0002
@@ -224,7 +223,7 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 		//case IntTrigMult: return 0x0002;   // 1 = START (spec)
 		case ExtTrigMult: 
 			ext_trig = true;
-			ret= 0x0002;   // 1 = START (spec)
+			pcoTrigMode= 0x0002;   // 1 = START (spec)
 			break;
 
 			// PCO = 0x0003
@@ -235,16 +234,16 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 			// time of the second image is given by the readout time of the first image.)
 		case ExtGate: 
 			ext_trig = true;
-			ret= 0x0003;  // 2 = GATE (spec)
+			pcoTrigMode= 0x0003;  // 2 = GATE (spec)
 			break;
 
 	
 	}
 
 
-	DEB_ALWAYS() << "returned values" << DEB_VAR2(ret, m_trig_mode);
+	DEB_ALWAYS() << fnId <<": " << DEB_VAR3(pcoTrigMode, m_trig_mode, ext_trig);
 
-	return ret;
+	return pcoTrigMode;
 }
 
 
@@ -392,22 +391,24 @@ void SyncCtrlObj::getValidRanges(ValidRangesType& valid_ranges)
 	DEF_FNID;
 	// DONE
 
-	m_pcoData->step_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureStepDESC) * 1e-9 ;	//step exposure time in ns
 	
-	m_pcoData->min_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureDESC) * 1e-9 ;	//Minimum exposure time in ns
+
+	m_pcoData->step_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureStepDESC) * NANO ;	//step exposure time in ns
+	
+	m_pcoData->min_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureDESC) * NANO ;	//Minimum exposure time in ns
 	valid_ranges.min_exp_time = m_pcoData->min_exp_time_err = m_pcoData->min_exp_time - m_pcoData->step_exp_time ;	
 
-	m_pcoData->max_exp_time = (m_pcoData->stcPcoDescription.dwMaxExposureDESC) * 1e-3 ;   // Maximum exposure time in ms  
+	m_pcoData->max_exp_time = (m_pcoData->stcPcoDescription.dwMaxExposureDESC) * MILI ;   // Maximum exposure time in ms  
 	valid_ranges.max_exp_time = m_pcoData->max_exp_time_err = m_pcoData->max_exp_time + m_pcoData->step_exp_time ;	
 
 
-	m_pcoData->step_lat_time = (m_pcoData->stcPcoDescription.dwMinDelayStepDESC) * 1e-9 ;	//step delay time in ns
+	m_pcoData->step_lat_time = (m_pcoData->stcPcoDescription.dwMinDelayStepDESC) * NANO ;	//step delay time in ns
 
-	m_pcoData->min_lat_time = (m_pcoData->stcPcoDescription.dwMinDelayDESC) * 1e-9 ; // Minimum delay time in ns
+	m_pcoData->min_lat_time = (m_pcoData->stcPcoDescription.dwMinDelayDESC) * NANO ; // Minimum delay time in ns
 	valid_ranges.min_lat_time = m_pcoData->min_lat_time_err = 
 		(m_pcoData->min_lat_time < m_pcoData->step_lat_time) ? m_pcoData->min_lat_time : m_pcoData->min_lat_time - m_pcoData->step_lat_time ;
 
-	m_pcoData->max_lat_time = (m_pcoData->stcPcoDescription.dwMaxDelayDESC) * 1e-3 ; // Maximum delay time in ms
+	m_pcoData->max_lat_time = (m_pcoData->stcPcoDescription.dwMaxDelayDESC) * MILI ; // Maximum delay time in ms
 	valid_ranges.max_lat_time = m_pcoData->max_lat_time_err = m_pcoData->max_lat_time + m_pcoData->step_lat_time ;	
 
 
@@ -419,9 +420,13 @@ void SyncCtrlObj::startAcq()
 {
   DEB_MEMBER_FUNCT();
   
+  bool _started = getStarted();
+
   m_cam->msgLog("startAcq");
 
-  if(!getStarted())
+  DEB_ALWAYS() << ": SyncCtrlObj::startAcq() " << DEB_VAR1(_started);
+
+  if(!_started)
     {
   
 		if(m_buffer) {
@@ -437,8 +442,8 @@ void SyncCtrlObj::startAcq()
 //=========================================================================================================
 void SyncCtrlObj::stopAcq(bool clearQueue)
 {
-	int error;
-	int _stopRequestIn, _stopRequestOut;
+	//int error;
+	int _stopRequestIn, _stopRequestOut, _nrStop;
 	bool _started;
 
 
@@ -446,8 +451,9 @@ void SyncCtrlObj::stopAcq(bool clearQueue)
   DEF_FNID;
 
   m_cam->msgLog("stopAcq");
+  DEB_ALWAYS() << ": SyncCtrlObj::stopAcq()";
 
-  _stopRequestIn = m_buffer->_getRequestStop();
+  _stopRequestIn = m_buffer->_getRequestStop(_nrStop);
 
   if(_started = getStarted())
     {
@@ -455,13 +461,17 @@ void SyncCtrlObj::stopAcq(bool clearQueue)
 			case stopNone:
 				m_buffer->_setRequestStop(stopRequest);
 
-				m_cam->_pcoSet_RecordingState(0, error);
-				PCO_THROW_OR_TRACE(error, "Try to stop Acq") ;
+				//m_cam->_pcoSet_RecordingState(0, error);
+				//PCO_THROW_OR_TRACE(error, "Try to stop Acq") ;
 				break;
 
-			case stopProcessing:
+			//case stopProcessing:
 				//m_buffer->_setRequestStop(stopRequest);
-				break;			
+				//break;			
+
+			case stopRequest:
+				m_buffer->_setRequestStop(stopRequest);
+				break;
 
 			default:
 				break;
@@ -474,11 +484,11 @@ void SyncCtrlObj::stopAcq(bool clearQueue)
 
 
 
-  _stopRequestOut = m_buffer->_getRequestStop();
+  _stopRequestOut = m_buffer->_getRequestStop(_nrStop);
 
 	//setStarted(false);
 
-  DEB_ALWAYS() << DEB_VAR3(_started, _stopRequestIn, _stopRequestOut);
+  DEB_ALWAYS() << fnId << ": " << DEB_VAR4(_started, _stopRequestIn, _stopRequestOut, _nrStop);
 }
 
 
@@ -502,6 +512,10 @@ DEB_TRACE() << DEB_VAR3(_started, m_buffer, m_exposing);
 			  status.det = DetExposure;
 			  break;
 
+			case pcoAcqStop: 
+			case pcoAcqTransferStop: 
+			case pcoAcqIdle: 
+			case pcoAcqTransferEnd: 
 			case pcoAcqRecordEnd:  
 			case pcoAcqTransferStart: 
 			  status.acq = AcqRunning;
@@ -515,15 +529,6 @@ DEB_TRACE() << DEB_VAR3(_started, m_buffer, m_exposing);
 			case pcoAcqPcoError:
 			  status.acq = AcqFault;
 			  status.det = DetFault;
-			  break;
-
-
-			case pcoAcqStop: 
-			case pcoAcqTransferStop: 
-			case pcoAcqIdle: 
-			case pcoAcqTransferEnd: 
-		      status.acq = AcqReady;
-			  status.det = DetIdle;
 			  break;
 
 

@@ -36,19 +36,38 @@
 
 #define BUFF_VERSION 2048
 
+#define MAX_NR_STOP 0
+
+#define NANO (1.0E-9)
+#define MICRO (1.0E-6)
+#define MILI (1.0E-3)
+
 //--------------------------------------- debug const for talk
 #define DBG_BUFF           0x00000001
 #define DBG_XFER2LIMA      0x00000002
 #define DBG_LIMABUFF       0x00000004
 #define DBG_EXP            0x00000008
+
 #define DBG_XFERMULT       0x00000010
 #define DBG_XFERMULT1      0x00000020
 #define DBG_ASSIGN_BUFF    0x00000040
 #define DBG_STATUS		   0x00000080
 
 #define DBG_DUMMY_IMG      0x00000100
+#define DBG_WAITOBJ		   0x00000200
+#define DBG_XFER_IMG       0x00000400
+
 #define DBG_ROI            0x00001000
 //---------------------------------------
+
+//--------------------------------------- test cmd mode
+#define TESTCMDMODE_DIMAX_XFERMULTI		0x00000001   // _pco_acq_thread_dimax dimax: xferMulti or xfer
+#define TESTCMDMODE_2					0x00000002
+#define TESTCMDMODE_4					0x00000004
+#define TESTCMDMODE_8					0x00000008
+#define TESTCMDMODE_10					0x00000010
+//---------------------------------------
+
 
 #define KILOBYTE (1024LL)
 #define MEGABYTE (KILOBYTE * KILOBYTE)
@@ -61,7 +80,6 @@
 #define PCO_EDGE_WIDTH_HIGH 1920
 #define PCO_EDGE_LUT_SQRT 0x1612
 #define PCO_EDGE_LUT_NONE 0
-#define PCO_EDGE_SLEEP_SHUTTER_MS 10000
 
 #define PCO_CL_BAUDRATE_115K2	115200
 
@@ -72,12 +90,19 @@ struct stcXlatCode2Str {
 };
 
 #define LEN_TRACEACQ_MSG 512
+#define LEN_ERROR_MSG			(512-1)
 
 #define PCO_MAXSEGMENTS 4
 
 #define LEN_DUMP 128
 char DLL_EXPORT *_hex_dump_bytes(void *obj, size_t lenObj, char *buff, size_t lenBuff);
 
+long msElapsedTime(struct __timeb64 &t0);
+void msElapsedTimeSet(struct __timeb64 &t0);
+	
+enum timestampFmt {Iso=1, IsoHMS, FnFull, FnDate};
+char *getTimestamp(timestampFmt fmtIdx, time_t xtime = 0) ;
+time_t getTimestamp();
 
 struct stcFrame {
 	BOOL	changed;
@@ -90,12 +115,12 @@ struct stcFrame {
 
 
 };
-
+#define RING_LOG_BUFFER_SIZE 64
 class ringLog {
-        enum { bufferSize = 32 };
+        //enum { bufferSize = 64 };
         struct data{        
                 time_t timestamp;
-                char str[bufferSize];
+                char str[RING_LOG_BUFFER_SIZE+1];
         };
         
    public:
@@ -104,10 +129,12 @@ class ringLog {
         int add(char *s);
         int size() {return m_size;};
         void dumpPrint(bool direction);
+		void flush(int capacity);
 		int dump(char *s, int lgMax, bool direction);
 
 private:
         int m_capacity;
+        int m_capacity_max;
         int m_size;
         int m_head;
         struct data *buffer;
@@ -134,6 +161,8 @@ struct stcPcoData {
 	WORD wNrPcoHWIOSignal0;
 	WORD wNrPcoHWIOSignal;
 	unsigned long long debugLevel;
+	unsigned long long testCmdMode;
+
 
 	DWORD dwPixelRateMax;
 
@@ -170,11 +199,6 @@ struct stcPcoData {
 
         struct stcTemp temperature;
 
-		unsigned int bytesPerPix;     //unsigned int depth;
-		unsigned int bitsPerPix;     //unsigned int bits;
-		unsigned int maxWidth;		// unsigned int xmax;		/* Max size */
-		unsigned int maxHeight;        //unsigned int ymax;
-
 		WORD bMetaDataAllowed, wMetaDataMode, wMetaDataSize, wMetaDataVersion;
 		
 		long msAcqRec, msAcqXfer, msAcqTout, msAcqTnow, msAcqAll;
@@ -192,6 +216,7 @@ struct stcPcoData {
 			time_t endRecordTimestamp;
 			time_t endXferTimestamp;
 			char *fnId;
+			char *fnIdXfer;
 			char msg[LEN_TRACEACQ_MSG+1];
 		} traceAcq;
 
@@ -224,7 +249,10 @@ enum enumChange {
 };
 
 enum enumStop {
-	stopNone = 0, stopRequest, stopRequestAgain, stopProcessing,
+	stopNone = 0, 
+	stopRequest, 
+	//stopRequestAgain, 
+	//stopProcessing,
 };
 
 enum enumPcoFamily {
@@ -238,8 +266,8 @@ enum enumPcoFamily {
 
 
 enum enumRoiError {
-	Xrange       = 1<<0, 
-	Yrange        = 1<<1, 
+	Xrange      = 1<<0, 
+	Yrange      = 1<<1, 
 	Xsteps      = 1<<2,
 	Ysteps		= 1<<3, 
 	Xsym        = 1<<4,
@@ -248,16 +276,9 @@ enum enumRoiError {
 
 
 enum enumPcoStorageMode {
-	Fifo = 1, RecSeq, RecRing,
+	Fifo = 1, RecSeq, RecRing, RecInvalid
 };
 
-struct stcRoi {
-	enumChange changed;	/* have values been changed ? */
-	unsigned int x[2];	/* ROI min/max in x dir.(note starts at 1)*/
-	unsigned int y[2];	/* ROI min/max in y dir.(note starts at 1)*/
-	unsigned int xstep;	/* ROI granularity in x dir */
-	unsigned int ystep;	/* ROI granularity in x dir */
-};
 
 
 struct stcBinning {
@@ -291,10 +312,15 @@ namespace lima
 
 		HANDLE& getHandle() {return m_handle;}
 
-        void getMaxWidthHeight(DWORD& width,DWORD& height){width = m_pcoData->maxWidth, height = m_pcoData->maxHeight;}
+		void getMaxWidthHeight(DWORD &xMax, DWORD &yMax);
+		void getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax);
+		
+		void getXYsteps(unsigned int &xSteps, unsigned int &ySteps);
+
         void getArmWidthHeight(WORD& width,WORD& height){width = m_pcoData->wXResActual, height = m_pcoData->wYResActual;}
-        void getBytesPerPixel(unsigned int& pixbytes){pixbytes = m_pcoData->bytesPerPix;}
-		void getBitsPerPixel(WORD& pixbits){pixbits = (WORD) m_pcoData->bitsPerPix;}
+
+		void getBytesPerPixel(unsigned int& pixbytes);
+		void getBitsPerPixel(WORD& pixbits);
 
 		int getNbAcquiredFrames() const {return m_acq_frame_nb;}
 
@@ -325,6 +351,8 @@ namespace lima
 		bool _isConfig(){return m_config; };
 		void _pco_set_shutter_rolling_edge(int &error);
 		void msgLog(char *s);
+		
+
 
 	private:
 		PcoHwEventCtrlObj *m_HwEventCtrlObj;
@@ -342,8 +370,7 @@ namespace lima
 		int m_pcoError;
 
         struct stcBinning m_bin;
-        struct stcRoi m_roi;
-		Roi m_RoiLima;
+		Roi m_RoiLima, m_RoiLimaRequested ;
 		
 		//struct stcSize m_size;
 
@@ -360,11 +387,12 @@ namespace lima
 
 		char *_pcoSet_Trig_Acq_Mode(int &error);
 		char *_pcoSet_Storage_subRecord_Mode(enumPcoStorageMode, int &error);
+		int _pcoGet_Storage_subRecord_Mode();
 		char *_pcoSet_Exposure_Delay_Time(int &error, int ph);
 		char *_pcoSet_Cameralink_GigE_Parameters(int &error);
 		char *_pcoGet_Camera_Type(int &error);
 		char *_pcoGet_TemperatureInfo(int &error);
-		void _pco_GetPixelRate(DWORD &pixRate, int &error);
+		void _pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error);
 		void _presetPixelRate(DWORD &pixRate, int &error);
 
 		//char *_pco_SetCameraSetup(DWORD dwSetup, int &error);
@@ -380,12 +408,11 @@ namespace lima
 
 		bool _isValid_pixelRate(DWORD dwPixelRate);
 		
-		//bool _isValid_Roi(const Roi &new_roi, Roi &fixed_roi);
-		int _checkValidRoi(const Roi &new_roi);
-		void _set_Roi(const Roi &roi, int &error);
-		void _roi_lima2pco(const Roi &roiLima, stcRoi &roiPco);
-		void _roi_pco2lima(const stcRoi &roiPco, Roi &roiLima);
+		int _checkValidRoi(const Roi &new_roi, Roi &fixed_roi);
+
+		void _set_Roi(const Roi &roi, const Roi &roiRequested, int &error);
 		void _get_Roi(Roi &roi);
+		void _get_Roi(unsigned int &x0, unsigned int &x1, unsigned int &y0, unsigned int &y1);
 		void _get_MaxRoi(Roi &roi);
 		void _get_RoiSize(Size& roi_size);
 
@@ -401,6 +428,10 @@ namespace lima
 		unsigned long long _getDebug(unsigned long long mask);
 
 		ringLog *m_msgLog;
+		ringLog *m_tmpLog;
+		int _pco_getADC(int &adc_working, int &adc_max);
+		int _pco_setADC(int adc_new, int &adc_working);
+		int _pco_GetImageTiming(double &frameTime, double &expTime, double &sysDelay, double &sysJitter, double &trigDelay );
 
     };
   }
