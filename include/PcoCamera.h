@@ -203,6 +203,7 @@ struct stcPcoData {
   	bool		bExtTrigEnabled;
   	WORD		storage_mode;
   	WORD		recorder_submode;
+	char * storage_str;
 	unsigned long	frames_per_buffer; 
     DWORD   dwRamSize;
     WORD    wPixPerPage;
@@ -278,7 +279,6 @@ struct stcPcoData {
 
 	int testForceFrameFirst0;
 	bool pcoLogActive;
-
 };
 
 enum enumChange {

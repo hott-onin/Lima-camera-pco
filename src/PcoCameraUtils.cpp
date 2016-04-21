@@ -1729,8 +1729,11 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwSegmentSize[%d]=[%d pages]\n", segmentArr, m_pcoData->dwSegmentSize[segmentArr]);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwValidImageCnt[%d]=[%ld]\n", segmentArr, m_pcoData->dwValidImageCnt[segmentArr]);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwMaxImageCnt[%d]=[%ld]\n", segmentArr, m_pcoData->dwMaxImageCnt[segmentArr]);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* storage_mode[%d] recorder_submode[%d]\n", 
-			m_pcoData->storage_mode, m_pcoData->recorder_submode);
+
+		_pco_GetStorageMode_GetRecorderSubmode();
+				
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* mode[%s] storage_mode[%d] recorder_submode[%d]\n", 
+			m_pcoData->storage_str, m_pcoData->storage_mode, m_pcoData->recorder_submode);
 		ptr += sprintf_s(ptr, ptrMax - ptr, 
 			"* Acq: rec[%ld] xfer[%ld] recNow[%ld] recTout[%ld] (ms) [%s]\n",
 			m_pcoData->msAcqRec, m_pcoData->msAcqXfer,  

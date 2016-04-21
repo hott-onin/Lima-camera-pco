@@ -86,8 +86,9 @@ char* _timestamp_pcocamera() {return ID_TIMESTAMP ;}
 #include "PcoGitVersion.h"
 char * _timestamp_gitversion(char *buffVersion, int len)
 {
-	sprintf_s(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n", 
+	sprintf_s(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
 				 PCO_GIT_VERSION,
+				 PCO_SDK_VERSION,
 				 PROCLIB_GIT_VERSION,
 				 LIBCONFIG_GIT_VERSION,
 				 LIMA_GIT_VERSION,
@@ -1936,10 +1937,14 @@ int Camera::_pco_GetStorageMode_GetRecorderSubmode(){
 		    PCO_THROW_OR_TRACE(error, msg) ;
 	}
 
-	if((wStorageMode == 0) && (wRecSubmode == 0)) return RecSeq;
-	if((wStorageMode == 0) && (wRecSubmode == 1)) return RecRing;
-	if((wStorageMode == 1) && (wRecSubmode == 0)) return Fifo;
+	m_pcoData->storage_mode = wStorageMode;
+	m_pcoData->recorder_submode = wRecSubmode;
 
+	if((wStorageMode == 0) && (wRecSubmode == 0)) { m_pcoData->storage_str= "RecSeq"; return RecSeq; }
+	if((wStorageMode == 0) && (wRecSubmode == 1)) { m_pcoData->storage_str= "RecRing"; return RecRing; }
+	if((wStorageMode == 1) && (wRecSubmode == 0)) { m_pcoData->storage_str= "Fifo"; return Fifo; }
+
+	m_pcoData->storage_str= "INVALID"; 
 	return RecInvalid;
 }
 
