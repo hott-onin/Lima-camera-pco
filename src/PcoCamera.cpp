@@ -2095,7 +2095,7 @@ char *Camera::_pco_SetCamLinkSetImageParameters(int &error){
 
 	// camLink -> imgPar
 	// GigE    -> imgPar 
-	switch (m_pcoData->stcPcoCamType.wInterfaceType) {
+	switch (_getInterfaceType()) {
         case INTERFACE_CAMERALINK: 
 		case INTERFACE_ETHERNET:
 		    WORD wXres, wYres;
@@ -2135,7 +2135,7 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 	// PCO_SetTransferParameter
 	//================================================================================================
 
-	if (m_pcoData->stcPcoCamType.wInterfaceType==INTERFACE_CAMERALINK) 
+	if (_getInterfaceType()==INTERFACE_CAMERALINK) 
 	{
 		PCO_FN3(error, pcoFn,PCO_GetTransferParameter, m_handle, &m_pcoData->clTransferParam, sizeof(PCO_SC2_CL_TRANSFER_PARAM));
 		PCO_THROW_OR_TRACE(error, pcoFn) ;
@@ -2262,13 +2262,13 @@ char *Camera::_pco_GetCameraType(int &error){
 		strcpy_s(m_pcoData->model, MODEL_TYPE_SIZE, ptr);
 		errTot |= error;
 
-		ptr = xlatPcoCode2Str(m_pcoData->stcPcoCamType.wInterfaceType, InterfaceType, error);
-		strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
+		ptr = xlatPcoCode2Str(_getInterfaceType(), InterfaceType, error);
+		strcpy_s(_getInterfaceTypePtr(), INTERFACE_TYPE_SIZE, ptr);
 		errTot |= error;
 
 		sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s %s (SN %d)", 
-			m_pcoData->model, m_pcoData->iface, m_pcoData->stcPcoCamType.dwSerialNumber);
-		DEB_ALWAYS() <<  DEB_VAR3(m_pcoData->model, m_pcoData->iface, m_pcoData->camera_name);
+			m_pcoData->model, _getInterfaceTypePtr(), m_pcoData->stcPcoCamType.dwSerialNumber);
+		DEB_ALWAYS() <<  DEB_VAR3(m_pcoData->model, _getInterfaceTypePtr(), m_pcoData->camera_name);
 
 		if(errTot) return m_pcoData->camera_name;
 
@@ -3367,6 +3367,22 @@ int Camera::_pco_GetBitAlignment(int &alignment){
 
 	return error;
 }
+
+//=================================================================================================
+//=================================================================================================
+WORD Camera::_getInterfaceType(){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	return m_pcoData->stcPcoCamType.wInterfaceType;
+}
+
+char *Camera::_getInterfaceTypePtr(){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	return m_pcoData->iface;
+}
+
+
 //=================================================================================================
 //=================================================================================================
 

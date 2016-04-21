@@ -1515,8 +1515,8 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 			m_pcoData->model); 
 		
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* wInterfaceType[%x]  [%s]\n", 
-			m_pcoData->stcPcoCamType.wInterfaceType,
-			m_pcoData->iface);
+			_getInterfaceType(),
+			_getInterfaceTypePtr());
 	
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* firmware dwHWVersion[%lx]  dwFWVersion[%lx] <- OLD / not used!\n", 
 			m_pcoData->stcPcoCamType.dwHWVersion, 
@@ -1747,12 +1747,16 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 
 
 	if(flag & CAMINFO_CAMERALINK) {
-		ptr += sprintf_s(ptr, ptrMax - ptr, "*** CameraLink transfer parameters\n");
-		ptr += sprintf_s(ptr, ptrMax - ptr, "*      baudrate[%u] %g Kbps\n", m_pcoData->clTransferParam.baudrate, m_pcoData->clTransferParam.baudrate/1000.);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "*ClockFrequency[%u] %g MHz\n", m_pcoData->clTransferParam.ClockFrequency, m_pcoData->clTransferParam.ClockFrequency/1000000.);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "*        CCline[%u]\n", m_pcoData->clTransferParam.CCline);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "*    DataFormat[x%x]\n", m_pcoData->clTransferParam.DataFormat);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "*      Transmit[%u]\n", m_pcoData->clTransferParam.Transmit);
+		if (_getInterfaceType()==INTERFACE_CAMERALINK){ 
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*** CameraLink transfer parameters\n");
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*      baudrate[%u] %g Kbps\n", m_pcoData->clTransferParam.baudrate, m_pcoData->clTransferParam.baudrate/1000.);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*ClockFrequency[%u] %g MHz\n", m_pcoData->clTransferParam.ClockFrequency, m_pcoData->clTransferParam.ClockFrequency/1000000.);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*        CCline[%u]\n", m_pcoData->clTransferParam.CCline);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*    DataFormat[x%x]\n", m_pcoData->clTransferParam.DataFormat);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*      Transmit[%u]\n", m_pcoData->clTransferParam.Transmit);
+		} else {
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*** CameraLink transfer parameters - NO CAMERALINK interface\n");
+		}
 	}
 
 	if(flag & CAMINFO_UNSORTED) {

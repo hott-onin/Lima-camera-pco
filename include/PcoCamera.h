@@ -481,6 +481,8 @@ namespace lima
 		int _pco_SetBitAlignment(int alignment);
 		char *_checkLogFiles(bool firstCall = false);
 		char *_camInfo(char *ptr, char *ptrMax, long long int flag);
+		WORD _getInterfaceType();
+		char *_getInterfaceTypePtr();
 
     };
   }
