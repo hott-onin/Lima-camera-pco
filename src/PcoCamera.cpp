@@ -102,6 +102,7 @@ char * _timestamp_gitversion(char *buffVersion, int len)
 char * _getComputerName(char *infoBuff, DWORD  bufCharCount);
 char * _getUserName(char *infoBuff, DWORD  bufCharCount);
 char * _getVSconfiguration(char *infoBuff, DWORD  bufCharCount);
+char * _getPcoSdkVersion(char *infoBuff, int strLen);
 
 //=========================================================================================================
 
@@ -208,6 +209,8 @@ stcPcoData::stcPcoData(){
 	ptr += sprintf_s(ptr, ptrMax - ptr, "   computer name: %s\n", _getComputerName(buff, BUFFER_LEN));
 	ptr += sprintf_s(ptr, ptrMax - ptr, "       user name: %s\n", _getUserName(buff, BUFFER_LEN));
 	ptr += sprintf_s(ptr, ptrMax - ptr, "VS configuration: %s\n", _getVSconfiguration(buff, BUFFER_LEN));
+	ptr += sprintf_s(ptr, ptrMax - ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN));
+
 
 	stcPcoGeneral.wSize = sizeof(stcPcoGeneral);
 	stcPcoGeneral.strCamType.wSize = sizeof(stcPcoGeneral.strCamType);

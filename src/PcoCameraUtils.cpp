@@ -54,7 +54,7 @@ static char *timebaseUnits[] = {"ns", "us", "ms"};
 void print_hex_dump_buff(void *ptr_buff, size_t len);
 int __xlat_date(char *s1, char &ptrTo, int lenTo) ;
 char *_xlat_date(char *s1, char *s2, char *s3) ;
-	
+
 //=========================================================================================================
 char* _timestamp_pcocamerautils() {return ID_TIMESTAMP ;}
 //=========================================================================================================
@@ -1483,6 +1483,97 @@ char * _getUserName(char *infoBuff, DWORD  bufCharCount  )
 	  sprintf_s(infoBuff, bufCharCount, "ERROR: GetUserName" ); 
   return infoBuff ;
 }
+
+//====================================================================
+//====================================================================
+#define PCOSDK_FILENAME "sc2_cam.dll"
+
+#include <winver.h>
+#pragma comment(lib, "version.lib")
+
+struct TRANSLATION {
+  WORD langID;
+  WORD charset;
+} ;
+
+int _getFileVerStruct(const TCHAR* pzFileName, int* ima, int* imi, int* imb, TCHAR* pcver, int ipclen)
+{
+  TCHAR* pzStr;
+  DWORD dwVerInfoSize = 0;
+  DWORD dwVerHnd = 0;
+  TCHAR* lpstrVffInfo;
+  UINT VersionLen;
+  TRANSLATION Translation;
+
+  // extracting the version info structure size
+  if ((dwVerInfoSize = GetFileVersionInfoSize(pzFileName, &dwVerHnd)) > 0)
+  {
+    LPVOID lpvi;
+    UINT iLen;
+    lpstrVffInfo = (TCHAR*)malloc(dwVerInfoSize*sizeof(TCHAR));
+    
+    GetFileVersionInfo(pzFileName, dwVerHnd, dwVerInfoSize, lpstrVffInfo);
+    // extracting the language/character value from the file.
+    if ((VerQueryValue((LPVOID)lpstrVffInfo, TEXT("\\VarFileInfo\\Translation"),
+      &lpvi, &iLen)) > 0)
+    {
+      Translation = *(TRANSLATION*)lpvi;
+      
+      pzStr = _T("");
+      TCHAR strVerCar[_MAX_PATH] = _T("\0");
+      _stprintf_s(strVerCar, sizeof(strVerCar)/sizeof(TCHAR), _T("\\StringFileInfo\\%04x%04x\\%s"),
+        Translation.langID,
+        Translation.charset,
+        _T("ProductVersion"));
+      // querying the file with the correct language/character value.
+      VerQueryValue((LPVOID)lpstrVffInfo,
+        strVerCar,
+        (LPVOID *)&pzStr,
+        &VersionLen);
+      
+      unsigned int j = 0;
+
+      if(_tcsstr(pzStr, _T(",")))
+        _stscanf_s(pzStr, _T("%d,%d,%d,%d"), ima, imi, &j, imb);
+      else
+        _stscanf_s(pzStr, _T("%d.%d.%d.%d"), ima, imi, &j, imb);
+      if(pcver != NULL)
+      {
+        if(_tcslen(pzStr) < (unsigned int)ipclen)
+          _tcscpy_s(pcver, ipclen, pzStr);
+      }
+    }
+    else
+    {
+      // an error occurred trying to retrieve the version structure
+      return -1;
+    }
+    free(lpstrVffInfo);
+  }
+  else
+  {
+    // could not open or find file to get the version information
+    return -1;
+  }
+ 
+  return 0;
+}
+
+char * _getPcoSdkVersion(char *infoBuff, int strLen)
+{
+	int ima, imi, imb;
+	char *lib = PCOSDK_FILENAME;
+	int nr;
+	char *ptr = infoBuff;
+
+	nr = sprintf_s(ptr, strLen, "file[%s] ver[", lib);
+
+	_getFileVerStruct(lib, &ima, &imi, &imb, ptr+nr, strLen-nr-2);
+	strncat_s(ptr, strLen, "]", _TRUNCATE);
+
+	return infoBuff ;
+}
+
 
 //====================================================================
 //====================================================================
