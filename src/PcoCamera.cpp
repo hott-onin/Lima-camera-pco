@@ -812,8 +812,7 @@ void Camera::startAcq()
                        mode = (iRequestedFrames > 0) ? RecSeq : Fifo;
                }
 
-               DEB_ALWAYS() << "..... _pcoSet_Storage_subRecord_Mode - DIMAX: " << DEB_VAR1(mode);
-
+               DEB_ALWAYS() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
 
 		msg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
 		PCO_THROW_OR_TRACE(error, msg) ;
@@ -1900,15 +1899,16 @@ char * Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode mode, int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-	char *msg;
+	char *msg, *sMode;
 
 	switch(mode) {
-		case RecSeq:  m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 0; break;
-		case RecRing: m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 1; break;
-		case Fifo:    m_pcoData->storage_mode = 1; m_pcoData->recorder_submode = 0; break;
+		case RecSeq:  m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 0; sMode = "RecSeq" ; break;
+		case RecRing: m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 1; sMode = "RecRing" ;  break;
+		case Fifo:    m_pcoData->storage_mode = 1; m_pcoData->recorder_submode = 0;  sMode = "Fifo" ; break;
 		default: 
 			throw LIMA_HW_EXC(Error,"FATAL - invalid storage mode!" );
 	}
+    DEB_ALWAYS() << "\n>>> storage/recorder mode: " << DEB_VAR2(sMode, mode) ;
 
     PCO_FN2(error, msg,PCO_SetStorageMode, m_handle, m_pcoData->storage_mode);
 	if(error) return msg;

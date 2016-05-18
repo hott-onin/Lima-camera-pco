@@ -468,9 +468,11 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			long long imgSize = size.getWidth()* size.getHeight() * bytesPerPix;
 			long long totSize = imgSize * m_pcoData->traceAcq.nrImgRequested;
 			double mbTotSize =  totSize/(1024.*1024.);
-			double xferSpeed = mbTotSize / m_pcoData->traceAcq.msXfer * 1000.;
-			ptr += sprintf_s(ptr, ptrMax - ptr, "* imgSize[%lld B] totSize[%lld B][%g MB] xferSpeed[%g MB/s]\n",  
-					imgSize, totSize, mbTotSize, xferSpeed);
+			double totTime = m_pcoData->traceAcq.msXfer / 1000.;
+			double xferSpeed = mbTotSize / totTime;
+			double framesPerSec = m_pcoData->traceAcq.nrImgRequested / totTime;
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* imgSize[%lld B] totSize[%lld B][%g MB] xferSpeed[%g MB/s][%g fps]\n",  
+					imgSize, totSize, mbTotSize, xferSpeed, framesPerSec);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* nrImgRequested0[%d] nrImgRequested[%d] nrImgAcquired[%d] nrImgRecorded[%d] maxImgCount[%d]\n",

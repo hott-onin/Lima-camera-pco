@@ -1,4 +1,19 @@
 
+
+2016/05/18 18:03:06 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.18] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2016-04-25 20:48:24 +0200] head[bbe482f][bbe482f8b64d53c791724c24da773f6fba53fe8e] ref[ (HEAD, gitlab/master, master)] at [2016/05/18 18:03:05] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2015-10-21 14:34:29 +0200] head[7ca4c77][7ca4c778889cdd1450529ba7e3a6c71eda20c72a] ref[ (HEAD, core-1.4)] at [2016/05/18 18:03:05] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2015-06-09 14:50:05 +0200] head[7d49ed4][7d49ed48b9fe864251f4e6a9477699011297e39f] ref[ (HEAD, master)] at [2016/05/18 18:03:05] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/05/18 18:03:05] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2015-10-21 14:34:29 +0200] head[7ca4c77][7ca4c778889cdd1450529ba7e3a6c71eda20c72a] ref[ (HEAD, core-1.4)] at [2016/05/18 18:03:05] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2016-05-18 17:53:53 +0200] head[5b119dc][5b119dc910943b0475aae8c174c79418080425f5] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/05/18 18:03:05] $"
+
+- added some attr in spec
+- tested with pco 4000 / usb2 
+
+
+
 2016/04/25 18:52:34 ==========================================
 
 - included PCO sdk version directly from sc2_cam.dll
