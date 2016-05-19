@@ -5,6 +5,30 @@
 #===================================================
 
 
+
+#===================================================
+# 2016/05/19
+# blissinstaller package
+#===================================================
+
+temporary patch on the core to fix the max lim of mem in 
+accumulation mode
+
+------------------------ control/src/CtAccumulation.cpp ------------------------
+index 99e11b4..262d1b3 100644
+@@ -528,6 +528,10 @@ void CtAccumulation::prepare()
+   m_saturated_images.clear();
+   CtBuffer *buffer = m_ct.buffer();
+   buffer->getNumber(m_buffers_size);
++
++  //----- patch for acc mode 32 bit - 16
++  if(m_buffers_size > 10) m_buffers_size /= 2;
++
+   CtAcquisition *acquisition = m_ct.acquisition();
+   int acc_nframes;
+   acquisition->getAccNbFrames(acc_nframes);
+   
+
 #===================================================
 # 2016/05/18
 # pco 4000 camera / usb2 - FRAME RATE

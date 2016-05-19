@@ -1,4 +1,24 @@
 
+2016/05/19 14:23:26 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-05-19_142320]
+  to: [/t/rhoms1/install-2016-05-19_142320]
+  to: [/t/rhoms1/install-beta]
+
+- prepare blissinstaller pco-win64-1.406
+
+2016/05/19 14:21:19 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.18] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2016-05-18 18:08:39 +0200] head[b90ec80][b90ec8031a6e5ee2e8ac23e573dd1e8a187ab955] ref[ (HEAD, gitlab/master, master)] at [2016/05/19 14:21:19] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2016-01-26 13:27:46 +0100] head[668dfdb][668dfdb24c15bb21b94091a3d68e8bc3d6035a6b] ref[ (HEAD, origin/core-1.4, core-1.4)] at [2016/05/19 14:21:19] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2016-01-15 15:44:08 +0100] head[3a08863][3a0886386e57a24ced072832d321d2dc43449e0b] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/05/19 14:21:19] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/05/19 14:21:19] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2016-01-26 13:27:46 +0100] head[668dfdb][668dfdb24c15bb21b94091a3d68e8bc3d6035a6b] ref[ (HEAD, origin/core-1.4, core-1.4)] at [2016/05/19 14:21:19] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2016-05-19 13:58:33 +0200] head[a5b9be5][a5b9be5efd7916a28cf0ab06fcc6f17e19194605] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/05/19 14:21:19] $"
+
+
+
 
 2016/05/18 18:03:06 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.18] $"
