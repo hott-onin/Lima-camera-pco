@@ -19,7 +19,7 @@ PCOREV=`git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" 
 LIMAREV=`cd ../.. ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
 PROCLIBREV=`cd ../../third-party/Processlib ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
 LIBCONFIGREV=`cd ../../third-party/libconfig ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
-TANGOREV=`cd ../../applications/tango ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
+TANGOREV=`cd ../../applications/tango/python ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
 SPECREV=`cd ../../applications/spec ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
 
 {

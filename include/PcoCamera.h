@@ -188,7 +188,10 @@ struct stcPcoData {
 
 	DWORD dwPixelRateMax;
 
-	char model[MODEL_TYPE_SIZE+1], iface[INTERFACE_TYPE_SIZE+1];
+	char model[MODEL_TYPE_SIZE+1];
+	char modelSubType[MODEL_TYPE_SIZE+1];
+	char iface[INTERFACE_TYPE_SIZE+1];
+
 	//int	interface_type;
 
 	PCO_SC2_CL_TRANSFER_PARAM clTransferParam;
@@ -249,6 +252,21 @@ struct stcPcoData {
 		time_t endXferTimestamp;
 		char *fnId;
 		char *fnIdXfer;
+		char *sPcoStorageRecorderMode;
+		int iPcoStorageMode, iPcoRecorderSubmode;
+		int iPcoBinHorz, iPcoBinVert;
+		int iPcoRoiX0, iPcoRoiX1, iPcoRoiY0, iPcoRoiY1;
+		char *sPcoTriggerMode;
+		char *sLimaTriggerMode;
+		int iPcoTriggerMode;
+
+		char *sPcoAcqMode;
+		int iPcoAcqMode;
+
+		double dLimaExposure, dLimaDelay;
+		int iPcoExposure, iPcoExposureBase;
+		int iPcoDelay, iPcoDelayBase;
+
 		char msg[LEN_TRACEACQ_MSG+1];
 	} traceAcq;
 
@@ -317,6 +335,9 @@ enum enumPcoStorageMode {
 };
 
 
+enum enumTblXlatCode2Str {
+	ModelType, InterfaceType, ModelSubType
+};
 
 struct stcBinning {
 	enumChange	changed;		/* have values been changed ? */
@@ -384,7 +405,6 @@ namespace lima
 		char *_pcoSet_RecordingState(int state, int &error);
 		int dumpRecordedImages(int &nrImages, int &error);
 
-		WORD _getCameraType() {return m_pcoData->stcPcoCamType.wCamType ; }
 		bool _isCameraType(int tp);
 		bool _isConfig(){return m_config; };
 		void _pco_set_shutter_rolling_edge(int &error);
@@ -432,7 +452,7 @@ namespace lima
 		char *_pco_SetTriggerMode_SetAcquireMode(int &error);
 		char *_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode, int &error);
 		int _pco_GetStorageMode_GetRecorderSubmode();
-		char *_pco_SetDelayExposureTime(int &error, int ph);
+		char *_pco_SetDelayExposureTime(int &error);
 		char *_pco_SetCamLinkSetImageParameters(int &error);
 		char *_pco_GetCameraType(int &error);
 		char *_pco_GetTemperatureInfo(int &error);
@@ -481,8 +501,19 @@ namespace lima
 		int _pco_SetBitAlignment(int alignment);
 		char *_checkLogFiles(bool firstCall = false);
 		char *_camInfo(char *ptr, char *ptrMax, long long int flag);
+
 		WORD _getInterfaceType();
-		char *_getInterfaceTypePtr();
+		const char *_getInterfaceTypeStr();
+
+		WORD _getCameraType();
+		const char *_getCameraTypeStr();
+
+		WORD _getCameraSubType()  ;
+		const char *_getCameraSubTypeStr();
+
+		DWORD _getCameraSerialNumber()  ;
+
+		char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
 
     };
   }

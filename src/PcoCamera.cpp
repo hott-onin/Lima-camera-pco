@@ -124,39 +124,69 @@ char *xlatCode2Str(int code, struct stcXlatCode2Str *stc) {
 //=========================================================================================================
 //=========================================================================================================
 
-enum tblXlatCode2Str {ModelType, InterfaceType};
 
-char *xlatPcoCode2Str(int code, tblXlatCode2Str table, int &err) {
+char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 	struct stcXlatCode2Str modelType[] = {
 		{CAMERATYPE_PCO1200HS, "PCO 1200 HS"},
 		{CAMERATYPE_PCO1300, "PCO 1300"},
+		{CAMERATYPE_PCO1400, "PCO 1400"},
 		{CAMERATYPE_PCO1600, "PCO 1600"},
 		{CAMERATYPE_PCO2000, "PCO 2000"},
 		{CAMERATYPE_PCO4000, "PCO 4000"},
 		{CAMERATYPE_PCO_DIMAX_STD, "PCO DIMAX STD"},
 		{CAMERATYPE_PCO_DIMAX_TV, "PCO DIMAX TV"},
 		{CAMERATYPE_PCO_DIMAX_AUTOMOTIVE, "PCO DIMAX AUTOMOTIVE"},
+		{CAMERATYPE_PCO_EDGE, "PCO EDGE 5.5 RS"},
+		{CAMERATYPE_PCO_EDGE_42, "PCO EDGE 4.2 RS"},
+		{CAMERATYPE_PCO_EDGE_GL, "PCO EDGE 5.5 GL"},
+		{CAMERATYPE_PCO_EDGE_USB3, "PCO EDGE USB3"},
+		{CAMERATYPE_PCO_EDGE_HS, "PCO EDGE hs"},
 		{CAMERATYPE_PCO_EDGE, "PCO EDGE"},
 		{CAMERATYPE_PCO_EDGE_GL, "PCO EDGE GL"},
 		{0, NULL}
 	};
 
-  struct stcXlatCode2Str interfaceType[] = {
+	struct stcXlatCode2Str modelSubType[] = {
+		{CAMERATYPE_PCO1200HS, "PCO 1200 HS"},
+		{CAMERASUBTYPE_PCO_DIMAX_Weisscam, "DIMAX_Weisscam"},
+		{CAMERASUBTYPE_PCO_DIMAX_HD, "DIMAX_HD"},
+		{CAMERASUBTYPE_PCO_DIMAX_HD_plus, "DIMAX_HD_plus"},
+		{CAMERASUBTYPE_PCO_DIMAX_X35, "DIMAX_X35"},
+		{CAMERASUBTYPE_PCO_DIMAX_HS1, "DIMAX_HS1"},
+		{CAMERASUBTYPE_PCO_DIMAX_HS2, "DIMAX_HS2"},
+		{CAMERASUBTYPE_PCO_DIMAX_HS4, "DIMAX_HS4"},
+		{CAMERASUBTYPE_PCO_EDGE_SPRINGFIELD, "EDGE_SPRINGFIELD"},
+		{CAMERASUBTYPE_PCO_EDGE_DEVELOPMENT, "EDGE_DEVELOPMENT"},
+		{CAMERASUBTYPE_PCO_EDGE_X2, "EDGE_X2"},
+		{CAMERASUBTYPE_PCO_EDGE_RESOLFT, "EDGE_RESOLFT"},
+		{CAMERASUBTYPE_PCO_EDGE_GOLD, "EDGE_GOLD"},
+		{CAMERASUBTYPE_PCO_EDGE_DUAL_CLOCK, "DUAL_CLOCK"},
+		{CAMERASUBTYPE_PCO_EDGE_DICAM, "DICAM"},
+		{0, NULL}
+	};
+
+	struct stcXlatCode2Str interfaceType[] = {
 		{INTERFACE_FIREWIRE, "FIREWIRE"},
 		{INTERFACE_CAMERALINK, "CAMERALINK"},
 		{INTERFACE_USB, "USB"},
 		{INTERFACE_ETHERNET, "ETHERNET"},
 		{INTERFACE_SERIAL, "SERIAL"},
+		{INTERFACE_USB3, "USB3"},
+		{INTERFACE_CAMERALINKHS, "CAMERALINK_HS"},
+		{INTERFACE_COAXPRESS, "COAXPRESS"},
 		{0, NULL}
 	};
 
   struct stcXlatCode2Str *stc;
 	char *ptr;
 	static char buff[BUFF_XLAT_SIZE+1];
+	char *errTable;
 
   switch(table) {
-    case ModelType: stc = modelType; break;
-    case InterfaceType: stc = interfaceType; break;
+	case ModelType: stc = modelType; errTable = "modelType" ; break;
+	case ModelSubType: stc = modelSubType;  errTable = "modelSubType" ; break;
+	case InterfaceType: stc = interfaceType; errTable = "interfaceType" ;  break;
+
     default:
   		sprintf_s(buff, BUFF_XLAT_SIZE, "UNKNOWN XLAT TABLE [%d]", table);
   		err = 1;
@@ -747,6 +777,9 @@ void Camera::startAcq()
 			PCO_THROW_OR_TRACE(error, msg) ;
 		}
 		m_bin.changed= Valid;
+		m_pcoData->traceAcq.iPcoBinHorz = wBinHorzNow;
+		m_pcoData->traceAcq.iPcoBinHorz = wBinVertNow;
+
 		DEB_TRACE() << DEB_VAR4(wBinHorz, wBinVert, wBinHorzNow, wBinVertNow);
     }
 
@@ -794,6 +827,11 @@ void Camera::startAcq()
 
 	}
 
+	m_pcoData->traceAcq.iPcoRoiX0 = m_pcoData->wRoiX0Now;
+	m_pcoData->traceAcq.iPcoRoiX1 = m_pcoData->wRoiX1Now;
+	m_pcoData->traceAcq.iPcoRoiY0 = m_pcoData->wRoiY0Now;
+	m_pcoData->traceAcq.iPcoRoiY1 = m_pcoData->wRoiY1Now;
+
 	//------------------------------------------------- triggering mode 
     //------------------------------------- acquire mode : ignore or not ext. signal
 	msg = _pco_SetTriggerMode_SetAcquireMode(error);
@@ -829,7 +867,7 @@ void Camera::startAcq()
 	}
 #endif
 //----------------------------------- set exposure time & delay time
-	msg = _pco_SetDelayExposureTime(error,0);   // initial set of delay (phase = 0)
+	msg = _pco_SetDelayExposureTime(error);   // initial set of delay (phase = 0)
 	PCO_THROW_OR_TRACE(error, msg) ;
 
 
@@ -1020,7 +1058,6 @@ void _pco_acq_thread_dimax(void *argin) {
 	m_cam->_traceMsg(_msg);
 
 	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
-	//m_pcoData->traceAcqClean();
 	m_pcoData->traceAcq.fnId = fnId;
 
 	char *msg;
@@ -1230,7 +1267,6 @@ void _pco_acq_thread_dimax_trig_single(void *argin) {
 	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
 
 	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
-	//m_pcoData->traceAcqClean();
 	m_pcoData->traceAcq.fnId = fnId;
 
 	char *msg;
@@ -1502,8 +1538,11 @@ void _pco_acq_thread_edge(void *argin) {
 		//throw LIMA_HW_EXC(Error, "_pcoSet_RecordingState");
 	}
 
-	//m_pcoData->traceAcqClean();
 	m_pcoData->traceAcq.fnId = fnId;
+
+	m_sync->getExpTime(m_pcoData->traceAcq.sExposure);
+	m_sync->getLatTime(m_pcoData->traceAcq.sDelay);
+
 
 	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
 	sprintf_s(_msg, LEN_MSG, "%s> [EXIT] xfer[%ld] (ms) status[%s]\n", 
@@ -1601,7 +1640,6 @@ void _pco_acq_thread_ringBuffer(void *argin) {
 	m_sync->setAcqFrames(0);
 
 	// traceAcq
-	//m_pcoData->traceAcqClean();
 	m_pcoData->traceAcq.fnId = fnId;
 	double msPerFrame = (m_cam->pcoGetCocRunTime() * 1000.);
 	m_pcoData->traceAcq.msImgCoc = msPerFrame;
@@ -1834,6 +1872,8 @@ char * Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 	DEB_MEMBER_FUNCT();
 	char *msg;
 	
+
+
 	DEF_FNID;
 	//------------------------------------------------- triggering mode 
 	WORD trigmode = m_sync->xlatLimaTrigMode2PcoTrigMode(m_pcoData->bExtTrigEnabled);
@@ -1842,12 +1882,15 @@ char * Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 	//PCO_THROW_OR_TRACE(error, "PCO_SetTriggerMode") ;
 	//DEB_TRACE() << DEB_VAR1(trigmode);
 
-    //------------------------------------- acquire mode : ignore or not ext. signal
+	
+	//------------------------------------- acquire mode : ignore or not ext. signal
 
 	WORD acqmode = m_sync->xlatLimaTrigMode2PcoAcqMode();
 	PCO_FN2(error, msg,PCO_SetAcquireMode , m_handle, acqmode);
 	if(error) return msg;
    //PCO_THROW_OR_TRACE(error, "PCO_SetAcquireMode") ;
+
+
 	return fnId;
 }
 
@@ -1901,6 +1944,7 @@ char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode mode, i
 	DEF_FNID;
 	char *msg, *sMode;
 
+	sMode = "invalid";
 	switch(mode) {
 		case RecSeq:  m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 0; sMode = "RecSeq" ; break;
 		case RecRing: m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 1; sMode = "RecRing" ;  break;
@@ -1909,6 +1953,10 @@ char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode mode, i
 			throw LIMA_HW_EXC(Error,"FATAL - invalid storage mode!" );
 	}
     DEB_ALWAYS() << "\n>>> storage/recorder mode: " << DEB_VAR2(sMode, mode) ;
+
+	m_pcoData->traceAcq.sPcoStorageRecorderMode = sMode;
+	m_pcoData->traceAcq.iPcoStorageMode = m_pcoData->storage_mode;
+	m_pcoData->traceAcq.iPcoRecorderSubmode = m_pcoData->recorder_submode;
 
     PCO_FN2(error, msg,PCO_SetStorageMode, m_handle, m_pcoData->storage_mode);
 	if(error) return msg;
@@ -1991,12 +2039,10 @@ void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase) {
 
 //=================================================================================================
 //=================================================================================================
-char* Camera::_pco_SetDelayExposureTime(int &error, int ph){
+char* Camera::_pco_SetDelayExposureTime(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-	bool doIt;
 	char *msg;
-
 
     DWORD dwExposure, dwDelay;
 	WORD wExposure_base, wDelay_base;
@@ -2005,31 +2051,19 @@ char* Camera::_pco_SetDelayExposureTime(int &error, int ph){
     m_sync->getLatTime(_delay);
 	double _delay0 = _delay;
 
-	doIt = TRUE;
-	
-	if(ph != 0){ 
-		doIt = FALSE;
-
-		if((_isCameraType(Edge)) && (m_pcoData->dwPixelRate >= PCO_EDGE_PIXEL_RATE_HIGH) ) {
-			double pixels = ((double) m_pcoData->wXResActual)* ((double) m_pcoData->wYResActual);
-			double bytes = (m_pcoData->wLUT_Identifier == PCO_EDGE_LUT_SQRT) ? 1.5 : 2.0;
-			double period = bytes * pixels / (m_pcoData->fTransferRateMHzMax * 1000000.);
-
-			printf("--- %s>period[%g] -> cocRunTime[%g]\n", fnId, period , m_pcoData->cocRunTime);
-			if(period > m_pcoData->cocRunTime) {
-				_delay += period - m_pcoData->cocRunTime;
-				doIt = TRUE;
-				printf("--- %s> delay forced [%g] -> [%g]\n", fnId, _delay0, _delay);
-			}
-		}
-	}
-
-	if(!doIt) return fnId;
-
 	_pco_time2dwbase(_exposure, dwExposure, wExposure_base);
 	_pco_time2dwbase(_delay,  dwDelay, wDelay_base);
 
 	PCO_FN5(error, msg,PCO_SetDelayExposureTime, m_handle, dwDelay, dwExposure, wDelay_base, wExposure_base);
+
+	m_pcoData->traceAcq.dLimaExposure = _exposure;
+	m_pcoData->traceAcq.dLimaDelay = _delay;
+
+	m_pcoData->traceAcq.iPcoExposure = dwExposure;
+	m_pcoData->traceAcq.iPcoDelay = dwDelay;
+	m_pcoData->traceAcq.iPcoExposureBase = wExposure_base;
+	m_pcoData->traceAcq.iPcoDelayBase = wDelay_base;
+
 
 	if(error || _getDebug(DBG_EXP)) {
 		DEB_ALWAYS() << DEB_VAR3(_exposure, dwExposure, wExposure_base);
@@ -2250,6 +2284,7 @@ char *Camera::_pco_GetCameraType(int &error){
 
 	// --- Get camera type
 	{
+		
 		char *ptr;
 		int errTot = 0;
 
@@ -2261,17 +2296,24 @@ char *Camera::_pco_GetCameraType(int &error){
 		PCO_FN2(error, msg,PCO_GetCameraType, m_handle, &m_pcoData->stcPcoCamType);
 		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 
-		ptr = xlatPcoCode2Str(_getCameraType(), ModelType, error);
+		ptr = _xlatPcoCode2Str(_getCameraType(), ModelType, error);
+		errTot |= error;
 		strcpy_s(m_pcoData->model, MODEL_TYPE_SIZE, ptr);
+
+		ptr = _xlatPcoCode2Str(_getCameraSubType(), ModelSubType, error);
+		strcpy_s(m_pcoData->modelSubType, MODEL_SUBTYPE_SIZE, ptr);
 		errTot |= error;
 
-		ptr = xlatPcoCode2Str(_getInterfaceType(), InterfaceType, error);
-		strcpy_s(_getInterfaceTypePtr(), INTERFACE_TYPE_SIZE, ptr);
+		ptr = _xlatPcoCode2Str(_getInterfaceType(), InterfaceType, error);
+		strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
 		errTot |= error;
 
-		sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s %s (SN %d)", 
-			m_pcoData->model, _getInterfaceTypePtr(), m_pcoData->stcPcoCamType.dwSerialNumber);
-		DEB_ALWAYS() <<  DEB_VAR3(m_pcoData->model, _getInterfaceTypePtr(), m_pcoData->camera_name);
+		sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s (%s) (I/F %s) (SN %d)", 
+			_getCameraTypeStr(), 
+			_getCameraSubTypeStr(), 
+			_getInterfaceTypeStr(), 
+			_getCameraSerialNumber());
+		DEB_ALWAYS() <<  DEB_VAR3(_getCameraTypeStr(), _getInterfaceTypeStr(), m_pcoData->camera_name);
 
 		if(errTot) return m_pcoData->camera_name;
 
@@ -3025,6 +3067,9 @@ bool Camera::_isCameraType(int tp){
 		case CAMERATYPE_PCO_EDGE_GL:
 			return !!(tp & (EdgeGL | Edge));
 
+		case CAMERATYPE_PCO_EDGE_HS:
+		case CAMERATYPE_PCO_EDGE_USB3:
+		case CAMERATYPE_PCO_EDGE_42:
 		case CAMERATYPE_PCO_EDGE:
 			return !!(tp & (EdgeRolling | Edge));
 
@@ -3373,17 +3418,58 @@ int Camera::_pco_GetBitAlignment(int &alignment){
 
 //=================================================================================================
 //=================================================================================================
+DWORD Camera::_getCameraSerialNumber(){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	return m_pcoData->stcPcoCamType.dwSerialNumber;
+}
+
 WORD Camera::_getInterfaceType(){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	return m_pcoData->stcPcoCamType.wInterfaceType;
 }
 
-char *Camera::_getInterfaceTypePtr(){
+const char *Camera::_getInterfaceTypeStr(){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	return m_pcoData->iface;
 }
+
+
+
+//=================================================================================================
+//=================================================================================================
+WORD Camera::_getCameraType(){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	return m_pcoData->stcPcoCamType.wCamType;
+}
+
+const char *Camera::_getCameraTypeStr(){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	return m_pcoData->model;
+}
+
+
+
+//=================================================================================================
+//=================================================================================================
+WORD Camera::_getCameraSubType(){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	return m_pcoData->stcPcoCamType.wCamSubType;
+}
+
+const char *Camera::_getCameraSubTypeStr(){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	return m_pcoData->modelSubType;
+}
+
+
+
 
 
 //=================================================================================================
