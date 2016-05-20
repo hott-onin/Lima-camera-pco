@@ -124,39 +124,70 @@ char *xlatCode2Str(int code, struct stcXlatCode2Str *stc) {
 //=========================================================================================================
 //=========================================================================================================
 
-enum tblXlatCode2Str {ModelType, InterfaceType};
+enum tblXlatCode2Str {ModelType, InterfaceType, ModelSubType};
 
 char *xlatPcoCode2Str(int code, tblXlatCode2Str table, int &err) {
 	struct stcXlatCode2Str modelType[] = {
 		{CAMERATYPE_PCO1200HS, "PCO 1200 HS"},
 		{CAMERATYPE_PCO1300, "PCO 1300"},
+		{CAMERATYPE_PCO1400, "PCO 1400"},
 		{CAMERATYPE_PCO1600, "PCO 1600"},
 		{CAMERATYPE_PCO2000, "PCO 2000"},
 		{CAMERATYPE_PCO4000, "PCO 4000"},
 		{CAMERATYPE_PCO_DIMAX_STD, "PCO DIMAX STD"},
 		{CAMERATYPE_PCO_DIMAX_TV, "PCO DIMAX TV"},
 		{CAMERATYPE_PCO_DIMAX_AUTOMOTIVE, "PCO DIMAX AUTOMOTIVE"},
+		{CAMERATYPE_PCO_EDGE, "PCO EDGE 5.5 RS"},
+		{CAMERATYPE_PCO_EDGE_42, "PCO EDGE 4.2 RS"},
+		{CAMERATYPE_PCO_EDGE_GL, "PCO EDGE 5.5 GL"},
+		{CAMERATYPE_PCO_EDGE_USB3, "PCO EDGE USB3"},
+		{CAMERATYPE_PCO_EDGE_HS, "PCO EDGE hs"},
 		{CAMERATYPE_PCO_EDGE, "PCO EDGE"},
 		{CAMERATYPE_PCO_EDGE_GL, "PCO EDGE GL"},
 		{0, NULL}
 	};
 
-  struct stcXlatCode2Str interfaceType[] = {
+	struct stcXlatCode2Str modelSubType[] = {
+		{CAMERATYPE_PCO1200HS, "PCO 1200 HS"},
+		{CAMERASUBTYPE_PCO_DIMAX_Weisscam, "DIMAX_Weisscam"},
+		{CAMERASUBTYPE_PCO_DIMAX_HD, "DIMAX_HD"},
+		{CAMERASUBTYPE_PCO_DIMAX_HD_plus, "DIMAX_HD_plus"},
+		{CAMERASUBTYPE_PCO_DIMAX_X35, "DIMAX_X35"},
+		{CAMERASUBTYPE_PCO_DIMAX_HS1, "DIMAX_HS1"},
+		{CAMERASUBTYPE_PCO_DIMAX_HS2, "DIMAX_HS2"},
+		{CAMERASUBTYPE_PCO_DIMAX_HS4, "DIMAX_HS4"},
+		{CAMERASUBTYPE_PCO_EDGE_SPRINGFIELD, "EDGE_SPRINGFIELD"},
+		{CAMERASUBTYPE_PCO_EDGE_DEVELOPMENT, "EDGE_DEVELOPMENT"},
+		{CAMERASUBTYPE_PCO_EDGE_X2, "EDGE_X2"},
+		{CAMERASUBTYPE_PCO_EDGE_RESOLFT, "EDGE_RESOLFT"},
+		{CAMERASUBTYPE_PCO_EDGE_GOLD, "EDGE_GOLD"},
+		{CAMERASUBTYPE_PCO_EDGE_DUAL_CLOCK, "DUAL_CLOCK"},
+		{CAMERASUBTYPE_PCO_EDGE_DICAM, "DICAM"},
+		{0, NULL}
+	};
+
+	struct stcXlatCode2Str interfaceType[] = {
 		{INTERFACE_FIREWIRE, "FIREWIRE"},
 		{INTERFACE_CAMERALINK, "CAMERALINK"},
 		{INTERFACE_USB, "USB"},
 		{INTERFACE_ETHERNET, "ETHERNET"},
 		{INTERFACE_SERIAL, "SERIAL"},
+		{INTERFACE_USB3, "USB3"},
+		{INTERFACE_CAMERALINKHS, "CAMERALINK_HS"},
+		{INTERFACE_COAXPRESS, "COAXPRESS"},
 		{0, NULL}
 	};
 
   struct stcXlatCode2Str *stc;
 	char *ptr;
 	static char buff[BUFF_XLAT_SIZE+1];
+	char *errTable;
 
   switch(table) {
-    case ModelType: stc = modelType; break;
-    case InterfaceType: stc = interfaceType; break;
+	case ModelType: stc = modelType; errTable = "modelType" ; break;
+	case ModelSubType: stc = modelSubType;  errTable = "modelSubType" ; break;
+	case InterfaceType: stc = interfaceType; errTable = "interfaceType" ;  break;
+
     default:
   		sprintf_s(buff, BUFF_XLAT_SIZE, "UNKNOWN XLAT TABLE [%d]", table);
   		err = 1;
@@ -1504,6 +1535,10 @@ void _pco_acq_thread_edge(void *argin) {
 
 	//m_pcoData->traceAcqClean();
 	m_pcoData->traceAcq.fnId = fnId;
+
+	m_sync->getExpTime(m_pcoData->traceAcq.sExposure);
+	m_sync->getLatTime(m_pcoData->traceAcq.sDelay);
+
 
 	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
 	sprintf_s(_msg, LEN_MSG, "%s> [EXIT] xfer[%ld] (ms) status[%s]\n", 
@@ -3025,6 +3060,9 @@ bool Camera::_isCameraType(int tp){
 		case CAMERATYPE_PCO_EDGE_GL:
 			return !!(tp & (EdgeGL | Edge));
 
+		case CAMERATYPE_PCO_EDGE_HS:
+		case CAMERATYPE_PCO_EDGE_USB3:
+		case CAMERATYPE_PCO_EDGE_42:
 		case CAMERATYPE_PCO_EDGE:
 			return !!(tp & (EdgeRolling | Edge));
 

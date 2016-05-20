@@ -340,9 +340,9 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 		//----------------------------------------------------------------------------------------------------------
 		key = keys[ikey] = "maxNbImages";     
-		keys_desc[ikey++] = "(R) for DIMAX only / max number of images in the active ram segment";     
+		keys_desc[ikey++] = "(R) for DIMAX 2K 4K only / max number of images in the active ram segment";     
 		if(_stricmp(cmd, key) == 0){
-			if(!_isCameraType(Dimax)) {
+			if(!_isCameraType(Dimax | Pco2k | Pco4k )) {
 				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", -1);
 				return output;
 			}
@@ -471,8 +471,10 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			double totTime = m_pcoData->traceAcq.msXfer / 1000.;
 			double xferSpeed = mbTotSize / totTime;
 			double framesPerSec = m_pcoData->traceAcq.nrImgRequested / totTime;
-			ptr += sprintf_s(ptr, ptrMax - ptr, "* imgSize[%lld B] totSize[%lld B][%g MB] xferSpeed[%g MB/s][%g fps]\n",  
-					imgSize, totSize, mbTotSize, xferSpeed, framesPerSec);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* imgSize[%lld B] totSize[%lld B][%g MB]\n",  
+					imgSize, totSize, mbTotSize);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* xferTime[%g s] xferSpeed[%g MB/s][%g fps]\n",  
+					totTime, xferSpeed, framesPerSec);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* nrImgRequested0[%d] nrImgRequested[%d] nrImgAcquired[%d] nrImgRecorded[%d] maxImgCount[%d]\n",
@@ -1611,10 +1613,11 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 			_getInterfaceType(),
 			_getInterfaceTypePtr());
 	
+		/***
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* firmware dwHWVersion[%lx]  dwFWVersion[%lx] <- OLD / not used!\n", 
 			m_pcoData->stcPcoCamType.dwHWVersion, 
 			m_pcoData->stcPcoCamType.dwFWVersion);
-
+		***/
 	}
 	
 	//--------------- general info
@@ -1705,10 +1708,11 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 	if(flag & CAMINFO_ADC) {
 		int err;
 		ptr += sprintf_s(ptr, ptrMax - ptr, "*** adc\n");
-		WORD wADCOperation;
-		err = PCO_GetADCOperation(m_handle, &wADCOperation);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ADC wADCOperation[%d] wNumADCsDESC[%d]\n", 
-				wADCOperation, m_pcoData->stcPcoDescription.wNumADCsDESC);
+		int adc_working, adc_max;
+
+		err = _pco_GetADCOperation(adc_working, adc_max);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* ADC working[%d] max[%d]\n", 
+				adc_working, adc_max);
 	}
 
 	if(flag & CAMINFO_PIXELRATE) {

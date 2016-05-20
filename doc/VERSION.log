@@ -1,3 +1,22 @@
+2016/05/20 15:56:54 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-05-20_155648]
+  to: [/t/rhoms1/install-2016-05-20_155648]
+  to: [/t/rhoms1/install-beta]
+
+
+#===================================================
+# update to master the working test version with usb3 / pco edge gold
+
+- test running version 
+   comp[2015/12/11 13:17:57] file[2015/12/11 13:16:45] [..\..\..\..\src\PcoCamera.cpp]
+   install-2015-12-11_131825
+
+   Branches: develop_02, remotes/github/develop_02
+   d2f1fe0cd12ab1c3433d6960bd73c7e1078865e7
+   2015-12-11 14:26:34
+
 
 2016/05/19 16:22:25 ==========================================
 scp: copied local directory to segfs and /tmp_14_days:
