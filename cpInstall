@@ -6,14 +6,18 @@ REMHOST="blissadm@lid00a"
 #LOCDIR="/c/blissadm/git/pco/Lima/install"
 LOCDIR="../../install"
 TMPDIR="/t/rhoms1"
+DLL="Lima/liblimapco.dll"
 LOG="./doc/VERSION.log"
 
 DT=`date +"%Y-%m-%d_%H%M%S"`
 INSTALL="install-${DT}"
 INSTALLBETA="install-beta"
 
-echo ${INSTALL} > ${LOCDIR}/INSTALL_VERSION.txt
-
+{
+echo ${INSTALL} 
+echo
+./ident.exe ${LOCDIR}/${DLL}
+}> ${LOCDIR}/INSTALL_VERSION.txt
 
 mkdir -p ${TMPDIR}/${INSTALL}
 

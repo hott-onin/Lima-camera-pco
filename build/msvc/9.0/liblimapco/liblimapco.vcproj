@@ -626,6 +626,10 @@
 			Name="doc"
 			>
 			<File
+				RelativePath="..\..\..\..\cpInstall"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\doc\index.rst"
 				>
 			</File>
