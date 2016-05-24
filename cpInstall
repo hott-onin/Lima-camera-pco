@@ -14,11 +14,14 @@ INSTALLBETA="install-beta"
 
 echo ${INSTALL} > ${LOCDIR}/INSTALL_VERSION.txt
 
-scp -r ${LOCDIR}/ ${REMHOST}:${REMDIR}/${INSTALL}
+
+mkdir -p ${TMPDIR}/${INSTALL}
 
 cp -r ${LOCDIR}/ ${TMPDIR}/${INSTALL}
 
 cp -r ${LOCDIR}/ ${TMPDIR}/${INSTALLBETA}
+
+scp -r ${TMPDIR}/${INSTALL} ${REMHOST}:${REMDIR}
 
 {
 echo
