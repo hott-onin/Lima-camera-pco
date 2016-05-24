@@ -1,3 +1,91 @@
+2016/05/23 17:57:03 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-05-23_175657]
+  to: [/t/rhoms1/install-2016-05-23_175657]
+  to: [/t/rhoms1/install-beta]
+
+- included camera subtype
+- improve traceAcq
+- test with pco gold 4.2m usb
+
+ bench limatake .0001 1000
+
+* ... xferTimeTot[24.698 s] xferSpeed[323.913 MB/s][40.4891 fps]
+Execution time:      33.67 sec. ->     1000/33.67 = 29.7 fps <--- saving in D
+
+* ... xferTimeTot[24.676 s] xferSpeed[324.202 MB/s][40.5252 fps]
+Execution time:      28.15 sec.   -> 1000/28.14 =   35.5366  <--- no saving
+
+===
+249.RHPCO> limaget edgegold traceAcq
+ - traceAcq = 
+* fnId[_pco_acq_thread_edge] nrEvents[4]
+* ... fnIdXfer[lima::Pco::BufferCtrlObj::_xferImag]
+* msExposure[0.1] msDelay[0]
+* ... msLimaExposure[0.1] Pco exposure[100000] base[0]
+* ... msLimaDelay[0] Pco delay[0] base[0]
+* pcoBin horz[0] vert[0]
+* limaRoi xy0[0,0] xy1[2047,2047] size[2048,2048]
+* ... pcoRoi x[1,2048] y[1,2048]
+* ... imgSize[8388608 B] totSize[8388608000 B][8000 MB]
+* nrImgRequested[1000] nrImgAcquired[1000]
+* ... nrImgRequested0[0] nrImgRecorded[0] maxImgCount[0]
+* limaTriggerMode[IntTrig]
+* ... pcoTriggerMode[auto] [0]
+* ... pcoAcqMode[acqEnbl_Ignored] [0]
+* msStartAcqStart[1615]  msStartAcqEnd[1703]
+* ... usTicks[8][0.716] (ms)   (PCO_GetRecordingState execTime)
+* ... usTicks[9][53.583] (ms)   (PCO_SetRecordingState execTime)
+* ... usTicks[10][0.003] (ms)   (PCO_CancelImages execTime)
+* msImgCoc[24.6] fps[40.6] msTout[0] msTotal[0]
+* ... msRecordLoop[0] msRecord[0] endRecord[]
+* ... msXfer[24676] endXfer[2016/05/24 11:49:53]
+* ... xferTimeTot[24.676 s] xferSpeed[324.202 MB/s][40.5252 fps]
+
+247.RHPCO> bench limatake .0001 1000 <--- no saving
+Execution time:      28.15 sec.   -> 1000/28.14 = 35.5366
+
+===
+243.RHPCO> limaget edgegold traceAcq                                                                                                               - traceAcq = 
+* fnId[_pco_acq_thread_edge] nrEvents[4]
+* ... fnIdXfer[lima::Pco::BufferCtrlObj::_xferImag]
+* msExposure[0.1] msDelay[0]
+* ... msLimaExposure[0.1] Pco exposure[100000] base[0]
+* ... msLimaDelay[0] Pco delay[0] base[0]
+* pcoBin horz[0] vert[0]
+* limaRoi xy0[0,0] xy1[2047,2047] size[2048,2048]
+* ... pcoRoi x[1,2048] y[1,2048]
+* ... imgSize[8388608 B] totSize[8388608000 B][8000 MB]
+* nrImgRequested[1000] nrImgAcquired[1000]
+* ... nrImgRequested0[0] nrImgRecorded[0] maxImgCount[0]
+* limaTriggerMode[IntTrig]
+* ... pcoTriggerMode[auto] [0]
+* ... pcoAcqMode[acqEnbl_Ignored] [0]
+* msStartAcqStart[1559]  msStartAcqEnd[1644]
+* ... usTicks[8][0.742] (ms)   (PCO_GetRecordingState execTime)
+* ... usTicks[9][53.287] (ms)   (PCO_SetRecordingState execTime)
+* ... usTicks[10][0.002] (ms)   (PCO_CancelImages execTime)
+* msImgCoc[24.6] fps[40.6] msTout[0] msTotal[0]
+* ... msRecordLoop[0] msRecord[0] endRecord[]
+* ... msXfer[24698] endXfer[2016/05/24 11:47:17]
+* ... xferTimeTot[24.698 s] xferSpeed[323.913 MB/s][40.4891 fps]
+
+244.RHPCO> bench limatake .0001 1000
+LIMA[edgegold] > Saving in D:/test/img_12929.edf [AUTO_FRAME-EDF]
+Execution time:      33.67 sec. -> 1000/33.67 = 29.7
+===
+
+2016/05/20 19:04:02 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.18] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2016-05-20 18:59:30 +0200] head[9b0489e][9b0489e38aad39e3e9f018e90b0a767cc1487523] ref[ (HEAD, gitlab/master, master)] at [2016/05/20 19:04:02] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2016-05-19 15:11:55 +0200] head[d0008e7][d0008e7c9e7ff688079bce4ea9ec79531d9b5df2] ref[ (HEAD, origin/core-1.4, core-1.4)] at [2016/05/20 19:04:02] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2016-01-15 15:44:08 +0100] head[3a08863][3a0886386e57a24ced072832d321d2dc43449e0b] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/05/20 19:04:02] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/05/20 19:04:02] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2016-05-19 15:39:42 +0200] head[6028c8b][6028c8b626280ee8d6841b3362536e4cee7246b7] ref[ (HEAD, github/master, github/HEAD, master)] at [2016/05/20 19:04:02] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2016-05-19 13:58:33 +0200] head[a5b9be5][a5b9be5efd7916a28cf0ab06fcc6f17e19194605] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/05/20 19:04:02] $"
+
+
 2016/05/20 15:56:54 ==========================================
 scp: copied local directory to segfs and /tmp_14_days:
 from: [../../install/]

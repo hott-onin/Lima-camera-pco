@@ -144,6 +144,8 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
     DEF_FNID;
 
 	WORD pcoAcqMode;
+	char *sLimaTriggerMode = "invalid";
+	char *sPcoAcqMode = "invalid";
 
 
 	if(!checkTrigMode(m_trig_mode)){
@@ -166,32 +168,54 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 
 
     switch( m_trig_mode)	{
-	  case IntTrig: // 0 SOFT (spec)
-    	  pcoAcqMode= 0x0000;
+		case IntTrig: // 0 SOFT (spec)
+			sLimaTriggerMode = "IntTrig";
+			sPcoAcqMode = "acqEnbl_Ignored";
+			pcoAcqMode= 0x0000;
 			break;
 
-      case ExtTrigSingle:
+		case ExtTrigSingle:
 			// trig (at ACQ ENABLE) starts a sequence of int trigger (dimax only)
 			//   StorageMode 0 - record mode
 			//   RecorderSubmode 1 - ring buffer
 			//   Triggermode 0 - auto
 			//   Acquiremode 0 - auto / ignored
+			sLimaTriggerMode = "ExtTrigSingle";
+			sPcoAcqMode = "acqEnbl_Ignored";
 			pcoAcqMode= 0x0000;
 			break;
 
 		case ExtTrigMult:
+			sLimaTriggerMode = "ExtTrigMult";
+			sPcoAcqMode = "acqEnbl_Ignored";
+			pcoAcqMode= 0x0000;
+			break;
+
 			//case IntTrigMult: // 1 START (spec)
 		case ExtGate:  // 2 GATE (spec)
+			sLimaTriggerMode = "ExtGate";
+
 #ifdef DISABLE_ACQ_ENBL_SIGNAL
+			sPcoAcqMode = "acqEnbl_Ignored";
 			pcoAcqMode= 0x0000;
 #else
 			pcoAcqMode= 0x0001;
+			sPcoAcqMode = "acqEnbl_TrigAccepted";
 #endif
 			break;
+
+
+//			pcoAcqMode= 0x0002;
+//			sPcoAcqMode = "acqEnbl_startModulationMode";
+
 
 		default:
 			throw LIMA_HW_EXC(NotSupported,"Invalid value");
 	}
+
+	m_pcoData->traceAcq.iPcoAcqMode = pcoAcqMode;
+	m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
+	m_pcoData->traceAcq.sPcoAcqMode = sPcoAcqMode;
 
 	DEB_ALWAYS() << fnId << ": " << DEB_VAR2(pcoAcqMode, m_trig_mode);
 	return pcoAcqMode;
@@ -206,6 +230,8 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
     DEF_FNID;
 
 	WORD pcoTrigMode;
+	char *sLimaTriggerMode = "invalid";
+	char *sPcoTriggerMode = "invalid";
 
 	if(!checkTrigMode(m_trig_mode)){
 		throw LIMA_HW_EXC(NotSupported,"Trigger type not supported");
@@ -221,7 +247,15 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 			// sequence, then exposures and sensor readout are started simultaneously.
 			// Signals at the trigger input (<exp trig>) are irrelevant.
 	    default: 
+			sLimaTriggerMode = "intTrig_DEFAULT";
+			sPcoTriggerMode = "auto";
+			ext_trig = false;
+			pcoTrigMode= 0x0000;  // 0 = SOFT (spec)
+			break;
+
 		case IntTrig: 
+			sLimaTriggerMode = "intTrig";
+			sPcoTriggerMode = "auto";
 			ext_trig = false;
 			pcoTrigMode= 0x0000;  // 0 = SOFT (spec)
 			break;
@@ -231,6 +265,8 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 			// (depending on the DIP switch setting) of the trigger input (<exp trig>).
 		//case IntTrigMult: return 0x0002;   // 1 = START (spec)
 		case ExtTrigMult: 
+			sLimaTriggerMode = "ExtTrigMult";
+			sPcoTriggerMode = "startExposure";
 			ext_trig = true;
 			pcoTrigMode= 0x0002;   // 1 = START (spec)
 			break;
@@ -242,6 +278,8 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 			// time length control is also possible for double image mode; exposure
 			// time of the second image is given by the readout time of the first image.)
 		case ExtGate: 
+			sLimaTriggerMode = "ExtGate";
+			sPcoTriggerMode = "extGate";
 			ext_trig = true;
 			pcoTrigMode= 0x0003;  // 2 = GATE (spec)
 			break;
@@ -253,6 +291,8 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 			//   RecorderSubmode 1 - ring buffer
 			//   Triggermode 0 - auto
 			//   Acquiremode 0 - auto / ignored
+			sLimaTriggerMode = "ExtTrigSingle";
+			sPcoTriggerMode = "auto";
 			ext_trig = true;
 			pcoTrigMode= 0x0000;
 			break;
@@ -260,6 +300,9 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 	
 	}
 
+	m_pcoData->traceAcq.iPcoTriggerMode = pcoTrigMode;
+	m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
+	m_pcoData->traceAcq.sPcoTriggerMode = sPcoTriggerMode;
 
 	DEB_ALWAYS() << fnId <<": " << DEB_VAR3(pcoTrigMode, m_trig_mode, ext_trig);
 
