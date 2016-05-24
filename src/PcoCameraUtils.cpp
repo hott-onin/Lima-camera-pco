@@ -245,7 +245,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		char *tok[NRTOK];
 		int tokNr;
 		char *ptr, *ptrMax;
-		int segmentPco = m_pcoData->activeRamSegment;
+		int segmentPco = m_pcoData->wActiveRamSegment;
 		int segmentArr = segmentPco -1;
 		
 		ptr = output; *ptr = 0;
@@ -277,6 +277,13 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			return output;
 		}
 
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "getVersionFile";     
+		keys_desc[ikey++] = "(R) reads INSTALL_VERSION.txt";     
+		if(_stricmp(cmd, key) == 0){
+			_getDllPath(FILE_PCO_DLL, ptr, ptrMax -ptr);
+			return output;
+		}
 		//----------------------------------------------------------------------------------------------------------
 		key = keys[ikey] = "expDelayTime";     
 		keys_desc[ikey++] = "(R) exposure and delay time";
@@ -347,7 +354,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				return output;
 			}
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", pcoGetFramesMax(m_pcoData->activeRamSegment));
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", pcoGetFramesMax(m_pcoData->wActiveRamSegment));
 			return output;
 		}
 
@@ -456,6 +463,8 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				PCO_BUFFER_NREVENTS,
 				m_pcoData->traceAcq.fnIdXfer);
 
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* ... testCmdMode [0x%llx]\n",  m_pcoData->testCmdMode);
+
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* msExposure[%g] msDelay[%g]\n",
 				m_pcoData->traceAcq.sExposure * 1000.,
@@ -537,17 +546,22 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			
 
 			for(int _i = 0; _i < LEN_TRACEACQ_TRHEAD; _i++){
-				ptr += sprintf_s(ptr, ptrMax - ptr, 
-					"* ... usTicks[%d][%5.3f] (ms)   (%s)\n", 
-					_i, m_pcoData->traceAcq.usTicks[_i].value/1000.,
-					m_pcoData->traceAcq.usTicks[_i].desc);
+				char *desc = m_pcoData->traceAcq.usTicks[_i].desc;
+				if(desc != NULL) {
+					ptr += sprintf_s(ptr, ptrMax - ptr, 
+						"* ... usTicks[%d][%5.3f] (ms)   (%s)\n", 
+						_i, m_pcoData->traceAcq.usTicks[_i].value/1000.,
+						desc);
+			
+				}
 			}
 
 			_timet = m_pcoData->traceAcq.endRecordTimestamp;
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* msImgCoc[%.3g] fps[%.3g] msTout[%ld] msTotal[%ld]\n",
-				m_pcoData->traceAcq.msImgCoc, 1000. / m_pcoData->traceAcq.msImgCoc,
+				m_pcoData->traceAcq.msImgCoc, 
+				1000. / m_pcoData->traceAcq.msImgCoc,
 				m_pcoData->traceAcq.msTout,
 				m_pcoData->traceAcq.msTotal);
 
@@ -565,6 +579,12 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* ... xferTimeTot[%g s] xferSpeed[%g MB/s][%g fps]\n",  
 				totTime, xferSpeed, framesPerSec);
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"* ... checkImgNr pco[%d] lima[%d] diff[%d]\n",  
+				m_pcoData->traceAcq.checkImgNrPco,
+				m_pcoData->traceAcq.checkImgNrLima,
+				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"%s\n", m_pcoData->traceAcq.msg);
@@ -729,6 +749,24 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 		}
 
+
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "getCheckImgNrResults";     
+		keys_desc[ikey++] = "(R) get the last checkImgNr results";
+		if(_stricmp(cmd, key) == 0){
+			//int alignment;
+			bool syntax = false;
+			//char *res;
+			
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"pco: %d lima: %d diff: %d",  
+				m_pcoData->traceAcq.checkImgNrPco,
+				m_pcoData->traceAcq.checkImgNrLima,
+				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima);
+
+			return output;
+		}
 
 
 		//----------------------------------------------------------------------------------------------------------
@@ -974,6 +1012,14 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		}
 
 		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "camSN";     
+		keys_desc[ikey++] = "(R) cam serial number";     
+		if(_stricmp(cmd, key) == 0){
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", _getCameraSerialNumber());
+			return output;
+		}
+
+		//----------------------------------------------------------------------------------------------------------
 		key = keys[ikey] = "lastError";     
 		keys_desc[ikey++] = "(R) last PCO SDK error";     
 		if(_stricmp(cmd, key) == 0){
@@ -1156,9 +1202,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		if(_stricmp(cmd, key) == 0){
 			char *comment = str_trim(cmdBuffAux + strlen(cmd));
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"\n=================================================\n--- %s [%s]\n",
-				getTimestamp(Iso), comment);
+			ptr += sprintf_s(ptr, ptrMax - ptr, _sprintComment(comment) );
 
 			DEB_ALWAYS() << output ;
 			return output;
@@ -1610,6 +1654,57 @@ int _getFileVerStruct(const TCHAR* pzFileName, int* ima, int* imi, int* imb, TCH
   return 0;
 }
 
+#define LEN_DRIVE	7
+#define LEN_DIR		MAX_PATH
+
+//====================================================================
+//====================================================================
+char * _getDllPath(const char* pzFileName, char *path, size_t strLen)
+{
+	errno_t err;
+
+	char drive[LEN_DRIVE+1];
+	char dir[LEN_DIR+1];
+	char _pathFn[MAX_PATH+1];
+	char _pathFnInstall[MAX_PATH+1];
+	char *ptr;
+	size_t nr;
+	FILE *stream;
+
+	*path = 0;
+
+	GetModuleFileName(GetModuleHandle(pzFileName), _pathFn, MAX_PATH);
+
+	err = _splitpath_s(_pathFn, drive, LEN_DRIVE, dir, LEN_DIR, NULL, 0, NULL, 0);
+
+	size_t l = strlen(dir);
+	ptr = dir + l -2;
+	while(*ptr != '\\') ptr--;
+	*ptr = 0;
+
+	ptr = path;
+	err = _makepath_s(_pathFnInstall, MAX_PATH, drive, dir, FILENAME_INSTALL_VERSION, FILEEXT_INSTALL_VERSION);
+	printf("----- path[%s] path1[%s] drive[%s] dir[%s]\n", _pathFn, _pathFnInstall, drive, dir);
+	nr = sprintf_s(ptr, strLen-1,"%s\n", _pathFnInstall);
+    ptr += nr;
+	strLen -= nr;
+
+	err  = fopen_s( &stream, _pathFnInstall, "r" );
+#if 0
+	if(err == 0) {
+		if( fgets( path, strLen, stream ) == NULL){
+			*ptr = 0;
+		}
+	}
+#endif
+	nr = fread(ptr, 1, strLen-1, stream); 
+	ptr[nr] = 0;
+    fclose( stream );
+	return path;
+}
+
+
+
 char * _getPcoSdkVersion(char *infoBuff, int strLen)
 {
 	int ima, imi, imb;
@@ -1856,7 +1951,7 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
     //------ DIMAX
 	if( (flag & CAMINFO_DIMAX) && (_isCameraType(Dimax | Pco2k | Pco4k)) ){
 		unsigned int bytesPerPix; getBytesPerPixel(bytesPerPix);
-		int segmentPco = m_pcoData->activeRamSegment;
+		int segmentPco = m_pcoData->wActiveRamSegment;
 		int segmentArr = segmentPco -1;
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "*** DIMAX - 2k - 4k info \n");
@@ -2029,3 +2124,141 @@ void Camera::_traceMsg(char *msg)
 
 }
 
+//====================================================================
+//====================================================================
+#define LEN_COMMENT 511
+char * _sprintComment(char *comment, char *comment1, char *comment2)
+{
+	static char buff[LEN_COMMENT+1];
+
+	sprintf_s(buff, LEN_COMMENT, 
+			"\n=================================================\n--- %s %s %s %s\n",
+			getTimestamp(Iso), comment, comment1, comment2);
+
+	return buff ;
+}
+				
+
+//====================================================================
+//====================================================================
+
+/*************************************************************************
+#define TIMESTAMP_MODE_BINARY           1
+#define TIMESTAMP_MODE_BINARYANDASCII   2
+
+SYSTEMTIME st;
+int act_timestamp;
+int shift;
+
+if(camval.strImage.wBitAlignment==0)
+  shift = (16-camval.strSensor.strDescription.wDynResDESC);
+else
+  shift = 0;
+
+err=PCO_SetTimestampMode(hdriver,TIMESTAMP_MODE_BINARY); //Binary+ASCII
+
+grab image to adr
+
+time_from_timestamp(adr,shift,&st);
+act_timestamp=image_nr_from_timestamp(adr,shift);
+*************************************************************************/
+
+int _get_imageNr_from_imageTimestamp(void *buf,int shift)
+{
+	unsigned short *b;
+	unsigned short c;
+	int y;
+	int image_nr=0;
+
+	b=(unsigned short *)(buf);
+	y=100*100*100;
+
+	for(;y>0;y/=100)
+	{
+		c=*b>>shift;
+		image_nr+= (((c&0x00F0)>>4)*10 + (c&0x000F))*y;
+		b++;
+	}
+
+	return image_nr;
+}
+
+int _get_time_from_imageTimestamp(void *buf,int shift,SYSTEMTIME *st)
+{
+	unsigned short *b;
+	unsigned short c;
+	int x,us;
+
+	memset(st,0,sizeof(SYSTEMTIME));
+	b=(unsigned short *)buf;
+
+	//counter
+	for(x=0;x<4;x++)
+	{
+		c=*(b+x)>>shift;
+	}
+
+	x=4;
+	//year
+	c=*(b+x)>>shift;
+	st->wYear+=(c>>4)*1000;
+	st->wYear+=(c&0x0F)*100;
+	x++;
+
+	c=*(b+x)>>shift;
+	st->wYear+=(c>>4)*10;
+	st->wYear+=(c&0x0F);
+	x++;
+
+	//month
+	c=*(b+x)>>shift;
+	st->wMonth+=(c>>4)*10;
+	st->wMonth+=(c&0x0F);
+	x++;
+
+
+	//day
+	c=*(b+x)>>shift;
+	st->wDay+=(c>>4)*10;
+	st->wDay+=(c&0x0F);
+	x++;
+
+	//hour
+	c=*(b+x)>>shift;
+	st->wHour+=(c>>4)*10;
+	st->wHour+=(c&0x0F);
+	x++;
+
+	//min   
+	c=*(b+x)>>shift;
+	st->wMinute+=(c>>4)*10;
+	st->wMinute+=(c&0x0F);
+	x++;
+
+	//sec   
+	c=*(b+x)>>shift;
+	st->wSecond+=(c>>4)*10;
+	st->wSecond+=(c&0x0F);
+	x++;
+
+	//us   
+	us=0;
+	c=*(b+x)>>shift;
+	us+=(c>>4)*100000;
+	us+=(c&0x0F)*10000;
+	x++;
+
+	c=*(b+x)>>shift;
+	us+=(c>>4)*1000;
+	us+=(c&0x0F)*100;
+	x++;
+
+	c=*(b+x)>>shift;
+	us+=(c>>4)*10;
+	us+=(c&0x0F);
+	x++;
+
+	st->wMilliseconds=us/100;
+
+	return 0;
+}

@@ -498,6 +498,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\src\PcoCameraSdk.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\src\PcoCameraUtils.cpp"
 				>
 			</File>
@@ -626,6 +630,10 @@
 			Name="doc"
 			>
 			<File
+				RelativePath="..\..\..\..\cpInstall"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\doc\index.rst"
 				>
 			</File>
@@ -675,6 +683,18 @@
 			>
 			<File
 				RelativePath="..\..\..\..\..\..\applications\spec\limapco.mac"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="sip"
+			>
+			<File
+				RelativePath="..\..\..\..\sip\PcoCamera.sip"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\sip\PcoInterface.sip"
 				>
 			</File>
 		</Filter>
