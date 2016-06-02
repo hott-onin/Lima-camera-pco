@@ -1,3 +1,8 @@
+@echo off
+c:
+cd C:\ProgramData\pco
+
+
 @echo off & for /F "tokens=1-4 delims=/ " %%A in ('date/t') do (
 set DateDay=%%A
 set DateMonth=%%B

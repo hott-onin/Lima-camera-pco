@@ -979,8 +979,6 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 	m_pcoData->traceAcq.fnIdXfer = fnId;
 	m_pcoData->traceAcq.msImgCoc = (m_cam->pcoGetCocRunTime() * 1000.);
 
-
-
 	DWORD dwFrameIdx, dwFrameIdxCount;
 	long long nr =0;
 	long long bytesWritten = 0;
@@ -1020,12 +1018,8 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 
 	DEB_ALWAYS() << _sprintComment(fnId, "[PCO_GetImageEx]", "[ENTRY]");
 
-	wSegment = m_cam->pcoGetActiveRamSegment();
-	wSegment = 0;
+	wSegment = 1; // pco edge doesn't have mem
 
-
-	int pcoErr = PCO_GetActiveRamSegment(m_handle, &wSegment);
-	DEB_ALWAYS() << DEB_VAR2(pcoErr, wSegment);
 	
 //------------------- nr of frames per buffer
 	m_cam->getBitsPerPixel(_wBitPerPixel);
@@ -1033,7 +1027,6 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 	m_cam->getArmWidthHeight(_wArmWidth, _wArmHeight);  // actual
 	_pcoAllocBuffersInfo(_iPcoAllocatedBuffNr, _dwPcoAllocatedBuffSize);
 	dwFrameSize = (DWORD) _wArmWidth * (DWORD) _wArmHeight * (DWORD) _uiBytesPerPixel;
-	//dwFramesPerBuffer = _dwPcoAllocatedBuffSize / dwFrameSize ;
 	dwFramesPerBuffer = 1;
 	
 
@@ -1073,16 +1066,6 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 		m_cam->_pcoSet_RecordingState(1, error);
 	}
 
-
-#if(0)
-	sErr = m_cam->_PcoCheckError(__LINE__, __FILE__, 
-			PCO_GetNumberOfImagesInSegment(m_handle, wSegment, &_dwValidImageCnt, &_dwMaxImageCnt), error);
-	if(error) {
-		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, sErr);
-		throw LIMA_HW_EXC(Error, "PCO_GetNumberOfImagesInSegment");
-	}
-
-#endif
 	_dwValidImageCnt = dwRequestedFrames;
 	dwFrameIdx = (_dwValidImageCnt >= dwRequestedFrames) ? _dwValidImageCnt - dwRequestedFrames + 1 : 1;
 
@@ -1103,7 +1086,6 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 	m_pcoData->traceAcq.usTicks[7].desc = "xfer to lima / total execTime";
 
 
-
 	msElapsedTimeSet(tStartXfer);
 	for(iLimaFrame = 0; iLimaFrame < requested_nb_frames; iLimaFrame++) {
 		bufIdx++; if(bufIdx >= _iPcoAllocatedBuffNr) bufIdx = 0;
@@ -1115,10 +1097,6 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 		}
 		dwFrameIdxLast = dwFrameIdxFirst = dwFrameIdx;
 		dwFrameIdxLast = dwFrameIdxFirst = 0;
-
-		if(m_cam->_getDebug(DBG_XFERMULT1)){
-			DEB_ALWAYS() << DEB_VAR5( dwFrameIdx, dwFrameIdxFirst, dwFrameIdxLast, dwFramesPerBuffer,  dwRequestedFrames);
-		}
 
 		usElapsedTimeSet(usStart);
 
@@ -1190,7 +1168,6 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 
 	DEB_ALWAYS()	<< _sprintComment(fnId, "[EXIT]")
 					<< DEB_VAR3(_retStatus, _stopReq, _newFrameReady);  
-
 
 	return _retStatus;
 

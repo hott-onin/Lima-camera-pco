@@ -539,10 +539,14 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			
 
 			for(int _i = 0; _i < LEN_TRACEACQ_TRHEAD; _i++){
-				ptr += sprintf_s(ptr, ptrMax - ptr, 
-					"* ... usTicks[%d][%5.3f] (ms)   (%s)\n", 
-					_i, m_pcoData->traceAcq.usTicks[_i].value/1000.,
-					m_pcoData->traceAcq.usTicks[_i].desc);
+				char *desc = m_pcoData->traceAcq.usTicks[_i].desc;
+				if(desc != NULL) {
+					ptr += sprintf_s(ptr, ptrMax - ptr, 
+						"* ... usTicks[%d][%5.3f] (ms)   (%s)\n", 
+						_i, m_pcoData->traceAcq.usTicks[_i].value/1000.,
+						desc);
+			
+				}
 			}
 
 			_timet = m_pcoData->traceAcq.endRecordTimestamp;
