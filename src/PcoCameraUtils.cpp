@@ -456,6 +456,8 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				PCO_BUFFER_NREVENTS,
 				m_pcoData->traceAcq.fnIdXfer);
 
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* ... testCmdMode [0x%llx]\n",  m_pcoData->testCmdMode);
+
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* msExposure[%g] msDelay[%g]\n",
 				m_pcoData->traceAcq.sExposure * 1000.,
@@ -547,7 +549,8 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* msImgCoc[%.3g] fps[%.3g] msTout[%ld] msTotal[%ld]\n",
-				m_pcoData->traceAcq.msImgCoc, 1000. / m_pcoData->traceAcq.msImgCoc,
+				m_pcoData->traceAcq.msImgCoc, 
+				1000. / m_pcoData->traceAcq.msImgCoc,
 				m_pcoData->traceAcq.msTout,
 				m_pcoData->traceAcq.msTotal);
 
@@ -1156,9 +1159,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		if(_stricmp(cmd, key) == 0){
 			char *comment = str_trim(cmdBuffAux + strlen(cmd));
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"\n=================================================\n--- %s [%s]\n",
-				getTimestamp(Iso), comment);
+			ptr += sprintf_s(ptr, ptrMax - ptr, _sprintComment(comment) );
 
 			DEB_ALWAYS() << output ;
 			return output;
@@ -1610,6 +1611,15 @@ int _getFileVerStruct(const TCHAR* pzFileName, int* ima, int* imi, int* imb, TCH
   return 0;
 }
 
+char * _getDllPath(const char* pzFileName, char *path, int strLen)
+{
+	GetModuleFileName(GetModuleHandle(pzFileName), path, strLen);
+	printf("========= [%s]\n", path);
+	return path;
+}
+
+
+
 char * _getPcoSdkVersion(char *infoBuff, int strLen)
 {
 	int ima, imi, imb;
@@ -2029,3 +2039,17 @@ void Camera::_traceMsg(char *msg)
 
 }
 
+//====================================================================
+//====================================================================
+#define LEN_COMMENT 511
+char * _sprintComment(char *comment, char *comment1, char *comment2)
+{
+	static char buff[LEN_COMMENT+1];
+
+	sprintf_s(buff, LEN_COMMENT, 
+			"\n=================================================\n--- %s %s %s %s\n",
+			getTimestamp(Iso), comment, comment1, comment2);
+
+	return buff ;
+}
+				

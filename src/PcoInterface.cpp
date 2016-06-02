@@ -112,8 +112,9 @@ void Interface::reset(ResetLevel reset_level)
 void Interface::prepareAcq()
 {
 	DEB_MEMBER_FUNCT();
+	DEF_FNID;
 
-	DEB_ALWAYS() << "[entry]";
+	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]");
 	if(m_buffer)
 		m_buffer->prepareAcq();
 }
@@ -125,7 +126,7 @@ void Interface::startAcq()
   DEB_MEMBER_FUNCT();
   DEF_FNID;
 
-	DEB_ALWAYS() << "[entry]";
+	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]");
 
   if(m_buffer)
     m_buffer->getBuffer().setStartTimestamp(Timestamp::now());
@@ -139,7 +140,7 @@ void Interface::stopAcq()
   DEB_MEMBER_FUNCT();
   DEF_FNID;
 
-  DEB_ALWAYS() << "[entry]";
+	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]");
   m_sync->stopAcq();
 }
 

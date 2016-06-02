@@ -103,6 +103,7 @@ char * _getComputerName(char *infoBuff, DWORD  bufCharCount);
 char * _getUserName(char *infoBuff, DWORD  bufCharCount);
 char * _getVSconfiguration(char *infoBuff, DWORD  bufCharCount);
 char * _getPcoSdkVersion(char *infoBuff, int strLen);
+char * _getDllPath(const char* pzFileName, char *path, int strLen);
 
 //=========================================================================================================
 
@@ -240,6 +241,7 @@ stcPcoData::stcPcoData(){
 	ptr += sprintf_s(ptr, ptrMax - ptr, "       user name: %s\n", _getUserName(buff, BUFFER_LEN));
 	ptr += sprintf_s(ptr, ptrMax - ptr, "VS configuration: %s\n", _getVSconfiguration(buff, BUFFER_LEN));
 	ptr += sprintf_s(ptr, ptrMax - ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN));
+	//ptr += sprintf_s(ptr, ptrMax - ptr, "    lima pco dll: %s\n", _getDllPath("liblimapco.dll", buff, BUFFER_LEN));
 
 
 	stcPcoGeneral.wSize = sizeof(stcPcoGeneral);
@@ -294,6 +296,9 @@ void Camera::paramsInit(const char *str)
 	DEF_FNID;
 	DEB_CONSTRUCTOR();
 
+	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]")
+		<< DEB_VAR1(str);
+
 	int i;
 	char *tokNext = NULL;
 	char *buff = m_pcoData->params.buff;
@@ -346,6 +351,7 @@ void Camera::paramsInit(const char *str)
 		value = m_pcoData->params.ptrValue[j];
 		DEB_ALWAYS() << DEB_VAR2(key, value);
 	}
+	DEB_ALWAYS() << _sprintComment(fnId, "[EXIT]");
 };
 
 //=========================================================================================================
@@ -377,6 +383,8 @@ Camera::Camera(const char *params) :
 	if(m_pcoData == NULL)
 		throw LIMA_HW_EXC(Error, "m_pcoData > creation error");
 
+
+
 	// properties: params 
 	paramsInit(params);
 
@@ -389,8 +397,9 @@ Camera::Camera(const char *params) :
 	key = "testMode";
 	key = "debugPco";
 	***/
-	key = "extValue";
+	key = "testMode";
 	ret = paramsGet(key, value);
+	if(ret) {m_pcoData->testCmdMode = _atoi64(value);}
 
 	DEB_ALWAYS()
 		<< ALWAYS_NL << DEB_VAR1(m_pcoData->version) 
@@ -409,9 +418,10 @@ void Camera::_init(){
 	DEB_CONSTRUCTOR();
 	DEF_FNID;
 
-	DEB_ALWAYS() << fnId << " [entry]";
+	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]");
 
 	char msg[MSG_SIZE + 1];
+	//char *pMsg;
 	int error=0;
 	char *errMsg;
 	char *pcoFn;
@@ -422,6 +432,9 @@ void Camera::_init(){
 	sprintf_s(msg, MSG_SIZE, "*** Pco log %s\n", getTimestamp(Iso));
 	m_log.append(msg);
 
+	_getDllPath("liblimapco.dll", msg, MSG_SIZE);
+
+	//PCO_FN0(error, pMsg,PCO_ResetLib);
 
 		// --- Open Camera - close before if it is open
 	if(m_handle) {
@@ -743,7 +756,7 @@ void Camera::startAcq()
     WORD state;
     HANDLE hEvent= NULL;
 
-	DEB_ALWAYS() << fnId << " [ENTRY]\n" << _checkLogFiles();
+	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]") << _checkLogFiles();
 
 	int error;
 	char *msg;
@@ -1521,14 +1534,18 @@ void _pco_acq_thread_edge(void *argin) {
 	int error;
 	long msXfer;
 	int requestStop = stopNone;
+	pcoAcqStatus status; 
 
 	HANDLE m_handle = m_cam->getHandle();
 
 	m_sync->setAcqFrames(0);
 
 
-	pcoAcqStatus status = (pcoAcqStatus) m_buffer->_xferImag();
-	//pcoAcqStatus status = (pcoAcqStatus) m_buffer->_xferImagMult();
+	if(m_pcoData->testCmdMode & TESTCMDMODE_EDGE_XFER) {
+		status = (pcoAcqStatus) m_buffer->_xferImag_getImage_edge();
+	} else {
+		status = (pcoAcqStatus) m_buffer->_xferImag();  // original
+	}
 
 	m_sync->setExposing(status);
 	//m_sync->stopAcq();

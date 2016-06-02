@@ -61,12 +61,19 @@
 //---------------------------------------
 
 //--------------------------------------- test cmd mode
-#define TESTCMDMODE_DIMAX_XFERMULTI		0x00000001   // _pco_acq_thread_dimax dimax: xferMulti or xfer
-#define TESTCMDMODE_2					0x00000002
-#define TESTCMDMODE_4					0x00000004
-#define TESTCMDMODE_8					0x00000008
-#define TESTCMDMODE_10					0x00000010
-#define TESTCMDMODE_PCO2K_XFER_WAITOBJ		0x00000020   // _pco_acq_thread_dimax dimax: xferMulti or xfer
+#define TESTCMDMODE_DIMAX_XFERMULTI		(0x00000001 << 0)   // _pco_acq_thread_dimax dimax: xferMulti or xfer
+#define TESTCMDMODE_EDGE_XFER			(0x00000001 << 1)	// change EDGE xfer
+#define TESTCMDMODE_2					(0x00000001 << 2)
+#define TESTCMDMODE_3					(0x00000001 << 3)
+#define TESTCMDMODE_4					(0x00000001 << 4)
+#define TESTCMDMODE_PCO2K_XFER_WAITOBJ	(0x00000001 << 5)   // _pco_acq_thread_dimax dimax: xferMulti or xfer
+#define TESTCMDMODE_6					(0x00000001 << 6)
+#define TESTCMDMODE_7					(0x00000001 << 7)
+
+#define TESTCMDMODE_8					(0x00000001 << 8)
+
+//---------------------------------------
+
 
 //---------------------------------------
 

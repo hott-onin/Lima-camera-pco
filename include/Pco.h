@@ -125,5 +125,6 @@ typedef int tPvErr;
 #define PCO_FN4(er,mg, fn, x1, x2, x3, x4) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4) ), #fn ) ; }
 #define PCO_FN5(er,mg, fn, x1, x2, x3, x4, x5) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5) ), #fn ) ; }
 
+char * _sprintComment(char *comment, char *comment1 ="" , char *comment2 ="" );
 
 #endif
