@@ -574,6 +574,12 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				totTime, xferSpeed, framesPerSec);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"* ... checkImgNr pco[%d] lima[%d] diff[%d]\n",  
+				m_pcoData->traceAcq.checkImgNrPco,
+				m_pcoData->traceAcq.checkImgNrLima,
+				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima);
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"%s\n", m_pcoData->traceAcq.msg);
 
 			return output;
@@ -736,6 +742,24 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 		}
 
+
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "getCheckImgNrResults";     
+		keys_desc[ikey++] = "(R) get the last checkImgNr results";
+		if(_stricmp(cmd, key) == 0){
+			//int alignment;
+			bool syntax = false;
+			//char *res;
+			
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"pco: %d lima: %d diff: %d",  
+				m_pcoData->traceAcq.checkImgNrPco,
+				m_pcoData->traceAcq.checkImgNrLima,
+				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima);
+
+			return output;
+		}
 
 
 		//----------------------------------------------------------------------------------------------------------
@@ -2057,3 +2081,127 @@ char * _sprintComment(char *comment, char *comment1, char *comment2)
 	return buff ;
 }
 				
+
+//====================================================================
+//====================================================================
+
+/*************************************************************************
+#define TIMESTAMP_MODE_BINARY           1
+#define TIMESTAMP_MODE_BINARYANDASCII   2
+
+SYSTEMTIME st;
+int act_timestamp;
+int shift;
+
+if(camval.strImage.wBitAlignment==0)
+  shift = (16-camval.strSensor.strDescription.wDynResDESC);
+else
+  shift = 0;
+
+err=PCO_SetTimestampMode(hdriver,TIMESTAMP_MODE_BINARY); //Binary+ASCII
+
+grab image to adr
+
+time_from_timestamp(adr,shift,&st);
+act_timestamp=image_nr_from_timestamp(adr,shift);
+*************************************************************************/
+
+int _get_imageNr_from_imageTimestamp(void *buf,int shift)
+{
+	unsigned short *b;
+	unsigned short c;
+	int y;
+	int image_nr=0;
+
+	b=(unsigned short *)(buf);
+	y=100*100*100;
+
+	for(;y>0;y/=100)
+	{
+		c=*b>>shift;
+		image_nr+= (((c&0x00F0)>>4)*10 + (c&0x000F))*y;
+		b++;
+	}
+
+	return image_nr;
+}
+
+int _get_time_from_imageTimestamp(void *buf,int shift,SYSTEMTIME *st)
+{
+	unsigned short *b;
+	unsigned short c;
+	int x,us;
+
+	memset(st,0,sizeof(SYSTEMTIME));
+	b=(unsigned short *)buf;
+
+	//counter
+	for(x=0;x<4;x++)
+	{
+		c=*(b+x)>>shift;
+	}
+
+	x=4;
+	//year
+	c=*(b+x)>>shift;
+	st->wYear+=(c>>4)*1000;
+	st->wYear+=(c&0x0F)*100;
+	x++;
+
+	c=*(b+x)>>shift;
+	st->wYear+=(c>>4)*10;
+	st->wYear+=(c&0x0F);
+	x++;
+
+	//month
+	c=*(b+x)>>shift;
+	st->wMonth+=(c>>4)*10;
+	st->wMonth+=(c&0x0F);
+	x++;
+
+
+	//day
+	c=*(b+x)>>shift;
+	st->wDay+=(c>>4)*10;
+	st->wDay+=(c&0x0F);
+	x++;
+
+	//hour
+	c=*(b+x)>>shift;
+	st->wHour+=(c>>4)*10;
+	st->wHour+=(c&0x0F);
+	x++;
+
+	//min   
+	c=*(b+x)>>shift;
+	st->wMinute+=(c>>4)*10;
+	st->wMinute+=(c&0x0F);
+	x++;
+
+	//sec   
+	c=*(b+x)>>shift;
+	st->wSecond+=(c>>4)*10;
+	st->wSecond+=(c&0x0F);
+	x++;
+
+	//us   
+	us=0;
+	c=*(b+x)>>shift;
+	us+=(c>>4)*100000;
+	us+=(c&0x0F)*10000;
+	x++;
+
+	c=*(b+x)>>shift;
+	us+=(c>>4)*1000;
+	us+=(c&0x0F)*100;
+	x++;
+
+	c=*(b+x)>>shift;
+	us+=(c>>4)*10;
+	us+=(c&0x0F);
+	x++;
+
+	st->wMilliseconds=us/100;
+
+	return 0;
+}

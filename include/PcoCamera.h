@@ -246,6 +246,7 @@ struct stcPcoData {
 		int nrImgAcquired;
 		long msTotal, msRecord, msRecordLoop, msXfer, msTout;
 		long msStartAcqStart, msStartAcqEnd;
+		int checkImgNrPco, checkImgNrLima;
 		
 #define LEN_TRACEACQ_TRHEAD 11
 		//long msThreadBeforeXfer, msThreadAfterXfer, msThreadEnd;
@@ -519,6 +520,8 @@ namespace lima
 		const char *_getCameraSubTypeStr();
 
 		DWORD _getCameraSerialNumber()  ;
+
+		void _checkImgNrInit(bool &checkImgNr, int &imgNrDiff, int &alignmentShift);
 
 		char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
 

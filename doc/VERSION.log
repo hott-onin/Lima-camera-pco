@@ -1,4 +1,17 @@
 
+2016/06/03 17:48:13 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-06-03_174800]
+  to: [/t/rhoms1/install-2016-06-03_174800]
+  to: [/t/rhoms1/install-beta]
+
+- temp save
+- extraction of the imgNr and date/time from the timestamp of the image
+- fix division by 0 when camera subType is not defined 
+- included checkImgNr in _xferImag_getImage_edge and _xferImag
+- minor / format / trace
+
 2016/06/02 15:55:50 ==========================================
 scp: copied local directory to segfs and /tmp_14_days:
 from: [../../install/] and [./bat/]
@@ -448,7 +461,7 @@ from: [../../install/]
 
 $Id: comp[2016/02/24 12:30:14] file[2016/02/24 12:03:31] [..\..\..\..\src\PcoCamera.cpp] $
 
-- pco / included the control of aligment of the 12b data to 16b
+- pco / included the control of alignment of the 12b data to 16b
 - enabled the pixelRate control in pco 2K and 4K
 - minor changes in talk cmd
 

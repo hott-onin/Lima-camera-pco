@@ -52,9 +52,9 @@
 
 #define ERR_SIZE	256
 #define ERRMSG_SIZE	(256+128)
-#define MODEL_TYPE_SIZE	32
-#define MODEL_SUBTYPE_SIZE	32
-#define INTERFACE_TYPE_SIZE	32
+#define MODEL_TYPE_SIZE	64
+#define MODEL_SUBTYPE_SIZE	64
+#define INTERFACE_TYPE_SIZE	64
 #define CAMERA_NAME_SIZE	128
 #define MSG_SIZE	512
 #define BUFF_XLAT_SIZE 128
@@ -126,5 +126,6 @@ typedef int tPvErr;
 #define PCO_FN5(er,mg, fn, x1, x2, x3, x4, x5) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5) ), #fn ) ; }
 
 char * _sprintComment(char *comment, char *comment1 ="" , char *comment2 ="" );
-
+int _get_imageNr_from_imageTimestamp(void *buf,int shift);
+int _get_time_from_imageTimestamp(void *buf,int shift,SYSTEMTIME *st);
 #endif

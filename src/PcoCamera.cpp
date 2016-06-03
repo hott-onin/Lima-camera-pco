@@ -127,6 +127,7 @@ char *xlatCode2Str(int code, struct stcXlatCode2Str *stc) {
 
 
 char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
+	DEB_CONSTRUCTOR();
 	struct stcXlatCode2Str modelType[] = {
 		{CAMERATYPE_PCO1200HS, "PCO 1200 HS"},
 		{CAMERATYPE_PCO1300, "PCO 1300"},
@@ -144,6 +145,7 @@ char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 		{CAMERATYPE_PCO_EDGE_HS, "PCO EDGE hs"},
 		{CAMERATYPE_PCO_EDGE, "PCO EDGE"},
 		{CAMERATYPE_PCO_EDGE_GL, "PCO EDGE GL"},
+		{0, "NO_modelType"},
 		{0, NULL}
 	};
 
@@ -163,6 +165,7 @@ char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 		{CAMERASUBTYPE_PCO_EDGE_GOLD, "EDGE_GOLD"},
 		{CAMERASUBTYPE_PCO_EDGE_DUAL_CLOCK, "DUAL_CLOCK"},
 		{CAMERASUBTYPE_PCO_EDGE_DICAM, "DICAM"},
+		{0, "NO_subType"},
 		{0, NULL}
 	};
 
@@ -175,13 +178,14 @@ char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 		{INTERFACE_USB3, "USB3"},
 		{INTERFACE_CAMERALINKHS, "CAMERALINK_HS"},
 		{INTERFACE_COAXPRESS, "COAXPRESS"},
+		{0, "NO_interfaceType"},
 		{0, NULL}
 	};
 
   struct stcXlatCode2Str *stc;
 	char *ptr;
 	static char buff[BUFF_XLAT_SIZE+1];
-	char *errTable;
+	char *errTable ;
 
   switch(table) {
 	case ModelType: stc = modelType; errTable = "modelType" ; break;
@@ -198,7 +202,7 @@ char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 		err = 0;
 		return ptr;
 	} else {
-		sprintf_s(buff, BUFF_XLAT_SIZE, "UNKNOWN %s code [0x%04x]", (table == ModelType) ? "MODEL" : "INTERFACE", code);
+		sprintf_s(buff, BUFF_XLAT_SIZE, "UNKNOWN %s code [0x%04x]", errTable, code);
 		err = 1;
 		return buff;
 	}
@@ -561,9 +565,9 @@ void Camera::_init(){
 
 
 
-  DEB_TRACE() << m_log;
-  DEB_TRACE() << "END OF CAMERA";
-	DEB_ALWAYS() << fnId << " [exit]";
+	DEB_TRACE() << m_log;
+	DEB_TRACE() << "END OF CAMERA";
+	DEB_ALWAYS() << _sprintComment(fnId, "[EXIT]");
 
 }
 
@@ -2297,13 +2301,16 @@ char *Camera::_pco_GetCameraType(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	char *msg;
+
+	int errTot = 0;
+	bool errTotPcoSdk = false;
+
 	m_pcoData->frames_per_buffer = 1; // for PCO DIMAX
 
 	// --- Get camera type
 	{
 		
 		char *ptr;
-		int errTot = 0;
 
 		//m_pcoData->stcPcoCamType.wSize= sizeof(m_pcoData->stcPcoCamType);
 
@@ -2311,7 +2318,8 @@ char *Camera::_pco_GetCameraType(int &error){
 		if(error) {m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;}
 
 		PCO_FN2(error, msg,PCO_GetCameraType, m_handle, &m_pcoData->stcPcoCamType);
-		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+		PCO_PRINT_ERR(error, msg); 	
+		errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
 
 		ptr = _xlatPcoCode2Str(_getCameraType(), ModelType, error);
 		errTot |= error;
@@ -2332,25 +2340,27 @@ char *Camera::_pco_GetCameraType(int &error){
 			_getCameraSerialNumber());
 		DEB_ALWAYS() <<  DEB_VAR3(_getCameraTypeStr(), _getInterfaceTypeStr(), m_pcoData->camera_name);
 
-		if(errTot) return m_pcoData->camera_name;
+		//if(errTot) return m_pcoData->camera_name;
 
 	}
 
 	// -- Reset to default settings
 
 	PCO_FN2(error, msg,PCO_SetRecordingState, m_handle, 0);
-	if(error) return msg;
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
 
 
 	PCO_FN1(error, msg,PCO_ResetSettingsToDefault, m_handle);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	PCO_PRINT_ERR(error, msg); 	
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
 	
 
 	// -- Get camera description
 	//m_pcoData->stcPcoDescription.wSize= sizeof(m_pcoData->stcPcoDescription);
 
 	PCO_FN2(error, msg,PCO_GetCameraDescription, m_handle, &m_pcoData->stcPcoDescription);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	PCO_PRINT_ERR(error, msg); 	
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
 
 	// callback to update in lima the valid_ranges from the last stcPcoDescription read
 	if(m_sync) {
@@ -2375,7 +2385,8 @@ char *Camera::_pco_GetCameraType(int &error){
 	//m_pcoData->stcPcoGeneral.strCamType.wSize= sizeof(m_pcoData->stcPcoGeneral.strCamType);
 
 	PCO_FN2(error, msg,PCO_GetGeneral,m_handle, &m_pcoData->stcPcoGeneral);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	PCO_PRINT_ERR(error, msg); 	
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
 
 
 	// -- Get Sensor struct
@@ -2384,28 +2395,41 @@ char *Camera::_pco_GetCameraType(int &error){
 	//m_pcoData->stcPcoSensor.strDescription2.wSize= sizeof(m_pcoData->stcPcoSensor.strDescription2);
 
 	PCO_FN2(error, msg,PCO_GetSensorStruct, m_handle, &m_pcoData->stcPcoSensor);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	PCO_PRINT_ERR(error, msg); 	
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
 
 	// -- Get timing struct
 	//m_pcoData->stcPcoTiming.wSize= sizeof(m_pcoData->stcPcoTiming);
 
 	PCO_FN2(error, msg,PCO_GetTimingStruct, m_handle, &m_pcoData->stcPcoTiming);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	PCO_PRINT_ERR(error, msg); 	
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
 
 
 	// -- Get recording struct
 	//m_pcoData->stcPcoRecording.wSize= sizeof(m_pcoData->stcPcoRecording);
 
 	PCO_FN2(error, msg,PCO_GetRecordingStruct,m_handle, &m_pcoData->stcPcoRecording);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	PCO_PRINT_ERR(error, msg); 	
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
 
 
 	// -- Get storage struct
 	//m_pcoData->stcPcoStorage.wSize= sizeof(m_pcoData->stcPcoStorage);
 
 	PCO_FN2(error, msg,PCO_GetStorageStruct, m_handle, &m_pcoData->stcPcoStorage);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	PCO_PRINT_ERR(error, msg); 	
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
 
+	if(errTotPcoSdk)
+	{
+		DEB_ALWAYS() <<  "ERRORs in SDK functions!!!";
+	}
+	
+	if(errTot)
+	{
+		DEB_ALWAYS() <<  "ERRORs in types!!!";
+	}
 
 
 	return fnId;
@@ -2830,6 +2854,13 @@ int Camera::_checkValidRoi(const Roi &roi_new, Roi &roi_fixed){
 	unsigned int xMax, yMax, xSteps, ySteps;
 	getMaxWidthHeight(xMax, yMax);
 	getXYsteps(xSteps, ySteps);
+
+	if((xMax < 1) || (yMax < 1) || (xSteps < 1) || (ySteps < 1)) 
+	{
+		DEB_ALWAYS()  
+			<< "\nERROR - invalid values - check PcoDescription !!!!\n / getXYsteps " << DEB_VAR4(xMax, yMax, xSteps, ySteps);
+			throw LIMA_HW_EXC(InvalidValue,"check PcoDescription");
+	}
 
 	x0org = x0 = roi_new.getTopLeft().x+1;
 	x1org = x1 = roi_new.getBottomRight().x+1;
@@ -3520,6 +3551,37 @@ int Camera::_pco_SetBitAlignment(int alignment){
 
 	
 	return _pco_GetBitAlignment(alignment1);
+
+}
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_checkImgNrInit(bool &checkImgNr, int &imgNrDiff, int &alignmentShift){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	checkImgNr = false;
+	imgNrDiff = 1;
+	alignmentShift = 0;
+
+	WORD wTimeStampMode;
+
+	PCO_GetTimestampMode(m_handle, &wTimeStampMode);
+
+	if(wTimeStampMode == 0) return;
+	checkImgNr = true;
+
+	int alignment;
+
+	_pco_GetBitAlignment(alignment);
+
+	if(alignment == 0)
+		alignmentShift = (16 - m_pcoData->stcPcoDescription.wDynResDESC);
+	else
+		alignmentShift = 0;
+
+	
+	return;
 
 }
 //=================================================================================================

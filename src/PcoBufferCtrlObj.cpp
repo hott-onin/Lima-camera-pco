@@ -388,6 +388,13 @@ int BufferCtrlObj::_xferImag()
 	m_cam->m_tmpLog->flush(-1);
 	int maxWaitTimeout = 3;
 
+	bool checkImgNr = false;
+	int imgNrDiff = 0;
+	int alignmentShift = 0;
+	int iLimaFrame;
+	m_cam->_checkImgNrInit(checkImgNr, imgNrDiff, alignmentShift);
+
+	DEB_ALWAYS() << _sprintComment(fnId, "[WaitForMultipleObjects]", "[ENTRY]");
 	
 // --------------- get the requested nr of images 
 	int requested_nb_frames;
@@ -409,7 +416,7 @@ int BufferCtrlObj::_xferImag()
 	dwFramesPerBuffer = m_cam->pcoGetFramesPerBuffer(); // for dimax = 1
 
 	DEB_ALWAYS() << "\n" 
-		<< ">>> " << fnId << " (WaitForMultipleObjects) [ ENTRY]:\n" 
+//		<< ">>> " << fnId << " (WaitForMultipleObjects) [ ENTRY]:\n" 
 //		<< "    " << DEB_VAR2(_iPcoAllocatedBuffNr, _dwPcoAllocatedBuffSize) << "\n"  
 //		<< "    " << DEB_VAR2(_wArmWidth, _wArmHeight) << "\n" 
 //		<< "    " << DEB_VAR1(roiNow) << "\n" 
@@ -555,6 +562,9 @@ _RETRY:
 			}
 #endif
 			memcpy(ptrDest, ptrSrc, size);
+
+
+
 		}		
 		
 		
@@ -568,8 +578,23 @@ _RETRY:
 
 
 		HwFrameInfoType frame_info;
-		frame_info.acq_frame_nb = lima_buffer_nb;
+		iLimaFrame = frame_info.acq_frame_nb = lima_buffer_nb;
 		m_buffer_cb_mgr.newFrameReady(frame_info);
+
+
+			//=============================== checkImgNr
+			if(checkImgNr) {
+				int imgNr, diff;
+				imgNr = _get_imageNr_from_imageTimestamp(ptrSrc, alignmentShift);
+				diff = imgNr - iLimaFrame;
+				m_pcoData->traceAcq.checkImgNrLima = iLimaFrame +1;
+				m_pcoData->traceAcq.checkImgNrPco = imgNr;
+				if(diff != imgNrDiff) {
+					//DEB_ALWAYS() << DEB_VAR3(iLimaFrame, imgNr, diff);
+					imgNrDiff = diff;
+				}
+			}
+
 
         //----- the image dwFrameIdx is already in the buffer -> callback!
 		if((m_sync->_getRequestStop(_nrStop) == stopRequest) && (_nrStop > MAX_NR_STOP)) {goto _EXIT_STOP;}
@@ -666,10 +691,13 @@ _WHILE_CONTINUE:
 	m_pcoData->traceAcq.msXfer = msElapsedTime(tStart);
 	m_pcoData->traceAcq.endXferTimestamp = getTimestamp();
 
+	DEB_ALWAYS() << _sprintComment(fnId, "[EXIT]");
+
 	return pcoAcqTransferEnd;
 
 _EXIT_STOP:
-	DEB_ALWAYS() << "\nSTOP REQUESTED " << DEB_VAR3(_nrStop, dwFrameIdx, dwRequestedFrames);
+	DEB_ALWAYS()	<< _sprintComment(fnId, "[STOP REQUESTED]", "[EXIT]")
+					<< DEB_VAR3(_nrStop, dwFrameIdx, dwRequestedFrames);
 
 	m_pcoData->traceAcq.msXfer = msElapsedTime(tStart);
 	m_pcoData->traceAcq.endXferTimestamp = getTimestamp();
@@ -812,6 +840,11 @@ int BufferCtrlObj::_xferImag_getImage()
 	LARGE_INTEGER usStart;
 	usElapsedTimeSet(usStart);
 
+	bool checkImgNr = false;
+	int imgNrDiff = 0;
+	int alignmentShift = 0;
+
+	m_cam->_checkImgNrInit(checkImgNr, imgNrDiff, alignmentShift);
 
 	_pcoAllocBuffers(true); // allocate 2 pco buff at max size
 
@@ -920,6 +953,20 @@ int BufferCtrlObj::_xferImag_getImage()
 		}
 
 		memcpy(ptrLimaBuffer, ptrSrc, dwFrameSize);
+
+		//=============================== checkImgNr
+		if(checkImgNr) {
+			int imgNr, diff;
+			imgNr = _get_imageNr_from_imageTimestamp(ptrSrc, alignmentShift);
+			diff = imgNr - iLimaFrame;
+			m_pcoData->traceAcq.checkImgNrLima = iLimaFrame +1;
+			m_pcoData->traceAcq.checkImgNrPco = imgNr;
+			if(diff != imgNrDiff) {
+				//DEB_ALWAYS() << DEB_VAR3(iLimaFrame, imgNr, diff);
+				imgNrDiff = diff;
+			}
+		}
+
 		ptrSrc = ((char *)ptrSrc) + dwFrameSize;
 		
 		HwFrameInfoType frame_info;
@@ -1012,6 +1059,11 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 	LARGE_INTEGER usStart;
 	usElapsedTimeSet(usStart);
 
+	bool checkImgNr = false;
+	int imgNrDiff = 0;
+	int alignmentShift = 0;
+
+	m_cam->_checkImgNrInit(checkImgNr, imgNrDiff, alignmentShift);
 
 	_pcoAllocBuffers(true); // allocate 2 pco buff at max size
 
@@ -1127,6 +1179,20 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 		}
 
 		memcpy(ptrLimaBuffer, ptrSrc, dwFrameSize);
+
+		//=============================== checkImgNr
+		if(checkImgNr) {
+			int imgNr, diff;
+			imgNr = _get_imageNr_from_imageTimestamp(ptrSrc, alignmentShift);
+			diff = imgNr - iLimaFrame;
+			m_pcoData->traceAcq.checkImgNrLima = iLimaFrame +1;
+			m_pcoData->traceAcq.checkImgNrPco = imgNr;
+			if(diff != imgNrDiff) {
+				//DEB_ALWAYS() << DEB_VAR3(iLimaFrame, imgNr, diff);
+				imgNrDiff = diff;
+			}
+		}
+
 		ptrSrc = ((char *)ptrSrc) + dwFrameSize;
 		
 		HwFrameInfoType frame_info;
