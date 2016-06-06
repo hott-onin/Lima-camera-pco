@@ -1005,6 +1005,14 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		}
 
 		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "camSN";     
+		keys_desc[ikey++] = "(R) cam serial number";     
+		if(_stricmp(cmd, key) == 0){
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", _getCameraSerialNumber());
+			return output;
+		}
+
+		//----------------------------------------------------------------------------------------------------------
 		key = keys[ikey] = "lastError";     
 		keys_desc[ikey++] = "(R) last PCO SDK error";     
 		if(_stricmp(cmd, key) == 0){

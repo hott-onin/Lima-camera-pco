@@ -74,6 +74,8 @@
 
 //---------------------------------------
 
+//--------------------------------------- camera state
+#define CAMSTATE_RECORD_STATE		(0x00000001 << 0)   // record state
 
 //---------------------------------------
 
@@ -325,6 +327,7 @@ enum enumPcoFamily {
 	EdgeRolling = 1<<3, 
 	Pco2k       = 1<<4,
 	Pco4k       = 1<<5,
+	EdgeUSB     = 1<<6,
 };
 
 
@@ -451,6 +454,10 @@ namespace lima
 
 		bool m_isArmed;
 
+		long long m_state;
+
+		//----------------------------------
+
         int PcoCheckError(int line, char *file, int err, char *fn = "***");
 
 		void _allocBuffer();
@@ -525,6 +532,9 @@ namespace lima
 
 		char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
 
+		bool _getCameraState(long long flag);
+		void _setCameraState(long long flag, bool val);
+	
     };
   }
 }

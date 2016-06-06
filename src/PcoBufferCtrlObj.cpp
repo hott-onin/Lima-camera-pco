@@ -435,6 +435,18 @@ int BufferCtrlObj::_xferImag()
 	m_pcoData->traceAcq.nrImgRequested = dwRequestedFrames;
 
 
+
+	// Edge cam must be started just after assign buff to avoid lost of img
+	if(m_cam->_isCameraType(EdgeUSB)) {
+		       DWORD sleepMs = 1;
+               ::Sleep(sleepMs);
+               if(m_cam->_getDebug(DBG_WAITOBJ)){
+                       pmsg = "... EDGE - recordingState 1" ; m_cam->m_tmpLog->add(pmsg); DEB_ALWAYS() << pmsg;
+               }
+			m_cam->_pcoSet_RecordingState(1, error);
+	}
+	
+	
 // --------------- prepare the first buffer 
 // ------- in PCO DIMAX only 1 image can be retreived
 //         (dwFramesPerBuffer = 1) ====> (dwFrameLast2assign = dwFrameFirst2assign)
@@ -452,10 +464,19 @@ int BufferCtrlObj::_xferImag()
 				m_cam->m_tmpLog->add(msg);  DEB_ALWAYS() << msg;
 			}
 
-			if(error = _assignImage2Buffer(dwFrameFirst2assign, dwFrameLast2assign, dwRequestedFrames, bufIdx,live_mode)) {
-				DEB_TRACE() << "ERROR _assignImage2Buffer";
-					return pcoAcqPcoError;
+			if(m_cam->_getCameraState(CAMSTATE_RECORD_STATE)){
+				if(error = _assignImage2Buffer(dwFrameFirst2assign, dwFrameLast2assign, dwRequestedFrames, bufIdx,live_mode)) 
+				{
+					DEB_TRACE() << "ERROR _assignImage2Buffer";
+						return pcoAcqPcoError;
+				}
 			}
+			else
+			{
+				DEB_ALWAYS() << "ERROR _assignImage2Buffer with recordState = 0 / IGNORED!!!!";
+			}
+
+
 	}
 
 	WORD wArmWidth, wArmHeight;
@@ -464,8 +485,8 @@ int BufferCtrlObj::_xferImag()
 	m_cam->getBytesPerPixel(bytesPerPixel);
 	DWORD dwLen = wArmWidth * wArmHeight * bytesPerPixel;
 
- 	// Edge cam must be started just after assign buff to avoid lost of img
-	if(m_cam->_isCameraType(Edge)) {
+	// Edge cam must be started just after assign buff to avoid lost of img
+	if(m_cam->_isCameraType(Edge) && !m_cam->_isCameraType(EdgeUSB)) {
 		       DWORD sleepMs = 1;
                ::Sleep(sleepMs);
                if(m_cam->_getDebug(DBG_WAITOBJ)){
@@ -606,10 +627,20 @@ _RETRY:
 				m_cam->m_tmpLog->add(msg);
 			}
 #endif
-			if(error = _assignImage2Buffer(dwFrameFirst2assign, dwFrameLast2assign, dwRequestedFrames, bufIdx, live_mode)) {
-				return pcoAcqPcoError;
+
+
+			if(m_cam->_getCameraState(CAMSTATE_RECORD_STATE))
+			{
+				if(error = _assignImage2Buffer(dwFrameFirst2assign, dwFrameLast2assign, dwRequestedFrames, bufIdx, live_mode)) {
+					return pcoAcqPcoError;
+				}
 			}
-        }
+			else
+			{
+				DEB_ALWAYS() << "ERROR _assignImage2Buffer with recordState = 0 / IGNORED!!!!";
+			}
+			
+		}
 
 #ifdef DEBUG_XFER_IMAG
 		if(m_cam->_getDebug(DBG_BUFF)) {

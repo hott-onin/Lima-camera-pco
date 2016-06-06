@@ -2514,14 +2514,41 @@ char * Camera::_pcoSet_RecordingState(int state, int &error){
 	PCO_FN2(error, msg,PCO_GetRecordingState, m_handle, &wRecState_actual);
 	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 
+	_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
+
 	m_pcoData->traceAcq.usTicks[8].value = usElapsedTime(usStart);
 	m_pcoData->traceAcq.usTicks[8].desc = "PCO_GetRecordingState execTime";
 	usElapsedTimeSet(usStart);
 
 	//if(wRecState_new == wRecState_actual) {error = 0; return fnId; }
 
+
+	// ------------------------------------------ cancel images 
+	if(wRecState_new == 0) {
+		int count = 1;
+
+		_setCameraState(CAMSTATE_RECORD_STATE, false);
+
+#if 0
+		PCO_FN2(error, msg,PCO_GetPendingBuffer, m_handle, &count);
+		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+#endif
+		if(count) {
+			DEB_ALWAYS() << fnId << ": PCO_CancelImages";
+			PCO_FN1(error, msg,PCO_CancelImages, m_handle);
+			PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+		}
+	}
+
+
+	DEB_ALWAYS() << fnId << ": PCO_SetRecordingState " << DEB_VAR1(wRecState_new);
 	PCO_FN2(error, msg,PCO_SetRecordingState, m_handle, wRecState_new);
 	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+
+	PCO_FN2(error, msg,PCO_GetRecordingState, m_handle, &wRecState_actual);
+	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+
+	_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
 
 	m_pcoData->traceAcq.usTicks[9].value = usElapsedTime(usStart);
 	m_pcoData->traceAcq.usTicks[9].desc = "PCO_SetRecordingState execTime";
@@ -2529,23 +2556,11 @@ char * Camera::_pcoSet_RecordingState(int state, int &error){
 
 	_armRequired(true);
 
-	if(wRecState_new == 0) {
-		int count;
-
-		PCO_FN2(error, msg,PCO_GetPendingBuffer, m_handle, &count);
-		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
-
-		if(count) {
-			PCO_FN1(error, msg,PCO_CancelImages, m_handle);
-			PCO_PRINT_ERR(error, msg); 	if(error) return msg;
-		}
-	}
-
 	m_pcoData->traceAcq.usTicks[10].value = usElapsedTime(usStart);
 	m_pcoData->traceAcq.usTicks[10].desc = "PCO_CancelImages execTime";
 	usElapsedTimeSet(usStart);
 
-	DEB_ALWAYS() << fnId << ": " << DEB_VAR4(error, state, wRecState_actual, wRecState_new);
+	//DEB_ALWAYS() << fnId << ": " << DEB_VAR4(error, state, wRecState_actual, wRecState_new);
 	return fnId;
 
 }
@@ -3115,8 +3130,11 @@ bool Camera::_isCameraType(int tp){
 		case CAMERATYPE_PCO_EDGE_GL:
 			return !!(tp & (EdgeGL | Edge));
 
-		case CAMERATYPE_PCO_EDGE_HS:
+
 		case CAMERATYPE_PCO_EDGE_USB3:
+			return !!(tp & (EdgeUSB | EdgeRolling | Edge));
+
+		case CAMERATYPE_PCO_EDGE_HS:
 		case CAMERATYPE_PCO_EDGE_42:
 		case CAMERATYPE_PCO_EDGE:
 			return !!(tp & (EdgeRolling | Edge));
@@ -3584,5 +3602,36 @@ void Camera::_checkImgNrInit(bool &checkImgNr, int &imgNrDiff, int &alignmentShi
 	return;
 
 }
+//=================================================================================================
+//=================================================================================================
+
+bool Camera::_getCameraState(long long flag)
+{
+	return !!(m_state & flag);
+}
+
+
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_setCameraState(long long flag, bool val)
+{
+
+	if(val) 
+	{
+		m_state |= flag;
+	} 
+	else
+	{
+		m_state |= flag;
+		m_state ^= flag;
+	
+	}
+	return;
+
+}
+
+
 //=================================================================================================
 //=================================================================================================
