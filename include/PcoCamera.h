@@ -209,7 +209,7 @@ struct stcPcoData {
 
 	double	cocRunTime;		/* cam operation code - delay & exposure time & readout in s*/
 	double	frameRate;
-    WORD    activeRamSegment;				/* active ram segment */
+    WORD    wActiveRamSegment;				/* active ram segment */
 
   	//WORD		m_acq_mode;
   	bool		bExtTrigEnabled;
@@ -321,13 +321,13 @@ enum enumStop {
 };
 
 enum enumPcoFamily {
-	Dimax       = 1<<0, 
-	Edge        = 1<<1, 
-	EdgeGL      = 1<<2,
-	EdgeRolling = 1<<3, 
-	Pco2k       = 1<<4,
-	Pco4k       = 1<<5,
-	EdgeUSB     = 1<<6,
+	Dimax				= 1<<0, 
+	Edge				= 1<<1, 
+	EdgeGL				= 1<<2,
+	EdgeRolling			= 1<<3, 
+	Pco2k				= 1<<4,
+	Pco4k				= 1<<5,
+	EdgeUSB				= 1<<6,
 };
 
 
@@ -404,7 +404,6 @@ namespace lima
 		double pcoGetCocRunTime() { return m_pcoData->cocRunTime; }
 		double pcoGetFrameRate() { return m_pcoData->frameRate; }
 
-		WORD pcoGetActiveRamSegment() {return m_pcoData->activeRamSegment;}
 
 		BufferCtrlObj* _getBufferCtrlObj() { return m_buffer;}
 		SyncCtrlObj*	_getSyncCtrlObj() { return m_sync;}
@@ -413,7 +412,6 @@ namespace lima
 		char* _PcoCheckError(int line, char *file, int err, int&error, char *fn = "***") ;
 		int pcoGetError() {return m_pcoData->pcoError;}
 
-		char *_pcoSet_RecordingState(int state, int &error);
 		int dumpRecordedImages(int &nrImages, int &error);
 
 		bool _isCameraType(int tp);
@@ -464,27 +462,14 @@ namespace lima
 
         char *_talk(char *cmd, char *output, int lg);
 
-		char *_pco_SetTriggerMode_SetAcquireMode(int &error);
-		char *_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode, int &error);
-		int _pco_GetStorageMode_GetRecorderSubmode();
-		char *_pco_SetDelayExposureTime(int &error);
-		char *_pco_SetCamLinkSetImageParameters(int &error);
-		char *_pco_GetCameraType(int &error);
-		char *_pco_GetTemperatureInfo(int &error);
-		void _pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error);
 		void _presetPixelRate(DWORD &pixRate, int &error);
 
-		//char *_pco_SetCameraSetup(DWORD dwSetup, int &error);
 		bool _get_shutter_rolling_edge(int &error);
 		void _set_shutter_rolling_edge(bool roling, int &error);
 
 		void _init();
 		void _init_edge();
 		void _init_dimax();
-		char *_pco_SetTransferParameter_SetActiveLookupTable(int &error);
-		char *_pco_SetPixelRate(int &error);
-		char *_pco_GetCOCRuntime(int &error);
-		char *_pco_SetMetaDataMode(WORD wMetaDataMode, int &error);
 
 		bool _isValid_pixelRate(DWORD dwPixelRate);
 		
@@ -502,18 +487,10 @@ namespace lima
 		void _set_ImageType(ImageType curr_image_type);
 		void _get_DetectorType(std::string& det_type);
 		void _get_MaxImageSize(Size& max_image_size);
-		void _pco_GetHWIOSignal(int &error);
-		void _pco_SetHWIOSignal(int sigNum, int &error);
-		void _pco_initHWIOSignal(int mode, int &error);
 		unsigned long long _getDebug(unsigned long long mask);
 
 		ringLog *m_msgLog;
 		ringLog *m_tmpLog;
-		int _pco_GetADCOperation(int &adc_working, int &adc_max);
-		int _pco_SetADCOperation(int adc_new, int &adc_working);
-		int _pco_GetImageTiming(double &frameTime, double &expTime, double &sysDelay, double &sysJitter, double &trigDelay );
-		int _pco_GetBitAlignment(int &alignment);
-		int _pco_SetBitAlignment(int alignment);
 		char *_checkLogFiles(bool firstCall = false);
 		char *_camInfo(char *ptr, char *ptrMax, long long int flag);
 
@@ -534,7 +511,40 @@ namespace lima
 
 		bool _getCameraState(long long flag);
 		void _setCameraState(long long flag, bool val);
-	
+		bool _isRunAfterAssign();
+
+
+      public:
+		//----------- pco sdk functions
+		WORD _pco_GetActiveRamSegment(); // {return m_pcoData->wActiveRamSegment;}
+
+		char *_pco_SetRecordingState(int state, int &error);
+
+		char *_pco_SetTriggerMode_SetAcquireMode(int &error);
+		char *_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode, int &error);
+		int  _pco_GetStorageMode_GetRecorderSubmode();
+		char *_pco_SetDelayExposureTime(int &error);
+		char *_pco_SetCamLinkSetImageParameters(int &error);
+		char *_pco_GetCameraType(int &error);
+		char *_pco_GetTemperatureInfo(int &error);
+		void _pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error);
+		//char *_pco_SetCameraSetup(DWORD dwSetup, int &error);
+
+		char *_pco_SetTransferParameter_SetActiveLookupTable(int &error);
+		char *_pco_SetPixelRate(int &error);
+		char *_pco_GetCOCRuntime(int &error);
+		char *_pco_SetMetaDataMode(WORD wMetaDataMode, int &error);
+
+		void _pco_GetHWIOSignal(int &error);
+		void _pco_SetHWIOSignal(int sigNum, int &error);
+		void _pco_initHWIOSignal(int mode, int &error);
+
+		int _pco_GetADCOperation(int &adc_working, int &adc_max);
+		int _pco_SetADCOperation(int adc_new, int &adc_working);
+		int _pco_GetImageTiming(double &frameTime, double &expTime, double &sysDelay, double &sysJitter, double &trigDelay );
+		int _pco_GetBitAlignment(int &alignment);
+		int _pco_SetBitAlignment(int alignment);
+
     };
   }
 }

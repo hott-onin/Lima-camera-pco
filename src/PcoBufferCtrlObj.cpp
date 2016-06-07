@@ -288,7 +288,7 @@ int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast,
 
 
 #ifndef USING_PCO_ALLOCATED_BUFFERS 
-	  WORD wActSeg = m_cam->pcoGetActiveRamSegment();
+	  WORD wActSeg = m_cam->_pco_GetActiveRamSegment();
     	sErr = m_cam->_PcoCheckError(__LINE__, __FILE__, PCO_GetActiveRamSegment(m_handle, &wActSeg), error);
         //_PCO_TRACE("PCO_GetActiveRamSegment", sErr) ;
 
@@ -435,16 +435,6 @@ int BufferCtrlObj::_xferImag()
 	m_pcoData->traceAcq.nrImgRequested = dwRequestedFrames;
 
 
-
-	// Edge cam must be started just after assign buff to avoid lost of img
-	if(m_cam->_isCameraType(EdgeUSB)) {
-		       DWORD sleepMs = 1;
-               ::Sleep(sleepMs);
-               if(m_cam->_getDebug(DBG_WAITOBJ)){
-                       pmsg = "... EDGE - recordingState 1" ; m_cam->m_tmpLog->add(pmsg); DEB_ALWAYS() << pmsg;
-               }
-			m_cam->_pcoSet_RecordingState(1, error);
-	}
 	
 	
 // --------------- prepare the first buffer 
@@ -464,7 +454,10 @@ int BufferCtrlObj::_xferImag()
 				m_cam->m_tmpLog->add(msg);  DEB_ALWAYS() << msg;
 			}
 
-			if(m_cam->_getCameraState(CAMSTATE_RECORD_STATE)){
+			bool recording = m_cam->_getCameraState(CAMSTATE_RECORD_STATE);
+			bool runAfterAssign = m_cam->_isRunAfterAssign();
+			if((recording && !runAfterAssign) || (!recording && runAfterAssign))
+			{
 				if(error = _assignImage2Buffer(dwFrameFirst2assign, dwFrameLast2assign, dwRequestedFrames, bufIdx,live_mode)) 
 				{
 					DEB_TRACE() << "ERROR _assignImage2Buffer";
@@ -473,7 +466,7 @@ int BufferCtrlObj::_xferImag()
 			}
 			else
 			{
-				DEB_ALWAYS() << "ERROR _assignImage2Buffer with recordState = 0 / IGNORED!!!!";
+				DEB_ALWAYS() << "ERROR _assignImage2Buffer with wrong recordState / IGNORED!!!!" << DEB_VAR2(recording, runAfterAssign);
 			}
 
 
@@ -486,13 +479,15 @@ int BufferCtrlObj::_xferImag()
 	DWORD dwLen = wArmWidth * wArmHeight * bytesPerPixel;
 
 	// Edge cam must be started just after assign buff to avoid lost of img
-	if(m_cam->_isCameraType(Edge) && !m_cam->_isCameraType(EdgeUSB)) {
-		       DWORD sleepMs = 1;
-               ::Sleep(sleepMs);
-               if(m_cam->_getDebug(DBG_WAITOBJ)){
-                       pmsg = "... EDGE - recordingState 1" ; m_cam->m_tmpLog->add(pmsg); DEB_ALWAYS() << pmsg;
-               }
-			m_cam->_pcoSet_RecordingState(1, error);
+	if(m_cam->_isRunAfterAssign()) 
+	{
+		DWORD sleepMs = 1;
+		::Sleep(sleepMs);
+		if(m_cam->_getDebug(DBG_WAITOBJ))
+		{
+			pmsg = "... EDGE - recordingState 1" ; m_cam->m_tmpLog->add(pmsg); DEB_ALWAYS() << pmsg;
+		}
+		m_cam->_pco_SetRecordingState(1, error);
 	}
 
 
@@ -879,7 +874,7 @@ int BufferCtrlObj::_xferImag_getImage()
 
 	_pcoAllocBuffers(true); // allocate 2 pco buff at max size
 
-	wSegment = m_cam->pcoGetActiveRamSegment();
+	wSegment = m_cam->_pco_GetActiveRamSegment();
 	
 //------------------- nr of frames per buffer
 	m_cam->getBitsPerPixel(_wBitPerPixel);
@@ -1101,7 +1096,7 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 
 	DEB_ALWAYS() << _sprintComment(fnId, "[PCO_GetImageEx]", "[ENTRY]");
 
-	wSegment = 1; // pco edge doesn't have mem
+	wSegment = m_cam->_pco_GetActiveRamSegment(); // = 1 / pco edge doesn't have mem
 
 	
 //------------------- nr of frames per buffer
@@ -1139,15 +1134,17 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 
 
  	// Edge cam must be started just after assign buff to avoid lost of img
+	if(m_cam->_isRunAfterAssign()) 
 	{
-		char *pmsg;
 		DWORD sleepMs = 1;
 		::Sleep(sleepMs);
-		if(m_cam->_getDebug(DBG_WAITOBJ)){
-			pmsg = "... EDGE - recordingState 1" ; m_cam->m_tmpLog->add(pmsg); DEB_ALWAYS() << pmsg;
+		if(m_cam->_getDebug(DBG_WAITOBJ))
+		{
+			char *pmsg = "... EDGE - recordingState 1" ; m_cam->m_tmpLog->add(pmsg); DEB_ALWAYS() << pmsg;
 		}
-		m_cam->_pcoSet_RecordingState(1, error);
+		m_cam->_pco_SetRecordingState(1, error);
 	}
+
 
 	_dwValidImageCnt = dwRequestedFrames;
 	dwFrameIdx = (_dwValidImageCnt >= dwRequestedFrames) ? _dwValidImageCnt - dwRequestedFrames + 1 : 1;
@@ -1349,7 +1346,7 @@ int BufferCtrlObj::_xferImagMult()
 
 	//_pcoAllocBuffers(true); // allocate 2 pco buff at max size
 
-	wSegment = m_cam->pcoGetActiveRamSegment();
+	wSegment = m_cam->_pco_GetActiveRamSegment();
 	
 //------------------- nr of frames per buffer
 	m_cam->getBitsPerPixel(_wBitPerPixel);
