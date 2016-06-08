@@ -30,6 +30,14 @@
 #include "lima/HwMaxImageSizeCallback.h"
 #include "lima/HwInterface.h"
 
+//---- linux sdk [begin]
+#include "Cpco_com.h"
+#include "Cpco_com_cl_me4.h"
+#include "Cpco_grab_cl_me4.h"
+#include "file12.h"
+//---- linux sdk [end]
+
+
 //#include "PcoBufferCtrlObj.h"
 #include "PcoHwEventCtrlObj.h"
 
@@ -216,7 +224,14 @@ struct stcPcoData {
 
 	WORD	wRoiX0Now, wRoiY0Now, wRoiX1Now, wRoiY1Now;
 
-	char		camera_name[CAMERA_NAME_SIZE];
+	WORD wCamType;
+	DWORD dwSerialNumber;
+	WORD wIfType;
+
+	char	camera_name0[CAMERA_NAME_SIZE];
+	char	camera_name_if[CAMERA_NAME_SIZE];
+	char	camera_name[CAMERA_NAME_SIZE];
+	char	sensor_name[CAMERA_NAME_SIZE];
     char		sensor_type[64];
     
     WORD    wNowADC, wNumADC;
@@ -256,7 +271,8 @@ struct stcPcoData {
 	DWORD dwPixelRate, dwPixelRateRequested;
 	double fTransferRateMHzMax;
 
-	WORD wXResActual, wYResActual, wXResMax, wYResMax;
+	DWORD dwXResActual, dwYResActual;
+	WORD wXResMax, wYResMax;
 	WORD wLUT_Identifier, wLUT_Parameter;
 
 	DWORD dwAllocatedBufferSize;
@@ -341,12 +357,20 @@ namespace lima
         Camera(const char *camPar);
         ~Camera();
 
+
+//------ linux sdk [begin]
+  	CPco_com *camera;
+  	CPco_grab_cl_me4* grabber;
+
+//------ linux sdk [end]
+
+
         void 	startAcq();
 		void	reset(int reset_level);
 
 		HANDLE& getHandle() {return m_handle;}
 
-		void getMaxWidthHeight(DWORD &xMax, DWORD &yMax);
+		//void getMaxWidthHeight(DWORD &xMax, DWORD &yMax);
 		void getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax);
 		
 		void getXYsteps(unsigned int &xSteps, unsigned int &ySteps);
@@ -381,7 +405,7 @@ namespace lima
 		const char *_pcoSet_RecordingState(int state, int &error);
 		int dumpRecordedImages(int &nrImages, int &error);
 
-		WORD _getCameraType() {return m_pcoData->stcPcoCamType.wCamType ; }
+		WORD _getCameraType() {return m_pcoData->wCamType ; }
 		bool _isCameraType(int tp);
 		bool _isConfig(){return m_config; };
 		void _pco_set_shutter_rolling_edge(int &error);
@@ -437,6 +461,10 @@ namespace lima
 		int _pco_GetStorageMode_GetRecorderSubmode();
 		const char *_pco_SetDelayExposureTime(int &error, int ph);
 		const char *_pco_SetCamLinkSetImageParameters(int &error);
+
+		void _pco_GetCameraInfo(int &error);
+
+
 		const char *_pco_GetCameraType(int &error);
 		const char *_pco_GetTemperatureInfo(int &error);
 		void _pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error);

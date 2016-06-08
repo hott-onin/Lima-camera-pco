@@ -21,6 +21,7 @@
 ############################################################################
 
 src-dirs  = src
-test-dirs = test
+#test-dirs = test
+test-dirs = 
 
 include ../../global.inc

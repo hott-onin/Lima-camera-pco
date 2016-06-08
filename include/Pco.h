@@ -34,17 +34,20 @@
 
 #ifdef __linux__
 
+#include <defs.h>
 
 #include <stdint.h>
-typedef unsigned long       DWORD;
+typedef uint32_t       DWORD;
+//typedef unsigned long       DWORD;
 typedef unsigned char       BYTE;
 typedef unsigned short      WORD;
 typedef bool                BOOL;
 
-typedef void *HANDLE;
+//typedef void *HANDLE;
+typedef  int HANDLE;
 
 typedef short SHORT;
-typedef long LONG;
+//typedef long LONG;
 
 typedef uint64_t UINT64;
 
@@ -94,12 +97,12 @@ typedef struct __timeb64 TIME_USEC;
 #endif
 
 #include "processlib/Compatibility.h"
-#include "PCO_Structures.h"
-#include "Pco_ConvStructures.h"
-#include "Pco_ConvDlgExport.h"
+//#include "PCO_Structures.h"
+//#include "Pco_ConvStructures.h"
+//#include "Pco_ConvDlgExport.h"
 #include "sc2_SDKStructures.h"
 #include "sc2_common.h"
-#include "SC2_CamExport.h"
+//#include "SC2_CamExport.h"
 #include "sc2_defs.h"
 #include "SC2_SDKAddendum.h"
 #include "PCO_errt.h"
@@ -130,7 +133,7 @@ typedef struct __timeb64 TIME_USEC;
 #define MSG_SIZE	512
 #define BUFF_XLAT_SIZE 128
 
-#define ID_TIMESTAMP "$Id: [" __DATE__ " " __TIME__ "] [" __TIMESTAMP__ "] [" __FILE__ "] $"
+#define ID_TIMESTAMP_M "$Id: [" __DATE__ " " __TIME__ "] [" __TIMESTAMP__ "] [" __FILE__ "] $"
 
 typedef DWORD tPvUint32;
 typedef int tPvErr;
@@ -201,65 +204,91 @@ typedef int tPvErr;
 
 // ----- PCO sdk 
 #define __PCO_ResetLib() ( PCO_ResetLib()    )
+DWORD PCO_ResetLib();
 
-#define __PCO_CloseCamera(y1) ( PCO_CloseCamera( (y1)  ) )
 #define __PCO_RebootCamera(y1) ( PCO_RebootCamera( (y1)  ) )
-#define __PCO_CancelImages(y1) ( PCO_CancelImages( (y1)  ) )
-#define __PCO_ResetSettingsToDefault(y1) ( PCO_ResetSettingsToDefault( (y1)  ) )
-#define __PCO_ArmCamera(y1) ( PCO_ArmCamera( (y1)  ) )
 
-#define __PCO_GetPixelRate(y1, y2) ( PCO_GetPixelRate( (y1) , (y2) ) )
-#define __PCO_SetPixelRate(y1, y2) ( PCO_SetPixelRate( (y1) , (y2) ) )
-#define __PCO_SetADCOperation(y1, y2) ( PCO_SetADCOperation( (y1) , (y2) ) )
-#define __PCO_GetADCOperation(y1, y2) ( PCO_GetADCOperation( (y1) , (y2) ) )
-#define __PCO_GetHWIOSignalCount(y1, y2) ( PCO_GetHWIOSignalCount( (y1) , (y2) ) )
-#define __PCO_GetRecordingState(y1, y2) ( PCO_GetRecordingState( (y1) , (y2) ) )
+#define __PCO_ResetSettingsToDefault(y1) ( PCO_ResetSettingsToDefault( (y1)  ) )
+
+#define __PCO_OpenCamera(y1, y2) ( PCO_OpenCamera( (y1) , (y2) ) )
+
 #define __PCO_GetPendingBuffer(y1, y2) ( PCO_GetPendingBuffer( (y1) , (y2) ) )
-#define __PCO_SetRecordingState(y1, y2) ( PCO_SetRecordingState( (y1) , (y2) ) )
-#define __PCO_GetRecordingState(y1, y2) ( PCO_GetRecordingState( (y1) , (y2) ) )
-#define __PCO_GetCoolingSetpointTemperature(y1, y2) ( PCO_GetCoolingSetpointTemperature( (y1) , (y2) ) )
+
+
 #define __PCO_GetStorageStruct(y1, y2) ( PCO_GetStorageStruct( (y1) , (y2) ) )
 #define __PCO_GetRecordingStruct(y1, y2) ( PCO_GetRecordingStruct( (y1) , (y2) ) )
 #define __PCO_GetTimingStruct(y1, y2) ( PCO_GetTimingStruct( (y1) , (y2) ) )
 #define __PCO_GetSensorStruct(y1, y2) ( PCO_GetSensorStruct( (y1) , (y2) ) )
-#define __PCO_GetSensorStruct(y1, y2) ( PCO_GetSensorStruct( (y1) , (y2) ) )
+
 #define __PCO_GetCameraType(y1, y2) ( PCO_GetCameraType( (y1) , (y2) ) )
+
 #define __PCO_GetCameraDescription(y1, y2) ( PCO_GetCameraDescription( (y1) , (y2) ) )
 #define __PCO_GetGeneral(y1, y2) ( PCO_GetGeneral( (y1) , (y2) ) )
 #define __PCO_GetImageTiming(y1, y2) ( PCO_GetImageTiming( (y1) , (y2) ) )
-#define __PCO_GetRecorderSubmode(y1, y2) ( PCO_GetRecorderSubmode( (y1) , (y2) ) )
-#define __PCO_SetRecorderSubmode(y1, y2) ( PCO_SetRecorderSubmode( (y1) , (y2) ) )
-#define __PCO_GetStorageMode(y1, y2) ( PCO_GetStorageMode( (y1) , (y2) ) )
-#define __PCO_SetStorageMode(y1, y2) ( PCO_SetStorageMode( (y1) , (y2) ) )
+
+
 #define __PCO_SetAcquireMode(y1, y2) ( PCO_SetAcquireMode( (y1) , (y2) ) )
 #define __PCO_SetTriggerMode(y1, y2) ( PCO_SetTriggerMode( (y1) , (y2) ) )
-#define __PCO_GetActiveRamSegment(y1, y2) ( PCO_GetActiveRamSegment( (y1) , (y2) ) )
-#define __PCO_SetCameraRamSegmentSize(y1, y2) ( PCO_SetCameraRamSegmentSize( (y1) , (y2) ) )
-#define __PCO_GetCameraRamSegmentSize(y1, y2) ( PCO_GetCameraRamSegmentSize( (y1) , (y2) ) )
+
+
 
 #define __PCO_SetHWIOSignal(y1, y2, y3) ( PCO_SetHWIOSignal( (y1) , (y2) , (y3) ) )
 #define __PCO_GetHWIOSignal(y1, y2, y3) ( PCO_GetHWIOSignal( (y1) , (y2) , (y3) ) )
 #define __PCO_GetHWIOSignalDescriptor(y1, y2, y3) ( PCO_GetHWIOSignalDescriptor( (y1) , (y2) , (y3) ) )
 #define __PCO_SetTimeouts(y1, y2, y3) ( PCO_SetTimeouts( (y1) , (y2) , (y3) ) )
-#define __PCO_GetCOCRuntime(y1, y2, y3) ( PCO_GetCOCRuntime( (y1) , (y2) , (y3) ) )
+
+
 #define __PCO_GetActiveLookupTable(y1, y2, y3) ( PCO_GetActiveLookupTable( (y1) , (y2) , (y3) ) )
 #define __PCO_SetActiveLookupTable(y1, y2, y3) ( PCO_SetActiveLookupTable( (y1) , (y2) , (y3) ) )
 #define __PCO_SetTransferParameter(y1, y2, y3) ( PCO_SetTransferParameter( (y1) , (y2) , (y3) ) )
 #define __PCO_GetTransferParameter(y1, y2, y3) ( PCO_GetTransferParameter( (y1) , (y2) , (y3) ) )
 #define __PCO_CamLinkSetImageParameters(y1, y2, y3) ( PCO_CamLinkSetImageParameters( (y1) , (y2) , (y3) ) )
-#define __PCO_GetBinning(y1, y2, y3) ( PCO_GetBinning( (y1) , (y2) , (y3) ) )
-#define __PCO_SetBinning(y1, y2, y3) ( PCO_SetBinning( (y1) , (y2) , (y3) ) )
-#define __PCO_GetCameraRamSize(y1, y2, y3) ( PCO_GetCameraRamSize( (y1) , (y2) , (y3) ) )
 
-#define __PCO_GetCameraSetup(y1, y2, y3, y4) ( PCO_GetCameraSetup( (y1) , (y2) , (y3) , (y4) ) )
-#define __PCO_SetCameraSetup(y1, y2, y3, y4) ( PCO_SetCameraSetup( (y1) , (y2) , (y3) , (y4) ) )
-#define __PCO_SetMetaDataMode(y1, y2, y3, y4) ( PCO_SetMetaDataMode( (y1) , (y2) , (y3) , (y4) ) )
-#define __PCO_GetTemperature(y1, y2, y3, y4) ( PCO_GetTemperature( (y1) , (y2) , (y3) , (y4) ) )
-#define __PCO_GetNumberOfImagesInSegment(y1, y2, y3, y4) ( PCO_GetNumberOfImagesInSegment( (y1) , (y2) , (y3) , (y4) ) )
 
-#define __PCO_SetDelayExposureTime(y1, y2, y3, y4, y5) ( PCO_SetDelayExposureTime( (y1) , (y2) , (y3) , (y4) , (y5) ) )
-#define __PCO_GetSizes(y1, y2, y3, y4, y5) ( PCO_GetSizes( (y1) , (y2) , (y3) , (y4) , (y5) ) )
-#define __PCO_GetROI(y1, y2, y3, y4, y5) ( PCO_GetROI( (y1) , (y2) , (y3) , (y4) , (y5) ) )
-#define __PCO_SetROI(y1, y2, y3, y4, y5) ( PCO_SetROI( (y1) , (y2) , (y3) , (y4) , (y5) ) )
+
+#define __PCO_CancelImages(y1) ( PCO_CancelImages( y1  ) )
+
+#define __PCO_SetDelayExposureTime(y1, y2, y3, y4, y5) ( camera->PCO_SetDelayExposureTime(  (y2) , (y3) , (y4) , (y5) ) )
+#define __PCO_GetNumberOfImagesInSegment(y1, y2, y3, y4) ( camera->PCO_GetNumberOfImagesInSegment(  (y2) , (y3) , (y4) ) )
+#define __PCO_SetCameraRamSegmentSize(y1, y2) ( camera->PCO_SetCameraRamSegmentSize(  (y2) ) )
+#define __PCO_GetCameraRamSegmentSize(y1, y2) ( camera->PCO_GetCameraRamSegmentSize(  (y2) ) )
+#define __PCO_GetActiveRamSegment(y1, y2) ( camera->PCO_GetActiveRamSegment(  (y2) ) )
+#define __PCO_GetCameraRamSize(y1, y2, y3) ( camera->PCO_GetCameraRamSize(  (y2) , (y3) ) )
+#define __PCO_GetRecorderSubmode(y1, y2) ( camera->PCO_GetRecorderSubmode( (y2) ) )
+#define __PCO_SetRecorderSubmode(y1, y2) ( camera->PCO_SetRecorderSubmode(  (y2) ) )
+#define __PCO_GetStorageMode(y1, y2) ( camera->PCO_GetStorageMode( (y2) ) )
+#define __PCO_SetStorageMode(y1, y2) ( camera->PCO_SetStorageMode( (y2) ) )
+#define __PCO_CloseCamera(y1) ( camera->Close_Cam(   ) )
+#define __PCO_ArmCamera(y1) ( camera -> PCO_ArmCamera(  ) )
+#define __PCO_GetPixelRate(y1, y2) ( camera->PCO_GetPixelRate( (y2) ) )
+#define __PCO_SetPixelRate(y1, y2) ( camera->PCO_SetPixelRate( (y2)  ) )
+#define __PCO_SetADCOperation(y1, y2) ( camera->PCO_SetADCOperation(  (y2) ) )
+#define __PCO_GetADCOperation(y1, y2) ( camera->PCO_GetADCOperation( (y2) ) )
+#define __PCO_GetHWIOSignalCount(y1, y2) ( camera->PCO_GetHWIOSignalCount(  (y2) ) )
+#define __PCO_SetRecordingState(y1, y2) ( camera->PCO_SetRecordingState(  (y2) ) )
+#define __PCO_GetRecordingState(y1, y2) ( camera->PCO_GetRecordingState(  (y2) ) )
+#define __PCO_GetCoolingSetpointTemperature(y1, y2) ( camera->PCO_GetCoolingSetpointTemperature(  (y2) ) )
+#define __PCO_GetBinning(y1, y2, y3) ( camera->PCO_GetBinning( (y2) , (y3) ) )
+#define __PCO_SetBinning(y1, y2, y3) ( camera->PCO_SetBinning(  (y2) , (y3) ) )
+#define __PCO_GetCOCRuntime(y1, y2, y3) ( camera->PCO_GetCOCRuntime(  (y2) , (y3) ) )
+#define __PCO_GetCameraSetup(y1, y2, y3, y4) ( camera->PCO_GetCameraSetup(  (y2) , (y3) , (y4) ) )
+#define __PCO_SetCameraSetup(y1, y2, y3, y4) ( camera->PCO_SetCameraSetup(  (y2) , (y3) , (y4) ) )
+#define __PCO_SetMetaDataMode(y1, y2, y3, y4) ( camera->PCO_SetMetadataMode( (y2) , (y3) , (y4) ) )
+#define __PCO_GetTemperature(y1, y2, y3, y4) ( camera->PCO_GetTemperature(  (y2) , (y3) , (y4) ) )
+#define __PCO_GetSizes(y1, y2, y3, y4, y5) ( camera->PCO_GetActualSize( (y2) , (y3)  ) )
+#define __PCO_GetROI(y1, y2, y3, y4, y5) ( camera->PCO_GetROI(  (y2) , (y3) , (y4) , (y5) ) )
+#define __PCO_SetROI(y1, y2, y3, y4, y5) ( camera->PCO_SetROI(  (y2) , (y3) , (y4) , (y5) ) )
+
+
+
+
+
+unsigned int * _beginthread( void (*) (void *), unsigned int, void*);
+void _endthread(void);
+HANDLE CreateEvent(void*, bool,bool, void*);
+DWORD WaitForMultipleObjects(DWORD, HANDLE *, bool, DWORD); 
+#define WAIT_OBJECT_0 0
+#define WAIT_TIMEOUT 5
+
 
 #endif

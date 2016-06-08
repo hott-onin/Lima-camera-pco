@@ -20,6 +20,14 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
+PCODIR     = ../sdkDev/pco_camera/pco_common/pco_include
+PCOLIBDIR  = ../sdkDev/pco_camera/pco_common/pco_lib
+CPCODIR    = ../sdkDev/pco_camera/pco_common/pco_classes
+CPCODIRME4 = ../sdkDev/pco_camera/pco_me4/pco_classes
+SISOLIBDIR = $(SISODIR5)/lib64
+SISOINCLUDEDIR = $(SISODIR5)/include
+
+
 pco-objs :=  \
             PcoHwEventCtrlObj.o  \
             PcoDetInfoCtrlObj.o  \
@@ -36,9 +44,10 @@ SRCS = $(pco-objs:.o=.cpp)
 INCLUDES  = -I../include \
             -I../../../hardware/include \
             -I../../../common/include \
-            -I../sdkPco/include \
+            -I$(PCODIR) -I$(CPCODIR) -I$(CPCODIRME4) -I$(SISOINCLUDEDIR) \
+            -I../sdkDev/PCO_me4/siso_include \
             -I../../../third-party/Processlib/core/include \
-
+            -I../sdkPco/include \
 
 CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread -g
 

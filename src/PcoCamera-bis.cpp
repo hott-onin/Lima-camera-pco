@@ -84,37 +84,10 @@ char *str_trim(char *s) ;
 char *str_toupper(char *s);
 
 
-int PCO_SetTimeouts(HANDLE ph, void *buf_in, unsigned int size_in) {return 1;}
 
-int PCO_SetHWIOSignal (HANDLE ph, WORD wSignalNum, PCO_Signal* pstrSignal){return 1;}
-int PCO_GetHWIOSignal (HANDLE ph, WORD wSignalNum, PCO_Signal* pstrSignal){return 1;}
-int PCO_GetHWIOSignalDescriptor (HANDLE ph, WORD wSignalNum, PCO_Single_Signal_Desc* pstrSignal){return 1;}
-int PCO_RebootCamera(HANDLE ph){return 1;}
-int PCO_GetPendingBuffer(HANDLE ph, int* icount){return 1;}
-int PCO_ResetSettingsToDefault(HANDLE ph){return 1;}
-int PCO_GetCameraDescription(HANDLE ph, PCO_Description* strDescription){return 1;}
-int PCO_GetGeneral(HANDLE ph, PCO_General* strGeneral){return 1;}
-int PCO_GetStorageStruct(HANDLE ph, PCO_Storage* strStorage){return 1;}
-int PCO_GetTimingStruct(HANDLE ph, PCO_Timing* strTiming){return 1;}
-int PCO_GetRecordingStruct(HANDLE ph, PCO_Recording* strRecording){return 1;}
-int PCO_GetSensorStruct(HANDLE ph, PCO_Sensor* strSensor){return 1;}
-int PCO_GetActiveLookupTable(HANDLE ph, WORD *wIdentifier, WORD *wParameter){return 1;}
-int PCO_GetCameraType(HANDLE ph, PCO_CameraType* strCamType){return 1;}
-int PCO_GetTransferParameter(HANDLE ph, void* buffer, int ilen){return 1;}
-int PCO_SetTransferParameter(HANDLE ph, void* buffer, int ilen){return 1;}
-int PCO_CamLinkSetImageParameters(HANDLE ph, WORD wxres, WORD wyres){return 1;}
-int PCO_SetTriggerMode(HANDLE ph, WORD wTriggerMode){return 1;}
-int PCO_GetTriggerMode(HANDLE ph, WORD* wTriggerMode){return 1;}
-//int PCO_GetImageTiming (HANDLE ph, PCO_Image_Timing* pstrImageTiming){return 1;}
-int PCO_GetImageTiming (HANDLE ph, void* pstrImageTiming){return 1;}
-int PCO_SetActiveLookupTable(HANDLE ph, WORD *wIdentifier, WORD *wParameter){return 1;}
-int PCO_SetAcquireMode(HANDLE ph, WORD wAcquMode){return 1;}
-int PCO_CancelImages(HANDLE ph){return 1;}
-int PCO_OpenCamera(HANDLE* ph, WORD wCamNum){return 1;}
-DWORD PCO_ResetLib() {return 0;}
 
 //=========================================================================================================
-const char* _timestamp_pcocamera() {return ID_TIMESTAMP_M ;}
+const char* _timestamp_pcocamera() {return ID_TIMESTAMP ;}
 
 
 #ifdef WITH_GIT_VERSION
@@ -357,7 +330,7 @@ Camera::Camera(const char *params) :
 	m_acq_frame_nb(1),
 	m_sync(NULL),
 	m_buffer(NULL),
-	m_handle(0)
+	m_handle(NULL)
 {
 	//DEF_FNID;
 	DEB_CONSTRUCTOR();
@@ -431,7 +404,7 @@ void Camera::_init(){
 		DEB_ALWAYS() << (char *) fnId << " [closing opened camera]";
 		PCO_FN1(error, pcoFn,PCO_CloseCamera, m_handle);
 		PCO_THROW_OR_TRACE(error, "_init(): PCO_CloseCamera - closing opened cam") ;
-		m_handle = 0;
+		m_handle = NULL;
 	}
 
 	int retrySleep =30;
@@ -561,7 +534,7 @@ void  Camera::_init_dimax() {
 		m_pcoData->dwRamSize = ramSize;     // nr of pages of the ram
 		m_pcoData->wPixPerPage = pageSize;    // nr of pixels of the page
 
-		sprintf_s(msg, MSG_SIZE, "* ramPages[%d] pixPerPage[%d] bitsPerPix[%d]\n",  
+		sprintf_s(msg, MSG_SIZE, "* ramPages[%ld] pixPerPage[%d] bitsPerPix[%d]\n",  
 				m_pcoData->dwRamSize, m_pcoData->wPixPerPage, bitsPerPix);
 		DEB_TRACE() <<   msg;
 		m_log.append(msg);
@@ -586,7 +559,7 @@ void  Camera::_init_dimax() {
 			segmentPco = segmentArr +1;		// PCO segment (1 ... 4)
 			m_pcoData->dwSegmentSize[segmentArr] = segSize[segmentArr];
 
-			sprintf_s(msg, MSG_SIZE, "* segment[%d] number of pages[%d]\n", segmentPco,m_pcoData->dwSegmentSize[segmentArr]);
+			sprintf_s(msg, MSG_SIZE, "* segment[%d] number of pages[%ld]\n", segmentPco,m_pcoData->dwSegmentSize[segmentArr]);
 			DEB_TRACE() <<   msg;
 			m_log.append(msg);
 
@@ -602,7 +575,7 @@ void  Camera::_init_dimax() {
 			m_pcoData->dwValidImageCnt[segmentArr] = _dwValidImageCnt;
 			m_pcoData->dwMaxImageCnt[segmentArr] = _dwMaxImageCnt;
 
-			sprintf_s(msg, MSG_SIZE, "* segment[%d] nr images [%d]  max imag [%d]\n", segmentPco, _dwValidImageCnt,  _dwMaxImageCnt);
+			sprintf_s(msg, MSG_SIZE, "* segment[%d] nr images [%ld]  max imag [%ld]\n", segmentPco, _dwValidImageCnt,  _dwMaxImageCnt);
 			DEB_TRACE() <<   msg;
 			m_log.append(msg);
 
@@ -618,7 +591,7 @@ void  Camera::_init_dimax() {
 			m_pcoData->dwSegmentSize[0] += m_pcoData->dwSegmentSize[segmentArr];
 			m_pcoData->dwSegmentSize[segmentArr] = 0;
 		}
-		sprintf_s(msg, MSG_SIZE, "* m_pcoData->dwSegmentSize0 [%d]  m_pcoData->dwRamSize [%d]\n", m_pcoData->dwSegmentSize[0], m_pcoData->dwRamSize);
+		sprintf_s(msg, MSG_SIZE, "* m_pcoData->dwSegmentSize0 [%ld]  m_pcoData->dwRamSize [%ld]\n", m_pcoData->dwSegmentSize[0], m_pcoData->dwRamSize);
 		DEB_TRACE() <<   msg;
 		m_log.append(msg);
 
@@ -861,9 +834,7 @@ void Camera::startAcq()
 	
 	
 	//--------------------------- PREPARE / getSizes (valid after ARM) alloc buffer
-	
-	
-	PCO_FN5(error, msg,PCO_GetSizes , m_handle, &m_pcoData->dwXResActual, &m_pcoData->dwYResActual, &m_pcoData->wXResMax, &m_pcoData->wYResMax) ;
+	PCO_FN5(error, msg,PCO_GetSizes , m_handle, &m_pcoData->wXResActual, &m_pcoData->wYResActual, &m_pcoData->wXResMax, &m_pcoData->wYResMax) ;
 	PCO_THROW_OR_TRACE(error, msg) ;
 
 	m_buffer->_pcoAllocBuffers(false);
@@ -1040,7 +1011,7 @@ void _pco_acq_thread_dimax(void *argin) {
 	int nb_acq_frames;
 	int requestStop = stopNone;
 
-	HANDLE m_handle __attribute__((unused)) = m_cam->getHandle();
+	HANDLE m_handle = m_cam->getHandle();
 
 	WORD wSegment = m_cam->pcoGetActiveRamSegment(); 
 	double msPerFrame = (m_cam->pcoGetCocRunTime() * 1000.);
@@ -1070,10 +1041,7 @@ void _pco_acq_thread_dimax(void *argin) {
 
 	while(true) {
 		msg = m_cam->_PcoCheckError(__LINE__, __FILE__, 
-					m_cam->camera->PCO_GetNumberOfImagesInSegment( wSegment, &_dwValidImageCnt, &_dwMaxImageCnt), error, "PCO_GetNumberOfImagesInSegment");
-
-//		msg = m_cam->_PcoCheckError(__LINE__, __FILE__, 
-//					PCO_GetNumberOfImagesInSegment(m_handle, wSegment, &_dwValidImageCnt, &_dwMaxImageCnt), error, "PCO_GetNumberOfImagesInSegment");
+					PCO_GetNumberOfImagesInSegment(m_handle, wSegment, &_dwValidImageCnt, &_dwMaxImageCnt), error, "PCO_GetNumberOfImagesInSegment");
 		if(error) {
 			printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
 			throw LIMA_HW_EXC(Error, "PCO_GetNumberOfImagesInSegment");
@@ -1091,7 +1059,7 @@ void _pco_acq_thread_dimax(void *argin) {
 			nb_frames_fixed = true;
 			
 			sprintf_s(msgErr,LEN_ERROR_MSG, 
-				"=== %s [%d]> ERROR INVALID NR FRAMES fixed nb_frames[%d] _dwMaxImageCnt[%u]", 
+				"=== %s [%d]> ERROR INVALID NR FRAMES fixed nb_frames[%d] _dwMaxImageCnt[%lu]", 
 				fnId, __LINE__, nb_frames, _dwMaxImageCnt);
 			printf("%s\n", msgErr);
 
@@ -1105,7 +1073,7 @@ void _pco_acq_thread_dimax(void *argin) {
 			//m_sync->setExposing(pcoAcqRecordTimeout);
 			m_sync->stopAcq();
 			m_sync->setExposing(pcoAcqStop);
-			printf("=== %s [%d]> TIMEOUT!!! tout[(%ld) 0(%ld)] recLoopTime[%ld ms] lastImgRecorded[%d] nrImgRequested[%d]\n", 
+			printf("=== %s [%d]> TIMEOUT!!! tout[(%ld) 0(%ld)] recLoopTime[%ld ms] lastImgRecorded[%ld] nrImgRequested[%d]\n", 
 				fnId, __LINE__, timeout, timeout0, msNowRecordLoop, _dwValidImageCnt, nb_frames);
 			break;
 		}
@@ -1117,7 +1085,7 @@ void _pco_acq_thread_dimax(void *argin) {
 				//m_buffer->_setRequestStop(stopProcessing);
 				//m_sync->setExposing(pcoAcqStop);
 				
-			snprintf(msg,LEN_TRACEACQ_MSG, "=== %s> STOP REQ (recording). lastImgRec[%u]\n", fnId, _dwValidImageCnt);
+			snprintf(msg,LEN_TRACEACQ_MSG, "=== %s> STOP REQ (recording). lastImgRec[%lu]\n", fnId, _dwValidImageCnt);
 				printf(msg);
 				m_pcoData->traceMsg(msg);
 				break;
@@ -1138,7 +1106,7 @@ void _pco_acq_thread_dimax(void *argin) {
 		if(m_sync->getExposing() == pcoAcqRecordStart) m_sync->setExposing(pcoAcqRecordEnd);
 
 		msg = m_cam->_PcoCheckError(__LINE__, __FILE__, 
-			m_cam->camera->PCO_GetNumberOfImagesInSegment( wSegment, &_dwValidImageCnt, &_dwMaxImageCnt), error);
+			PCO_GetNumberOfImagesInSegment(m_handle, wSegment, &_dwValidImageCnt, &_dwMaxImageCnt), error);
 		if(error) {
 			printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
 			throw LIMA_HW_EXC(Error, "PCO_GetNumberOfImagesInSegment");
@@ -1211,7 +1179,7 @@ void _pco_acq_thread_dimax(void *argin) {
 	m_pcoData->traceAcq.endXferTimestamp = m_pcoData->msAcqXferTimestamp = getTimestamp();
 
 
-	printf("=== %s [%d]> EXIT imgRecorded[%u] coc[%g] recLoopTime[%ld] "
+	printf("=== %s [%d]> EXIT imgRecorded[%lu] coc[%g] recLoopTime[%ld] "
 			"tout[(%ld) 0(%ld)] rec[%ld] xfer[%ld] all[%ld](ms)\n", 
 			fnId, __LINE__, _dwValidImageCnt, msPerFrame, msNowRecordLoop, timeout, timeout0, msRecord, msXfer, msTotal);
 
@@ -1784,7 +1752,7 @@ const char* Camera::_pco_SetDelayExposureTime(int &error, int ph){
 		doIt = FALSE;
 
 		if((_isCameraType(Edge)) && (m_pcoData->dwPixelRate >= PCO_EDGE_PIXEL_RATE_HIGH) ) {
-			double pixels = ((double) m_pcoData->dwXResActual)* ((double) m_pcoData->dwYResActual);
+			double pixels = ((double) m_pcoData->wXResActual)* ((double) m_pcoData->wYResActual);
 			double bytes = (m_pcoData->wLUT_Identifier == PCO_EDGE_LUT_SQRT) ? 1.5 : 2.0;
 			double period = bytes * pixels / (m_pcoData->fTransferRateMHzMax * 1000000.);
 
@@ -1843,7 +1811,7 @@ typedef struct
 int Camera::_pco_GetImageTiming(double &frameTime, double &expTime, double &sysDelay, double &sysJitter, double &trigDelay ){
 	DEB_MEMBER_FUNCT();
 	//DEF_FNID;
-	UNUSED const char *msg;
+	const char *msg;
 
 
 	int error;
@@ -1876,8 +1844,8 @@ const char *Camera::_pco_SetCamLinkSetImageParameters(int &error){
 		case INTERFACE_ETHERNET:
 		    WORD wXres, wYres;
 
-            wXres= m_pcoData->dwXResActual;
-            wYres= m_pcoData->dwYResActual;
+            wXres= m_pcoData->wXResActual;
+            wYres= m_pcoData->wYResActual;
 			
 			DEB_ALWAYS() << "PCO_CamLinkSetImageParameters: " <<  DEB_VAR2(wXres, wYres);
 
@@ -1963,7 +1931,7 @@ const char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 			DEB_ALWAYS() << "PCO_SetTransferParameter (ckTransferParam)" ;
 			PCO_FN3(error, pcoFn,PCO_SetTransferParameter,m_handle, &m_pcoData->clTransferParam, sizeof(m_pcoData->clTransferParam));
 			if(error){
-				sprintf_s(msg,ERRMSG_SIZE, "PCO_SetTransferParameter - baudrate[%u][%u] dataFormat[x%08x][x%08x] trasmit[%u][%u]",
+				sprintf_s(msg,ERRMSG_SIZE, "PCO_SetTransferParameter - baudrate[%lu][%lu] dataFormat[x%08lx][x%08lx] trasmit[%lu][%lu]",
 					_pcoData.clTransferParam.baudrate, m_pcoData->clTransferParam.baudrate,
 					_pcoData.clTransferParam.DataFormat, m_pcoData->clTransferParam.DataFormat,
 					_pcoData.clTransferParam.Transmit, m_pcoData->clTransferParam.Transmit);
@@ -2007,12 +1975,11 @@ void Camera::getArmWidthHeight(WORD& width,WORD& height)
 	DEB_MEMBER_FUNCT();
 	//DEF_FNID;
 
-	width = m_pcoData->dwXResActual;
-	height = m_pcoData->dwYResActual;
+	width = m_pcoData->wXResActual;
+	height = m_pcoData->wYResActual;
 }
 
 
-		const char *ptr;
 
 //=================================================================================================
 //=================================================================================================
@@ -2020,7 +1987,6 @@ const char *Camera::_pco_GetCameraType(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	const char *msg;
-
 	m_pcoData->frames_per_buffer = 1; // for PCO DIMAX
 
 	// --- Get camera type
@@ -2030,7 +1996,7 @@ const char *Camera::_pco_GetCameraType(int &error){
 
 		//m_pcoData->stcPcoCamType.wSize= sizeof(m_pcoData->stcPcoCamType);
 
-		//error = PCO_GetGigEIPAddress(m_handle, &m_pcoData->ipField[0], &m_pcoData->ipField[1], &m_pcoData->ipField[2], &m_pcoData->ipField[3]);
+		error = PCO_GetGigEIPAddress(m_handle, &m_pcoData->ipField[0], &m_pcoData->ipField[1], &m_pcoData->ipField[2], &m_pcoData->ipField[3]);
 		if(error) {m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;}
 
 		PCO_FN2(error, msg,PCO_GetCameraType, m_handle, &m_pcoData->stcPcoCamType);
@@ -2044,7 +2010,7 @@ const char *Camera::_pco_GetCameraType(int &error){
 		strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
 		errTot |= error;
 
-		sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s %s (SN %u)", 
+		sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s %s (SN %lu)", 
 			m_pcoData->model, m_pcoData->iface, m_pcoData->stcPcoCamType.dwSerialNumber);
 		DEB_ALWAYS() 
 			<< "\n   " <<  DEB_VAR1(m_pcoData->model)
@@ -2130,127 +2096,6 @@ const char *Camera::_pco_GetCameraType(int &error){
 	return fnId;
 }
 
-//=================================================================================================
-//=================================================================================================
-void Camera::_pco_GetCameraInfo(int &error){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	int errTot=0;
-	const char *msg;
-	const char *ptr;
-
-	m_pcoData->frames_per_buffer = 1; // for PCO DIMAX
-
-
-	//----------------------------------------------------------
-	// --- GigE ip
-	//error = PCO_GetGigEIPAddress(m_handle, &m_pcoData->ipField[0], &m_pcoData->ipField[1], &m_pcoData->ipField[2], &m_pcoData->ipField[3]);
-	if(1) {m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;}
-
-	//----------------------------------------------------------
-	// --- camera name + interf, cam name, sensor name
-
-
-	errTot |= (error = camera->PCO_GetInfo(0, m_pcoData->camera_name_if, CAMERA_NAME_SIZE ));
-	errTot |= (error = camera->PCO_GetInfo(1, m_pcoData->camera_name0, CAMERA_NAME_SIZE ));
-	errTot |= (error = camera->PCO_GetInfo(2, m_pcoData->sensor_name, CAMERA_NAME_SIZE ));
-
-	//----------------------------------------------------------
-	// --- Get camera type
-
-	errTot |= (error = camera->PCO_GetCameraType(&m_pcoData->wCamType, &m_pcoData->dwSerialNumber, &m_pcoData->wIfType ));
-
-	ptr = xlatPcoCode2Str(_getCameraType(), ModelType, error);
-	strcpy_s(m_pcoData->model, MODEL_TYPE_SIZE, ptr);
-	errTot |= error;
-
-	ptr = xlatPcoCode2Str(m_pcoData->wIfType, InterfaceType, error);
-	strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
-	errTot |= error;
-
-	sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s %s (SN %u)", 
-			m_pcoData->model, m_pcoData->iface, m_pcoData->dwSerialNumber);
-	DEB_ALWAYS() 
-		<< "\n   " <<  DEB_VAR1(m_pcoData->model)
-		<< "\n   " <<  DEB_VAR1(m_pcoData->iface)
-		<< "\n   " <<  DEB_VAR1(m_pcoData->camera_name);
-
-
-
-	// -- Reset to default settings
-
-	PCO_FN2(error, msg,PCO_SetRecordingState, m_handle, 0);
-	if(error) return;
-
-
-	PCO_FN1(error, msg,PCO_ResetSettingsToDefault, m_handle);
-	PCO_PRINT_ERR(error, msg); 	if(error) return;
-	
-
-	// -- Get camera description
-	//m_pcoData->stcPcoDescription.wSize= sizeof(m_pcoData->stcPcoDescription);
-
-	PCO_FN2(error, msg,PCO_GetCameraDescription, m_handle, &m_pcoData->stcPcoDescription);
-	PCO_PRINT_ERR(error, msg); 	if(error) return;
-
-	// callback to update in lima the valid_ranges from the last stcPcoDescription read
-	if(m_sync) {
-		HwSyncCtrlObj::ValidRangesType valid_ranges;
-		m_sync->getValidRanges(valid_ranges);		// from stcPcoDescription
-		m_sync->validRangesChanged(valid_ranges);	// callback
-		DEB_ALWAYS() << fnId << ": callback - new valid_ranges: " << DEB_VAR1(valid_ranges);
-	}
-	
-    // get the max CAMERA pixel rate (Hz) from the description structure
-	m_pcoData->dwPixelRateMax = 0;
-	for(int i=0; i<4; i++) {
-		if(m_pcoData->dwPixelRateMax < m_pcoData->stcPcoDescription.dwPixelRateDESC[i])
-					m_pcoData->dwPixelRateMax = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
-	}	
-
-	m_pcoData->bMetaDataAllowed = !!(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_METADATA) ;
-
-
-	// -- Get General
-	//m_pcoData->stcPcoGeneral.wSize= sizeof(m_pcoData->stcPcoGeneral);
-	//m_pcoData->stcPcoGeneral.strCamType.wSize= sizeof(m_pcoData->stcPcoGeneral.strCamType);
-
-	PCO_FN2(error, msg,PCO_GetGeneral,m_handle, &m_pcoData->stcPcoGeneral);
-	PCO_PRINT_ERR(error, msg); 	if(error);
-
-
-	// -- Get Sensor struct
-	//m_pcoData->stcPcoSensor.wSize= sizeof(m_pcoData->stcPcoSensor);
-	//m_pcoData->stcPcoSensor.strDescription.wSize= sizeof(m_pcoData->stcPcoSensor.strDescription);
-	//m_pcoData->stcPcoSensor.strDescription2.wSize= sizeof(m_pcoData->stcPcoSensor.strDescription2);
-
-	PCO_FN2(error, msg,PCO_GetSensorStruct, m_handle, &m_pcoData->stcPcoSensor);
-	PCO_PRINT_ERR(error, msg); 	if(error) return;
-
-	// -- Get timing struct
-	//m_pcoData->stcPcoTiming.wSize= sizeof(m_pcoData->stcPcoTiming);
-
-	PCO_FN2(error, msg,PCO_GetTimingStruct, m_handle, &m_pcoData->stcPcoTiming);
-	PCO_PRINT_ERR(error, msg); 	if(error) return;
-
-
-	// -- Get recording struct
-	//m_pcoData->stcPcoRecording.wSize= sizeof(m_pcoData->stcPcoRecording);
-
-	PCO_FN2(error, msg,PCO_GetRecordingStruct,m_handle, &m_pcoData->stcPcoRecording);
-	PCO_PRINT_ERR(error, msg); 	if(error) return;
-
-
-	// -- Get storage struct
-	//m_pcoData->stcPcoStorage.wSize= sizeof(m_pcoData->stcPcoStorage);
-
-	PCO_FN2(error, msg,PCO_GetStorageStruct, m_handle, &m_pcoData->stcPcoStorage);
-	PCO_PRINT_ERR(error, msg); 	if(error) return;
-
-
-
-	return;
-}
 
 
 //=================================================================================================
@@ -2373,7 +2218,7 @@ int Camera::dumpRecordedImages(int &nrImages, int &error){
 	DEF_FNID;
 	const char *msg;
 
-	HANDLE m_handle __attribute__((unused)) = getHandle();
+	HANDLE m_handle = getHandle();
 	WORD wSegment = pcoGetActiveRamSegment(); 
 	DWORD _dwValidImageCnt, _dwMaxImageCnt;
 
@@ -2391,7 +2236,7 @@ int Camera::dumpRecordedImages(int &nrImages, int &error){
 	if(wRecState_actual != 0) return -1;
 
 
-	msg = _PcoCheckError(__LINE__, __FILE__, camera->PCO_GetNumberOfImagesInSegment( wSegment, &_dwValidImageCnt, &_dwMaxImageCnt), error);
+	msg = _PcoCheckError(__LINE__, __FILE__, PCO_GetNumberOfImagesInSegment(m_handle, wSegment, &_dwValidImageCnt, &_dwMaxImageCnt), error);
 	if(error) {
 		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
 		throw LIMA_HW_EXC(Error, "PCO_GetNumberOfImagesInSegment");
@@ -2559,10 +2404,10 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	DEB_ALWAYS() << fnId << " " << msg;
     PCO_FN1(error, msg,PCO_CloseCamera, m_handle);
     PCO_PRINT_ERR(error, msg); 	if(error) return;
-	m_handle = 0;
+	m_handle = NULL;
 	
 	msg = msgBuff;
-	sprintf_s((char *) msg, MSG_SIZE, "[Sleep %u ms]", sleepMs);
+	sprintf_s((char *) msg, MSG_SIZE, "[Sleep %lu ms]", sleepMs);
 	DEB_ALWAYS() << fnId << " " << msg;
 	::Sleep(sleepMs);
 
@@ -2625,14 +2470,12 @@ void Camera::getXYsteps(unsigned int &xSteps, unsigned int &ySteps){
 	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
 }
         
-/***
 void Camera::getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax){
 	DEB_MEMBER_FUNCT();
 	//DEF_FNID;
 	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
 	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
 }
-****/
 	
 void Camera::getMaxWidthHeight(DWORD &xMax, DWORD &yMax){
 	DEB_MEMBER_FUNCT();
@@ -2795,8 +2638,8 @@ void Camera::_get_Roi(unsigned int &x0, unsigned int &x1, unsigned int &y0, unsi
 	//DEF_FNID;
 
 	Point top_left = m_RoiLima.getTopLeft();
-	UNUSED Point bot_right = m_RoiLima.getBottomRight();
-	UNUSED Size size = m_RoiLima.getSize();
+	Point bot_right = m_RoiLima.getBottomRight();
+	Size size = m_RoiLima.getSize();
 
 	x0 = top_left.x + 1;
 	y0 = top_left.y + 1;
@@ -2971,12 +2814,12 @@ void Camera::_pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error){
 
 //=================================================================================================
 //=================================================================================================
-void Camera::_pco_GetHWIOSignal( int &errorTot){
+void Camera::_pco_GetHWIOSignal(int &errorTot){
 	DEB_MEMBER_FUNCT();
 	//DEF_FNID;
 	int error;
 	errorTot = 0;
-	UNUSED const char *msg;
+	const char *msg;
 
 	int i, imax;
 	
@@ -3067,7 +2910,7 @@ void Camera::_pco_initHWIOSignal(int mode, int &error){
 void Camera::_pco_SetHWIOSignal(int sigNum, int &error){
 	DEB_MEMBER_FUNCT();
 	//DEF_FNID;
-	UNUSED const char *msg;
+	const char *msg;
 
 
 		if(!( _isCameraType(Dimax |Edge))  || 
@@ -3134,7 +2977,7 @@ int Camera::_pco_GetADCOperation(int &adc_working, int &adc_max)
 {
 	DEB_MEMBER_FUNCT();
 	//DEF_FNID;
-	UNUSED const char *msg;
+	const char *msg;
 
 	int error;
 	WORD wADCOperation;
@@ -3162,7 +3005,7 @@ int Camera::_pco_SetADCOperation(int adc_new, int &adc_working)
 {
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-	UNUSED const char *msg;
+	const char *msg;
 
 	int error, adc_max;
 

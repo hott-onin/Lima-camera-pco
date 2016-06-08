@@ -44,8 +44,20 @@
 using namespace lima;
 using namespace lima::Pco;
 
+int PCO_AddBuffer(HANDLE ph, DWORD dw1stImage, DWORD dwLastImage, SHORT sBufNr, WORD wXRes, WORD wYRes, WORD wBitPerPixel) {return -1;}
+
+int PCO_AllocateBuffer(HANDLE ph, SHORT* sBufNr, DWORD dwSize, WORD** wBuf, HANDLE* hEvent){return -1;}
+int PCO_FreeBuffer(HANDLE ph, SHORT sBufNr){return -1;}
+int PCO_GetImageEx(HANDLE ph, WORD wSegment, DWORD dw1stImage,DWORD dwLastImage, SHORT sBufNr, WORD wXRes, WORD wYRes, WORD wBitPerPixel){return -1;}
+
+int PCO_GetNumberOfImagesInSegment(HANDLE ph, WORD wSegment, DWORD* dwValidImageCnt, DWORD* dwMaxImageCnt){return -1;}
+
+int PCO_AddBufferEx(HANDLE ph, DWORD dw1stImage, DWORD dwLastImage, SHORT sBufNr, WORD wXRes, WORD wYRes, WORD wBitPerPixel){return -1;}
+
+int PCO_GetBufferStatus(HANDLE ph, SHORT sBufNr, DWORD* dwStatusDll,DWORD* dwStatusDrv){return -1;}
+
 //=========================================================================================================
-const char* _timestamp_pcobufferctrlobj() {return ID_TIMESTAMP ;}
+const char* _timestamp_pcobufferctrlobj() {return ID_TIMESTAMP_M ;}
 //=========================================================================================================
 
 //=========================================================================================================
@@ -328,7 +340,7 @@ int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast,
 
 	if(error) {
 		printf("==== %s error [%s]\n", fnId, sErr);
-		printf("==== dwFrame[%lu] dwFrameFirst[%lu] dwFrameLast[%lu]\n", dwFrame, dwFrameFirst, dwFrameLast);
+		printf("==== dwFrame[%u] dwFrameFirst[%u] dwFrameLast[%u]\n", dwFrame, dwFrameFirst, dwFrameLast);
 		printf("==== wArmWidth[%d] wArmHeight[%d] wBitPerPixel[%d]\n", wArmWidth, wArmHeight, wBitPerPixel);
 
     	DEB_TRACE() << sErr;
@@ -380,7 +392,7 @@ int BufferCtrlObj::_xferImag()
 // --------------- get the requested nr of images 
 	int requested_nb_frames;
 	DWORD dwFramesPerBuffer, dwRequestedFrames;
-	DWORD dwRequestedFramesMax =DWORD_MAX;
+	DWORD dwRequestedFramesMax = (DWORD) DWORD_MAX;
 
 // --------------- live video -> nr frames = 0 / idx lima buffers 32b (0...ffff)
 	m_sync->getNbFrames(requested_nb_frames);
@@ -422,7 +434,7 @@ int BufferCtrlObj::_xferImag()
 			bufIdx = i;
 			
 			if(m_cam->_getDebug(DBG_WAITOBJ)){
-				sprintf_s(msg, RING_LOG_BUFFER_SIZE, "... ASSIGN BUFFER[%d] frame[%lu]", bufIdx, dwFrameFirst2assign);
+				sprintf_s(msg, RING_LOG_BUFFER_SIZE, "... ASSIGN BUFFER[%d] frame[%u]", bufIdx, dwFrameFirst2assign);
 				m_cam->m_tmpLog->add(msg);
 			}
 
@@ -504,10 +516,10 @@ _RETRY:
 
 		int errPco = PCO_GetBufferStatus(m_handle, sBufNr, &dwStatusDll, &dwStatusDrv);		
 		if((dwStatusDll != 0x80000000) || dwStatusDrv || errPco) {
-			printf("=== %s> got frame[%lu / %lu] bufIdx[%d] size[%ld] dest[%08lx] src[%08lx] \n"
-				"dwStatusDll[%08lx] dwStatusDrv[%08lx] errPco[%08lx] err[%s]\n", fnId, 
+			printf("=== %s> got frame[%u / %u] bufIdx[%d] size[%ld] dest[%08lx] src[%08lx] \n"
+				"dwStatusDll[%08x] dwStatusDrv[%08x] errPco[%08lx] err[%s]\n", fnId, 
 				dwFrameIdx, dwRequestedFrames, bufIdx,
-				size, ((DWORD) ptrDest), ((DWORD) ptrSrc),
+				size, ((long unsigned int) ptrDest), ((long unsigned int) ptrSrc),
 				dwStatusDll, dwStatusDrv, (long unsigned int) errPco,
 				m_cam->_PcoCheckError(__LINE__, __FILE__, dwStatusDrv, error));
 		}
@@ -758,7 +770,7 @@ int BufferCtrlObj::_xferImagMult()
 	Sync::Status status;
 	int requested_nb_frames;
 	DWORD dwFramesPerBuffer, dwRequestedFrames;
-	DWORD dwRequestedFramesMax =DWORD_MAX;
+	DWORD dwRequestedFramesMax = (DWORD)DWORD_MAX;
 	unsigned int _uiBytesPerPixel;
 	WORD _wArmWidth, _wArmHeight;
 	int _iPcoAllocatedBuffNr;
@@ -972,7 +984,7 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 				FALSE,  // initial state is nonsignaled
 				NULL);  // unnamed object
 
-			if (m_allocBuff.bufferAllocEvent[bufIdx] == NULL) 
+			if (m_allocBuff.bufferAllocEvent[bufIdx] == 0) 
 			{ 
 				THROW_HW_ERROR(NotSupported) << "CreateEvent error";
 			} 
@@ -1041,7 +1053,7 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 		int iPcoBufIdx;
 
 		for(bufIdx = 0; bufIdx < PCO_BUFFER_NREVENTS ; bufIdx ++) {
-			ptrEvent = m_allocBuff.bufferAllocEvent[bufIdx];
+			//XXXptrEvent = m_allocBuff.bufferAllocEvent[bufIdx];
 			ptrBuff = m_allocBuff.pcoAllocBufferPtr[bufIdx];
 			iPcoBufIdx = m_allocBuff.pcoAllocBufferNr[bufIdx];
 			DEB_ALWAYS() << DEB_VAR4(bufIdx, ptrEvent, ptrBuff, iPcoBufIdx);

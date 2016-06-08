@@ -39,7 +39,7 @@ using namespace lima;
 using namespace lima::Pco;
 
 //=========================================================================================================
-const char* _timestamp_pcosyncctrlobj() {return ID_TIMESTAMP ;}
+const char* _timestamp_pcosyncctrlobj() {return ID_TIMESTAMP_M ;}
 //=========================================================================================================
 
 //=========================================================================================================
@@ -395,7 +395,6 @@ void SyncCtrlObj::getValidRanges(ValidRangesType& valid_ranges)
 	// DONE
 
 	
-
 	m_pcoData->step_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureStepDESC) * NANO ;	//step exposure time in ns
 	
 	m_pcoData->min_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureDESC) * NANO ;	//Minimum exposure time in ns
@@ -413,7 +412,6 @@ void SyncCtrlObj::getValidRanges(ValidRangesType& valid_ranges)
 
 	m_pcoData->max_lat_time = (m_pcoData->stcPcoDescription.dwMaxDelayDESC) * MILI ; // Maximum delay time in ms
 	valid_ranges.max_lat_time = m_pcoData->max_lat_time_err = m_pcoData->max_lat_time + m_pcoData->step_lat_time ;	
-
 
 }
 
