@@ -361,6 +361,7 @@ namespace lima
 //------ linux sdk [begin]
   	CPco_com *camera;
   	CPco_grab_cl_me4* grabber;
+    CPco_Log *mylog;
 
 //------ linux sdk [end]
 

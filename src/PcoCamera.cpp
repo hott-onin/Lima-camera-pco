@@ -366,6 +366,8 @@ Camera::Camera(const char *params) :
 	m_config = TRUE;
 	DebParams::checkInit();
 
+	CPco_Log _mylog("pco_edge_grab.log");
+	mylog = &_mylog;
 	
 	m_msgLog = new ringLog(300) ;
 	m_tmpLog = new ringLog(300) ;
@@ -418,7 +420,216 @@ void Camera::_init(){
 	const char *errMsg;
 	UNUSED const char *pcoFn;
 
+	//-------------------- linux
+	
+
+    DWORD err;
+    CPco_com *camera;
+    CPco_grab_cl_me4* grabber;
+
+
+    int board=0;
+    char infostr[100];
+    //char number[20];
+    char sMsg[128];
+
+    int x;
+    //char c;
+    //int ima_count=100;
+    //int loop_count=1;
+    //int PicTimeOut=10000; //10 seconds
+    //WORD act_recstate;
+    DWORD exp_time,delay_time,pixelrate;
+    //WORD exp_timebase,del_timebase;
+    //DWORD width,height,secs,nsecs;
+    SC2_Camera_Description_Response description;
+    PCO_SC2_CL_TRANSFER_PARAM clpar;
+
+    //double freq;
+    SHORT ccdtemp,camtemp,pstemp;
+    WORD camtype;
+    DWORD serialnumber;
+    WORD actlut,lutparam;
+
+    //int bufnum=20;
+
+    mylog->set_logbits(0x0000F0FF);
+    printf("Logging set to 0x%x\n",mylog->get_logbits());
+
+    camera= new CPco_com_cl_me4();
+    camera->SetLog(*mylog);
+
+    DEB_ALWAYS()  << "Try to open Camera" ;
+    err=camera->Open_Cam(0);
+    if(err!=PCO_NOERROR)
+    {
+        sprintf(sMsg, "error 0x%x in Open_Cam, close application",err);
+        DEB_ALWAYS()  << sMsg ;
+        delete camera;
+        THROW_HW_ERROR(Error) ;
+    }
+
+    err=camera->PCO_GetCameraType(&camtype,&serialnumber);
+    if(err!=PCO_NOERROR)
+    {
+        sprintf(sMsg, "error 0x%x in PCO_GetCameraType",err);
+        DEB_ALWAYS()  << sMsg ;
+        camera->Close_Cam();
+        delete camera;
+        THROW_HW_ERROR(Error) ;
+    }
+
+    if(camtype==CAMERATYPE_PCO_EDGE)
+    {
+        DEB_ALWAYS()  << "Grabber is CPco_grab_cl_me4_edge";
+        grabber=new CPco_grab_cl_me4_edge((CPco_com_cl_me4*)camera);
+    }
+    else if(camtype==CAMERATYPE_PCO_EDGE_42)
+    {
+        DEB_ALWAYS()  << "Grabber is CPco_grab_cl_me4_edge42";
+        grabber=new CPco_grab_cl_me4_edge42((CPco_com_cl_me4*)camera);
+    }
+    else
+    {
+        DEB_ALWAYS()  << "Wrong camera for this application";
+        camera->Close_Cam();
+        delete camera;
+        THROW_HW_ERROR(Error) ;
+    }
+
+    grabber->SetLog(*mylog);
+
+    DEB_ALWAYS()  << "Try to open Grabber";
+    err=grabber->Open_Grabber(board);
+    if(err!=PCO_NOERROR)
+    {
+        sprintf(sMsg, "error 0x%x in Open_Grabber, close application",err);
+        DEB_ALWAYS()  << sMsg ;
+        delete grabber;
+
+        camera->Close_Cam();
+        delete camera;
+        THROW_HW_ERROR(Error) ;
+    }
+
+    err=camera->PCO_GetCameraDescriptor(&description);
+    if(err!=PCO_NOERROR)
+    {
+        sprintf(sMsg, "PCO_GetCameraDescriptor() Error 0x%x\n",err);
+        DEB_ALWAYS()  << sMsg ;
+    }
+
+    err=camera->PCO_GetInfo(1,infostr,sizeof(infostr));
+    if(err!=PCO_NOERROR)
+    {
+        sprintf(sMsg, "PCO_GetInfo() Error 0x%x\n",err);
+        DEB_ALWAYS()  << sMsg ;
+    }
+    else
+    {
+        DEB_ALWAYS()  << sMsg ;
+        sprintf(sMsg, "Camera Name is: %s serialnumber %d\n",infostr,serialnumber);
+        DEB_ALWAYS()  << sMsg ;
+    }
+    
+    err=camera->PCO_SetCameraToCurrentTime();
+    if(err!=PCO_NOERROR)
+    {
+        sprintf(sMsg, "PCO_SetCameraToCurrentTime() Error 0x%x\n",err);
+        DEB_ALWAYS()  << sMsg ;
+    }
+
+
+    err=camera->PCO_GetTransferParameter(&clpar,sizeof(clpar));
+    if(err!=PCO_NOERROR)
+    {
+        sprintf(sMsg, "PCO_GetTransferParameter() Error 0x%x\n",err);
+        DEB_ALWAYS()  << sMsg ;
+    }
+    else
+    {
+        sprintf(sMsg, 
+            "Baudrate      : %d\n"
+            "Clockfrequency: %d\n"
+            "Dataformat    : 0x%x\n"
+            "Transmit       : 0x%x\n",
+            clpar.baudrate,
+            clpar.ClockFrequency
+            ,clpar.DataFormat
+            ,clpar.Transmit);
+        DEB_ALWAYS()  << sMsg ;
+    }
+
+    err=camera->PCO_GetTemperature(&ccdtemp,&camtemp,&pstemp);
+    if(err!=PCO_NOERROR)
+    {
+        sprintf(sMsg, "PCO_GetTemperature() Error 0x%x\n",err);
+        DEB_ALWAYS()  << sMsg ;
+    }
+    else
+    {
+        sprintf(sMsg, 
+            "current temperatures\n"
+            "Sensor:      %d\n"
+            "Camera:      %d\n" 
+            "PowerSupply: %d\n",
+            ccdtemp,camtemp,pstemp);
+        DEB_ALWAYS()  << sMsg ;
+    }
+
+
+    err=camera->PCO_GetPixelRate(&pixelrate);
+    if(err!=PCO_NOERROR)
+    {
+        sprintf(sMsg, "PCO_GetPixelrate() Error 0x%x\n",err);
+        DEB_ALWAYS()  << sMsg ;
+    }
+    else
+    {
+        sprintf(sMsg, "actual PixelRate: %d\n",pixelrate);
+        DEB_ALWAYS()  << sMsg ;
+    }
+
+    printf("possible PixelRates:\n");
+    for(x=0;x<4;x++)
+    {
+        if(description.dwPixelRateDESC[x]!=0)
+        {
+            printf("%d: %d\n",x,description.dwPixelRateDESC[x]);
+        }
+    }
+
+  err=camera->PCO_GetLut(&actlut,&lutparam);
+  if(err!=PCO_NOERROR)
+   printf("PCO_GetLut() Error 0x%x\n",err);
+
+    //set RecordingState to STOP
+    err=camera->PCO_SetRecordingState(0);
+    if(err!=PCO_NOERROR)
+    {
+        sprintf(sMsg, "PCO_SetRecordingState() Error 0x%x\n",err);
+        DEB_ALWAYS()  << sMsg ;
+    }
+
+    err=camera->PCO_SetTimestampMode(2);
+    if(err!=PCO_NOERROR)
+    {
+        sprintf(sMsg, "PCO_SetTimestampMode() Error 0x%x\n",err);
+        DEB_ALWAYS()  << sMsg ;
+    }
+
+
+  err=camera->PCO_SetDelayExposure(delay_time,exp_time);
+  if(err!=PCO_NOERROR)
+   printf("PCO_SetDelayExposure() Error 0x%x\n",err);
+
+
+	//-------------------- linux
+
+
+
 	_armRequired(true);
+
 
 	m_log.clear();
 	sprintf_s(msg, MSG_SIZE, "*** Pco log %s\n", getTimestamp(Iso));
