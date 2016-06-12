@@ -274,7 +274,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		const char *tok[NRTOK];
 		int tokNr;
 		char *ptr, *ptrMax;
-		int segmentPco = m_pcoData->activeRamSegment;
+		int segmentPco = m_pcoData->wActiveRamSegment;
 		int segmentArr = segmentPco -1;
 		
 		ptr = output; *ptr = 0;
@@ -344,7 +344,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				valid_ranges.min_lat_time * 1.0e6, valid_ranges.max_lat_time * 1.0e3);
 
 			
-			ptr += sprintf_s(ptr, ptrMax - ptr, "* dwXResActual=[%d] dwYResActual=[%d] \n",  m_pcoData->dwXResActual,  m_pcoData->dwYResActual);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* wXResActual=[%d] wYResActual=[%d] \n",  m_pcoData->wXResActual,  m_pcoData->wYResActual);
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* wXResMax=[%d] wYResMax=[%d] \n",  m_pcoData->wXResMax,  m_pcoData->wYResMax);
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* bMetaDataAllowed=[%d] wMetaDataSize=[%d] wMetaDataVersion=[%d] \n",  
 				m_pcoData->bMetaDataAllowed, m_pcoData->wMetaDataSize,  m_pcoData->wMetaDataVersion);
@@ -488,7 +488,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				return output;
 			}
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", pcoGetFramesMax(m_pcoData->activeRamSegment));
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", pcoGetFramesMax(m_pcoData->wActiveRamSegment));
 			return output;
 		}
 
@@ -509,10 +509,10 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		if(_stricmp(cmd, key) == 0){
 			unsigned int bytesPerPix; getBytesPerPixel(bytesPerPix);
 
-			int sizeBytes = m_pcoData->dwXResActual * m_pcoData->dwYResActual * bytesPerPix;
+			int sizeBytes = m_pcoData->wXResActual * m_pcoData->wYResActual * bytesPerPix;
 			ptr += sprintf_s(ptr, ptrMax - ptr, "IMAGE info:\n"
 			                                    "    X=[%d] Y=[%d] bytesPerPix=[%d] size=[%d B]\n",  
-				m_pcoData->dwXResActual,  m_pcoData->dwYResActual, bytesPerPix, sizeBytes);
+				m_pcoData->wXResActual,  m_pcoData->wYResActual, bytesPerPix, sizeBytes);
 			
 			ptr += sprintf_s(ptr, ptrMax - ptr, "PCO API allocated buffers:\n"
 												"    allocated=[%s] nrBuff=[%d] size=[%d B][%g MB] imgPerBuff[%u]\n", 

@@ -71,13 +71,23 @@
 //---------------------------------------
 
 //--------------------------------------- test cmd mode
-#define TESTCMDMODE_DIMAX_XFERMULTI		0x00000001   // _pco_acq_thread_dimax dimax: xferMulti or xfer
-#define TESTCMDMODE_2					0x00000002
-#define TESTCMDMODE_4					0x00000004
-#define TESTCMDMODE_8					0x00000008
-#define TESTCMDMODE_10					0x00000010
-#define TESTCMDMODE_PCO2K_XFER_WAITOBJ		0x00000020   // _pco_acq_thread_dimax dimax: xferMulti or xfer
+#define TESTCMDMODE_DIMAX_XFERMULTI		(0x00000001 << 0)   // _pco_acq_thread_dimax dimax: xferMulti or xfer
+#define TESTCMDMODE_EDGE_XFER			(0x00000001 << 1)	// change EDGE xfer
+#define TESTCMDMODE_2					(0x00000001 << 2)
+#define TESTCMDMODE_3					(0x00000001 << 3)
+#define TESTCMDMODE_4					(0x00000001 << 4)
+#define TESTCMDMODE_PCO2K_XFER_WAITOBJ	(0x00000001 << 5)   // _pco_acq_thread_dimax dimax: xferMulti or xfer
+#define TESTCMDMODE_6					(0x00000001 << 6)
+#define TESTCMDMODE_7					(0x00000001 << 7)
 
+#define TESTCMDMODE_8					(0x00000001 << 8)
+
+//---------------------------------------
+
+//--------------------------------------- camera state
+#define CAMSTATE_RECORD_STATE		(0x00000001 << 0)   // record state
+
+//---------------------------------------
 //---------------------------------------
 
 #define	ALWAYS_NL   "\n===\n"
@@ -198,7 +208,9 @@ struct stcPcoData {
 
 	DWORD dwPixelRateMax;
 
-	char model[MODEL_TYPE_SIZE+1], iface[INTERFACE_TYPE_SIZE+1];
+	char model[MODEL_TYPE_SIZE+1];
+	char modelSubType[MODEL_TYPE_SIZE+1];
+	char iface[INTERFACE_TYPE_SIZE+1];
 	//int	interface_type;
 
 	PCO_SC2_CL_TRANSFER_PARAM clTransferParam;
@@ -207,12 +219,14 @@ struct stcPcoData {
 
 	double	cocRunTime;		/* cam operation code - delay & exposure time & readout in s*/
 	double	frameRate;
-    WORD    activeRamSegment;				/* active ram segment */
+
+    WORD    wActiveRamSegment;				/* active ram segment */
 
   	//WORD		m_acq_mode;
   	bool		bExtTrigEnabled;
   	WORD		storage_mode;
   	WORD		recorder_submode;
+	const char * storage_str;
 	unsigned long	frames_per_buffer; 
     DWORD   dwRamSize;
     WORD    wPixPerPage;
@@ -265,13 +279,32 @@ struct stcPcoData {
 		time_t endXferTimestamp;
 		const char *fnId;
 		const char *fnIdXfer;
+		
+		
+		const char *sPcoStorageRecorderMode;
+		int iPcoStorageMode, iPcoRecorderSubmode;
+		int iPcoBinHorz, iPcoBinVert;
+		int iPcoRoiX0, iPcoRoiX1, iPcoRoiY0, iPcoRoiY1;
+		const char *sPcoTriggerMode;
+		const char *sLimaTriggerMode;
+		int iPcoTriggerMode;
+
+		const char *sPcoAcqMode;
+		int iPcoAcqMode;
+
+		double dLimaExposure, dLimaDelay;
+		int iPcoExposure, iPcoExposureBase;
+		int iPcoDelay, iPcoDelayBase;
+		
+		
 		char msg[LEN_TRACEACQ_MSG+1];
 	} traceAcq;
 
 	DWORD dwPixelRate, dwPixelRateRequested;
 	double fTransferRateMHzMax;
 
-	DWORD dwXResActual, dwYResActual;
+	//DWORD dwXResActual, dwYResActual;
+	WORD wXResActual, wYResActual;
 	WORD wXResMax, wYResMax;
 	WORD wLUT_Identifier, wLUT_Parameter;
 
@@ -288,6 +321,8 @@ struct stcPcoData {
 	double min_lat_time, min_lat_time_err, step_lat_time;
 	double max_lat_time, max_lat_time_err;
 	
+	WORD wBitAlignment; // 0 = MSB (left) alignment
+
 	stcPcoData();
 	void traceAcqClean();
 	void traceMsg(char *s);
@@ -329,6 +364,9 @@ enum enumPcoStorageMode {
 };
 
 
+enum enumTblXlatCode2Str {
+	ModelType, InterfaceType, ModelSubType
+};
 
 struct stcBinning {
 	enumChange	changed;		/* have values been changed ? */
@@ -361,7 +399,7 @@ namespace lima
 //------ linux sdk [begin]
   	CPco_com *camera;
   	CPco_grab_cl_me4* grabber;
-    CPco_Log *mylog;
+    CPco_Log mylog;
 
 //------ linux sdk [end]
 
@@ -393,8 +431,11 @@ namespace lima
 		unsigned long	pcoGetFramesPerBuffer() { return m_pcoData->frames_per_buffer; }
 		double pcoGetCocRunTime() { return m_pcoData->cocRunTime; }
 		double pcoGetFrameRate() { return m_pcoData->frameRate; }
+		
+		char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
 
-		WORD pcoGetActiveRamSegment() {return m_pcoData->activeRamSegment;}
+
+		WORD _pco_GetActiveRamSegment(); // {return m_pcoData->wActiveRamSegment;}
 
 		BufferCtrlObj* _getBufferCtrlObj() { return m_buffer;}
 		SyncCtrlObj*	_getSyncCtrlObj() { return m_sync;}
@@ -406,7 +447,6 @@ namespace lima
 		const char *_pcoSet_RecordingState(int state, int &error);
 		int dumpRecordedImages(int &nrImages, int &error);
 
-		WORD _getCameraType() {return m_pcoData->wCamType ; }
 		bool _isCameraType(int tp);
 		bool _isConfig(){return m_config; };
 		void _pco_set_shutter_rolling_edge(int &error);
@@ -417,6 +457,14 @@ namespace lima
 		
 		void paramsInit(const char *str);
 		bool paramsGet(const char *key,  char *&value);
+
+        DWORD _getCameraSerialNumber();
+        WORD _getInterfaceType();
+        const char *_getInterfaceTypeStr();
+        WORD _getCameraType();
+        const char *_getCameraTypeStr();
+        WORD _getCameraSubType();
+        const char *_getCameraSubTypeStr();
 
 	private:
         bool m_cam_connected;
@@ -449,6 +497,7 @@ namespace lima
 		bool m_config;
 
 		bool m_isArmed;
+		long long m_state;
 
 
         int PcoCheckError(int line, const char *file, int err, const char *fn = "***");
@@ -482,6 +531,7 @@ namespace lima
 		const char *_pco_SetPixelRate(int &error);
 		const char *_pco_GetCOCRuntime(int &error);
 		const char *_pco_SetMetaDataMode(WORD wMetaDataMode, int &error);
+		const char *_pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error); 
 
 		bool _isValid_pixelRate(DWORD dwPixelRate);
 		
@@ -509,10 +559,53 @@ namespace lima
 		int _pco_GetADCOperation(int &adc_working, int &adc_max);
 		int _pco_SetADCOperation(int adc_new, int &adc_working);
 		int _pco_GetImageTiming(double &frameTime, double &expTime, double &sysDelay, double &sysJitter, double &trigDelay );
+		int _pco_GetBitAlignment(int &alignment);
+		int _pco_SetBitAlignment(int alignment);
+		const char * _pco_SetRecordingState(int state, int &error);
+
+        bool _getCameraState(long long flag);
+        void _setCameraState(long long flag, bool val);
+
 
     };
   }
 }
+
+
+int PCO_GetBitAlignment(HANDLE ph, WORD *);
+int PCO_SetBitAlignment(HANDLE ph, WORD );
+
+int PCO_GetActiveRamSegment(HANDLE ph, WORD *);
+
+int PCO_SetTimeouts(HANDLE ph, void *buf_in, unsigned int size_in) ;
+
+int PCO_SetHWIOSignal (HANDLE ph, WORD wSignalNum, PCO_Signal* pstrSignal);
+int PCO_GetHWIOSignal (HANDLE ph, WORD wSignalNum, PCO_Signal* pstrSignal);
+int PCO_GetHWIOSignalDescriptor (HANDLE ph, WORD wSignalNum, PCO_Single_Signal_Desc* pstrSignal);
+int PCO_RebootCamera(HANDLE ph);
+int PCO_GetPendingBuffer(HANDLE ph, int* icount);
+int PCO_ResetSettingsToDefault(HANDLE ph);
+int PCO_GetCameraDescription(HANDLE ph, PCO_Description* strDescription);
+int PCO_GetGeneral(HANDLE ph, PCO_General* strGeneral);
+int PCO_GetStorageStruct(HANDLE ph, PCO_Storage* strStorage);
+int PCO_GetTimingStruct(HANDLE ph, PCO_Timing* strTiming);
+int PCO_GetRecordingStruct(HANDLE ph, PCO_Recording* strRecording);
+int PCO_GetSensorStruct(HANDLE ph, PCO_Sensor* strSensor);
+int PCO_GetActiveLookupTable(HANDLE ph, WORD *wIdentifier, WORD *wParameter);
+int PCO_GetCameraType(HANDLE ph, PCO_CameraType* strCamType);
+int PCO_GetTransferParameter(HANDLE ph, void* buffer, int ilen);
+int PCO_SetTransferParameter(HANDLE ph, void* buffer, int ilen);
+int PCO_CamLinkSetImageParameters(HANDLE ph, WORD wxres, WORD wyres);
+int PCO_SetTriggerMode(HANDLE ph, WORD wTriggerMode);
+int PCO_GetTriggerMode(HANDLE ph, WORD* wTriggerMode);
+//int PCO_GetImageTiming (HANDLE ph, PCO_Image_Timing* pstrImageTiming);
+int PCO_GetImageTiming (HANDLE ph, void* pstrImageTiming);
+int PCO_SetActiveLookupTable(HANDLE ph, WORD *wIdentifier, WORD *wParameter);
+int PCO_SetAcquireMode(HANDLE ph, WORD wAcquMode);
+int PCO_CancelImages(HANDLE ph);
+int PCO_OpenCamera(HANDLE* ph, WORD wCamNum);
+DWORD PCO_ResetLib();
+
 
 
 #endif

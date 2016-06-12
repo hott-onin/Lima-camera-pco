@@ -37,6 +37,7 @@ pco-objs :=  \
             PcoCameraUtils.o  \
             PcoCamera.o  \
             PcoBufferCtrlObj.o  \
+            PcoCameraSdk.o  \
 
 
 SRCS = $(pco-objs:.o=.cpp) 

@@ -279,6 +279,9 @@ DWORD PCO_ResetLib();
 #define __PCO_GetROI(y1, y2, y3, y4, y5) ( camera->PCO_GetROI(  (y2) , (y3) , (y4) , (y5) ) )
 #define __PCO_SetROI(y1, y2, y3, y4, y5) ( camera->PCO_SetROI(  (y2) , (y3) , (y4) , (y5) ) )
 
+#define __PCO_GetBitAlignment(y1, y2) ( camera->PCO_GetBitAlignment(  (y2) ) )
+#define __PCO_SetBitAlignment(y1, y2) ( camera->PCO_SetBitAlignment(  (y2) ) )
+
 
 
 
@@ -289,6 +292,10 @@ HANDLE CreateEvent(void*, bool,bool, void*);
 DWORD WaitForMultipleObjects(DWORD, HANDLE *, bool, DWORD); 
 #define WAIT_OBJECT_0 0
 #define WAIT_TIMEOUT 5
+
+
+
+
 
 
 #endif
