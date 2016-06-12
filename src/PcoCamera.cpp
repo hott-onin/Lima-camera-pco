@@ -98,11 +98,6 @@ char * _timestamp_gitversion(char *buffVersion, int len)
 }
 #endif
 
-char * _getComputerName(char *infoBuff, DWORD  bufCharCount);
-char * _getUserName(char *infoBuff, DWORD  bufCharCount);
-char * _getVSconfiguration(char *infoBuff, DWORD  bufCharCount);
-char * _getPcoSdkVersion(char *infoBuff, int strLen);
-char * _getDllPath(const char* pzFileName, char *path, int strLen);
 
 //=========================================================================================================
 
@@ -244,7 +239,7 @@ stcPcoData::stcPcoData(){
 	ptr += sprintf_s(ptr, ptrMax - ptr, "       user name: %s\n", _getUserName(buff, BUFFER_LEN));
 	ptr += sprintf_s(ptr, ptrMax - ptr, "VS configuration: %s\n", _getVSconfiguration(buff, BUFFER_LEN));
 	ptr += sprintf_s(ptr, ptrMax - ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN));
-	//ptr += sprintf_s(ptr, ptrMax - ptr, "    lima pco dll: %s\n", _getDllPath("liblimapco.dll", buff, BUFFER_LEN));
+	//ptr += sprintf_s(ptr, ptrMax - ptr, "    lima pco dll: %s\n", _getDllPath(FILE_PCO_DLL, buff, BUFFER_LEN));
 
 
 	stcPcoGeneral.wSize = sizeof(stcPcoGeneral);
@@ -435,7 +430,7 @@ void Camera::_init(){
 	sprintf_s(msg, MSG_SIZE, "*** Pco log %s\n", getTimestamp(Iso));
 	m_log.append(msg);
 
-	_getDllPath("liblimapco.dll", msg, MSG_SIZE);
+	DEB_ALWAYS() <<_getDllPath(FILE_PCO_DLL, msg, MSG_SIZE);
 
 	//PCO_FN0(error, pMsg,PCO_ResetLib);
 
@@ -970,7 +965,7 @@ void Camera::startAcq()
 
 	if(!_isRunAfterAssign())
 	{
-		_pco_SetRecordingState(1, error);
+		//_pco_SetRecordingState(1, error);
 	}
 
 	if(_isCameraType(Edge)){

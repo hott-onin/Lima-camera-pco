@@ -434,8 +434,12 @@ int BufferCtrlObj::_xferImag()
 	msElapsedTimeSet(tStart);
 	m_pcoData->traceAcq.nrImgRequested = dwRequestedFrames;
 
+	if(!m_cam->_isRunAfterAssign()) 
+	{
+		DEB_ALWAYS() << "========================= recordingState 1 - BEFORE ASSIGN";
+		m_cam->_pco_SetRecordingState(1, error);
+	}
 
-	
 	
 // --------------- prepare the first buffer 
 // ------- in PCO DIMAX only 1 image can be retreived
@@ -483,6 +487,7 @@ int BufferCtrlObj::_xferImag()
 	{
 		DWORD sleepMs = 1;
 		::Sleep(sleepMs);
+		DEB_ALWAYS() << "========================= recordingState 1 - AFTER ASSIGN";
 		if(m_cam->_getDebug(DBG_WAITOBJ))
 		{
 			pmsg = "... EDGE - recordingState 1" ; m_cam->m_tmpLog->add(pmsg); DEB_ALWAYS() << pmsg;

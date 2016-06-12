@@ -278,6 +278,13 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		}
 
 		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "getVersionFile";     
+		keys_desc[ikey++] = "(R) reads INSTALL_VERSION.txt";     
+		if(_stricmp(cmd, key) == 0){
+			_getDllPath(FILE_PCO_DLL, ptr, ptrMax -ptr);
+			return output;
+		}
+		//----------------------------------------------------------------------------------------------------------
 		key = keys[ikey] = "expDelayTime";     
 		keys_desc[ikey++] = "(R) exposure and delay time";
 		if(_stricmp(cmd, key) == 0){
@@ -1647,10 +1654,52 @@ int _getFileVerStruct(const TCHAR* pzFileName, int* ima, int* imi, int* imb, TCH
   return 0;
 }
 
-char * _getDllPath(const char* pzFileName, char *path, int strLen)
+#define LEN_DRIVE	7
+#define LEN_DIR		MAX_PATH
+
+//====================================================================
+//====================================================================
+char * _getDllPath(const char* pzFileName, char *path, size_t strLen)
 {
-	GetModuleFileName(GetModuleHandle(pzFileName), path, strLen);
-	printf("========= [%s]\n", path);
+	errno_t err;
+
+	char drive[LEN_DRIVE+1];
+	char dir[LEN_DIR+1];
+	char _pathFn[MAX_PATH+1];
+	char _pathFnInstall[MAX_PATH+1];
+	char *ptr;
+	size_t nr;
+	FILE *stream;
+
+	*path = 0;
+
+	GetModuleFileName(GetModuleHandle(pzFileName), _pathFn, MAX_PATH);
+
+	err = _splitpath_s(_pathFn, drive, LEN_DRIVE, dir, LEN_DIR, NULL, 0, NULL, 0);
+
+	size_t l = strlen(dir);
+	ptr = dir + l -2;
+	while(*ptr != '\\') ptr--;
+	*ptr = 0;
+
+	ptr = path;
+	err = _makepath_s(_pathFnInstall, MAX_PATH, drive, dir, FILENAME_INSTALL_VERSION, FILEEXT_INSTALL_VERSION);
+	printf("----- path[%s] path1[%s] drive[%s] dir[%s]\n", _pathFn, _pathFnInstall, drive, dir);
+	nr = sprintf_s(ptr, strLen-1,"%s\n", _pathFnInstall);
+    ptr += nr;
+	strLen -= nr;
+
+	err  = fopen_s( &stream, _pathFnInstall, "r" );
+#if 0
+	if(err == 0) {
+		if( fgets( path, strLen, stream ) == NULL){
+			*ptr = 0;
+		}
+	}
+#endif
+	nr = fread(ptr, 1, strLen-1, stream); 
+	ptr[nr] = 0;
+    fclose( stream );
 	return path;
 }
 
