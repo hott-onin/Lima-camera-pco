@@ -35,6 +35,7 @@
 #include "Cpco_com_cl_me4.h"
 #include "Cpco_grab_cl_me4.h"
 #include "file12.h"
+#include "sc2_telegram.h"
 //---- linux sdk [end]
 
 
@@ -51,6 +52,8 @@
 #define NANO (1.0E-9)
 #define MICRO (1.0E-6)
 #define MILI (1.0E-3)
+
+#define LEN_DESCRIPTION_NAME    64
 
 //--------------------------------------- debug const for talk
 #define DBG_BUFF           0x00000001
@@ -184,7 +187,8 @@ struct stcPcoData {
 	PCO_General stcPcoGeneral;
 	PCO_CameraType	stcPcoCamType;
 	PCO_Sensor stcPcoSensor;
-	PCO_Description	stcPcoDescription;	/* camera description structure */
+	PCO_Description	stcPcoDescriptionWin;	/* camera description structure */
+	SC2_Camera_Description_Response	stcPcoDescription;	/* camera description structure */
 	PCO_Timing stcPcoTiming;
 	PCO_Storage stcPcoStorage;
 	PCO_Recording stcPcoRecording;
@@ -211,6 +215,10 @@ struct stcPcoData {
 	char model[MODEL_TYPE_SIZE+1];
 	char modelSubType[MODEL_TYPE_SIZE+1];
 	char iface[INTERFACE_TYPE_SIZE+1];
+	char nameCamIf[LEN_DESCRIPTION_NAME];
+	char nameCam[LEN_DESCRIPTION_NAME];
+	char nameSensor[LEN_DESCRIPTION_NAME];
+	
 	//int	interface_type;
 
 	PCO_SC2_CL_TRANSFER_PARAM clTransferParam;
@@ -571,6 +579,8 @@ namespace lima
   }
 }
 
+const char *xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
+
 
 int PCO_GetBitAlignment(HANDLE ph, WORD *);
 int PCO_SetBitAlignment(HANDLE ph, WORD );
@@ -584,15 +594,8 @@ int PCO_GetHWIOSignal (HANDLE ph, WORD wSignalNum, PCO_Signal* pstrSignal);
 int PCO_GetHWIOSignalDescriptor (HANDLE ph, WORD wSignalNum, PCO_Single_Signal_Desc* pstrSignal);
 int PCO_RebootCamera(HANDLE ph);
 int PCO_GetPendingBuffer(HANDLE ph, int* icount);
-int PCO_ResetSettingsToDefault(HANDLE ph);
 int PCO_GetCameraDescription(HANDLE ph, PCO_Description* strDescription);
-int PCO_GetGeneral(HANDLE ph, PCO_General* strGeneral);
-int PCO_GetStorageStruct(HANDLE ph, PCO_Storage* strStorage);
-int PCO_GetTimingStruct(HANDLE ph, PCO_Timing* strTiming);
-int PCO_GetRecordingStruct(HANDLE ph, PCO_Recording* strRecording);
-int PCO_GetSensorStruct(HANDLE ph, PCO_Sensor* strSensor);
 int PCO_GetActiveLookupTable(HANDLE ph, WORD *wIdentifier, WORD *wParameter);
-int PCO_GetCameraType(HANDLE ph, PCO_CameraType* strCamType);
 int PCO_GetTransferParameter(HANDLE ph, void* buffer, int ilen);
 int PCO_SetTransferParameter(HANDLE ph, void* buffer, int ilen);
 int PCO_CamLinkSetImageParameters(HANDLE ph, WORD wxres, WORD wyres);
@@ -606,6 +609,13 @@ int PCO_CancelImages(HANDLE ph);
 int PCO_OpenCamera(HANDLE* ph, WORD wCamNum);
 DWORD PCO_ResetLib();
 
+//int PCO_GetCameraType(HANDLE ph, PCO_CameraType* strCamType);
+//int PCO_ResetSettingsToDefault(HANDLE ph);
+//int PCO_GetGeneral(HANDLE ph, PCO_General* strGeneral);
+//int PCO_GetStorageStruct(HANDLE ph, PCO_Storage* strStorage);
+//int PCO_GetTimingStruct(HANDLE ph, PCO_Timing* strTiming);
+//int PCO_GetRecordingStruct(HANDLE ph, PCO_Recording* strRecording);
+//int PCO_GetSensorStruct(HANDLE ph, PCO_Sensor* strSensor);
 
 
 #endif

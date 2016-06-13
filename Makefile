@@ -20,7 +20,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-src-dirs  = src
+src-dirs  = sdkDev/pco_camera/pco_me4/pco_classes sdkDev/pco_camera/pco_common/pco_lib_base src 
 #test-dirs = test
 test-dirs = 
 

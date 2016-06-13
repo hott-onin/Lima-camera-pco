@@ -27,6 +27,16 @@ CPCODIRME4 = ../sdkDev/pco_camera/pco_me4/pco_classes
 SISOLIBDIR = $(SISODIR5)/lib64
 SISOINCLUDEDIR = $(SISODIR5)/include
 
+DISPLIB = $(PCOLIBDIR)/libpcodisp.a
+LOGLIB  = $(PCOLIBDIR)/libpcolog.a
+FILELIB = $(PCOLIBDIR)/libpcofile.a
+
+CAMLIB  = $(PCOLIBDIR)/libpcocam_me4.a
+
+LIBSPCO = $(CAMLIB) $(FILELIB) 
+
+LIBADD  = -lfglib5 -lclsersis -lhaprt -lpthread 
+LFLAGS += -L$(SISOLIBDIR)
 
 pco-objs :=  \
             PcoHwEventCtrlObj.o  \
@@ -53,13 +63,20 @@ INCLUDES  = -I../include \
 CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread -g
 
 
-all:	Pco.o
+all:	libs Pco.o pco_test
+
+libs:
+	$(MAKE) -C ../sdkDev/pco_camera/pco_common/pco_lib_base
+	$(MAKE) -C ../sdkDev/ -C pco_camera/pco_me4/pco_classes
+
 
 Pco.o:	$(pco-objs)
 	$(LD) -o $@ -r $+
 
 clean:
 	rm -f *.o *.P
+	$(MAKE) -C ../sdkDev/pco_camera/pco_common/pco_lib_base clean
+	$(MAKE) -C ../sdkDev/ -C pco_camera/pco_me4/pco_classes clean
 
 %.o : %.cpp
 	$(COMPILE.cpp) -MD $(CXXFLAGS) -o $@ $<
@@ -67,5 +84,10 @@ clean:
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	-e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
 	rm -f $*.d
+	
+
+pco_%:		pco_%.cpp $(CAMLIB) $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(CFLAGS) $@.cpp $(LIBSPCO) $(LOGLIB)  $(LFLAGS) $(LIBADD) -o $@
+
 
 -include $(SRCS:.cpp=.P)

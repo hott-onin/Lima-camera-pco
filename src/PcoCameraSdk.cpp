@@ -87,7 +87,7 @@ WORD Camera::_pco_GetActiveRamSegment()
 	int err;
 	char errstr[LEN_ERRSTR+1];
 
-	if((m_pcoData->stcPcoDescription.dwGeneralCapsDESC1&GENERALCAPS1_NO_RECORDER)==0)
+	if((m_pcoData->stcPcoDescription.dwGeneralCaps1&GENERALCAPS1_NO_RECORDER)==0)
 	{
 		err=PCO_GetActiveRamSegment(m_handle,&act_segment);
 		if(err!=PCO_NOERROR)
@@ -984,12 +984,137 @@ const char *Camera::_pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *w
 	return fnId;
 
 }
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetCameraInfo(int &error){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	int errTot=0;
+	const char *msg;
+	const char *ptr;
+
+	m_pcoData->frames_per_buffer = 1; // for PCO DIMAX
+
+
+	//----------------------------------------------------------
+	// --- GigE ip
+	//error = PCO_GetGigEIPAddress(m_handle, &m_pcoData->ipField[0], &m_pcoData->ipField[1], &m_pcoData->ipField[2], &m_pcoData->ipField[3]);
+	if(1) {m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;}
+
+	//----------------------------------------------------------
+	// --- camera name + interf, cam name, sensor name
+
+
+	errTot |= (error = camera->PCO_GetInfo(0, m_pcoData->camera_name_if, CAMERA_NAME_SIZE ));
+	errTot |= (error = camera->PCO_GetInfo(1, m_pcoData->camera_name0, CAMERA_NAME_SIZE ));
+	errTot |= (error = camera->PCO_GetInfo(2, m_pcoData->sensor_name, CAMERA_NAME_SIZE ));
+
+	//----------------------------------------------------------
+	// --- Get camera type
+
+	errTot |= (error = camera->PCO_GetCameraType(&m_pcoData->wCamType, &m_pcoData->dwSerialNumber, &m_pcoData->wIfType ));
+
+	ptr = xlatPcoCode2Str(_getCameraType(), ModelType, error);
+	strcpy_s(m_pcoData->model, MODEL_TYPE_SIZE, ptr);
+	errTot |= error;
+
+	ptr = xlatPcoCode2Str(m_pcoData->wIfType, InterfaceType, error);
+	strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
+	errTot |= error;
+
+	sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s %s (SN %u)", 
+			m_pcoData->model, m_pcoData->iface, m_pcoData->dwSerialNumber);
+	DEB_ALWAYS() 
+		<< "\n   " <<  DEB_VAR1(m_pcoData->model)
+		<< "\n   " <<  DEB_VAR1(m_pcoData->iface)
+		<< "\n   " <<  DEB_VAR1(m_pcoData->camera_name);
+
+
+
+	// -- Reset to default settings
+
+	PCO_FN2(error, msg,PCO_SetRecordingState, m_handle, 0);
+	if(error) return;
+
+    error=camera->PCO_ResetSettingsToDefault();
+	//PCO_FN1(error, msg,PCO_ResetSettingsToDefault, m_handle);
+	PCO_PRINT_ERR(error, msg); 	if(error) return;
+
+
+	// -- Get camera description
+	//m_pcoData->stcPcoDescription.wSize= sizeof(m_pcoData->stcPcoDescription);
+
+    error = camera->PCO_GetCameraDescriptor(&m_pcoData->stcPcoDescription);
+	//PCO_FN2(error, msg,PCO_GetCameraDescription, m_handle, &m_pcoData->stcPcoDescription);
+	PCO_PRINT_ERR(error, msg); 	if(error) return;
+
+	// callback to update in lima the valid_ranges from the last stcPcoDescription read
+	if(m_sync) {
+		HwSyncCtrlObj::ValidRangesType valid_ranges;
+		m_sync->getValidRanges(valid_ranges);		// from stcPcoDescription
+		m_sync->validRangesChanged(valid_ranges);	// callback
+		DEB_ALWAYS() << fnId << ": callback - new valid_ranges: " << DEB_VAR1(valid_ranges);
+	}
+	
+    // get the max CAMERA pixel rate (Hz) from the description structure
+	m_pcoData->dwPixelRateMax = 0;
+	for(int i=0; i<4; i++) {
+		if(m_pcoData->dwPixelRateMax < m_pcoData->stcPcoDescription.dwPixelRateDESC[i])
+					m_pcoData->dwPixelRateMax = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
+	}	
+
+	m_pcoData->bMetaDataAllowed = !!(m_pcoData->stcPcoDescription.dwGeneralCaps1 & GENERALCAPS1_METADATA) ;
+
+
+	// -- Get General
+	//m_pcoData->stcPcoGeneral.wSize= sizeof(m_pcoData->stcPcoGeneral);
+	//m_pcoData->stcPcoGeneral.strCamType.wSize= sizeof(m_pcoData->stcPcoGeneral.strCamType);
+
+
+	//PCO_FN2(error, msg,PCO_GetGeneral,m_handle, &m_pcoData->stcPcoGeneral);
+	//PCO_PRINT_ERR(error, msg); 	if(error);
+
+
+	// -- Get Sensor struct
+	//m_pcoData->stcPcoSensor.wSize= sizeof(m_pcoData->stcPcoSensor);
+	//m_pcoData->stcPcoSensor.strDescription.wSize= sizeof(m_pcoData->stcPcoSensor.strDescription);
+	//m_pcoData->stcPcoSensor.strDescription2.wSize= sizeof(m_pcoData->stcPcoSensor.strDescription2);
+
+	//PCO_FN2(error, msg,PCO_GetSensorStruct, m_handle, &m_pcoData->stcPcoSensor);
+	//PCO_PRINT_ERR(error, msg); 	if(error) return;
+
+	// -- Get timing struct
+	//m_pcoData->stcPcoTiming.wSize= sizeof(m_pcoData->stcPcoTiming);
+
+	//PCO_FN2(error, msg,PCO_GetTimingStruct, m_handle, &m_pcoData->stcPcoTiming);
+	//PCO_PRINT_ERR(error, msg); 	if(error) return;
+
+
+	// -- Get recording struct
+	//m_pcoData->stcPcoRecording.wSize= sizeof(m_pcoData->stcPcoRecording);
+
+	//PCO_FN2(error, msg,PCO_GetRecordingStruct,m_handle, &m_pcoData->stcPcoRecording);
+	//PCO_PRINT_ERR(error, msg); 	if(error) return;
+
+
+	// -- Get storage struct
+	//m_pcoData->stcPcoStorage.wSize= sizeof(m_pcoData->stcPcoStorage);
+
+	//PCO_FN2(error, msg,PCO_GetStorageStruct, m_handle, &m_pcoData->stcPcoStorage);
+	//PCO_PRINT_ERR(error, msg); 	if(error) return;
+
+
+
+	return;
+}
+
 //=================================================================================================
 //=================================================================================================
 const char *Camera::_pco_GetCameraType(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-	const char *msg;
+	const char *msg = NULL;
 
 	m_pcoData->frames_per_buffer = 1; // for PCO DIMAX
 
@@ -1001,9 +1126,16 @@ const char *Camera::_pco_GetCameraType(int &error){
 		//m_pcoData->stcPcoCamType.wSize= sizeof(m_pcoData->stcPcoCamType);
 
 		//error = PCO_GetGigEIPAddress(m_handle, &m_pcoData->ipField[0], &m_pcoData->ipField[1], &m_pcoData->ipField[2], &m_pcoData->ipField[3]);
-		if(error) {m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;}
+		//if(error) {m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;}
 
-		PCO_FN2(error, msg,PCO_GetCameraType, m_handle, &m_pcoData->stcPcoCamType);
+        error=camera->PCO_GetCameraType(
+                &m_pcoData->stcPcoCamType.wCamType,
+                &m_pcoData->stcPcoCamType.dwSerialNumber,
+                &m_pcoData->stcPcoCamType.wInterfaceType);
+        
+        m_pcoData->stcPcoCamType.wCamSubType = 0;        
+                
+		//PCO_FN2(error, msg,PCO_GetCameraType, m_handle, &m_pcoData->stcPcoCamType);
 		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 
 		ptr = _xlatPcoCode2Str(_getCameraType(), ModelType, error);
@@ -1024,21 +1156,33 @@ const char *Camera::_pco_GetCameraType(int &error){
 		if(errTot) return m_pcoData->camera_name;
 
 	}
+	
+	
+	error=camera->PCO_GetInfo(0,&m_pcoData->nameCamIf, sizeof(m_pcoData->nameCamIf) -1);
+	error=camera->PCO_GetInfo(1,&m_pcoData->nameCam, sizeof(m_pcoData->nameCam) -1);
+	error=camera->PCO_GetInfo(0,&m_pcoData->nameSensor, sizeof(m_pcoData->nameSensor) -1);
+
+		DEB_ALWAYS() 
+			<< "\n   " <<  DEB_VAR1(m_pcoData->nameCamIf)
+			<< "\n   " <<  DEB_VAR1(m_pcoData->nameCam)
+			<< "\n   " <<  DEB_VAR1(m_pcoData->nameSensor);
 
 	// -- Reset to default settings
 
-	PCO_FN2(error, msg,PCO_SetRecordingState, m_handle, 0);
-	if(error) return msg;
+    error=camera->PCO_SetRecordingState (0);
+	//PCO_FN2(error, msg,PCO_SetRecordingState, m_handle, 0);
+	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 
-
-	PCO_FN1(error, msg,PCO_ResetSettingsToDefault, m_handle);
+    error=camera->PCO_ResetSettingsToDefault();
+	//PCO_FN1(error, msg,PCO_ResetSettingsToDefault, m_handle);
 	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 	
 
 	// -- Get camera description
 	//m_pcoData->stcPcoDescription.wSize= sizeof(m_pcoData->stcPcoDescription);
 
-	PCO_FN2(error, msg,PCO_GetCameraDescription, m_handle, &m_pcoData->stcPcoDescription);
+    error = camera->PCO_GetCameraDescriptor(&m_pcoData->stcPcoDescription);
+	//PCO_FN2(error, msg,PCO_GetCameraDescription, m_handle, &m_pcoData->stcPcoDescription);
 	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 
 	// callback to update in lima the valid_ranges from the last stcPcoDescription read
@@ -1056,15 +1200,15 @@ const char *Camera::_pco_GetCameraType(int &error){
 					m_pcoData->dwPixelRateMax = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
 	}	
 
-	m_pcoData->bMetaDataAllowed = !!(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_METADATA) ;
+	m_pcoData->bMetaDataAllowed = !!(m_pcoData->stcPcoDescription.dwGeneralCaps1 & GENERALCAPS1_METADATA) ;
 
 
 	// -- Get General
 	//m_pcoData->stcPcoGeneral.wSize= sizeof(m_pcoData->stcPcoGeneral);
 	//m_pcoData->stcPcoGeneral.strCamType.wSize= sizeof(m_pcoData->stcPcoGeneral.strCamType);
 
-	PCO_FN2(error, msg,PCO_GetGeneral,m_handle, &m_pcoData->stcPcoGeneral);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	//PCO_FN2(error, msg,PCO_GetGeneral,m_handle, &m_pcoData->stcPcoGeneral);
+	//PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 
 
 	// -- Get Sensor struct
@@ -1072,28 +1216,28 @@ const char *Camera::_pco_GetCameraType(int &error){
 	//m_pcoData->stcPcoSensor.strDescription.wSize= sizeof(m_pcoData->stcPcoSensor.strDescription);
 	//m_pcoData->stcPcoSensor.strDescription2.wSize= sizeof(m_pcoData->stcPcoSensor.strDescription2);
 
-	PCO_FN2(error, msg,PCO_GetSensorStruct, m_handle, &m_pcoData->stcPcoSensor);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	//PCO_FN2(error, msg,PCO_GetSensorStruct, m_handle, &m_pcoData->stcPcoSensor);
+	//PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 
 	// -- Get timing struct
 	//m_pcoData->stcPcoTiming.wSize= sizeof(m_pcoData->stcPcoTiming);
 
-	PCO_FN2(error, msg,PCO_GetTimingStruct, m_handle, &m_pcoData->stcPcoTiming);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	//PCO_FN2(error, msg,PCO_GetTimingStruct, m_handle, &m_pcoData->stcPcoTiming);
+	//PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 
 
 	// -- Get recording struct
 	//m_pcoData->stcPcoRecording.wSize= sizeof(m_pcoData->stcPcoRecording);
 
-	PCO_FN2(error, msg,PCO_GetRecordingStruct,m_handle, &m_pcoData->stcPcoRecording);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	//PCO_FN2(error, msg,PCO_GetRecordingStruct,m_handle, &m_pcoData->stcPcoRecording);
+	//PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 
 
 	// -- Get storage struct
 	//m_pcoData->stcPcoStorage.wSize= sizeof(m_pcoData->stcPcoStorage);
 
-	PCO_FN2(error, msg,PCO_GetStorageStruct, m_handle, &m_pcoData->stcPcoStorage);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	//PCO_FN2(error, msg,PCO_GetStorageStruct, m_handle, &m_pcoData->stcPcoStorage);
+	//PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 
 
 
