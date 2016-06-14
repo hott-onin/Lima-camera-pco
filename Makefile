@@ -20,8 +20,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-src-dirs  = sdkDev/pco_camera/pco_me4/pco_classes sdkDev/pco_camera/pco_common/pco_lib_base src 
+src-dirs  = sdkDevW/pco_me4_classes sdkDevW/pco_lib_base src 
 #test-dirs = test
-test-dirs = 
+#test-dirs = 
 
 include ../../global.inc

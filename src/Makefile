@@ -19,11 +19,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
+.PHONY: src test clean all
 
-PCODIR     = ../sdkDev/pco_camera/pco_common/pco_include
-PCOLIBDIR  = ../sdkDev/pco_camera/pco_common/pco_lib
-CPCODIR    = ../sdkDev/pco_camera/pco_common/pco_classes
-CPCODIRME4 = ../sdkDev/pco_camera/pco_me4/pco_classes
+#PCODIR     = ../sdkDev/pco_camera/pco_common/pco_include
+#PCOLIBDIR  = ../sdkDev/pco_camera/pco_common/pco_lib
+#CPCODIR    = ../sdkDev/pco_camera/pco_common/pco_classes
+#CPCODIRME4 = ../sdkDev/pco_camera/pco_me4/pco_classes
+
+PCOINCDIR     = ../sdkDevW/include
+PCOLIBDIR  = ../sdkDevW/pco_lib
+CPCOINCDIR    = ../sdkDevW/include
+CPCODIRME4 = ../pco_me4_classes
+
 SISOLIBDIR = $(SISODIR5)/lib64
 SISOINCLUDEDIR = $(SISODIR5)/include
 
@@ -35,8 +42,14 @@ CAMLIB  = $(PCOLIBDIR)/libpcocam_me4.a
 
 LIBSPCO = $(CAMLIB) $(FILELIB) 
 
+LIBS  = -lfglib5 -lclsersis -lhaprt -lpthread 
+
 LIBADD  = -lfglib5 -lclsersis -lhaprt -lpthread 
-LFLAGS += -L$(SISOLIBDIR)
+#LIBADD  += -lclsersis -lhaprt -lpthread 
+
+LIBADD  += -lpcocam_me4 -lpcofile -lpcodisp
+
+LFLAGS += -L$(SISOLIBDIR) -L$(PCOLIBDIR)
 
 pco-objs :=  \
             PcoHwEventCtrlObj.o  \
@@ -55,7 +68,7 @@ SRCS = $(pco-objs:.o=.cpp)
 INCLUDES  = -I../include \
             -I../../../hardware/include \
             -I../../../common/include \
-            -I$(PCODIR) -I$(CPCODIR) -I$(CPCODIRME4) -I$(SISOINCLUDEDIR) \
+            -I$(PCOINCDIR) -I$(CPCOINCDIR) -I$(CPCODIRME4) -I$(SISOINCLUDEDIR) \
             -I../sdkDev/PCO_me4/siso_include \
             -I../../../third-party/Processlib/core/include \
             -I../sdkPco/include \
@@ -63,20 +76,20 @@ INCLUDES  = -I../include \
 CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread -g
 
 
-all:	libs Pco.o pco_test
 
-libs:
-	$(MAKE) -C ../sdkDev/pco_camera/pco_common/pco_lib_base
-	$(MAKE) -C ../sdkDev/ -C pco_camera/pco_me4/pco_classes
+src:	all
+
+all:	Pco.o pco_test
 
 
 Pco.o:	$(pco-objs)
-	$(LD) -o $@ -r $+
+	$(LD) -d -o $@ -r $+ $(LIBSPCO)
+	#$(LD) -d -o $@ -r $+ $(LFLAGS) $(LIBADD)
 
 clean:
 	rm -f *.o *.P
-	$(MAKE) -C ../sdkDev/pco_camera/pco_common/pco_lib_base clean
-	$(MAKE) -C ../sdkDev/ -C pco_camera/pco_me4/pco_classes clean
+	#$(MAKE) -C ../sdkDev/pco_camera/pco_common/pco_lib_base clean
+	#$(MAKE) -C ../sdkDev/ -C pco_camera/pco_me4/pco_classes clean
 
 %.o : %.cpp
 	$(COMPILE.cpp) -MD $(CXXFLAGS) -o $@ $<
