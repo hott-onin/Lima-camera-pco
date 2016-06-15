@@ -466,8 +466,11 @@ void Camera::_init(){
 
     //int bufnum=20;
 
+    DEB_ALWAYS()  << "setting the log" ;
     mylog.set_logbits(0x0000F0FF);
     printf("Logging set to 0x%x\n",mylog.get_logbits());
+
+    DEB_ALWAYS()  << "creating the camera" ;
 
     camera= new CPco_com_cl_me4();
     camera->SetLog(&mylog);
@@ -479,6 +482,7 @@ void Camera::_init(){
         sprintf(sMsg, "error 0x%x in Open_Cam, close application",err);
         DEB_ALWAYS()  << sMsg ;
         delete camera;
+        getchar();
         THROW_HW_ERROR(Error) ;
     }
 
@@ -735,7 +739,7 @@ void Camera::_init(){
 	errMsg = _pco_GetTemperatureInfo(error);
 	PCO_THROW_OR_TRACE(error, errMsg) ;
 
-	_pcoSet_RecordingState(0, error);
+	_pco_SetRecordingState(0, error);
 	
 	if(_isCameraType(Dimax)) _init_dimax();
 	else if(_isCameraType(Pco2k)) _init_dimax();
@@ -1064,7 +1068,7 @@ void Camera::startAcq()
     if (state>0) {
         DEB_TRACE() << "Force recording state to 0x0000" ;
 
-		_pcoSet_RecordingState(0, error);
+		_pco_SetRecordingState(0, error);
         PCO_THROW_OR_TRACE(error, "PCO_SetRecordingState") ;
 	}
 
@@ -1132,14 +1136,14 @@ void Camera::startAcq()
 	}
 
 	if(_isCameraType(Pco2k | Pco4k)){
-		_pcoSet_RecordingState(1, error);
+		_pco_SetRecordingState(1, error);
 		_beginthread( _pco_acq_thread_ringBuffer, 0, (void*) this);
 		m_pcoData->traceAcq.msStartAcqEnd = msElapsedTime(tStart);
 		return;
 	}
 
 	if(_isCameraType(Dimax)){
-		_pcoSet_RecordingState(1, error);
+		_pco_SetRecordingState(1, error);
 		if(iRequestedFrames > 0 ) {
 			_beginthread( _pco_acq_thread_dimax, 0, (void*) this);
 		} else {
@@ -1361,10 +1365,10 @@ void _pco_acq_thread_dimax(void *argin) {
 	m_pcoData->msAcqTnow = msNowRecordLoop = msElapsedTime(tStart);
 	m_pcoData->traceAcq.msRecordLoop = msNowRecordLoop;
 
-	msg = m_cam->_pcoSet_RecordingState(0, error);
+	msg = m_cam->_pco_SetRecordingState(0, error);
 	if(error) {
 		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
-		throw LIMA_HW_EXC(Error, "_pcoSet_RecordingState");
+		throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
 	}
 
 	if(!nb_frames_fixed) {
@@ -1525,10 +1529,10 @@ void _pco_acq_thread_edge(void *argin) {
 
 	m_sync->setExposing(status);
 	//m_sync->stopAcq();
-	const char *msg = m_cam->_pcoSet_RecordingState(0, error);
+	const char *msg = m_cam->_pco_SetRecordingState(0, error);
 	if(error) {
 		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
-		//throw LIMA_HW_EXC(Error, "_pcoSet_RecordingState");
+		//throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
 	}
 
 	//m_pcoData->traceAcqClean();
@@ -1577,10 +1581,10 @@ void _pco_acq_thread_dimax_live(void *argin) {
 	pcoAcqStatus status = (pcoAcqStatus) m_buffer->_xferImag();
 	m_sync->setExposing(status);
 	m_sync->stopAcq();
-	const char *msg = m_cam->_pcoSet_RecordingState(0, error);
+	const char *msg = m_cam->_pco_SetRecordingState(0, error);
 	if(error) {
 		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
-		//throw LIMA_HW_EXC(Error, "_pcoSet_RecordingState");
+		//throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
 	}
 
 	// dimax xfer time
@@ -1666,15 +1670,15 @@ void _pco_acq_thread_ringBuffer(void *argin) {
 	m_pcoData->traceAcq.usTicks[3].desc = "sync->stopAcq execTime";
 	usElapsedTimeSet(usStart);
 
-	const char *msg = m_cam->_pcoSet_RecordingState(0, error);
+	const char *msg = m_cam->_pco_SetRecordingState(0, error);
 	m_pcoData->traceAcq.usTicks[4].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[4].desc = "_pcoSet_RecordingState execTime";
+	m_pcoData->traceAcq.usTicks[4].desc = "_pco_SetRecordingState execTime";
 	usElapsedTimeSet(usStart);
 
 	if(error) {
 		sprintf_s(_msg, LEN_MSG, "%s> [%d]> ERROR %s", fnId, __LINE__, msg);
 		m_cam->_traceMsg(_msg);
-		//throw LIMA_HW_EXC(Error, "_pcoSet_RecordingState");
+		//throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
 	}
 
 	// xfer time

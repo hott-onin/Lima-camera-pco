@@ -452,7 +452,7 @@ int BufferCtrlObj::_xferImag()
 
  	// Edge cam must be started just after assign buff to avoid lost of img
 	if(m_cam->_isCameraType(Edge)) {
-			m_cam->_pcoSet_RecordingState(1, error);
+			m_cam->_pco_SetRecordingState(1, error);
 	}
 
 
@@ -584,6 +584,8 @@ _RETRY:
     } // for(bufIdx = 0; bufIdx < PCO_BUFFER_NREVENTS; bufIdx++)
 
 _RETRY_WAIT:
+
+#ifndef __linux__
 // --------------- check if there is some buffer ready
 		dwEvent = WaitForMultipleObjects( 
 			PCO_BUFFER_NREVENTS,           // number of objects in array
@@ -592,6 +594,7 @@ _RETRY_WAIT:
 			EVENT_WAIT_TMOUT_MS);       // ms wait
 
     // The return value indicates which event is signaled
+#endif
 
 #if PCO_BUFFER_NREVENTS != 4
   #pragma message ("============================================== ABORT - wrong nr of WAIT_OBJECT ")
@@ -975,6 +978,7 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 
 	int bufIdx;
 
+#ifndef __linux__
 	if(!m_allocBuff.createEventsDone){
 		for(bufIdx=0; bufIdx < PCO_BUFFER_NREVENTS; bufIdx++) {
 		 // Create two event objects
@@ -992,6 +996,7 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 		m_allocBuff.createEventsDone = true;
 
 	}
+#endif
 
 #ifdef USING_PCO_ALLOCATED_BUFFERS 
 	

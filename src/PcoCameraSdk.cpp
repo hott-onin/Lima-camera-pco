@@ -1138,11 +1138,11 @@ const char *Camera::_pco_GetCameraType(int &error){
 		//PCO_FN2(error, msg,PCO_GetCameraType, m_handle, &m_pcoData->stcPcoCamType);
 		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 
-		ptr = _xlatPcoCode2Str(_getCameraType(), ModelType, error);
+		ptr = xlatPcoCode2Str(_getCameraType(), ModelType, error);
 		strcpy_s(m_pcoData->model, MODEL_TYPE_SIZE, ptr);
 		errTot |= error;
 
-		ptr = _xlatPcoCode2Str(m_pcoData->stcPcoCamType.wInterfaceType, InterfaceType, error);
+		ptr = xlatPcoCode2Str(m_pcoData->stcPcoCamType.wInterfaceType, InterfaceType, error);
 		strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
 		errTot |= error;
 

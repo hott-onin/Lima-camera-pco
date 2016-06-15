@@ -440,7 +440,8 @@ namespace lima
 		double pcoGetCocRunTime() { return m_pcoData->cocRunTime; }
 		double pcoGetFrameRate() { return m_pcoData->frameRate; }
 		
-		char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
+		//char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
+		char *_xlatPcoCode2Str(int code, int table, int &err);
 
 
 		WORD _pco_GetActiveRamSegment(); // {return m_pcoData->wActiveRamSegment;}
@@ -564,6 +565,8 @@ namespace lima
 
 		ringLog *m_msgLog;
 		ringLog *m_tmpLog;
+
+	public:
 		int _pco_GetADCOperation(int &adc_working, int &adc_max);
 		int _pco_SetADCOperation(int adc_new, int &adc_working);
 		int _pco_GetImageTiming(double &frameTime, double &expTime, double &sysDelay, double &sysJitter, double &trigDelay );
@@ -617,5 +620,7 @@ DWORD PCO_ResetLib();
 //int PCO_GetRecordingStruct(HANDLE ph, PCO_Recording* strRecording);
 //int PCO_GetSensorStruct(HANDLE ph, PCO_Sensor* strSensor);
 
+#define _beginthread(p1 , p2, p3)   { }
+#define _endthread()  { }
 
 #endif

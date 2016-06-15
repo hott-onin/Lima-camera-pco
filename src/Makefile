@@ -28,6 +28,10 @@
 
 PCOINCDIR     = ../sdkDevW/include
 PCOLIBDIR  = ../sdkDevW/pco_lib
+PCO_LIBSDK_DIR  = ../sdkDevW/pco_libsdk
+PCO_LIBBASE_DIR  = ../sdkDevW/pco_lib_base
+PCO_CLASSME4_DIR  = ../sdkDevW/pco_me4_classes
+PCO_CLASS_DIR  = ../sdkDevW/pco_classes
 CPCOINCDIR    = ../sdkDevW/include
 CPCODIRME4 = ../pco_me4_classes
 
@@ -51,6 +55,8 @@ LIBADD  += -lpcocam_me4 -lpcofile -lpcodisp
 
 LFLAGS += -L$(SISOLIBDIR) -L$(PCOLIBDIR)
 
+LIBSDK  = $(PCO_LIBSDK_DIR)/libreorderfunc.a $(PCO_LIBSDK_DIR)/libpcocnv.a
+
 pco-objs :=  \
             PcoHwEventCtrlObj.o  \
             PcoDetInfoCtrlObj.o  \
@@ -61,7 +67,15 @@ pco-objs :=  \
             PcoCamera.o  \
             PcoBufferCtrlObj.o  \
             PcoCameraSdk.o  \
-
+            $(PCO_LIBBASE_DIR)/Cpco_log.o  \
+            $(PCO_LIBBASE_DIR)/file12.o  \
+            $(PCO_CLASSME4_DIR)/Cpco_grab_cl_me4.o  \
+            $(PCO_CLASSME4_DIR)/Cpco_com_cl_me4.o  \
+            $(PCO_CLASS_DIR)/Cpco_com_func.o  \
+            $(PCO_CLASS_DIR)/Cpco_com.o  \
+            $(PCO_CLASS_DIR)/Cpco_com_func_2.o  \
+            
+            #$(PCO_CLASSME4_DIR)/Cpco_grab_cl_me4_GL.o  \
 
 SRCS = $(pco-objs:.o=.cpp) 
 
@@ -83,11 +97,12 @@ all:	Pco.o pco_test
 
 
 Pco.o:	$(pco-objs)
-	$(LD) -d -o $@ -r $+ $(LIBSPCO)
+	$(LD) -d -o $@ -r $+ $(LIBSDK)
+	#$(LD) -d -o $@ -r $+ $(LIBSPCO)
 	#$(LD) -d -o $@ -r $+ $(LFLAGS) $(LIBADD)
 
 clean:
-	rm -f *.o *.P
+	rm -f *.o *.P $(pco-objs)
 	#$(MAKE) -C ../sdkDev/pco_camera/pco_common/pco_lib_base clean
 	#$(MAKE) -C ../sdkDev/ -C pco_camera/pco_me4/pco_classes clean
 
