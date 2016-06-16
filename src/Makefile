@@ -87,7 +87,7 @@ INCLUDES  = -I../include \
             -I../../../third-party/Processlib/core/include \
             -I../sdkPco/include \
 
-CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread -g
+CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread -g -D WITH_GIT_VERSION
 
 
 

@@ -30,6 +30,7 @@
 #include "lima/HwMaxImageSizeCallback.h"
 #include "lima/HwInterface.h"
 
+
 //---- linux sdk [begin]
 #include "Cpco_com.h"
 #include "Cpco_com_cl_me4.h"
@@ -330,6 +331,7 @@ struct stcPcoData {
 	double max_lat_time, max_lat_time_err;
 	
 	WORD wBitAlignment; // 0 = MSB (left) alignment
+	
 
 	stcPcoData();
 	void traceAcqClean();
@@ -407,7 +409,7 @@ namespace lima
 //------ linux sdk [begin]
   	CPco_com *camera;
   	CPco_grab_cl_me4* grabber;
-    CPco_Log mylog;
+    CPco_Log *mylog;
 
 //------ linux sdk [end]
 
@@ -490,9 +492,6 @@ namespace lima
 
 		struct stcPcoData *m_pcoData;
 
-
-
-
 		Cond m_cond;
 	
 		int m_pcoError;
@@ -508,8 +507,27 @@ namespace lima
 		bool m_isArmed;
 		long long m_state;
 
+        //------------- linux sdk
+        SHORT sTempCcd,sTempCam,sTempPS;
+        SHORT sCoolingSetpoint;
 
-        int PcoCheckError(int line, const char *file, int err, const char *fn = "***");
+        WORD camtype;
+        DWORD serialnumber;
+        WORD wLutActive,wLutParam;
+        int board;
+
+        SC2_Camera_Description_Response description;
+        PCO_SC2_CL_TRANSFER_PARAM clpar;
+
+        DWORD dwPixelRateActual;
+        DWORD dwPixelRateValid[];
+        DWORD dwPixelRateMax;
+        int iPixelRateValidNr;
+        
+        
+        //------------- linux sdk
+
+        int PcoCheckError(int line, const char *file, int err, const char *fn = "***", const char *comments = "");
 
 		void _allocBuffer();
 
@@ -523,9 +541,8 @@ namespace lima
 
 		void _pco_GetCameraInfo(int &error);
 
-
 		const char *_pco_GetCameraType(int &error);
-		const char *_pco_GetTemperatureInfo(int &error);
+		void _pco_GetTemperatureInfo(int &error);
 		void _pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error);
 		void _presetPixelRate(DWORD &pixRate, int &error);
 
@@ -577,7 +594,10 @@ namespace lima
         bool _getCameraState(long long flag);
         void _setCameraState(long long flag, bool val);
 
-
+		void _pco_SetCameraToCurrentTime(int &error);
+		void _pco_GetTransferParameter(int &error);
+		void _pco_GetLut(int &err);
+		void _pco_SetTimestampMode(WORD mode, int &err);
     };
   }
 }

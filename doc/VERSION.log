@@ -1,3 +1,14 @@
+
+
+2016/06/16 21:53:04 ==========================================
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2016-06-15 20:23:31 +0200] head[d7e6b6b][d7e6b6b500e9589a9c3a1ee52680ad84fb3ade29] ref[ (HEAD, gitrh/linux_dev, linux_dev)] at [2016/06/16 21:53:04] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2016-06-08 20:17:45 +0200] head[f443641][f4436415f096371010728f4f2a3a198df7187c6c] ref[ (HEAD, master)] at [2016/06/16 21:53:04] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2015-06-09 14:50:05 +0200] head[7d49ed4][7d49ed48b9fe864251f4e6a9477699011297e39f] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/06/16 21:53:04] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/06/16 21:53:04] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2015-09-23 15:57:44 +0200] head[65cfe91][65cfe91dbedff7bd5479c4e151e74760fedeecad] ref[ (HEAD)] at [2016/06/16 21:53:04] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2015-09-09 10:35:50 +0200] head[41d9ad2][41d9ad2aa553848db71bb8c86082fc8154165ee5] ref[ (HEAD)] at [2016/06/16 21:53:04] $"
+
+
 2015/10/07 12:50:00 ==========================================
 pushed tango - 228b06a7b194c5a23a4fe4411ceceb5123340a92
     included close_interface()

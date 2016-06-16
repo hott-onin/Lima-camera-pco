@@ -657,8 +657,11 @@ DWORD CPco_com_cl_me4::Open_Cam_Ext(DWORD num,SC2_OpenStruct *open ATTRIBUTE_UNU
     get_firmwarerev();
     get_lut_info();
 
-
+    writelog(INFO_M,hdriver,"... after get_lut_info");
+ 
     set_baudrate(115200);
+
+    writelog(INFO_M,hdriver,"... after set_baudrate");
 
 #ifdef WIN32
     SYSTEMTIME st;
@@ -671,8 +674,11 @@ DWORD CPco_com_cl_me4::Open_Cam_Ext(DWORD num,SC2_OpenStruct *open ATTRIBUTE_UNU
     //PCO_SetDateTime(&st);
 #endif
     int connected = GetConnectionStatus();
+    writelog(INFO_M,hdriver,"... after GetConnectionStatus");
+    
     SetConnectionStatus(connected|=(1<<boardnr));
 
+    writelog(INFO_M,hdriver,"... after SetConnectionStatus");
     return PCO_NOERROR;
 }
 
