@@ -415,6 +415,7 @@ namespace lima
 
 
         void 	startAcq();
+        void 	prepareAcq();
 		void	reset(int reset_level);
 
 		HANDLE& getHandle() {return m_handle;}
@@ -536,12 +537,12 @@ namespace lima
 		const char *_pco_SetTriggerMode_SetAcquireMode(int &error);
 		const char *_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode, int &error);
 		int _pco_GetStorageMode_GetRecorderSubmode();
-		const char *_pco_SetDelayExposureTime(int &error, int ph);
+		void _pco_SetDelayExposureTime(int &error, int ph);
 		const char *_pco_SetCamLinkSetImageParameters(int &error);
 
 		void _pco_GetCameraInfo(int &error);
 
-		const char *_pco_GetCameraType(int &error);
+		void _pco_GetCameraType(int &error);
 		void _pco_GetTemperatureInfo(int &error);
 		void _pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error);
 		void _presetPixelRate(DWORD &pixRate, int &error);
@@ -553,7 +554,7 @@ namespace lima
 		void _init();
 		void _init_edge();
 		void _init_dimax();
-		const char *_pco_SetTransferParameter_SetActiveLookupTable(int &error);
+		const char *_pco_SetTransferParameter_SetActiveLookupTable_win(int &error);
 		const char *_pco_SetPixelRate(int &error);
 		const char *_pco_GetCOCRuntime(int &error);
 		const char *_pco_SetMetaDataMode(WORD wMetaDataMode, int &error);
@@ -598,6 +599,13 @@ namespace lima
 		void _pco_GetTransferParameter(int &error);
 		void _pco_GetLut(int &err);
 		void _pco_SetTimestampMode(WORD mode, int &err);
+		void _pco_Open_Cam(int &err);
+ 		void _pco_Open_Grab(int &err);
+ 		void _pco_ResetSettingsToDefault(int &err);
+ 		WORD _pco_GetRecordingState(int &err);
+ 		void _pco_SetBinning(int &err);
+ 		void _pco_SetROI(int &error);
+ 		void _pco_SetTransferParameter_SetActiveLookupTable(int &error);
     };
   }
 }

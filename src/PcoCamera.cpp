@@ -372,10 +372,12 @@ Camera::Camera(const char *params)
 	m_buffer= NULL;
 	m_handle = 0;
 
+    camera = NULL;
+    grabber = NULL;
+    
 	//delay_time = exp_time = 0;
 	
-	CPco_Log _mylog("pco_edge_grab.log");
-	mylog = &_mylog;
+	mylog = new CPco_Log("pco_edge_grab.log");
 	
 	//int error=0;
 	m_config = TRUE;
@@ -428,31 +430,31 @@ void Camera::_init(){
 
 	DEB_ALWAYS() << fnId << " [entry]";
 
-	char msg[MSG_SIZE + 1];
-	int error=0;
-	const char *errMsg;
+	//char msg[MSG_SIZE + 1];
+	//int error=0;
+	//const char *errMsg;
 	UNUSED const char *pcoFn;
 
 	//-------------------- linux
 	
 
-    DWORD err;
+    //DWORD err;
     //CPco_com *camera;
     //CPco_grab_cl_me4* grabber;
 
 
     board=0;
-    char infostr[100];
+    //char infostr[100];
     //char number[20];
-    char sMsg[128];
+    //char sMsg[128];
 
-    int x;
+    //int x;
     //char c;
     //int ima_count=100;
     //int loop_count=1;
     //int PicTimeOut=10000; //10 seconds
     //WORD act_recstate;
-    DWORD exp_time,delay_time,pixelrate;
+    //DWORD exp_time,delay_time,pixelrate;
     //WORD exp_timebase,del_timebase;
     //DWORD width,height,secs,nsecs;
     //SC2_Camera_Description_Response description;
@@ -471,65 +473,23 @@ void Camera::_init(){
     mylog->set_logbits(0x0000F0FF);
     printf("Logging set to 0x%x\n",mylog->get_logbits());
 
-    DEB_ALWAYS()  << "creating the camera" ;
-
-    camera= new CPco_com_cl_me4();
-    camera->SetLog(mylog);
-
-    DEB_ALWAYS()  << "Try to open Camera" ;
-    err=camera->Open_Cam(0);
+    _pco_Open_Cam(iErr);
     
-    if(err!=PCO_NOERROR)
-    {
-        sprintf(sMsg, "error 0x%x in Open_Cam, close application",err);
-        DEB_ALWAYS()  << sMsg ;
-        delete camera;
-        THROW_HW_ERROR(Error) ;
-    }
-    
-    DEB_ALWAYS()  << "After open Camera" ;
-
-    //err=camera->PCO_GetCameraType(&camtype,&serialnumber);
     _pco_GetCameraType(iErr);
-    DEB_ALWAYS()  << "After PCO_GetCameraType" ;
-    
-    camtype = _getCameraType();
- 
-    
- 
-    if(camtype==CAMERATYPE_PCO_EDGE)
+    if(iErr)
     {
-        DEB_ALWAYS()  << "Grabber is CPco_grab_cl_me4_edge";
-        grabber=new CPco_grab_cl_me4_edge((CPco_com_cl_me4*)camera);
-    }
-    else if(camtype==CAMERATYPE_PCO_EDGE_42)
-    {
-        DEB_ALWAYS()  << "Grabber is CPco_grab_cl_me4_edge42";
-        grabber=new CPco_grab_cl_me4_edge42((CPco_com_cl_me4*)camera);
-    }
-    else
-    {
-        DEB_ALWAYS()  << "Wrong camera for this application";
         camera->Close_Cam();
         delete camera;
+        camera = NULL;
         THROW_HW_ERROR(Error) ;
     }
 
-    grabber->SetLog(mylog);
-
-    DEB_ALWAYS()  << "Try to open Grabber";
-    err=grabber->Open_Grabber(board);
-    if(err!=PCO_NOERROR)
-    {
-        sprintf(sMsg, "error 0x%x in Open_Grabber, close application",err);
-        DEB_ALWAYS()  << sMsg ;
-        delete grabber;
-
-        camera->Close_Cam();
-        delete camera;
-        THROW_HW_ERROR(Error) ;
-    }
-
+    _pco_Open_Grab(iErr);
+    
+    _pco_GetCameraInfo(iErr);
+    
+    _pco_ResetSettingsToDefault(iErr);
+    
     _pco_SetCameraToCurrentTime(iErr);
     _pco_GetTransferParameter(iErr);
     _pco_GetTemperatureInfo(iErr);
@@ -842,6 +802,84 @@ void Camera::getCameraName(std::string& name)
   name = m_pcoData->camera_name;
 }
 
+//=================================================================================================
+//=================================================================================================
+void Camera::prepareAcq()
+{
+    DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	DEB_ALWAYS() << fnId << " [ENTRY]" ;
+
+	int error;
+	const char *msg;
+    int iRequestedFrames;
+    WORD state;
+
+
+	//SetBinning, SetROI, ARM, GetSizes, AllocateBuffer.
+
+    //------------------------------------------------- set binning if needed
+    _pco_SetBinning(error);
+
+    //------------------------------------------------- set roi if needed
+    _pco_SetROI(error);
+
+	//------------------------------------------------- triggering mode 
+    //------------------------------------- acquire mode : ignore or not ext. signal
+	msg = _pco_SetTriggerMode_SetAcquireMode(error);
+    PCO_THROW_OR_TRACE(error, msg) ;
+
+    // ----------------------------------------- storage mode (recorder + sequence)
+    if(_isCameraType(Dimax)) {
+		
+			// live video requested frames = 0
+		enumPcoStorageMode mode = (iRequestedFrames > 0) ? RecSeq : Fifo;
+
+		msg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
+		PCO_THROW_OR_TRACE(error, msg) ;
+	}
+
+	if(_isCameraType(Pco4k | Pco2k)) {
+			// live video requested frames = 0
+		enumPcoStorageMode mode = Fifo;
+		DEB_ALWAYS() << "PcoStorageMode mode - PCO2K / 4K: " << DEB_VAR1(mode);
+
+		msg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
+		PCO_THROW_OR_TRACE(error, msg) ;
+	}
+
+    //----------------------------------- set exposure time & delay time
+	_pco_SetDelayExposureTime(error,0);   // initial set of delay (phase = 0)
+	PCO_THROW_OR_TRACE(error, "_pco_SetDelayExposureTime") ;
+
+
+    //------------------------------------------------- check recording state
+    state = _pco_GetRecordingState(error);
+    PCO_THROW_OR_TRACE(error, "PCO_GetRecordingState") ;
+
+    if (state>0) {
+        DEB_TRACE() << "Force recording state to 0x0000" ;
+
+		_pco_SetRecordingState(0, error);
+        PCO_THROW_OR_TRACE(error, "PCO_SetRecordingState") ;
+	}
+
+
+	msg = _pco_SetMetaDataMode(0, error); PCO_THROW_OR_TRACE(error, msg) ;
+ 
+	//--------------------------- PREPARE / pixel rate - ARM required 
+	msg = _pco_SetPixelRate(error); PCO_THROW_OR_TRACE(error, msg) ;
+		
+	//--------------------------- PREPARE / clXferParam, LUT - ARM required 
+	_pco_SetTransferParameter_SetActiveLookupTable(error); PCO_THROW_OR_TRACE(error, msg) ;
+
+
+
+	DEB_ALWAYS() << fnId << " [EXIT]" ;
+    return;
+}
+
 
 //=================================================================================================
 //=================================================================================================
@@ -874,70 +912,12 @@ void Camera::startAcq()
     m_sync->getNbFrames(iRequestedFrames);
 
 	//SetBinning, SetROI, ARM, GetSizes, AllocateBuffer.
+
     //------------------------------------------------- set binning if needed
-    WORD wBinHorz, wBinVert, wBinHorzNow, wBinVertNow;
-    if (m_bin.changed == Changed) {
-		wBinHorz = (WORD)m_bin.x;
-		wBinVert = (WORD)m_bin.y;
-
-		PCO_FN3(error, msg,PCO_GetBinning, m_handle, &wBinHorzNow, &wBinVertNow);
-		PCO_THROW_OR_TRACE(error, msg) ;
-		
-		if((wBinHorz != wBinHorzNow) || (wBinVert != wBinVertNow)) {
-			PCO_FN3(error, msg,PCO_SetBinning, m_handle, wBinHorz, wBinVert);
-			PCO_THROW_OR_TRACE(error, msg) ;
-			_armRequired(true);
-
-			PCO_FN3(error, msg,PCO_GetBinning,m_handle, &wBinHorzNow, &wBinVertNow);
-			PCO_THROW_OR_TRACE(error, msg) ;
-		}
-		m_bin.changed= Valid;
-		DEB_TRACE() << DEB_VAR4(wBinHorz, wBinVert, wBinHorzNow, wBinVertNow);
-    }
-
+    _pco_SetBinning(error);
 
     //------------------------------------------------- set roi if needed
-    WORD &wRoiX0Now = m_pcoData->wRoiX0Now;
-	WORD &wRoiY0Now = m_pcoData->wRoiY0Now;
-    WORD &wRoiX1Now = m_pcoData->wRoiX1Now;
-	WORD &wRoiY1Now = m_pcoData->wRoiY1Now;
-
-    WORD wRoiX0, wRoiY0; // Roi upper left x y
-    WORD wRoiX1, wRoiY1; // Roi lower right x y
-	unsigned int x0, x1, y0, y1;
-
-	_get_Roi(x0, x1, y0, y1);
-    wRoiX0 = (WORD) x0; wRoiX1 = (WORD) x1;
-    wRoiY0 = (WORD) y0; wRoiY1 = (WORD) y1;
-
-	PCO_FN5(error, msg,PCO_GetROI, m_handle, &wRoiX0Now, &wRoiY0Now, &wRoiX1Now, &wRoiY1Now);
-	PCO_THROW_OR_TRACE(error, msg) ;
-
-	bool test;
-	test = ((wRoiX0Now != wRoiX0) ||	(wRoiX1Now != wRoiX1) || (wRoiY0Now != wRoiY0) || (wRoiY1Now != wRoiY1));
-	DEB_ALWAYS() 
-		<< "\n> " << DEB_VAR1(test)
-		<< "\n   _get_Roi> " << DEB_VAR4(x0, x1, y0, y1)
-		<< "\n   _get_Roi> " << DEB_VAR4(wRoiX0, wRoiX1, wRoiY0, wRoiY1)
-		<< "\n   PCO_GetROI> " << DEB_VAR4(wRoiX0Now, wRoiY0Now, wRoiX1Now, wRoiY1Now);
-	test = true;
-	if(test) {
-		
-		DEB_ALWAYS() 
-			<< "\n   PCO_SetROI> " << DEB_VAR5(m_RoiLima, wRoiX0, wRoiY0, wRoiX1, wRoiY1);
-
-		PCO_FN5(error, msg,PCO_SetROI, m_handle, wRoiX0, wRoiY0, wRoiX1, wRoiY1);
-		PCO_THROW_OR_TRACE(error, msg) ;
-
-		_armRequired(true);
-
-		PCO_FN5(error, msg,PCO_GetROI, m_handle, &wRoiX0Now, &wRoiY0Now, &wRoiX1Now, &wRoiY1Now);
-		PCO_THROW_OR_TRACE(error, msg) ;
-		DEB_ALWAYS() 
-			<< "\n   PCO_GetROI> " << DEB_VAR4(wRoiX0Now, wRoiY0Now, wRoiX1Now, wRoiY1Now)
-			<< "\n   PCO_GetROI> " << DEB_VAR4(m_pcoData->wRoiX0Now, m_pcoData->wRoiY0Now, m_pcoData->wRoiX1Now, m_pcoData->wRoiY1Now);
-
-	}
+    _pco_SetROI(error);
 
 	//------------------------------------------------- triggering mode 
     //------------------------------------- acquire mode : ignore or not ext. signal
@@ -962,14 +942,15 @@ void Camera::startAcq()
 		msg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
 		PCO_THROW_OR_TRACE(error, msg) ;
 	}
-//----------------------------------- set exposure time & delay time
-	msg = _pco_SetDelayExposureTime(error,0);   // initial set of delay (phase = 0)
-	PCO_THROW_OR_TRACE(error, msg) ;
+
+    //----------------------------------- set exposure time & delay time
+	_pco_SetDelayExposureTime(error,0);   // initial set of delay (phase = 0)
+	PCO_THROW_OR_TRACE(error, "_pco_SetDelayExposureTime") ;
 
 
     //------------------------------------------------- check recording state
-    PCO_FN2(error, msg,PCO_GetRecordingState, m_handle, &state);
-    PCO_THROW_OR_TRACE(error, msg) ;
+    state = _pco_GetRecordingState(error);
+    PCO_THROW_OR_TRACE(error, "PCO_GetRecordingState") ;
 
     if (state>0) {
         DEB_TRACE() << "Force recording state to 0x0000" ;
@@ -993,7 +974,7 @@ void Camera::startAcq()
 	msg = _pco_SetPixelRate(error); PCO_THROW_OR_TRACE(error, msg) ;
 		
 	//--------------------------- PREPARE / clXferParam, LUT - ARM required 
-	msg = _pco_SetTransferParameter_SetActiveLookupTable(error); PCO_THROW_OR_TRACE(error, msg) ;
+	_pco_SetTransferParameter_SetActiveLookupTable(error); PCO_THROW_OR_TRACE(error, msg) ;
 
 	//--------------------------- PREPARE / ARM  
 	DEB_ALWAYS() << "\n   ARM the camera / PCO_ArmCamera (1)";
@@ -1650,7 +1631,7 @@ void Camera::reset(int reset_level)
 #define LEN_TMP_MSG 256
 int Camera::PcoCheckError(int line, const char *file, int err, const char *fn, const char *comments) {
 	DEB_MEMBER_FUNCT();
-	DEF_FNID;
+	//DEF_FNID;
 
 
 	//static char lastErrorMsg[500];
@@ -1660,7 +1641,7 @@ int Camera::PcoCheckError(int line, const char *file, int err, const char *fn, c
     const char *titleErr  ="\n------------------- PCO SKD ERROR -------------------" ;
     const char *titleWarn ="\n------------- PCO SKD WARNING - IGNORED -------------" ;
     const char *titleEnd  ="\n-----------------------------------------------------" ;
-	size_t lg;
+	//size_t lg;
 
 	sprintf_s(tmpMsg,LEN_TMP_MSG,"%s [%s][%d] %s", fn, file, line, comments);
 	m_msgLog->add(tmpMsg);

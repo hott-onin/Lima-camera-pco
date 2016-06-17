@@ -113,6 +113,7 @@ void Interface::prepareAcq()
 	DEB_MEMBER_FUNCT();
 	if(m_buffer)
 		m_buffer->prepareAcq();
+	m_cam->prepareAcq();
 }
 
 //=========================================================================================================
