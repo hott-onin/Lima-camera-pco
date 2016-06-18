@@ -87,7 +87,7 @@ WORD Camera::_pco_GetActiveRamSegment()
 	int err;
 	char errstr[LEN_ERRSTR+1];
 
-	if((m_pcoData->stcPcoDescription.dwGeneralCaps1&GENERALCAPS1_NO_RECORDER)==0)
+	if((m_pcoData->stcPcoDesc1.dwGeneralCaps1&GENERALCAPS1_NO_RECORDER)==0)
 	{
 		err=PCO_GetActiveRamSegment(m_handle,&act_segment);
 		if(err!=PCO_NOERROR)
@@ -155,7 +155,7 @@ int Camera::_pco_GetADCOperation(int &adc_working, int &adc_max)
 	int error;
 	WORD wADCOperation;
 
-	adc_max = m_pcoData->stcPcoDescription.wNumADCsDESC; // nr of ADC in the system
+	adc_max = m_pcoData->stcPcoDesc1.wNumADCsDESC; // nr of ADC in the system
 
 	if(adc_max == 2) {
 	
@@ -379,7 +379,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &err){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	struct stcPcoData _pcoData;
-	char bla[ERRMSG_SIZE + 1];
+	char *pbla = mybla;
 	const char *msg;
 	DWORD pixelrate, pixRateNext;
 	WORD width, height, wXResMax, wYResMax;
@@ -400,20 +400,25 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &err){
     {
         clpar.DataFormat=SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER|PCO_CL_DATAFORMAT_5x12;
         lut=0x1612;
-		sprintf_s(bla,ERRMSG_SIZE, 
-		    "\n... width[%d] > 1920  && pixelrate[%d] >= 286000000 -> Dataformat[0x%x] lut[0x%x]",
-					width, pixelrate,clpar.DataFormat, lut);
+		pbla += sprintf_s(pbla,myblamax - pbla, 
+		    "%s> width[%d] > 1920  && pixelrate[%d] >= 286000000 -> Dataformat[0x%x] lut[0x%x]",
+					fnId, width, pixelrate,clpar.DataFormat, lut);
     }
     else
     {
         clpar.DataFormat=SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER|PCO_CL_DATAFORMAT_5x16;
         lut=0;
-		sprintf_s(bla,ERRMSG_SIZE, 
-		    "\n... width[%d] <= 1920  && pixelrate[%d] < 286000000 -> Dataformat[0x%x] lut[0x%x]",
-					width, pixelrate,clpar.DataFormat, lut);
+		pbla += sprintf_s(pbla,myblamax - pbla, 
+		    "%s> width[%d] <= 1920  && pixelrate[%d] < 286000000 -> Dataformat[0x%x] lut[0x%x]",
+					fnId, width, pixelrate,clpar.DataFormat, lut);
     }
 
-    DEB_ALWAYS() << bla;
+    pbla += sprintf_s(pbla,myblamax - pbla, 
+		    " / width[%d][%d] height[%d][%d]", width, wXResMax, height, wYResMax);
+
+    DEB_ALWAYS() << mybla;
+    //mylog->writelog(INFO_M, "%s", bla);
+    mylog->writelog(INFO_M, mybla);
     
     actlut=lut; 
     err=camera->PCO_SetLut(actlut,0);
@@ -957,11 +962,12 @@ const char *Camera::_pco_GetCOCRuntime(int &error){
 
 //=================================================================================================
 //=================================================================================================
-const char *Camera::_pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error){
+void Camera::_pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error){
 		
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	const char *msg;
+   	char *bla = mybla;
 
     DWORD dwXResActual, dwYResActual;
     //DWORD dwXResMax, dwYResMax;
@@ -973,13 +979,26 @@ const char *Camera::_pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *w
 
     //PCOFN5(error, msg,PCO_GetSizes , m_handle, &dwXResActual, &dwYResActual, &dwXResMax, &dwYResMax) ;
 
-    if(error) return msg;
+    if(error) return;
 
     *wXResActual = (WORD)dwXResActual;
     *wYResActual = (WORD)dwYResActual;
+    *wXResMax = m_pcoData->stcPcoDesc1.wMaxHorzResStdDESC;
+    *wYResMax = m_pcoData->stcPcoDesc1.wMaxVertResStdDESC;
     
+    
+    
+    
+	bla += sprintf_s(bla,myblamax - bla,
+	    "%s> resAct[%d][%d] resStdMax[%d][%d] resExtMax[%d][%d]",
+	    fnId,
+	    *wXResActual, *wYResActual, *wXResMax, *wYResMax,
+	    m_pcoData->stcPcoDesc1.wMaxHorzResExtDESC,
+	    m_pcoData->stcPcoDesc1.wMaxVertResExtDESC);
+    mylog->writelog(INFO_M, mybla);
 
-	return fnId;
+    
+	return;
 
 }
 
@@ -989,17 +1008,22 @@ void Camera::_pco_GetCameraInfo(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	//int errTot=0;
-	//const char *msg;
+	const char *msg;
 	//const char *ptr;
+    SC2_Camera_Description_Response dummy;
+    dummy.wSize = sizeof(dummy);
 
 	m_pcoData->frames_per_buffer = 1; // for PCO DIMAX
 
 
 	// -- Get camera description
-	//m_pcoData->stcPcoDescription.wSize= sizeof(m_pcoData->stcPcoDescription);
+	//m_pcoData->stcPcoDesc1.wSize= sizeof(m_pcoData->stcPcoDesc1);
 
-    error = camera->PCO_GetCameraDescriptor(&m_pcoData->stcPcoDescription);
-    PCO_CHECK_ERROR(error, "PCO_GetCameraDescriptor"); 
+    error = camera->PCO_GetCameraDescriptor(&m_pcoData->stcPcoDesc1);
+    msg = "PCO_GetCameraDescriptor"; PCO_CHECK_ERROR(error, msg); 
+
+    error = camera->PCO_GetCameraDescriptionEx(&dummy, &m_pcoData->stcPcoDesc2, 1);
+    msg = "PCO_GetCameraDescriptionEx"; PCO_CHECK_ERROR(error, msg); 
 
     double min_exp_time0, max_exp_time0;
 	double min_lat_time0, max_lat_time0;
@@ -1007,22 +1031,22 @@ void Camera::_pco_GetCameraInfo(int &error){
 	double min_lat_time, max_lat_time;
 	double step_exp_time, step_lat_time;
 
-	step_exp_time = m_pcoData->step_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureStepDESC) * NANO ;	//step exposure time in ns
+	step_exp_time = m_pcoData->step_exp_time = (m_pcoData->stcPcoDesc1.dwMinExposureStepDESC) * NANO ;	//step exposure time in ns
 	
-	min_exp_time0 = m_pcoData->min_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureDESC) * NANO ;	//Minimum exposure time in ns
+	min_exp_time0 = m_pcoData->min_exp_time = (m_pcoData->stcPcoDesc1.dwMinExposureDESC) * NANO ;	//Minimum exposure time in ns
 	min_exp_time = m_pcoData->min_exp_time_err = m_pcoData->min_exp_time - m_pcoData->step_exp_time ;	
 
-	max_exp_time0 = m_pcoData->max_exp_time = (m_pcoData->stcPcoDescription.dwMaxExposureDESC) * MILI ;   // Maximum exposure time in ms  
+	max_exp_time0 = m_pcoData->max_exp_time = (m_pcoData->stcPcoDesc1.dwMaxExposureDESC) * MILI ;   // Maximum exposure time in ms  
 	max_exp_time = m_pcoData->max_exp_time_err = m_pcoData->max_exp_time + m_pcoData->step_exp_time ;	
 
 
-	step_lat_time = m_pcoData->step_lat_time = (m_pcoData->stcPcoDescription.dwMinDelayStepDESC) * NANO ;	//step delay time in ns
+	step_lat_time = m_pcoData->step_lat_time = (m_pcoData->stcPcoDesc1.dwMinDelayStepDESC) * NANO ;	//step delay time in ns
 
-	min_lat_time0 = m_pcoData->min_lat_time = (m_pcoData->stcPcoDescription.dwMinDelayDESC) * NANO ; // Minimum delay time in ns
+	min_lat_time0 = m_pcoData->min_lat_time = (m_pcoData->stcPcoDesc1.dwMinDelayDESC) * NANO ; // Minimum delay time in ns
 	min_lat_time = m_pcoData->min_lat_time_err = 
 		(m_pcoData->min_lat_time < m_pcoData->step_lat_time) ? m_pcoData->min_lat_time : m_pcoData->min_lat_time - m_pcoData->step_lat_time ;
 
-	max_lat_time0 = m_pcoData->max_lat_time = (m_pcoData->stcPcoDescription.dwMaxDelayDESC) * MILI ; // Maximum delay time in ms
+	max_lat_time0 = m_pcoData->max_lat_time = (m_pcoData->stcPcoDesc1.dwMaxDelayDESC) * MILI ; // Maximum delay time in ms
 	max_lat_time = m_pcoData->max_lat_time_err = m_pcoData->max_lat_time + m_pcoData->step_lat_time ;	
 
 	DEB_ALWAYS() 
@@ -1042,8 +1066,17 @@ void Camera::_pco_GetCameraInfo(int &error){
 	}
 	
 	
-	m_pcoData->bMetaDataAllowed = !!(m_pcoData->stcPcoDescription.dwGeneralCaps1 & GENERALCAPS1_METADATA) ;
-
+	m_pcoData->bMetaDataAllowed = !!(m_pcoData->stcPcoDesc1.dwGeneralCaps1 & GENERALCAPS1_METADATA) ;
+	
+	if(m_pcoData->bMetaDataAllowed) 
+	{
+	    error = camera->PCO_GetMetadataMode(&m_pcoData->wMetaDataMode, &m_pcoData->wMetaDataSize, &m_pcoData->wMetaDataVersion);
+        msg = "PCO_GetMetadataMode"; PCO_CHECK_ERROR(error, msg); 
+	} 
+	else 
+	{
+        m_pcoData->wMetaDataMode = m_pcoData->wMetaDataSize = m_pcoData->wMetaDataVersion = 0;
+	}
 
 	
 
@@ -1063,7 +1096,7 @@ void Camera::_pco_GetCameraInfo(int &error){
         ptr += sprintf_s(ptr, ptrMax - ptr, "validRates:");
         for(int i=0; i<4; i++) 
         {
-            _dwPixRate = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
+            _dwPixRate = m_pcoData->stcPcoDesc1.dwPixelRateDESC[i];
             if(_dwPixRate > 0) 
             {
 	            dwPixelRateValid[iPixelRateValidNr++] = _dwPixRate;
@@ -1083,7 +1116,7 @@ void Camera::_pco_GetCameraInfo(int &error){
 
 
 
-	m_pcoData->bMetaDataAllowed = !!(m_pcoData->stcPcoDescription.dwGeneralCaps1 & GENERALCAPS1_METADATA) ;
+	m_pcoData->bMetaDataAllowed = !!(m_pcoData->stcPcoDesc1.dwGeneralCaps1 & GENERALCAPS1_METADATA) ;
 
 
 	// -- Get General
@@ -1268,8 +1301,8 @@ void Camera::_pco_GetTemperatureInfo(int &err){
 
 	sprintf_s(msg, MSG_SIZE, "* cooling temperature: MIN [%d]  Max [%d]\n",  m_pcoData->temperature.wMinCoolSet, m_pcoData->temperature.wMaxCoolSet);
 
-	m_pcoData->temperature.wMinCoolSet = m_pcoData->stcPcoDescription.sMinCoolSetDESC;
-	m_pcoData->temperature.wMaxCoolSet = m_pcoData->stcPcoDescription.sMaxCoolSetDESC;
+	m_pcoData->temperature.wMinCoolSet = m_pcoData->stcPcoDesc1.sMinCoolSetDESC;
+	m_pcoData->temperature.wMaxCoolSet = m_pcoData->stcPcoDesc1.sMaxCoolSetDESC;
 
 	// -- Set/Get cooling temperature
 	if (m_pcoData->temperature.wSetpoint != -1) {
@@ -1495,6 +1528,33 @@ void Camera::_pco_Open_Cam(int &err)
 
 //=================================================================================================
 //=================================================================================================
+void Camera::_pco_Close_Cam(int &error)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+    error = 0;
+    
+    if(grabber)
+    {
+        delete grabber;
+        grabber = NULL;
+    }
+
+    if(camera)
+    {
+        error = camera->Close_Cam();
+        PCO_CHECK_ERROR(error, "Close_Cam");
+
+        delete camera;
+        camera = NULL;
+    }
+
+}
+
+
+//=================================================================================================
+//=================================================================================================
 void Camera::_pco_Open_Grab(int &err)
 {
 	DEB_MEMBER_FUNCT();
@@ -1668,5 +1728,97 @@ void Camera::_pco_SetROI(int &error){
 
 	return;
 
+}
+
+
+//=================================================================================================
+//=================================================================================================
+size_t Camera::_pco_GetHardwareVersion_Firmware(char *ptrOut, size_t lgMax, int &error)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+    char *ptr = ptrOut;
+    char *ptrMax = ptr + lgMax;
+    int lg = ptrMax - ptr;
+
+    error = camera->PCO_GetHardwareVersion (ptr, &lg);
+    PCO_CHECK_ERROR(error, "PCO_GetROI");
+    if(error) return 0;
+    
+    lg = strlen(ptrOut) ;
+    ptr = ptrOut + lg;
+    lg = ptrMax - ptr;
+
+    if(lg) 
+    {
+        error = camera->PCO_GetFirmwareVersion (ptr, &lg);
+        PCO_CHECK_ERROR(error, "PCO_GetROI");
+        if(error) return 0;
+    }
+
+    lg = strlen(ptrOut) ;
+
+    return lg;
+}
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &error)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	WORD _wAcquEnableState;
+
+    error = camera->PCO_GetAcqEnblSignalStatus(&_wAcquEnableState);   
+    PCO_CHECK_ERROR(error, "PCO_GetAcqEnblSignalStatus");
+
+    if(error) return;
+    
+    wAcquEnableState = _wAcquEnableState;
+}
+
+//=================================================================================================
+//=================================================================================================
+size_t Camera::_pco_roi_info(char *ptrOut, size_t lgMax, int &error)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+    char *ptr = ptrOut;
+    char *ptrMax = ptr + lgMax;
+    int lg = ptrMax - ptr;
+
+			unsigned int x0, x1, y0, y1;
+			Roi new_roi;
+
+			Roi limaRoi;
+			_get_Roi(limaRoi);
+
+			_get_Roi(x0, x1, y0, y1);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+					x0, x1, y0, y1, x1-x0+1, y1-y0+1);
+			{
+			Point top_left = m_RoiLima.getTopLeft();
+			Point bot_right = m_RoiLima.getBottomRight();
+			Size size = m_RoiLima.getSize();
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* roiLima PCO XY0(%d,%d) XY1(%d,%d) size(%d,%d)\n",  
+					top_left.x, top_left.y,
+					bot_right.x, bot_right.y,
+					size.getWidth(), size.getHeight());
+
+			top_left = m_RoiLimaRequested.getTopLeft();
+			bot_right = m_RoiLimaRequested.getBottomRight();
+			size = m_RoiLimaRequested.getSize();
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* roiLima REQUESTED XY0(%d,%d) XY1(%d,%d) size(%d,%d)\n",  
+					top_left.x, top_left.y,
+					bot_right.x, bot_right.y,
+					size.getWidth(), size.getHeight());
+			}
+
+    
+
+    return ptr - ptrOut;
 }
 

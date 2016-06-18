@@ -160,7 +160,7 @@ const char *xlatCode2Str(int code, struct stcXlatCode2Str *stc) {
 	return NULL;
 
 }
-
+#if 0
 //=========================================================================================================
 //=========================================================================================================
 
@@ -212,7 +212,92 @@ const char *xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 		return buff;
 	}
 }
+#endif
+//=========================================================================================================
+//=========================================================================================================
 
+//char * Camera::xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
+const char *xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) 
+{
+	struct stcXlatCode2Str modelType[] = {
+		{CAMERATYPE_PCO1200HS, "PCO 1200 HS"},
+		{CAMERATYPE_PCO1300, "PCO 1300"},
+		{CAMERATYPE_PCO1400, "PCO 1400"},
+		{CAMERATYPE_PCO1600, "PCO 1600"},
+		{CAMERATYPE_PCO2000, "PCO 2000"},
+		{CAMERATYPE_PCO4000, "PCO 4000"},
+		{CAMERATYPE_PCO_DIMAX_STD, "PCO DIMAX STD"},
+		{CAMERATYPE_PCO_DIMAX_TV, "PCO DIMAX TV"},
+		{CAMERATYPE_PCO_DIMAX_AUTOMOTIVE, "PCO DIMAX AUTOMOTIVE"},
+		{CAMERATYPE_PCO_EDGE, "PCO EDGE 5.5 RS"},
+		{CAMERATYPE_PCO_EDGE_42, "PCO EDGE 4.2 RS"},
+		{CAMERATYPE_PCO_EDGE_GL, "PCO EDGE 5.5 GL"},
+		{CAMERATYPE_PCO_EDGE_USB3, "PCO EDGE USB3"},
+		{CAMERATYPE_PCO_EDGE_HS, "PCO EDGE hs"},
+		{CAMERATYPE_PCO_EDGE, "PCO EDGE"},
+		{CAMERATYPE_PCO_EDGE_GL, "PCO EDGE GL"},
+		{0, "NO_modelType"},
+		{0, NULL}
+	};
+
+	struct stcXlatCode2Str modelSubType[] = {
+		{CAMERATYPE_PCO1200HS, "PCO 1200 HS"},
+		{CAMERASUBTYPE_PCO_DIMAX_Weisscam, "DIMAX_Weisscam"},
+		{CAMERASUBTYPE_PCO_DIMAX_HD, "DIMAX_HD"},
+		{CAMERASUBTYPE_PCO_DIMAX_HD_plus, "DIMAX_HD_plus"},
+		{CAMERASUBTYPE_PCO_DIMAX_X35, "DIMAX_X35"},
+		{CAMERASUBTYPE_PCO_DIMAX_HS1, "DIMAX_HS1"},
+		{CAMERASUBTYPE_PCO_DIMAX_HS2, "DIMAX_HS2"},
+		{CAMERASUBTYPE_PCO_DIMAX_HS4, "DIMAX_HS4"},
+		{CAMERASUBTYPE_PCO_EDGE_SPRINGFIELD, "EDGE_SPRINGFIELD"},
+		{CAMERASUBTYPE_PCO_EDGE_DEVELOPMENT, "EDGE_DEVELOPMENT"},
+		{CAMERASUBTYPE_PCO_EDGE_X2, "EDGE_X2"},
+		{CAMERASUBTYPE_PCO_EDGE_RESOLFT, "EDGE_RESOLFT"},
+		{CAMERASUBTYPE_PCO_EDGE_GOLD, "EDGE_GOLD"},
+		{CAMERASUBTYPE_PCO_EDGE_DUAL_CLOCK, "DUAL_CLOCK"},
+		{CAMERASUBTYPE_PCO_EDGE_DICAM, "DICAM"},
+		{0, "NO_subType"},
+		{0, NULL}
+	};
+
+	struct stcXlatCode2Str interfaceType[] = {
+		{INTERFACE_FIREWIRE, "FIREWIRE"},
+		{INTERFACE_CAMERALINK, "CAMERALINK"},
+		{INTERFACE_USB, "USB"},
+		{INTERFACE_ETHERNET, "ETHERNET"},
+		{INTERFACE_SERIAL, "SERIAL"},
+		{INTERFACE_USB3, "USB3"},
+		{INTERFACE_CAMERALINKHS, "CAMERALINK_HS"},
+		{INTERFACE_COAXPRESS, "COAXPRESS"},
+		{0, "NO_interfaceType"},
+		{0, NULL}
+	};
+
+  struct stcXlatCode2Str *stc;
+	const char *ptr;
+	static char buff[BUFF_XLAT_SIZE+1];
+	const char *errTable ;
+
+  switch(table) {
+	case ModelType: stc = modelType; errTable = "modelType" ; break;
+	case ModelSubType: stc = modelSubType;  errTable = "modelSubType" ; break;
+	case InterfaceType: stc = interfaceType; errTable = "interfaceType" ;  break;
+
+    default:
+  		sprintf_s(buff, BUFF_XLAT_SIZE, "UNKNOWN XLAT TABLE [%d]", table);
+  		err = 1;
+	  	return buff;
+  }
+
+	if((ptr = xlatCode2Str(code, stc)) != NULL) {
+		err = 0;
+		return ptr;
+	} else {
+		sprintf_s(buff, BUFF_XLAT_SIZE, "UNKNOWN %s code [0x%04x]", errTable, code);
+		err = 1;
+		return buff;
+	}
+}
 
 
 //=========================================================================================================
@@ -256,7 +341,8 @@ stcPcoData::stcPcoData(){
 	stcPcoSensor.wSize = sizeof(stcPcoSensor);
 	stcPcoSensor.strDescription.wSize = sizeof(stcPcoSensor.strDescription);
 	stcPcoSensor.strDescription2.wSize = sizeof(stcPcoSensor.strDescription2);
-	stcPcoDescription.wSize = sizeof(stcPcoDescription);
+	stcPcoDesc1.wSize = sizeof(stcPcoDesc1);
+	stcPcoDesc2.wSize = sizeof(stcPcoDesc2);
 	stcPcoTiming.wSize = sizeof(stcPcoTiming);
 	stcPcoStorage.wSize = sizeof(stcPcoStorage);
 	stcPcoRecording.wSize = sizeof(stcPcoRecording);
@@ -401,6 +487,12 @@ Camera::Camera(const char *params)
 	char *value;
 	const char  *key;
 	UNUSED bool ret;
+	
+	mybla = new char[LEN_BLA+1];
+	myblamax = mybla + LEN_BLA;
+
+	mytalk = new char[LEN_TALK+1];
+	mytalkmax = mytalk + LEN_TALK;
 
 	/***
 	key = "test";
@@ -1975,7 +2067,7 @@ bool Camera::_isValid_pixelRate(DWORD dwPixelRate){
 
 	if(dwPixelRate > 0) 
 		for(int i = 0; i < 4; i++) {			
-			if(dwPixelRate == m_pcoData->stcPcoDescription.dwPixelRateDESC[i]) return TRUE;
+			if(dwPixelRate == m_pcoData->stcPcoDesc1.dwPixelRateDESC[i]) return TRUE;
 		}
 
 	return FALSE;
@@ -1990,33 +2082,33 @@ void Camera::getXYsteps(unsigned int &xSteps, unsigned int &ySteps){
 	DEB_MEMBER_FUNCT();
 	//DEF_FNID;
 	
-	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
-	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
+	xSteps = m_pcoData->stcPcoDesc1.wRoiHorStepsDESC;
+	ySteps = m_pcoData->stcPcoDesc1.wRoiVertStepsDESC;
 }
         
 /***
 void Camera::getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax){
 	DEB_MEMBER_FUNCT();
 	//DEF_FNID;
-	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
-	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+	xMax = m_pcoData->stcPcoDesc1.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDesc1.wMaxVertResStdDESC;
 }
 ****/
 	
 void Camera::getMaxWidthHeight(DWORD &xMax, DWORD &yMax){
 	DEB_MEMBER_FUNCT();
 	//DEF_FNID;
-	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
-	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+	xMax = m_pcoData->stcPcoDesc1.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDesc1.wMaxVertResStdDESC;
 }
 
 
 void Camera::getBytesPerPixel(unsigned int& pixbytes){
-	pixbytes = (m_pcoData->stcPcoDescription.wDynResDESC <= 8)?1:2;
+	pixbytes = (m_pcoData->stcPcoDesc1.wDynResDESC <= 8)?1:2;
 }
 
 void Camera::getBitsPerPixel(WORD& pixbits){
-	pixbits = m_pcoData->stcPcoDescription.wDynResDESC;
+	pixbits = m_pcoData->stcPcoDesc1.wDynResDESC;
 }
 
 

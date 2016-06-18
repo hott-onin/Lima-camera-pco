@@ -146,6 +146,9 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
     DEF_FNID;
 
 	WORD pcoAcqMode;
+	const char *sLimaTriggerMode = "invalid";
+	const char *sPcoAcqMode = "invalid";
+
 
 
 	if(!checkTrigMode(m_trig_mode)){
@@ -168,24 +171,62 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 
 
     switch( m_trig_mode)	{
-	  case IntTrig: // 0 SOFT (spec)
-    	  pcoAcqMode= 0x0000;
+
+		case IntTrig: // 0 SOFT (spec)
+			sLimaTriggerMode = "IntTrig";
+			sPcoAcqMode = "acqEnbl_Ignored";
+			pcoAcqMode= 0x0000;
+			break;
+
+		case ExtTrigSingle:
+			// trig (at ACQ ENABLE) starts a sequence of int trigger (dimax only)
+			//   StorageMode 0 - record mode
+			//   RecorderSubmode 1 - ring buffer
+			//   Triggermode 0 - auto
+			//   Acquiremode 0 - auto / ignored
+			sLimaTriggerMode = "ExtTrigSingle";
+			sPcoAcqMode = "acqEnbl_Ignored";
+			pcoAcqMode= 0x0000;
 			break;
 
 		case ExtTrigMult:
-		//case IntTrigMult: // 1 START (spec)
-      case ExtGate:  // 2 GATE (spec)
+			sLimaTriggerMode = "ExtTrigMult";
+			sPcoAcqMode = "acqEnbl_Ignored";
+			pcoAcqMode= 0x0000;
+			break;
+
+
+
+			//case IntTrigMult: // 1 START (spec)
+		case ExtGate:  // 2 GATE (spec)
+			sLimaTriggerMode = "ExtGate";
+
 #ifdef DISABLE_ACQ_ENBL_SIGNAL
-    	  pcoAcqMode= 0x0000;
+			sPcoAcqMode = "acqEnbl_Ignored";
+			pcoAcqMode= 0x0000;
 #else
-		  pcoAcqMode= 0x0001;
+			pcoAcqMode= 0x0001;
+			sPcoAcqMode = "acqEnbl_TrigAccepted";
 #endif
-		  break;
+			break;
+
+
+//			pcoAcqMode= 0x0002;
+//			sPcoAcqMode = "acqEnbl_startModulationMode";
+
+
+
 
 	  default:
 		 throw LIMA_HW_EXC(NotSupported,"Invalid value");
 
 	}
+
+
+	m_pcoData->traceAcq.iPcoAcqMode = pcoAcqMode;
+	m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
+	m_pcoData->traceAcq.sPcoAcqMode = sPcoAcqMode;
+
 
 	DEB_ALWAYS() << fnId << ": " << DEB_VAR2(pcoAcqMode, m_trig_mode);
 	return pcoAcqMode;
@@ -194,7 +235,94 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 
 //=========================================================================================================
 //=========================================================================================================
+//=========================================================================================================
+//=========================================================================================================
 
+WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
+	DEB_MEMBER_FUNCT();
+    DEF_FNID;
+
+	WORD pcoTrigMode;
+	const char *sLimaTriggerMode = "invalid";
+	const char *sPcoTriggerMode = "invalid";
+
+	if(!checkTrigMode(m_trig_mode)){
+		throw LIMA_HW_EXC(NotSupported,"Trigger type not supported");
+	}
+
+
+	// xlat from lima trig mode to PCO trig mode
+  	//------------------------------------------------- triggering mode 
+	switch (m_trig_mode) {  // trig mode in spec
+			//  PCO = 0x0000
+			// A new image exposure is automatically started best possible compared to
+			// the readout of an image. If a CCD is used and the images are taken in a
+			// sequence, then exposures and sensor readout are started simultaneously.
+			// Signals at the trigger input (<exp trig>) are irrelevant.
+	    default: 
+			sLimaTriggerMode = "intTrig_DEFAULT";
+			sPcoTriggerMode = "auto";
+			ext_trig = false;
+			pcoTrigMode= 0x0000;  // 0 = SOFT (spec)
+			break;
+
+		case IntTrig: 
+			sLimaTriggerMode = "intTrig";
+			sPcoTriggerMode = "auto";
+			ext_trig = false;
+			pcoTrigMode= 0x0000;  // 0 = SOFT (spec)
+			break;
+
+			// PCO = 0x0002
+			// A delay / exposure sequence is started at the RISING or FALLING edge
+			// (depending on the DIP switch setting) of the trigger input (<exp trig>).
+		//case IntTrigMult: return 0x0002;   // 1 = START (spec)
+		case ExtTrigMult: 
+			sLimaTriggerMode = "ExtTrigMult";
+			sPcoTriggerMode = "startExposure";
+			ext_trig = true;
+			pcoTrigMode= 0x0002;   // 1 = START (spec)
+			break;
+
+			// PCO = 0x0003
+			// The exposure time is defined by the pulse length at the trigger
+			// input(<exp trig>). The delay and exposure time values defined by the
+			// set/request delay and exposure command are ineffective. (Exposure
+			// time length control is also possible for double image mode; exposure
+			// time of the second image is given by the readout time of the first image.)
+		case ExtGate: 
+			sLimaTriggerMode = "ExtGate";
+			sPcoTriggerMode = "extGate";
+			ext_trig = true;
+			pcoTrigMode= 0x0003;  // 2 = GATE (spec)
+			break;
+
+
+		case ExtTrigSingle:
+			// trig starts a sequence of int trigger (dimax only)
+			//   StorageMode 0 - record mode
+			//   RecorderSubmode 1 - ring buffer
+			//   Triggermode 0 - auto
+			//   Acquiremode 0 - auto / ignored
+			sLimaTriggerMode = "ExtTrigSingle";
+			sPcoTriggerMode = "auto";
+			ext_trig = true;
+			pcoTrigMode= 0x0000;
+			break;
+
+	
+	}
+
+	m_pcoData->traceAcq.iPcoTriggerMode = pcoTrigMode;
+	m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
+	m_pcoData->traceAcq.sPcoTriggerMode = sPcoTriggerMode;
+
+	DEB_ALWAYS() << fnId <<": " << DEB_VAR3(pcoTrigMode, m_trig_mode, ext_trig);
+
+	return pcoTrigMode;
+}
+
+#if 0
 WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 	DEB_MEMBER_FUNCT();
     DEF_FNID;
@@ -248,6 +376,8 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 
 	return pcoTrigMode;
 }
+
+#endif
 
 
 //=========================================================================================================
@@ -395,22 +525,22 @@ void SyncCtrlObj::getValidRanges(ValidRangesType& valid_ranges)
 	// DONE
 
 	
-	m_pcoData->step_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureStepDESC) * NANO ;	//step exposure time in ns
+	m_pcoData->step_exp_time = (m_pcoData->stcPcoDesc1.dwMinExposureStepDESC) * NANO ;	//step exposure time in ns
 	
-	m_pcoData->min_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureDESC) * NANO ;	//Minimum exposure time in ns
+	m_pcoData->min_exp_time = (m_pcoData->stcPcoDesc1.dwMinExposureDESC) * NANO ;	//Minimum exposure time in ns
 	valid_ranges.min_exp_time = m_pcoData->min_exp_time_err = m_pcoData->min_exp_time - m_pcoData->step_exp_time ;	
 
-	m_pcoData->max_exp_time = (m_pcoData->stcPcoDescription.dwMaxExposureDESC) * MILI ;   // Maximum exposure time in ms  
+	m_pcoData->max_exp_time = (m_pcoData->stcPcoDesc1.dwMaxExposureDESC) * MILI ;   // Maximum exposure time in ms  
 	valid_ranges.max_exp_time = m_pcoData->max_exp_time_err = m_pcoData->max_exp_time + m_pcoData->step_exp_time ;	
 
 
-	m_pcoData->step_lat_time = (m_pcoData->stcPcoDescription.dwMinDelayStepDESC) * NANO ;	//step delay time in ns
+	m_pcoData->step_lat_time = (m_pcoData->stcPcoDesc1.dwMinDelayStepDESC) * NANO ;	//step delay time in ns
 
-	m_pcoData->min_lat_time = (m_pcoData->stcPcoDescription.dwMinDelayDESC) * NANO ; // Minimum delay time in ns
+	m_pcoData->min_lat_time = (m_pcoData->stcPcoDesc1.dwMinDelayDESC) * NANO ; // Minimum delay time in ns
 	valid_ranges.min_lat_time = m_pcoData->min_lat_time_err = 
 		(m_pcoData->min_lat_time < m_pcoData->step_lat_time) ? m_pcoData->min_lat_time : m_pcoData->min_lat_time - m_pcoData->step_lat_time ;
 
-	m_pcoData->max_lat_time = (m_pcoData->stcPcoDescription.dwMaxDelayDESC) * MILI ; // Maximum delay time in ms
+	m_pcoData->max_lat_time = (m_pcoData->stcPcoDesc1.dwMaxDelayDESC) * MILI ; // Maximum delay time in ms
 	valid_ranges.max_lat_time = m_pcoData->max_lat_time_err = m_pcoData->max_lat_time + m_pcoData->step_lat_time ;	
 
 }

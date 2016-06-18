@@ -55,6 +55,8 @@
 #define MILI (1.0E-3)
 
 #define LEN_DESCRIPTION_NAME    64
+#define LEN_BLA                 1023
+#define LEN_TALK                5000
 
 //--------------------------------------- debug const for talk
 #define DBG_BUFF           0x00000001
@@ -189,7 +191,11 @@ struct stcPcoData {
 	PCO_CameraType	stcPcoCamType;
 	PCO_Sensor stcPcoSensor;
 	PCO_Description	stcPcoDescriptionWin;	/* camera description structure */
-	SC2_Camera_Description_Response	stcPcoDescription;	/* camera description structure */
+	//SC2_Camera_Description_Response	stcPcoDescription;	/* camera description structure */
+	
+    SC2_Camera_Description_Response stcPcoDesc1;
+    SC2_Camera_Description_2_Response stcPcoDesc2;
+
 	PCO_Timing stcPcoTiming;
 	PCO_Storage stcPcoStorage;
 	PCO_Recording stcPcoRecording;
@@ -517,7 +523,7 @@ namespace lima
         WORD wLutActive,wLutParam;
         int board;
 
-        SC2_Camera_Description_Response description;
+        
         PCO_SC2_CL_TRANSFER_PARAM clpar;
 
         DWORD dwPixelRateActual;
@@ -558,7 +564,7 @@ namespace lima
 		const char *_pco_SetPixelRate(int &error);
 		const char *_pco_GetCOCRuntime(int &error);
 		const char *_pco_SetMetaDataMode(WORD wMetaDataMode, int &error);
-		const char *_pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error); 
+		void _pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error); 
 
 		bool _isValid_pixelRate(DWORD dwPixelRate);
 		
@@ -583,6 +589,8 @@ namespace lima
 
 		ringLog *m_msgLog;
 		ringLog *m_tmpLog;
+		char *mybla, *myblamax;
+		char *mytalk, *mytalkmax;
 
 	public:
 		int _pco_GetADCOperation(int &adc_working, int &adc_max);
@@ -606,6 +614,10 @@ namespace lima
  		void _pco_SetBinning(int &err);
  		void _pco_SetROI(int &error);
  		void _pco_SetTransferParameter_SetActiveLookupTable(int &error);
+ 		size_t _pco_GetHardwareVersion_Firmware(char *ptrOut, size_t lgMax, int &error);
+ 		void _pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &error);
+ 		void _pco_Close_Cam(int &err);
+ 		size_t _pco_roi_info(char *ptrOut, size_t lgMax, int &error);
     };
   }
 }
