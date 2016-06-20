@@ -51,8 +51,10 @@ using namespace lima::Pco;
 
 static char *timebaseUnits[] = {"ns", "us", "ms"};
 
-char *_checkLogFiles();
+//char *_checkLogFiles();
 void _pco_acq_thread_dimax(void *argin);
+void _pco_acq_thread_dimax_trig_single(void *argin);
+
 void _pco_acq_thread_dimax_live(void *argin);
 void _pco_acq_thread_ringBuffer(void *argin);
 
@@ -84,8 +86,9 @@ char* _timestamp_pcocamera() {return ID_TIMESTAMP ;}
 #include "PcoGitVersion.h"
 char * _timestamp_gitversion(char *buffVersion, int len)
 {
-	sprintf_s(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n", 
+	sprintf_s(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
 				 PCO_GIT_VERSION,
+				 PCO_SDK_VERSION,
 				 PROCLIB_GIT_VERSION,
 				 LIBCONFIG_GIT_VERSION,
 				 LIMA_GIT_VERSION,
@@ -99,6 +102,7 @@ char * _timestamp_gitversion(char *buffVersion, int len)
 char * _getComputerName(char *infoBuff, DWORD  bufCharCount);
 char * _getUserName(char *infoBuff, DWORD  bufCharCount);
 char * _getVSconfiguration(char *infoBuff, DWORD  bufCharCount);
+char * _getPcoSdkVersion(char *infoBuff, int strLen);
 
 //=========================================================================================================
 
@@ -205,6 +209,8 @@ stcPcoData::stcPcoData(){
 	ptr += sprintf_s(ptr, ptrMax - ptr, "   computer name: %s\n", _getComputerName(buff, BUFFER_LEN));
 	ptr += sprintf_s(ptr, ptrMax - ptr, "       user name: %s\n", _getUserName(buff, BUFFER_LEN));
 	ptr += sprintf_s(ptr, ptrMax - ptr, "VS configuration: %s\n", _getVSconfiguration(buff, BUFFER_LEN));
+	ptr += sprintf_s(ptr, ptrMax - ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN));
+
 
 	stcPcoGeneral.wSize = sizeof(stcPcoGeneral);
 	stcPcoGeneral.strCamType.wSize = sizeof(stcPcoGeneral.strCamType);
@@ -358,7 +364,7 @@ Camera::Camera(const char *params) :
 
 	DEB_ALWAYS()
 		<< ALWAYS_NL << DEB_VAR1(m_pcoData->version) 
-		<< ALWAYS_NL << _checkLogFiles();
+		<< ALWAYS_NL << _checkLogFiles(true);
 
 	m_bin.changed = Invalid;
 	
@@ -438,6 +444,10 @@ void Camera::_init(){
 	_pco_SetADCOperation(1, adc_working);
 	m_pcoData->wNowADC= (WORD) adc_working;
 
+	// set alignment to [LSB aligned]; all raw image data will be aligned to the LSB.
+
+	_pco_SetBitAlignment(1);
+
 		// -- Initialise size, bin, roi
 	unsigned int maxWidth, maxHeight,maxwidth_step, maxheight_step; 
 	getMaxWidthHeight(maxWidth, maxHeight);
@@ -483,6 +493,30 @@ void Camera::_init(){
 		throw LIMA_HW_EXC(Error, "Camera not found!");
 
 	_pco_initHWIOSignal(0, error);
+
+	
+	{
+		// set date/time to PCO	
+		struct tm tmNow;
+		time_t now = time(NULL);
+		int error;
+		int day, mon, year, hour, min, sec;
+
+		localtime_s(&tmNow, &now);
+
+		BYTE ucDay   = day  = tmNow.tm_mday;
+		BYTE ucMonth = mon  = tmNow.tm_mon + 1;
+		WORD wYear   = year = tmNow.tm_year + 1900;
+		WORD wHour   = hour = tmNow.tm_hour;
+		BYTE ucMin   = min  = tmNow.tm_min;
+		BYTE ucSec   = sec  = tmNow.tm_sec;
+
+		error = PcoCheckError(__LINE__, __FILE__, 
+			PCO_SetDateTime(m_handle, ucDay, ucMonth, wYear, wHour, ucMin, ucSec));
+		DEB_ALWAYS() << DEB_VAR6(day, mon, year, hour, min, sec);
+	}
+
+
 
   DEB_TRACE() << m_log;
   DEB_TRACE() << "END OF CAMERA";
@@ -638,23 +672,12 @@ void Camera::_init_edge() {
 //=========================================================================================================
 Camera::~Camera()
 {
-  DEB_DESTRUCTOR();
-  DEB_TRACE() << "~Camera";
-	int error;
-	char *msg ;
+	DEB_DESTRUCTOR();
+	DEB_ALWAYS() << "DESTRUCTOR ...................." ;
 
-  if(m_cam_connected){
-		//m_sync->_getBufferCtrlObj()->_pcoAllocBuffersFree();
-		//m_buffer->_pcoAllocBuffersFree();
-
-	}
 	m_cam_connected = false;
 
-	//m_sync->_getBufferCtrlObj()->_pcoAllocBuffersFree();
-	m_buffer->_pcoAllocBuffersFree();
-	PCO_FN1(error, msg,PCO_CloseCamera, m_handle);
-	PCO_PRINT_ERR(error, msg); 
-
+	reset(RESET_CLOSE_INTERFACE);
 }
 
 
@@ -690,7 +713,7 @@ void Camera::startAcq()
     WORD state;
     HANDLE hEvent= NULL;
 
-	DEB_ALWAYS() << fnId << " [ENTRY]" ;
+	DEB_ALWAYS() << fnId << " [ENTRY]\n" << _checkLogFiles();
 
 	int error;
 	char *msg;
@@ -699,6 +722,11 @@ void Camera::startAcq()
 
 			// live video requested frames = 0
     m_sync->getNbFrames(iRequestedFrames);
+
+	
+    TrigMode trig_mode;
+    m_sync->getTrigMode(trig_mode);
+
 
 	//SetBinning, SetROI, ARM, GetSizes, AllocateBuffer.
     //------------------------------------------------- set binning if needed
@@ -772,15 +800,25 @@ void Camera::startAcq()
     PCO_THROW_OR_TRACE(error, msg) ;
 
     // ----------------------------------------- storage mode (recorder + sequence)
-    if(_isCameraType(Dimax)) {
+//    if(_isCameraType(Dimax)) {
+    if(_isCameraType(Dimax | Pco4k | Pco2k)) {
 		
-			// live video requested frames = 0
-		enumPcoStorageMode mode = (iRequestedFrames > 0) ? RecSeq : Fifo;
+               enumPcoStorageMode mode;
+
+               if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) {
+                       mode = RecRing;
+               } else {
+                        // live video requested frames = 0
+                       mode = (iRequestedFrames > 0) ? RecSeq : Fifo;
+               }
+
+               DEB_ALWAYS() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
 
 		msg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
 		PCO_THROW_OR_TRACE(error, msg) ;
 	}
 
+#if 0
 	if(_isCameraType(Pco4k | Pco2k)) {
 			// live video requested frames = 0
 		enumPcoStorageMode mode = Fifo;
@@ -789,6 +827,7 @@ void Camera::startAcq()
 		msg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
 		PCO_THROW_OR_TRACE(error, msg) ;
 	}
+#endif
 //----------------------------------- set exposure time & delay time
 	msg = _pco_SetDelayExposureTime(error,0);   // initial set of delay (phase = 0)
 	PCO_THROW_OR_TRACE(error, msg) ;
@@ -805,6 +844,24 @@ void Camera::startAcq()
         PCO_THROW_OR_TRACE(error, "PCO_SetRecordingState") ;
 	}
 
+
+
+
+	// ----------------------------------------- set Record Stop Event (used for dimax for ExtTrigSingle)
+	if(_isCameraType(Dimax)) {
+		WORD wRecordStopEventMode;
+		DWORD dwRecordStopDelayImages;
+
+		if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) {
+			wRecordStopEventMode = 0x0002;    // record stop by edge at the <acq. enbl.>
+			dwRecordStopDelayImages = iRequestedFrames;
+			DEB_ALWAYS() << "..... PCO_SetRecordStopEvent";
+			error = PcoCheckError(__LINE__, __FILE__, PCO_SetRecordStopEvent(m_handle, wRecordStopEventMode, dwRecordStopDelayImages));
+			PCO_THROW_OR_TRACE(error, "PCO_SetRecordStopEvent") ;
+		}
+	}
+
+
 //-----------------------------------------------------------------------------------------------
 //	5. Arm the camera.
 //	6. Get the sizes and allocate a buffer:
@@ -815,8 +872,8 @@ void Camera::startAcq()
 //-----------------------------------------------------------------------------------------------
 	
 	msg = _pco_SetMetaDataMode(0, error); PCO_THROW_OR_TRACE(error, msg) ;
-  
-	//--------------------------- PREPARE / pixel rate - ARM required     
+ 
+	//--------------------------- PREPARE / pixel rate - ARM required 
 	msg = _pco_SetPixelRate(error); PCO_THROW_OR_TRACE(error, msg) ;
 		
 	//--------------------------- PREPARE / clXferParam, LUT - ARM required 
@@ -864,17 +921,24 @@ void Camera::startAcq()
 		return;
 	}
 
+#if 0
 	if(_isCameraType(Pco2k | Pco4k)){
 		_pcoSet_RecordingState(1, error);
 		_beginthread( _pco_acq_thread_ringBuffer, 0, (void*) this);
 		m_pcoData->traceAcq.msStartAcqEnd = msElapsedTime(tStart);
 		return;
 	}
+#endif
 
-	if(_isCameraType(Dimax)){
+//	if(_isCameraType(Dimax)){
+	if(_isCameraType(Dimax | Pco2k | Pco4k)){
 		_pcoSet_RecordingState(1, error);
 		if(iRequestedFrames > 0 ) {
-			_beginthread( _pco_acq_thread_dimax, 0, (void*) this);
+			if((trig_mode  == ExtTrigSingle) ) {
+				_beginthread( _pco_acq_thread_dimax_trig_single, 0, (void*) this);
+			} else {
+				_beginthread( _pco_acq_thread_dimax, 0, (void*) this);
+			}
 		} else {
 			_beginthread( _pco_acq_thread_dimax_live, 0, (void*) this);
 		}
@@ -932,12 +996,13 @@ double usElapsedTimeTicsPerSec() {
 
 }
 
+
+
 //==========================================================================================================
 //==========================================================================================================
 
 void _pco_acq_thread_dimax(void *argin) {
 	DEF_FNID;
-	printf("=== %s [%d]> %s ENTRY\n",  fnId, __LINE__,getTimestamp(Iso));
 
 	static char msgErr[LEN_ERROR_MSG+1];
 
@@ -949,6 +1014,10 @@ void _pco_acq_thread_dimax(void *argin) {
 	SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
 	//BufferCtrlObj* m_buffer = m_sync->_getBufferCtrlObj();
 	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
+
+	char _msg[LEN_MSG + 1];
+    sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
+	m_cam->_traceMsg(_msg);
 
 	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
 	//m_pcoData->traceAcqClean();
@@ -1023,7 +1092,7 @@ void _pco_acq_thread_dimax(void *argin) {
 
 		if((timeout < msNowRecordLoop) && !m_pcoData->bExtTrigEnabled) { 
 			//m_sync->setExposing(pcoAcqRecordTimeout);
-			m_sync->stopAcq();
+			//m_sync->stopAcq();
 			m_sync->setExposing(pcoAcqStop);
 			printf("=== %s [%d]> TIMEOUT!!! tout[(%ld) 0(%ld)] recLoopTime[%ld ms] lastImgRecorded[%ld] nrImgRequested[%d]\n", 
 				fnId, __LINE__, timeout, timeout0, msNowRecordLoop, _dwValidImageCnt, nb_frames);
@@ -1131,15 +1200,221 @@ void _pco_acq_thread_dimax(void *argin) {
 	m_pcoData->traceAcq.endXferTimestamp = m_pcoData->msAcqXferTimestamp = getTimestamp();
 
 
-	printf("=== %s [%d]> EXIT imgRecorded[%d] coc[%g] recLoopTime[%ld] "
+	sprintf_s(_msg, LEN_MSG, "%s [%d]> [EXIT] imgRecorded[%d] coc[%g] recLoopTime[%ld] "
 			"tout[(%ld) 0(%ld)] rec[%ld] xfer[%ld] all[%ld](ms)\n", 
 			fnId, __LINE__, _dwValidImageCnt, msPerFrame, msNowRecordLoop, timeout, timeout0, msRecord, msXfer, msTotal);
+	m_cam->_traceMsg(_msg);
 
 	// included in 34a8fb6723594919f08cf66759fe5dbd6dc4287e only for dimax (to check for others)
 	m_sync->setStarted(false);
 
 	_endthread();
 }
+
+//==========================================================================================================
+//==========================================================================================================
+
+void _pco_acq_thread_dimax_trig_single(void *argin) {
+	DEF_FNID;
+	printf("=== %s [%d]> %s ENTRY\n",  fnId, __LINE__,getTimestamp(Iso));
+
+	static char msgErr[LEN_ERROR_MSG+1];
+
+	int error;
+	int _nrStop;
+	DWORD _dwValidImageCnt, _dwMaxImageCnt;
+
+	Camera* m_cam = (Camera *) argin;
+	SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
+	//BufferCtrlObj* m_buffer = m_sync->_getBufferCtrlObj();
+	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
+
+	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
+	//m_pcoData->traceAcqClean();
+	m_pcoData->traceAcq.fnId = fnId;
+
+	char *msg;
+	struct __timeb64 tStart, tStart0;
+	msElapsedTimeSet(tStart);
+	tStart0 = tStart;
+
+	long timeout, timeout0, msNowRecordLoop, msRecord, msXfer, msTotal;
+	int nb_acq_frames;
+	int requestStop = stopNone;
+
+	HANDLE m_handle = m_cam->getHandle();
+
+	WORD wSegment = m_cam->pcoGetActiveRamSegment(); 
+	double msPerFrame = (m_cam->pcoGetCocRunTime() * 1000.);
+	m_pcoData->traceAcq.msImgCoc = msPerFrame;
+
+	//DWORD dwMsSleepOneFrame = (DWORD) (msPerFrame + 0.5);	// 4/5 rounding
+	DWORD dwMsSleepOneFrame = (DWORD) (msPerFrame/5.0);	// 4/5 rounding
+	if(dwMsSleepOneFrame == 0) dwMsSleepOneFrame = 1;		// min sleep
+
+	bool nb_frames_fixed = false;
+	int nb_frames; 	m_sync->getNbFrames(nb_frames);
+	//m_pcoData->traceAcq.nrImgRequested = nb_frames;
+	m_pcoData->traceAcq.nrImgRequested0 = nb_frames;
+
+	m_sync->setAcqFrames(0);
+
+	timeout = timeout0 = (long) (msPerFrame * (nb_frames * 1.3));	// 30% guard
+	if(timeout < TOUT_MIN_DIMAX) timeout = TOUT_MIN_DIMAX;
+    
+	m_pcoData->traceAcq.msTout = m_pcoData->msAcqTout = timeout;
+	_dwValidImageCnt = 0;
+
+	m_sync->getExpTime(m_pcoData->traceAcq.sExposure);
+	m_sync->getLatTime(m_pcoData->traceAcq.sDelay);
+
+	m_sync->setExposing(pcoAcqRecordStart);
+
+		msg = m_cam->_PcoCheckError(__LINE__, __FILE__, 
+					PCO_GetNumberOfImagesInSegment(m_handle, wSegment, &_dwValidImageCnt, &_dwMaxImageCnt), error);
+		if(error) {
+			printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
+			throw LIMA_HW_EXC(Error, "PCO_GetNumberOfImagesInSegment");
+		}
+		m_pcoData->dwValidImageCnt[wSegment-1] = 
+			m_pcoData->traceAcq.nrImgRecorded = _dwValidImageCnt;
+	 	m_pcoData->dwMaxImageCnt[wSegment-1] =
+			m_pcoData->traceAcq.maxImgCount = _dwMaxImageCnt;
+
+		bool doWhile =true;
+
+		if( ((DWORD) nb_frames > _dwMaxImageCnt) ){
+			nb_frames_fixed = true;
+			
+			sprintf_s(msgErr,LEN_ERROR_MSG, 
+				"=== %s [%d]> ERROR INVALID NR FRAMES fixed nb_frames[%d] _dwMaxImageCnt[%d]", 
+				fnId, __LINE__, nb_frames, _dwMaxImageCnt);
+			printf("%s\n", msgErr);
+
+			m_sync->setExposing(pcoAcqError);
+			doWhile = false;
+		}
+
+
+
+
+	while(doWhile) {
+		WORD wRecState_actual;
+
+		m_pcoData->msAcqTnow = msNowRecordLoop = msElapsedTime(tStart);
+		m_pcoData->traceAcq.msRecordLoop = msNowRecordLoop;
+		
+
+		msg = m_cam->_PcoCheckError(__LINE__, __FILE__, 
+			PCO_GetRecordingState(m_handle, &wRecState_actual), error);
+		if(error) {
+			printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
+			throw LIMA_HW_EXC(Error, "PCO_GetRecordingState");
+		}
+		
+		if(wRecState_actual == 0) break;
+
+		if((requestStop = m_sync->_getRequestStop(_nrStop))  == stopRequest) {
+			m_sync->_setRequestStop(stopNone);
+		
+			char msg[LEN_TRACEACQ_MSG+1];
+				//m_buffer->_setRequestStop(stopProcessing);
+				//m_sync->setExposing(pcoAcqStop);
+				
+			snprintf(msg,LEN_TRACEACQ_MSG, "=== %s> STOP REQ (recording). lastImgRec[%d]\n", fnId, _dwValidImageCnt);
+				printf(msg);
+				m_pcoData->traceMsg(msg);
+				break;
+		}
+		Sleep(dwMsSleepOneFrame);	// sleep 1 frame
+	} // while(true)
+
+	m_pcoData->msAcqTnow = msNowRecordLoop = msElapsedTime(tStart);
+	m_pcoData->traceAcq.msRecordLoop = msNowRecordLoop;
+
+	msg = m_cam->_pcoSet_RecordingState(0, error);
+	if(error) {
+		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
+		throw LIMA_HW_EXC(Error, "_pcoSet_RecordingState");
+	}
+
+	if(!nb_frames_fixed) {
+		if(m_sync->getExposing() == pcoAcqRecordStart) m_sync->setExposing(pcoAcqRecordEnd);
+
+		msg = m_cam->_PcoCheckError(__LINE__, __FILE__, 
+			PCO_GetNumberOfImagesInSegment(m_handle, wSegment, &_dwValidImageCnt, &_dwMaxImageCnt), error);
+		if(error) {
+			printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
+			throw LIMA_HW_EXC(Error, "PCO_GetNumberOfImagesInSegment");
+		}
+
+		m_pcoData->dwValidImageCnt[wSegment-1] = 
+			m_pcoData->traceAcq.nrImgRecorded = _dwValidImageCnt;
+
+		nb_acq_frames = (_dwValidImageCnt < (DWORD) nb_frames) ? _dwValidImageCnt : nb_frames;
+		//m_sync->setAcqFrames(nb_acq_frames);
+
+		// dimax recording time
+		m_pcoData->msAcqRec = msRecord = msElapsedTime(tStart);
+		m_pcoData->traceAcq.msRecord = msRecord;    // loop & stop record
+		
+		m_pcoData->traceAcq.endRecordTimestamp = m_pcoData->msAcqRecTimestamp = getTimestamp();
+		
+		m_pcoData->traceAcq.nrImgAcquired = nb_acq_frames;
+		m_pcoData->traceAcq.nrImgRequested = nb_frames;
+
+		msElapsedTimeSet(tStart);  // reset for xfer
+
+
+		if(nb_acq_frames < nb_frames) m_sync->setNbFrames(nb_acq_frames);
+
+//		if(m_buffer->_getRequestStop()) {
+//			m_sync->setExposing(pcoAcqStop);
+//		} else 
+		
+		// --- in case of stop request during the record phase, the transfer
+		// --- is made to avoid lose the image recorded
+		{
+			pcoAcqStatus status;
+
+			status = (pcoAcqStatus) m_buffer->_xferImag_getImage();
+
+			if(nb_frames_fixed) status = pcoAcqError;
+			m_sync->setExposing(status);
+
+		}
+
+	} // if nb_frames_fixed
+	
+	
+	
+	//m_sync->setExposing(status);
+	m_pcoData->dwMaxImageCnt[wSegment-1] =
+			m_pcoData->traceAcq.maxImgCount = _dwMaxImageCnt;
+
+	// traceAcq info - dimax xfer time
+	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
+	m_pcoData->traceAcq.msXfer = msXfer;
+
+	m_pcoData->msAcqAll = msTotal = msElapsedTime(tStart0);
+	m_pcoData->traceAcq.msTotal= msTotal;
+
+	m_pcoData->traceAcq.endXferTimestamp = m_pcoData->msAcqXferTimestamp = getTimestamp();
+
+
+	printf("=== %s [%d]> EXIT nb_frames_requested[%d] _dwValidImageCnt[%d] _dwMaxImageCnt[%d] coc[%g] recLoopTime[%ld] "
+			"tout[(%ld) 0(%ld)] rec[%ld] xfer[%ld] all[%ld](ms)\n", 
+			fnId, __LINE__, nb_frames, _dwValidImageCnt, _dwMaxImageCnt, msPerFrame, msNowRecordLoop, 
+				timeout, timeout0, msRecord, msXfer, msTotal);
+
+	// included in 34a8fb6723594919f08cf66759fe5dbd6dc4287e only for dimax (to check for others)
+	m_sync->setStarted(false);
+
+	_endthread();
+}
+
+//==========================================================================================================
+//==========================================================================================================
 
 //==========================================================================================================
 //==========================================================================================================
@@ -1166,13 +1441,20 @@ void _pco_shutter_thread_edge(void *argin) {
 	DEF_FNID;
 	int error;
 
-	printf("=== %s %s> ENTRY\n", fnId, getTimestamp(Iso));
 
 	Camera* m_cam = (Camera *) argin;
 	SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
+
+	char _msg[LEN_MSG + 1];
+	sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
+	m_cam->_traceMsg(_msg);
+
+
 	m_cam->_pco_set_shutter_rolling_edge(error);
 
-	printf("=== %s> EXIT\n", fnId);
+
+	sprintf_s(_msg, LEN_MSG, "%s> [EXIT]", fnId);
+	m_cam->_traceMsg(_msg);
 
 	m_sync->setStarted(false); // to test
 
@@ -1186,13 +1468,15 @@ void _pco_shutter_thread_edge(void *argin) {
 void _pco_acq_thread_edge(void *argin) {
 	DEF_FNID;
 
-
-	printf("=== %s> ENTRY\n", fnId);
-
 	Camera* m_cam = (Camera *) argin;
 	SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
 	//BufferCtrlObj* m_buffer = m_sync->_getBufferCtrlObj();
 	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
+
+	char _msg[LEN_MSG + 1];
+	sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
+	m_cam->_traceMsg(_msg);
+
 
 	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
 
@@ -1222,8 +1506,10 @@ void _pco_acq_thread_edge(void *argin) {
 	m_pcoData->traceAcq.fnId = fnId;
 
 	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
-	printf("=== %s> EXIT xfer[%ld] (ms) status[%s]\n", 
+	sprintf_s(_msg, LEN_MSG, "%s> [EXIT] xfer[%ld] (ms) status[%s]\n", 
 			fnId, msXfer, sPcoAcqStatus[status]);
+	m_cam->_traceMsg(_msg);
+
 
 	
 	m_sync->setStarted(false); // updated
@@ -1237,12 +1523,14 @@ void _pco_acq_thread_edge(void *argin) {
 void _pco_acq_thread_dimax_live(void *argin) {
 	DEF_FNID;
 
-	printf("=== %s> ENTRY\n", fnId);
-
 	Camera* m_cam = (Camera *) argin;
 	SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
 	//BufferCtrlObj* m_buffer = m_sync->_getBufferCtrlObj();
 	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
+
+	char _msg[LEN_MSG + 1];
+    sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
+	m_cam->_traceMsg(_msg);
 
 	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
 
@@ -1263,7 +1551,7 @@ void _pco_acq_thread_dimax_live(void *argin) {
 
 	pcoAcqStatus status = (pcoAcqStatus) m_buffer->_xferImag();
 	m_sync->setExposing(status);
-	m_sync->stopAcq();
+	//m_sync->stopAcq();
 	char *msg = m_cam->_pcoSet_RecordingState(0, error);
 	if(error) {
 		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
@@ -1273,8 +1561,9 @@ void _pco_acq_thread_dimax_live(void *argin) {
 	// dimax xfer time
 	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
 	m_pcoData->msAcqXferTimestamp = getTimestamp();
-	printf("=== %s> EXIT xfer[%ld] (ms) status[%s]\n", 
+	sprintf_s(_msg, LEN_MSG, "%s> [EXIT] xfer[%ld] (ms) status[%s]\n", 
 			fnId, msXfer, sPcoAcqStatus[status]);
+	m_cam->_traceMsg(_msg);
 
 	m_sync->setStarted(false); // to test
 
@@ -1285,12 +1574,12 @@ void _pco_acq_thread_dimax_live(void *argin) {
 //=====================================================================
 void _pco_acq_thread_ringBuffer(void *argin) {
 	DEF_FNID;
-	char _msg[LEN_MSG + 1];
 
 	Camera* m_cam = (Camera *) argin;
 	SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
 	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
 
+	char _msg[LEN_MSG + 1];
 	sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
 	m_cam->_traceMsg(_msg);
 
@@ -1390,15 +1679,39 @@ void _pco_acq_thread_ringBuffer(void *argin) {
 
 //=====================================================================
 //=====================================================================
-void Camera::reset()
+
+
+//=====================================================================
+//=====================================================================
+void Camera::reset(int reset_level)
 {
-  DEB_MEMBER_FUNCT();
+	DEB_MEMBER_FUNCT();
+	int error;
+	char *msg;
 
-  DEB_ALWAYS() << "\n   RESET -----------\n";
-  //_init();
+
+	switch(reset_level) 
+	{
+	case RESET_CLOSE_INTERFACE: 
+		DEB_ALWAYS() << "\n... RESET - freeBuff, closeCam, resetLib  " << DEB_VAR1(reset_level) ;
+
+		m_buffer->_pcoAllocBuffersFree();
+
+		PCO_FN1(error, msg,PCO_CloseCamera, m_handle);
+		PCO_PRINT_ERR(error, msg); 
+		m_handle = 0;
+
+		PCO_FN0(error, msg,PCO_ResetLib);
+		PCO_PRINT_ERR(error, msg); 
+		break;
+
+	default:
+		DEB_ALWAYS() << "\n... RESET -  " << DEB_VAR1(reset_level);
+		//_init();
+		break;
+	}
+
 }
-
-
 
 //=========================================================================================================
 //=========================================================================================================
@@ -1570,19 +1883,32 @@ char * Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 //      . camera records continuously into ring buffer
 //      . if the allocated buffer overflows, the oldest images are overwritten
 //      . recording is stopped by software or disabling acquire signal (<acq enbl>)
+//
+// for the case of ExtTrigSingle (dimax) we use RecRing
+//    case RecRing
+//       StorageMode 0 - record mode
+//       RecorderSubmode 1 - ring buffer
+//  Triggermode 0 - auto
+//  Acquiremode 0 - auto / ignored
+//=================================================================================================
+//=================================================================================================
+// sets storage mode and subrecord mode
+//    PCO_SetStorageMode
+//    PCO_SetRecorderSubmode
 //=================================================================================================
 char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode mode, int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-	char *msg;
+	char *msg, *sMode;
 
 	switch(mode) {
-		case RecSeq:  m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 0; break;
-		case RecRing: m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 1; break;
-		case Fifo:    m_pcoData->storage_mode = 1; m_pcoData->recorder_submode = 0; break;
+		case RecSeq:  m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 0; sMode = "RecSeq" ; break;
+		case RecRing: m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 1; sMode = "RecRing" ;  break;
+		case Fifo:    m_pcoData->storage_mode = 1; m_pcoData->recorder_submode = 0;  sMode = "Fifo" ; break;
 		default: 
 			throw LIMA_HW_EXC(Error,"FATAL - invalid storage mode!" );
 	}
+    DEB_ALWAYS() << "\n>>> storage/recorder mode: " << DEB_VAR2(sMode, mode) ;
 
     PCO_FN2(error, msg,PCO_SetStorageMode, m_handle, m_pcoData->storage_mode);
 	if(error) return msg;
@@ -1614,10 +1940,14 @@ int Camera::_pco_GetStorageMode_GetRecorderSubmode(){
 		    PCO_THROW_OR_TRACE(error, msg) ;
 	}
 
-	if((wStorageMode == 0) && (wRecSubmode == 0)) return RecSeq;
-	if((wStorageMode == 0) && (wRecSubmode == 1)) return RecRing;
-	if((wStorageMode == 1) && (wRecSubmode == 0)) return Fifo;
+	m_pcoData->storage_mode = wStorageMode;
+	m_pcoData->recorder_submode = wRecSubmode;
 
+	if((wStorageMode == 0) && (wRecSubmode == 0)) { m_pcoData->storage_str= "RecSeq"; return RecSeq; }
+	if((wStorageMode == 0) && (wRecSubmode == 1)) { m_pcoData->storage_str= "RecRing"; return RecRing; }
+	if((wStorageMode == 1) && (wRecSubmode == 0)) { m_pcoData->storage_str= "Fifo"; return Fifo; }
+
+	m_pcoData->storage_str= "INVALID"; 
 	return RecInvalid;
 }
 
@@ -1768,7 +2098,7 @@ char *Camera::_pco_SetCamLinkSetImageParameters(int &error){
 
 	// camLink -> imgPar
 	// GigE    -> imgPar 
-	switch (m_pcoData->stcPcoCamType.wInterfaceType) {
+	switch (_getInterfaceType()) {
         case INTERFACE_CAMERALINK: 
 		case INTERFACE_ETHERNET:
 		    WORD wXres, wYres;
@@ -1808,7 +2138,7 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 	// PCO_SetTransferParameter
 	//================================================================================================
 
-	if (m_pcoData->stcPcoCamType.wInterfaceType==INTERFACE_CAMERALINK) 
+	if (_getInterfaceType()==INTERFACE_CAMERALINK) 
 	{
 		PCO_FN3(error, pcoFn,PCO_GetTransferParameter, m_handle, &m_pcoData->clTransferParam, sizeof(PCO_SC2_CL_TRANSFER_PARAM));
 		PCO_THROW_OR_TRACE(error, pcoFn) ;
@@ -1935,13 +2265,13 @@ char *Camera::_pco_GetCameraType(int &error){
 		strcpy_s(m_pcoData->model, MODEL_TYPE_SIZE, ptr);
 		errTot |= error;
 
-		ptr = xlatPcoCode2Str(m_pcoData->stcPcoCamType.wInterfaceType, InterfaceType, error);
-		strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
+		ptr = xlatPcoCode2Str(_getInterfaceType(), InterfaceType, error);
+		strcpy_s(_getInterfaceTypePtr(), INTERFACE_TYPE_SIZE, ptr);
 		errTot |= error;
 
 		sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s %s (SN %d)", 
-			m_pcoData->model, m_pcoData->iface, m_pcoData->stcPcoCamType.dwSerialNumber);
-		DEB_ALWAYS() <<  DEB_VAR3(m_pcoData->model, m_pcoData->iface, m_pcoData->camera_name);
+			m_pcoData->model, _getInterfaceTypePtr(), m_pcoData->stcPcoCamType.dwSerialNumber);
+		DEB_ALWAYS() <<  DEB_VAR3(m_pcoData->model, _getInterfaceTypePtr(), m_pcoData->camera_name);
 
 		if(errTot) return m_pcoData->camera_name;
 
@@ -2869,22 +3199,23 @@ void Camera::_get_XYsteps(Point &xy_steps){
 void Camera::_presetPixelRate(DWORD &pixRate, int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-#ifndef WITH_MAVEN_COMPILATION       
-    if(!_isCameraType(Edge) || !_isValid_pixelRate(pixRate)) {
-        pixRate = 0;
-        error = -1;
-        return;
-    }
-#else
-    if(!_isCameraType(Edge | Pco2k | Pco4k)|| !_isValid_pixelRate(pixRate)) {
-        pixRate = 0;
-        error = -1;
-        return;
-    }    
-#endif    
 
-		m_pcoData->dwPixelRateRequested = pixRate;
-		error = 0;
+	if(! (_isCameraType(Edge) || _isCameraType(Pco2k) || _isCameraType(Pco4k)) ) {
+		DEB_ALWAYS() << "WARNING - this camera doesn't allows setPixelRate"  ;
+		pixRate = 0;
+		error = -1;
+		return;
+	}
+
+	if(!_isValid_pixelRate(pixRate)) {
+		DEB_ALWAYS() << "INVALID requested pixel Rate" << DEB_VAR1(pixRate)  ;
+		pixRate = 0;
+		error = -1;
+		return;
+	}
+
+	m_pcoData->dwPixelRateRequested = pixRate;
+	error = 0;
 }
 
 
@@ -2965,9 +3296,9 @@ char *Camera::_pco_SetPixelRate(int &error){
 	DEF_FNID;
 	error = 0;
 	char *msg;
+	DWORD _dwPixelRate, _dwPixelRateOld, _dwPixelRateReq, _dwPixelRateMax;
 
 	if(_isCameraType(Edge)) {
-		DWORD _dwPixelRate, _dwPixelRateOld, _dwPixelRateReq;
 
 		PCO_FN2(error, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
 		PCO_THROW_OR_TRACE(error, msg) ;
@@ -2994,18 +3325,20 @@ char *Camera::_pco_SetPixelRate(int &error){
 	}
 
 	if(_isCameraType(Pco2k | Pco4k)) {
-		DWORD _dwPixelRate, _dwPixelRateOld, _dwPixelRateMax;
 
 		PCO_FN2(error, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
 		PCO_THROW_OR_TRACE(error, msg) ;
 
 		_dwPixelRateOld = m_pcoData->dwPixelRate;
 		_dwPixelRateMax = m_pcoData->dwPixelRateMax;
-		DEB_ALWAYS() << "PIXEL rate (actual/max): " << DEB_VAR2(_dwPixelRateOld, _dwPixelRateMax) ;
+		_dwPixelRateReq = m_pcoData->dwPixelRateRequested;
 
-		if(_dwPixelRateMax > _dwPixelRateOld) {
+		DEB_ALWAYS() << "PIXEL rate (requested/actual/max): " << DEB_VAR3(_dwPixelRateReq, _dwPixelRateOld, _dwPixelRateMax) ;
 
-			PCO_FN2(error, msg,PCO_SetPixelRate, m_handle, _dwPixelRateMax);
+		if(_isValid_pixelRate(_dwPixelRateReq) && (_dwPixelRateOld != _dwPixelRateReq)) {
+		//if(_dwPixelRateMax > _dwPixelRateOld) {
+
+			PCO_FN2(error, msg,PCO_SetPixelRate, m_handle, _dwPixelRateReq);
 			PCO_THROW_OR_TRACE(error, msg) ;
 
 			PCO_FN2(error, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
@@ -3019,6 +3352,72 @@ char *Camera::_pco_SetPixelRate(int &error){
 		return fnId;
 	}
 return fnId;
+}
+//=================================================================================================
+//=================================================================================================
+int Camera::_pco_GetBitAlignment(int &alignment){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	int error = 0;
+	char *msg;
+	WORD wBitAlignment;
+
+	PCO_FN2(error, msg,PCO_GetBitAlignment, m_handle, &wBitAlignment);
+	PCO_THROW_OR_TRACE(error, msg) ;
+
+	
+	alignment = m_pcoData->wBitAlignment = wBitAlignment;
+
+	return error;
+}
+
+//=================================================================================================
+//=================================================================================================
+WORD Camera::_getInterfaceType(){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	return m_pcoData->stcPcoCamType.wInterfaceType;
+}
+
+char *Camera::_getInterfaceTypePtr(){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	return m_pcoData->iface;
+}
+
+
+//=================================================================================================
+//=================================================================================================
+
+
+//=================================================================================================
+//=================================================================================================
+
+// wBitAlignment:
+// - 0x0000 = [MSB aligned]; all raw image data will be aligned to the MSB. This is thedefault setting.
+// - 0x0001 = [LSB aligned]; all raw image data will be aligned to the LSB.
+
+int Camera::_pco_SetBitAlignment(int alignment){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	int error = 0;
+	int alignment1;
+	char *msg;
+	WORD wBitAlignment;
+
+	if((alignment <0) ||(alignment >1)){
+		DEB_ALWAYS() << "ERROR - invalid value " << DEB_VAR1(alignment);
+		return -1;
+	}
+
+	wBitAlignment = int(alignment);
+
+	PCO_FN2(error, msg,PCO_SetBitAlignment, m_handle, wBitAlignment);
+	PCO_THROW_OR_TRACE(error, msg) ;
+
+	
+	return _pco_GetBitAlignment(alignment1);
+
 }
 //=================================================================================================
 //=================================================================================================

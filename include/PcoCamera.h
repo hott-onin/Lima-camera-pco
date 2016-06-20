@@ -31,7 +31,7 @@
 //#include "PcoBufferCtrlObj.h"
 #include "PcoHwEventCtrlObj.h"
 
-
+#define RESET_CLOSE_INTERFACE	100
 #define DISABLE_ACQ_ENBL_SIGNAL
 
 #define BUFF_VERSION 2048
@@ -203,6 +203,7 @@ struct stcPcoData {
   	bool		bExtTrigEnabled;
   	WORD		storage_mode;
   	WORD		recorder_submode;
+	char * storage_str;
 	unsigned long	frames_per_buffer; 
     DWORD   dwRamSize;
     WORD    wPixPerPage;
@@ -270,9 +271,14 @@ struct stcPcoData {
 	double min_lat_time, min_lat_time_err, step_lat_time;
 	double max_lat_time, max_lat_time_err;
 	
+	WORD wBitAlignment; // 0 = MSB (left) alignment
+	
 	stcPcoData();
 	void traceAcqClean();
 	void traceMsg(char *s);
+
+	int testForceFrameFirst0;
+	bool pcoLogActive;
 };
 
 enum enumChange {
@@ -339,7 +345,7 @@ namespace lima
         ~Camera();
 
         void 	startAcq();
-        void	reset();
+        void	reset(int reset_level);
 
 		HANDLE& getHandle() {return m_handle;}
 
@@ -471,6 +477,12 @@ namespace lima
 		int _pco_GetADCOperation(int &adc_working, int &adc_max);
 		int _pco_SetADCOperation(int adc_new, int &adc_working);
 		int _pco_GetImageTiming(double &frameTime, double &expTime, double &sysDelay, double &sysJitter, double &trigDelay );
+		int _pco_GetBitAlignment(int &alignment);
+		int _pco_SetBitAlignment(int alignment);
+		char *_checkLogFiles(bool firstCall = false);
+		char *_camInfo(char *ptr, char *ptrMax, long long int flag);
+		WORD _getInterfaceType();
+		char *_getInterfaceTypePtr();
 
     };
   }
