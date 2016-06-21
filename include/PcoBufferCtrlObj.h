@@ -107,6 +107,7 @@ namespace lima
 		void * _getLimaBuffer(int lima_buffer_nb, Sync::Status &status);
 		void _pcoAllocBuffersFree();
 		void _pcoAllocBuffersInfo(int &nr, DWORD &size);
+		void *_getFrameBufferPtr(int nb_frame, int &nb_allocated_buffers);
 
 	
 

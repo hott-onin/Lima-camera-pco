@@ -617,12 +617,15 @@ void SyncCtrlObj::stopAcq(bool clearQueue)
 }
 //=========================================================================================================
 //=========================================================================================================
+#if 0
 void SyncCtrlObj::getStatus(HwInterface::StatusType& status)
 {
 	// DONE
 	bool _started = getStarted();
   DEB_MEMBER_FUNCT();
 DEB_TRACE() << DEB_VAR3(_started, m_buffer, m_exposing);
+
+
  //DEF_FNID;
   if(_started){
       if(m_buffer){
@@ -668,6 +671,7 @@ DEB_TRACE() << DEB_VAR3(_started, m_buffer, m_exposing);
 
   DEB_RETURN() << DEB_VAR1(status);
 }
+#endif
 
 //=========================================================================================================
 //=========================================================================================================

@@ -202,6 +202,13 @@ typedef int tPvErr;
 		} \
 }
 
+#define PCO_CHECK_ERROR1(__err__ , __comments__)  \
+{ \
+		if(__err__) \
+		{ \
+			__err__ = m_cam.PcoCheckError(__LINE__, __FILE__, __err__, fnId , __comments__); \
+		} \
+}
 
 
 // ----- PCO FUNCTIONS

@@ -411,6 +411,7 @@ namespace lima
         Camera(const char *camPar);
         ~Camera();
 
+    enum Status {Fault,Ready,Exposure,Readout,Latency,Config};
 
 //------ linux sdk [begin]
   	CPco_com *camera;
@@ -485,6 +486,9 @@ namespace lima
         const char *_getCameraSubTypeStr();
 
 	private:
+        class _AcqThread;
+        friend class _AcqThread;
+
         bool m_cam_connected;
 		int	m_acq_frame_nb;
 		SyncCtrlObj*	m_sync;
@@ -500,6 +504,11 @@ namespace lima
 		struct stcPcoData *m_pcoData;
 
 		Cond m_cond;
+	    _AcqThread*                   m_acq_thread;
+    
+        volatile bool               m_wait_flag;
+        volatile bool               m_quit;
+        volatile bool               m_thread_running;
 	
 		int m_pcoError;
 
@@ -522,6 +531,7 @@ namespace lima
         DWORD serialnumber;
         WORD wLutActive,wLutParam;
         int board;
+        Camera::Status m_status;
 
         
         PCO_SC2_CL_TRANSFER_PARAM clpar;
@@ -618,6 +628,8 @@ namespace lima
  		void _pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &error);
  		void _pco_Close_Cam(int &err);
  		size_t _pco_roi_info(char *ptrOut, size_t lgMax, int &error);
+ 		void getStatus(Camera::Status& status);
+ 		void _setStatus(Camera::Status status,bool force);
     };
   }
 }

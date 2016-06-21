@@ -144,6 +144,7 @@ void Interface::stopAcq()
 
 //=========================================================================================================
 //=========================================================================================================
+#if 0
 void Interface::getStatus(StatusType& status)
 {
   DEB_MEMBER_FUNCT();
@@ -156,6 +157,39 @@ void Interface::getStatus(StatusType& status)
 	}
 	DEB_RETURN() << DEB_VAR1(status);
 }
+#endif
+
+
+void Interface::getStatus(StatusType& status)
+{
+
+  DEB_MEMBER_FUNCT();
+  
+  Camera::Status _status = Camera::Ready;
+  m_cam->getStatus(_status);
+  switch (_status)
+    {
+    case Camera::Fault:
+      status.set(HwInterface::StatusType::Fault);   // 0
+      break;
+    case Camera::Ready:
+      status.set(HwInterface::StatusType::Ready);   // 1
+      break;
+    case Camera::Exposure:
+      status.set(HwInterface::StatusType::Exposure);   // 2
+      break;
+    case Camera::Readout:
+      status.set(HwInterface::StatusType::Readout);   // 3
+      break;
+    case Camera::Latency:
+      status.set(HwInterface::StatusType::Latency);   // 4
+      break;
+    case Camera::Config:
+      status.set(HwInterface::StatusType::Config);   // 5
+      break;
+    }
+}
+
 
 //=========================================================================================================
 //=========================================================================================================

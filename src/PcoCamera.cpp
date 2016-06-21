@@ -119,7 +119,46 @@ DWORD PCO_ResetLib() {return 0;}
 //int PCO_GetRecordingStruct(HANDLE ph, PCO_Recording* strRecording){return 1;}
 //int PCO_GetSensorStruct(HANDLE ph, PCO_Sensor* strSensor){return 1;}
 
+//=================================================================================================
+//=================================================================================================
+//---------------------------
+//- utility thread
+//---------------------------
 
+class Camera::_AcqThread : public Thread
+{
+    DEB_CLASS_NAMESPC(DebModCamera, "Camera", "_AcqThread");
+    public:
+        _AcqThread(Camera &aCam);
+    virtual ~_AcqThread();
+    
+    protected:
+        virtual void threadFunction();
+    
+    private:
+        Camera&    m_cam;
+};
+
+//=========================================================================================================
+//=========================================================================================================
+int image_nr_from_timestamp(void *buf,int shift)
+{
+    unsigned short *b;
+    int y;
+    int image_nr=0;
+    b=(unsigned short *)(buf);
+    y=100*100*100;
+    for(;y>0;y/=100)
+    {
+        *b>>=shift;
+        image_nr+= (((*b&0x00F0)>>4)*10 + (*b&0x000F))*y;
+        b++;
+    }
+    return image_nr;
+}
+
+
+//=========================================================================================================
 //=========================================================================================================
 const char* _timestamp_pcocamera() {return ID_TIMESTAMP_M ;}
 
@@ -461,6 +500,9 @@ Camera::Camera(const char *params)
     camera = NULL;
     grabber = NULL;
     
+    m_quit = false;
+    m_wait_flag = true;
+    
 	//delay_time = exp_time = 0;
 	
 	mylog = new CPco_Log("pco_edge_grab.log");
@@ -469,6 +511,7 @@ Camera::Camera(const char *params)
 	m_config = TRUE;
 	DebParams::checkInit();
 
+	_setStatus(Camera::Config,true);
 	
 	m_msgLog = new ringLog(300) ;
 	m_tmpLog = new ringLog(300) ;
@@ -510,7 +553,16 @@ Camera::Camera(const char *params)
 	m_bin.changed = Invalid;
 	
 	_init();
+	
+    DEB_ALWAYS() << "... new _AcqThread";
+    m_acq_thread = new _AcqThread(*this);
+    DEB_ALWAYS() << "... start";
+    m_acq_thread->start();
+    DEB_ALWAYS() << "... exit";
+	
 	m_config = FALSE;
+	_setStatus(Camera::Ready,true);
+
 }
 
 
@@ -877,6 +929,10 @@ Camera::~Camera()
 	DEB_DESTRUCTOR();
 	DEB_ALWAYS() << "DESTRUCTOR ...................." ;
 
+    delete m_acq_thread;
+    m_acq_thread = NULL;
+
+
 	m_cam_connected = false;
 
 	reset(RESET_CLOSE_INTERFACE);
@@ -966,6 +1022,7 @@ void Camera::prepareAcq()
 	//--------------------------- PREPARE / clXferParam, LUT - ARM required 
 	_pco_SetTransferParameter_SetActiveLookupTable(error); PCO_THROW_OR_TRACE(error, msg) ;
 
+    
 
 
 	DEB_ALWAYS() << fnId << " [EXIT]" ;
@@ -990,66 +1047,20 @@ void Camera::startAcq()
 
 //=====================================================================
 	DEF_FNID;
-    WORD state;
+    //WORD state;
     //HANDLE hEvent= NULL;
 
 	DEB_ALWAYS() << fnId << " [ENTRY]" ;
 
-	int error;
-	const char *msg;
+	//int error;
+	//const char *msg;
 
     int iRequestedFrames;
 
 			// live video requested frames = 0
     m_sync->getNbFrames(iRequestedFrames);
 
-	//SetBinning, SetROI, ARM, GetSizes, AllocateBuffer.
 
-    //------------------------------------------------- set binning if needed
-    _pco_SetBinning(error);
-
-    //------------------------------------------------- set roi if needed
-    _pco_SetROI(error);
-
-	//------------------------------------------------- triggering mode 
-    //------------------------------------- acquire mode : ignore or not ext. signal
-	msg = _pco_SetTriggerMode_SetAcquireMode(error);
-    PCO_THROW_OR_TRACE(error, msg) ;
-
-    // ----------------------------------------- storage mode (recorder + sequence)
-    if(_isCameraType(Dimax)) {
-		
-			// live video requested frames = 0
-		enumPcoStorageMode mode = (iRequestedFrames > 0) ? RecSeq : Fifo;
-
-		msg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
-		PCO_THROW_OR_TRACE(error, msg) ;
-	}
-
-	if(_isCameraType(Pco4k | Pco2k)) {
-			// live video requested frames = 0
-		enumPcoStorageMode mode = Fifo;
-		DEB_ALWAYS() << "PcoStorageMode mode - PCO2K / 4K: " << DEB_VAR1(mode);
-
-		msg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
-		PCO_THROW_OR_TRACE(error, msg) ;
-	}
-
-    //----------------------------------- set exposure time & delay time
-	_pco_SetDelayExposureTime(error,0);   // initial set of delay (phase = 0)
-	PCO_THROW_OR_TRACE(error, "_pco_SetDelayExposureTime") ;
-
-
-    //------------------------------------------------- check recording state
-    state = _pco_GetRecordingState(error);
-    PCO_THROW_OR_TRACE(error, "PCO_GetRecordingState") ;
-
-    if (state>0) {
-        DEB_TRACE() << "Force recording state to 0x0000" ;
-
-		_pco_SetRecordingState(0, error);
-        PCO_THROW_OR_TRACE(error, "PCO_SetRecordingState") ;
-	}
 
 //-----------------------------------------------------------------------------------------------
 //	5. Arm the camera.
@@ -1060,14 +1071,8 @@ void Camera::startAcq()
 //		PCO_ArmCamera(hCam)
 //-----------------------------------------------------------------------------------------------
 	
-	msg = _pco_SetMetaDataMode(0, error); PCO_THROW_OR_TRACE(error, msg) ;
- 
-	//--------------------------- PREPARE / pixel rate - ARM required 
-	msg = _pco_SetPixelRate(error); PCO_THROW_OR_TRACE(error, msg) ;
-		
-	//--------------------------- PREPARE / clXferParam, LUT - ARM required 
-	_pco_SetTransferParameter_SetActiveLookupTable(error); PCO_THROW_OR_TRACE(error, msg) ;
 
+#if 0
 	//--------------------------- PREPARE / ARM  
 	DEB_ALWAYS() << "\n   ARM the camera / PCO_ArmCamera (1)";
 	PCO_FN1(error, msg,PCO_ArmCamera, m_handle); 
@@ -1101,13 +1106,25 @@ void Camera::startAcq()
         }
     } 
 	
+#endif
 	//------------------------------------------------- start acquisition
 
+    DEB_ALWAYS() << "[... starting]";
 	m_pcoData->traceAcq.msStartAcqStart = msElapsedTime(tStart);
 
 	m_sync->setStarted(true);
 	m_sync->setExposing(pcoAcqRecordStart);
 
+    _setStatus(Camera::Exposure, false);
+    
+	//Start acqusition thread
+	AutoMutex aLock(m_cond.mutex());
+    m_wait_flag = false;
+    m_cond.broadcast();
+    DEB_ALWAYS() << "[... starting after mutex]";
+
+
+#if 0
 	if(_isCameraType(Edge)){
 		_beginthread( _pco_acq_thread_edge, 0, (void*) this);
 		m_pcoData->traceAcq.msStartAcqEnd = msElapsedTime(tStart);
@@ -1133,6 +1150,8 @@ void Camera::startAcq()
 	}
 
 	throw LIMA_HW_EXC(Error, "unkown camera type");
+#endif
+    DEB_ALWAYS() << "[exit]";
 	return;
 }
 
@@ -2527,5 +2546,280 @@ void Camera::_setCameraState(long long flag, bool val)
 }
 
 
+//=================================================================================================
+//=================================================================================================
+//---------------------------
+//- Camera::_AcqThread::threadFunction()
+//---------------------------
+void Camera::_AcqThread::threadFunction()
+{
+    DEB_MEMBER_FUNCT();
+    DEF_FNID;
+
+    DEB_ALWAYS() << "[entry]" ;
+
+    int err;
+    int pcoBuffIdx, pcoFrameNr, pcoFrameNrTimestamp,offsetLostFrames;
+    void *limaBuffPtr;
+    void *pcoBuffPtr;
+    DWORD width, height;
+
+    AutoMutex aLock(m_cam.m_cond.mutex());
+    //StdBufferCbMgr& buffer_mgr = m_cam.m_buffer_ctrl_obj.getBuffer();
+
+    //StdBufferCbMgr& buffer_mgr = m_buffer->getBuffer();
+
+    int nb_allocated_buffers;
+
+    int _nb_frames, limaFrameNr;
+    
+    limaFrameNr = 0;
+    if(m_cam.m_sync) 
+    {
+        m_cam.m_sync->getNbFrames(_nb_frames);
+    }
+    else
+    {
+        _nb_frames = -1;
+    }
+    
+     DEB_ALWAYS() << DEB_VAR3(m_cam.m_wait_flag, m_cam.m_quit, _nb_frames);
+
+    while(!m_cam.m_quit)
+    {
+        while(m_cam.m_wait_flag && !m_cam.m_quit)
+        {
+          DEB_ALWAYS() << "++++++++++++++++++++++++++++++++++Wait";
+          m_cam.m_thread_running = false;
+          m_cam.m_cond.broadcast();
+          m_cam.m_cond.wait();
+        } // while wait
+        
+        DEB_ALWAYS() << "++++++++++++++++++++++++++++++++++Run";
+        m_cam.m_thread_running = true;
+        if(m_cam.m_quit) return;
+
+        m_cam.m_sync->setStarted(true);        
+
+        m_cam.m_sync->getNbFrames(_nb_frames);
+        limaFrameNr = 0;            // 0 ..... N-1
+    
+        m_cam.m_status = Camera::Exposure;
+        m_cam.m_cond.broadcast();
+        aLock.unlock();
+        
+        m_cam._pco_SetRecordingState(1, err);
+        PCO_CHECK_ERROR1(err, "SetRecordingState(1)");
+        
+        err = m_cam.grabber->Get_actual_size(&width,&height,NULL);
+        PCO_CHECK_ERROR1(err, "Get_actual_size");
+
+        pcoBuffIdx=1;
+        err = m_cam.grabber->Start_Acquire(_nb_frames);
+        PCO_CHECK_ERROR1(err, "Start_Acquire");
 
 
+        DEB_ALWAYS() << DEB_VAR4(width, height, _nb_frames, err);
+
+
+        if(err!=PCO_NOERROR) 
+        {
+            m_cam._setStatus(Camera::Fault,false);        
+            aLock.lock();
+            m_cam.m_wait_flag = true;
+            goto whileend;
+        }       
+        
+        // try
+        {
+            bool continueAcq = true;
+            while(continueAcq && (!_nb_frames || limaFrameNr < _nb_frames))
+            {
+                //if(waitset.WaitForAny(m_cam.m_timeout,&event_number)) // Wait m_timeout
+                {
+
+
+                    pcoFrameNr = limaFrameNr +1;
+                    limaBuffPtr =  m_cam.m_buffer->_getFrameBufferPtr(limaFrameNr, nb_allocated_buffers);
+                    DEB_ALWAYS() << DEB_VAR4(nb_allocated_buffers, _nb_frames, limaFrameNr, limaBuffPtr);
+
+                    m_cam._setStatus(Camera::Readout,false);
+
+                    err=m_cam.grabber->Wait_For_Next_Image(&pcoBuffIdx,10);
+                    PCO_CHECK_ERROR1(err, "Wait_For_Next_Image");
+                    if(err!=PCO_NOERROR)
+                        printf("\ngrab_loop Error while waiting for image number %d",pcoFrameNr);
+
+
+                    if(err==PCO_NOERROR)
+                    {
+                        err=m_cam.grabber->Check_DMA_Length(pcoBuffIdx);
+                        PCO_CHECK_ERROR1(err, "Check_DMA_Length");
+                        if(err!=PCO_NOERROR)
+                            printf("\ngrab_loop Check_DMA_Length error 0x%x",err);
+                    }
+                    if(err!=PCO_NOERROR)
+                    {
+                        printf("\ngrab_loop Error break loop at image number %d",pcoFrameNr);
+                        m_cam._setStatus(Camera::Fault,false);        
+                        aLock.lock();
+                        m_cam.m_wait_flag = true;
+                        goto whileend;
+                    }
+                    
+
+                    DEB_ALWAYS()  << "lima image#  " << DEB_VAR1(limaFrameNr) <<" acquired !";
+
+                    err=m_cam.grabber->Get_Framebuffer_adr(pcoBuffIdx,&pcoBuffPtr);
+                    PCO_CHECK_ERROR1(err, "Get_Framebuffer_adr");
+                    if(err!=PCO_NOERROR)
+                        printf("\ngrab_loop Get_Framebuffer_adr(%d,) error",pcoBuffIdx);
+
+                    if(err==PCO_NOERROR)
+                    {
+                        m_cam.grabber->Extract_Image(limaBuffPtr,pcoBuffPtr,width,height);
+                        pcoFrameNrTimestamp=image_nr_from_timestamp(limaBuffPtr,0);
+
+                        HwFrameInfoType frame_info;
+    		            frame_info.acq_frame_nb = limaFrameNr;
+			            DEB_ALWAYS() << DEB_VAR2(limaFrameNr, pcoFrameNrTimestamp);
+			            continueAcq = m_cam.m_buffer->m_buffer_cb_mgr.newFrameReady(frame_info);
+			            DEB_ALWAYS() << DEB_VAR2(continueAcq, limaFrameNr);
+
+                    }
+
+
+                    if(pcoFrameNr==1)
+                        offsetLostFrames=0;
+
+                    err=m_cam.grabber->Unblock_buffer(pcoBuffIdx); 
+                    PCO_CHECK_ERROR1(err, "Unblock_buffer");
+                    if(err!=PCO_NOERROR)
+                        printf("\ngrab_loop Unblock_buffer error 0x%x\n",err);
+
+                    printf("pcoFrameNr %06d pcoBuffIdx %03d pcoFrameNrTimestamp %06d %06d\r",pcoFrameNr,pcoBuffIdx,pcoFrameNrTimestamp,pcoFrameNr);
+                    if(_nb_frames<=40)
+                        printf("\n");
+
+
+                    //for testing only lost images can also be seen at summary output
+                    if((pcoFrameNrTimestamp-offsetLostFrames)!=pcoFrameNr)
+                    {
+                        offsetLostFrames = pcoFrameNrTimestamp-offsetLostFrames;
+                        //   printf("\ngrab_loop Error number: camera %d grabber %d offset now %d\n",pcoFrameNrTimestamp,pcoFrameNr,offsetLostFrames);
+                    }
+
+
+                    ++limaFrameNr;
+
+
+
+
+
+
+
+
+
+
+
+
+                            if (1)    //Grabbed == Result.Status())
+                            {
+                            } // img ok
+                            else if (0)   //(Failed == Result.Status())
+                            {
+                                // Error handling
+                                DEB_ERROR() << "No image acquired!";
+                                            //<< Result.GetErrorDescription();
+                                
+                                if(_nb_frames) //Do not stop acquisition in "live" mode, just IGNORE  error
+                                {
+                                    //m_cam.StreamGrabber_->QueueBuffer(Result.Handle(), NULL);
+                                }
+                                else            //in "snap" mode , acquisition must be stopped
+                                {
+                                    m_cam._setStatus(Camera::Fault,false);
+                                    continueAcq = false;
+                                }
+                            } // img err error
+                    //} sw
+                }  // got image
+#if 0
+                else
+                {
+                    // Timeout
+                    DEB_ERROR() << "Timeout occurred!";
+                    m_cam._setStatus(Camera::Fault,false);
+                    continueAcq = false;
+                }
+#endif
+
+            } // while  nb_grames
+            //m_cam._stopAcq(true);
+        } // try
+
+        
+        m_cam._pco_SetRecordingState(0, err);
+        PCO_CHECK_ERROR1(err, "SetRecordingState(0)");
+        
+        m_cam._setStatus(Camera::Ready,false);        
+
+        aLock.lock();
+        m_cam.m_wait_flag = true;
+        m_cam.m_sync->setStarted(false);        
+
+whileend:;
+
+    } // while quite
+  DEB_ALWAYS() << "[entry]" ;
+}
+
+//=================================================================================================
+//=================================================================================================
+Camera::_AcqThread::_AcqThread(Camera &aCam) :
+                    m_cam(aCam)
+{
+	DEB_CONSTRUCTOR();
+	DEB_ALWAYS() << "[entry]" ;
+    pthread_attr_setscope(&m_thread_attr,PTHREAD_SCOPE_PROCESS);
+	DEB_ALWAYS() << "[exit]" ;
+}
+//=================================================================================================
+//=================================================================================================
+
+Camera::_AcqThread::~_AcqThread()
+{
+	DEB_DESTRUCTOR();
+	DEB_ALWAYS() << "[entry]" ;
+
+    AutoMutex aLock(m_cam.m_cond.mutex());
+    m_cam.m_quit = true;
+    //m_cam.WaitObject_.Signal();
+    m_cam.m_cond.broadcast();
+    aLock.unlock();
+    
+    join();
+	DEB_ALWAYS() << "[exit]" ;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::getStatus(Camera::Status& status)
+{
+    DEB_MEMBER_FUNCT();
+    AutoMutex aLock(m_cond.mutex());
+    status = m_status;
+    DEB_RETURN() << DEB_VAR1(DEB_HEX(status));
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_setStatus(Camera::Status status,bool force)
+{
+    DEB_MEMBER_FUNCT();
+    AutoMutex aLock(m_cond.mutex());
+    if(force || m_status != Camera::Fault)
+        m_status = status;
+    m_cond.broadcast();
+    aLock.unlock();
+}

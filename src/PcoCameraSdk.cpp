@@ -384,6 +384,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &err){
 	DWORD pixelrate, pixRateNext;
 	WORD width, height, wXResMax, wYResMax;
 	WORD actlut,lutparam;
+	int pcoBuffNr = 10;
 
     _pco_GetSizes( &width, &height, &wXResMax, &wYResMax, err);
 
@@ -448,6 +449,12 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &err){
     err=grabber->PostArm();
     msg = "PostArm(0)" ; PCO_CHECK_ERROR(err, msg);
 #endif
+
+
+    err=grabber->Allocate_Framebuffer(pcoBuffNr);
+    msg = "Allocate_Framebuffer" ; PCO_CHECK_ERROR(err, msg);
+    err = 0;
+    
 }
 
 

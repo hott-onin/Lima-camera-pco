@@ -83,7 +83,7 @@ namespace lima
 		void startAcq();
 		void stopAcq(bool clearQueue = true);
 
-		void getStatus(HwInterface::StatusType&);
+		//void getStatus(HwInterface::StatusType&);
 
 		WORD xlatLimaTrigMode2PcoTrigMode(bool &ext_trig);
 		WORD xlatLimaTrigMode2PcoAcqMode();

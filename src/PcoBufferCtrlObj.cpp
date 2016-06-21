@@ -1080,9 +1080,6 @@ void BufferCtrlObj::_pcoAllocBuffersInfo(int &nr, DWORD &size) {
 
 //===================================================================================================================
 //===================================================================================================================
-
-
-
 void BufferCtrlObj::_pcoAllocBuffersFree() {
 
 	DEF_FNID;
@@ -1140,3 +1137,61 @@ void BufferCtrlObj::_pcoAllocBuffersFree() {
 #endif
 
 }
+
+
+//===================================================================================================================
+//===================================================================================================================
+void *BufferCtrlObj::_getFrameBufferPtr(int lima_buffer_nb, int &nb_allocated_buffers)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	const char *msg;
+	double timeout = 30;
+	StdBufferCbMgr& buffer_mgr = m_buffer_cb_mgr;
+
+
+	Sync::Status status;
+	AutoMutex lock(cond.mutex());
+
+    void *myBuffer = NULL;
+    
+	Timestamp t0 = Timestamp::now();
+
+	for (bool doit = true; doit; ) {
+		double wait_timeout = timeout - double(Timestamp::now() - t0);
+		if (wait_timeout <= 0) {
+				msg = "=== Sync wait INTERRUPTED + TIMEOUT === ";
+				DEB_ALWAYS() << msg << DEB_VAR2(lima_buffer_nb , timeout);
+				return NULL;
+		}
+
+		status = m_bufferSync->wait(lima_buffer_nb, wait_timeout);
+		if(m_cam->_getDebug(DBG_LIMABUFF)) {DEB_ALWAYS() << DEB_VAR3(lima_buffer_nb, timeout, status);}
+
+		switch(status){
+			case Sync::AVAILABLE:
+				myBuffer = buffer_mgr.getFrameBufferPtr(lima_buffer_nb);
+				buffer_mgr.getNbBuffers(nb_allocated_buffers);
+				doit = false;
+				break;
+			case Sync::TIMEOUT:
+				msg = "=== Sync wait TIMEOUT === ";
+				DEB_ALWAYS() << msg << DEB_VAR2(lima_buffer_nb , timeout);
+				return NULL;
+                break;
+                				
+			case Sync::INTERRUPTED:
+				msg = "=== Sync wait INTERRUPTED === ";
+				DEB_ALWAYS() << msg << DEB_VAR2(lima_buffer_nb , timeout);
+				break;
+
+			default:
+				msg = "=== Sync wait UNKNOWN STATUS === ";
+				DEB_ALWAYS() << msg << DEB_VAR2(lima_buffer_nb , timeout);
+		}
+
+	}
+	
+    return myBuffer;
+}	
+
