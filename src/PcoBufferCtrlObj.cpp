@@ -413,12 +413,12 @@ int BufferCtrlObj::_xferImag()
 
 //----------------- traceAcq init
 
-	m_pcoData->traceAcq.fnIdXfer = fnId;
-	m_pcoData->traceAcq.msImgCoc = (m_cam->pcoGetCocRunTime() * 1000.);
+	m_cam->traceAcq.fnIdXfer = fnId;
+	m_cam->traceAcq.msImgCoc = (m_cam->pcoGetCocRunTime() * 1000.);
 
 	TIME_USEC tStart;
 	msElapsedTimeSet(tStart);
-	m_pcoData->traceAcq.nrImgRequested = dwRequestedFrames;
+	m_cam->traceAcq.nrImgRequested = dwRequestedFrames;
 
 
 // --------------- prepare the first buffer 
@@ -481,7 +481,7 @@ _RETRY:
 				m_cam->m_tmpLog->add(msg);
 			}
 #endif
-			m_pcoData->traceAcq.nrImgAcquired = dwFrameIdx;
+			m_cam->traceAcq.nrImgAcquired = dwFrameIdx;
 
 #ifdef DEBUG_XFER_IMAG
 			if(m_cam->_getDebug(DBG_BUFF)) {	
@@ -640,16 +640,16 @@ _WHILE_CONTINUE:
 
   if(m_cam->_getDebug(DBG_WAITOBJ)){m_cam->m_tmpLog->dumpPrint(true);}  // true first .... last
 	
-	m_pcoData->traceAcq.msXfer = msElapsedTime(tStart);
-	m_pcoData->traceAcq.endXferTimestamp = getTimestamp();
+	m_cam->traceAcq.msXfer = msElapsedTime(tStart);
+	m_cam->traceAcq.endXferTimestamp = getTimestamp();
 
 	return pcoAcqTransferEnd;
 
 _EXIT_STOP:
 	DEB_ALWAYS() << "\nSTOP REQUESTED " << DEB_VAR3(_nrStop, dwFrameIdx, dwRequestedFrames);
 
-	m_pcoData->traceAcq.msXfer = msElapsedTime(tStart);
-	m_pcoData->traceAcq.endXferTimestamp = getTimestamp();
+	m_cam->traceAcq.msXfer = msElapsedTime(tStart);
+	m_cam->traceAcq.endXferTimestamp = getTimestamp();
 
 	return pcoAcqTransferStop;
 
@@ -756,7 +756,7 @@ int BufferCtrlObj::_xferImagMult()
 	int mode = m_cam->_pco_GetStorageMode_GetRecorderSubmode();
 	bool continuous = (mode != RecSeq) ;
 
-	m_pcoData->traceAcq.fnIdXfer = fnId;
+	m_cam->traceAcq.fnIdXfer = fnId;
 
 
 	DWORD dwFrameIdx;
@@ -860,10 +860,10 @@ int BufferCtrlObj::_xferImagMult()
 		DEB_ALWAYS() << "\n     " << DEB_VAR3(dwRequestedFrames,_dwValidImageCnt, _dwMaxImageCnt);
 	}	
 
-	m_pcoData->traceAcq.nrImgRequested = dwRequestedFrames;
+	m_cam->traceAcq.nrImgRequested = dwRequestedFrames;
 
-	m_pcoData->traceAcq.usTicks[6].desc = "PCO_GetImageEx total execTime";
-	m_pcoData->traceAcq.usTicks[7].desc = "xfer to lima / total execTime";
+	m_cam->traceAcq.usTicks[6].desc = "PCO_GetImageEx total execTime";
+	m_cam->traceAcq.usTicks[7].desc = "xfer to lima / total execTime";
 
 	while(dwFrameIdx <= dwRequestedFrames) {
 		bufIdx++; if(bufIdx >= _iPcoAllocatedBuffNr) bufIdx = 0;
@@ -889,7 +889,7 @@ int BufferCtrlObj::_xferImagMult()
 			wSegment, dwFrameIdxFirst, dwFrameIdxLast, \
 			sBufNr, _wArmWidth, _wArmHeight, _wBitPerPixel), error, "PCO_GetImageEx");
 		
-		m_pcoData->traceAcq.usTicks[6].value += usElapsedTime(usStart);
+		m_cam->traceAcq.usTicks[6].value += usElapsedTime(usStart);
 		usElapsedTimeSet(usStart);
 
 		if(error) {
@@ -924,14 +924,14 @@ int BufferCtrlObj::_xferImagMult()
 		frame_info.acq_frame_nb = _newFrameReady = iLimaFrame;
 		m_buffer_cb_mgr.newFrameReady(frame_info);
 
-		m_pcoData->traceAcq.nrImgAcquired = dwFrameIdx;
+		m_cam->traceAcq.nrImgAcquired = dwFrameIdx;
 
 		if((_stopReq = m_sync->_getRequestStop(_nrStop)) == stopRequest) {
 			if(_nrStop > MAX_NR_STOP) {
 				char msg[LEN_TRACEACQ_MSG+1];
 				sprintf_s(msg,LEN_TRACEACQ_MSG,"%s> STOP REQ (saving), framesReq[%d] frameReady[%d]\n", fnId, requested_nb_frames, _newFrameReady);
 				//snprintf(msg,"%s> STOP REQ (saving), framesReq[%d] frameReady[%d]\n", fnId, requested_nb_frames, _newFrameReady);
-				m_pcoData->traceMsg(msg);
+				m_cam->traceAcq.traceMsg(msg);
 				break;
 			}
 		}
@@ -939,7 +939,7 @@ int BufferCtrlObj::_xferImagMult()
 		m_sync->setAcqFrames(dwFrameIdx);
 		dwFrameIdx++;
 
-		m_pcoData->traceAcq.usTicks[7].value += usElapsedTime(usStart);
+		m_cam->traceAcq.usTicks[7].value += usElapsedTime(usStart);
 
 	} // while(frameIdx ...
 

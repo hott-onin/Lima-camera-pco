@@ -241,13 +241,13 @@ char *str_toupper(char *s) {
 //=========================================================================================================
 //=========================================================================================================
 
-void stcPcoData::traceAcqClean(){
-	void *ptr = &this->traceAcq;
+void Camera::stcTraceAcq::traceAcqClean(){
+	void *ptr = this;
 	memset(ptr, 0, sizeof(struct stcTraceAcq));
 }
 
-void stcPcoData::traceMsg(char *s){
-	char *ptr = traceAcq.msg;
+void Camera::stcTraceAcq::traceMsg(char *s){
+	char *ptr = msg;
 	char *dt = getTimestamp(IsoHMS);
 	size_t lg = strlen(ptr);
 	ptr += lg;
@@ -434,11 +434,11 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* exp[%g] delay[%g] (s)\n", _exposure, _delay);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* limaTrigMode[%s]\n",
-			    m_pcoData->traceAcq.sLimaTriggerMode);
+			    traceAcq.sLimaTriggerMode);
 			ptr += sprintf_s(ptr, ptrMax - ptr, "*    pcoTrigMode[%d][%s]\n",
-			    m_pcoData->traceAcq.iPcoTriggerMode, m_pcoData->traceAcq.sPcoTriggerMode);
+			    traceAcq.iPcoTriggerMode, traceAcq.sPcoTriggerMode);
 			ptr += sprintf_s(ptr, ptrMax - ptr, "*     pcoAcqMode[%d][%s]\n",
-			    m_pcoData->traceAcq.iPcoAcqMode, m_pcoData->traceAcq.sPcoAcqMode);
+			    traceAcq.iPcoAcqMode, traceAcq.sPcoAcqMode);
 			    
             ptr += _pco_roi_info(ptr, ptrMax - ptr, error);
 
@@ -587,7 +587,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		key = keys[ikey] = "lastImgRecorded";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "last image recorded";     //----------------------------------------------------------------
 		if(_stricmp(cmd, key) == 0){
-			DWORD lastImgRecorded = m_pcoData->traceAcq.nrImgRecorded;
+			DWORD lastImgRecorded = traceAcq.nrImgRecorded;
 
 			if(!(_isCameraType(Dimax | Pco2k | Pco4k))) {
 				lastImgRecorded = 0;
@@ -600,7 +600,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		key = keys[ikey] = "lastImgAcquired";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "last image acquired";     //----------------------------------------------------------------
 		if(_stricmp(cmd, key) == 0){
-			DWORD lastImgAcquired = m_pcoData->traceAcq.nrImgAcquired;
+			DWORD lastImgAcquired = traceAcq.nrImgAcquired;
 
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "%d\n", lastImgAcquired);
@@ -620,9 +620,9 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* fnId[%s] nrEvents[%d]\n"
 				"* fnIdXfer[%s]\n",
-				m_pcoData->traceAcq.fnId,
+				traceAcq.fnId,
 				PCO_BUFFER_NREVENTS,
-				m_pcoData->traceAcq.fnIdXfer);
+				traceAcq.fnIdXfer);
 
 			Point top_left = m_RoiLima.getTopLeft();
 			Point bot_right = m_RoiLima.getBottomRight();
@@ -635,57 +635,70 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 					size.getWidth(), size.getHeight());
 
 			long long imgSize = size.getWidth()* size.getHeight() * bytesPerPix;
-			long long totSize = imgSize * m_pcoData->traceAcq.nrImgRequested;
+			long long totSize = imgSize * traceAcq.nrImgRequested;
 			double mbTotSize =  totSize/(1024.*1024.);
-			double xferSpeed = mbTotSize / m_pcoData->traceAcq.msXfer * 1000.;
+			double xferSpeed = mbTotSize / traceAcq.msXfer * 1000.;
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* imgSize[%lld B] totSize[%lld B][%g MB] xferSpeed[%g MB/s]\n",  
 					imgSize, totSize, mbTotSize, xferSpeed);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* nrImgRequested0[%d] nrImgRequested[%d] nrImgAcquired[%d] nrImgRecorded[%u] maxImgCount[%u]\n",
-				m_pcoData->traceAcq.nrImgRequested0,
-				m_pcoData->traceAcq.nrImgRequested,
-				m_pcoData->traceAcq.nrImgAcquired,
-				m_pcoData->traceAcq.nrImgRecorded,
-				m_pcoData->traceAcq.maxImgCount);
+				traceAcq.nrImgRequested0,
+				traceAcq.nrImgRequested,
+				traceAcq.nrImgAcquired,
+				traceAcq.nrImgRecorded,
+				traceAcq.maxImgCount);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* msStartAcqStart[%ld]  msStartAcqEnd[%ld]\n",
-				m_pcoData->traceAcq.msStartAcqStart, m_pcoData->traceAcq.msStartAcqEnd);
+				"* msStartAcq Start[%ld]  End[%ld] diff[%ld]ms\n",
+				traceAcq.msStartAcqStart, traceAcq.msStartAcqEnd, traceAcq.msStartAcqEnd - traceAcq.msStartAcqStart);
 			
-
 			for(int _i = 0; _i < LEN_TRACEACQ_TRHEAD; _i++){
-				ptr += sprintf_s(ptr, ptrMax - ptr, 
-					"* ... usTicks[%d][%5.3f] (ms)   (%s)\n", 
-					_i, m_pcoData->traceAcq.usTicks[_i].value/1000.,
-					m_pcoData->traceAcq.usTicks[_i].desc);
+				const char *desc = traceAcq.usTicks[_i].desc;
+				if(desc != NULL) {
+					ptr += sprintf_s(ptr, ptrMax - ptr, 
+						"* ... usTicks[%d][%5.3f] (ms)   (%s)\n", 
+						_i, traceAcq.usTicks[_i].value/1000.,
+						desc);
+			
+				}
 			}
 
-			_timet = m_pcoData->traceAcq.endRecordTimestamp;
+
+			_timet = traceAcq.endRecordTimestamp;
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* msRecordLoop[%ld] msRecord[%ld] endRecord[%s]\n",
-				m_pcoData->traceAcq.msRecordLoop,
-				m_pcoData->traceAcq.msRecord,
+				traceAcq.msRecordLoop,
+				traceAcq.msRecord,
 				_timet ? getTimestamp(Iso, _timet) : "");
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* msXfer[%ld] endXfer[%s]\n",
-				m_pcoData->traceAcq.msXfer,
-				getTimestamp(Iso, m_pcoData->traceAcq.endXferTimestamp));
+				traceAcq.msXfer,
+				getTimestamp(Iso, traceAcq.endXferTimestamp));
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* msImgCoc[%.3g] fps[%.3g] msTout[%ld] msTotal[%ld]\n",
-				m_pcoData->traceAcq.msImgCoc, 1000. / m_pcoData->traceAcq.msImgCoc,
-				m_pcoData->traceAcq.msTout,
-				m_pcoData->traceAcq.msTotal);
+				traceAcq.msImgCoc, 1000. / traceAcq.msImgCoc,
+				traceAcq.msTout,
+				traceAcq.msTotal);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* msExposure[%g] msDelay[%g]\n",
-				m_pcoData->traceAcq.sExposure * 1000.,
-				m_pcoData->traceAcq.sDelay * 1000.);
+				traceAcq.sExposure * 1000.,
+				traceAcq.sDelay * 1000.);
+
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"%s\n", m_pcoData->traceAcq.msg);
+				"* ... checkImgNr  lima[%d] pco[%d][%d] diff[%d]\n",  
+				traceAcq.checkImgNrLima,
+				traceAcq.checkImgNrPco,
+				traceAcq.checkImgNrPcoTimestamp,
+				traceAcq.checkImgNrPcoTimestamp - traceAcq.checkImgNrPco);
+
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"%s\n", traceAcq.msg);
 
 			return output;
 		}

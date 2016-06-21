@@ -223,9 +223,9 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 	}
 
 
-	m_pcoData->traceAcq.iPcoAcqMode = pcoAcqMode;
-	m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
-	m_pcoData->traceAcq.sPcoAcqMode = sPcoAcqMode;
+	m_cam->traceAcq.iPcoAcqMode = pcoAcqMode;
+	m_cam->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
+	m_cam->traceAcq.sPcoAcqMode = sPcoAcqMode;
 
 
 	DEB_ALWAYS() << fnId << ": " << DEB_VAR2(pcoAcqMode, m_trig_mode);
@@ -313,9 +313,9 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 	
 	}
 
-	m_pcoData->traceAcq.iPcoTriggerMode = pcoTrigMode;
-	m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
-	m_pcoData->traceAcq.sPcoTriggerMode = sPcoTriggerMode;
+	m_cam->traceAcq.iPcoTriggerMode = pcoTrigMode;
+	m_cam->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
+	m_cam->traceAcq.sPcoTriggerMode = sPcoTriggerMode;
 
 	DEB_ALWAYS() << fnId <<": " << DEB_VAR3(pcoTrigMode, m_trig_mode, ext_trig);
 

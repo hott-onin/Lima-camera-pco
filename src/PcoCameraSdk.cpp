@@ -663,9 +663,9 @@ const char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode m
 	}
     DEB_ALWAYS() << "\n>>> storage/recorder mode: " << DEB_VAR2(sMode, mode) ;
 
-	m_pcoData->traceAcq.sPcoStorageRecorderMode = sMode;
-	m_pcoData->traceAcq.iPcoStorageMode = m_pcoData->storage_mode;
-	m_pcoData->traceAcq.iPcoRecorderSubmode = m_pcoData->recorder_submode;
+	traceAcq.sPcoStorageRecorderMode = sMode;
+	traceAcq.iPcoStorageMode = m_pcoData->storage_mode;
+	traceAcq.iPcoRecorderSubmode = m_pcoData->recorder_submode;
 
     error=camera->PCO_SetStorageMode(m_pcoData->storage_mode);
     msg = "PCO_SetStorageMode" ; PCO_CHECK_ERROR(error, msg);
@@ -1412,8 +1412,8 @@ const char *Camera::_pco_SetRecordingState(int state, int &err){
 
 	//_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
 
-	m_pcoData->traceAcq.usTicks[8].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[8].desc = "PCO_GetRecordingState execTime";
+	traceAcq.usTicks[8].value = usElapsedTime(usStart);
+	traceAcq.usTicks[8].desc = "PCO_GetRecordingState execTime";
 	usElapsedTimeSet(usStart);
 
 	//if(wRecState_new == wRecState_actual) {error = 0; return fnId; }
@@ -1449,14 +1449,14 @@ const char *Camera::_pco_SetRecordingState(int state, int &err){
 
 	_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
 
-	m_pcoData->traceAcq.usTicks[9].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[9].desc = "PCO_SetRecordingState execTime";
+	traceAcq.usTicks[9].value = usElapsedTime(usStart);
+	traceAcq.usTicks[9].desc = "PCO_SetRecordingState execTime";
 	usElapsedTimeSet(usStart);
 
 	_armRequired(true);
 
-	m_pcoData->traceAcq.usTicks[10].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[10].desc = "PCO_CancelImages execTime";
+	traceAcq.usTicks[10].value = usElapsedTime(usStart);
+	traceAcq.usTicks[10].desc = "PCO_CancelImages execTime";
 	usElapsedTimeSet(usStart);
 
 	//DEB_ALWAYS() << fnId << ": " << DEB_VAR4(error, state, wRecState_actual, wRecState_new);

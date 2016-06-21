@@ -273,47 +273,6 @@ struct stcPcoData {
 	long msAcqRec, msAcqXfer, msAcqTout, msAcqTnow, msAcqAll;
 	time_t msAcqRecTimestamp, msAcqXferTimestamp, msAcqToutTimestamp, msAcqTnowTimestamp;
 
-	struct stcTraceAcq{
-		DWORD nrImgRecorded;
-		DWORD maxImgCount;
-		int nrImgRequested;
-		int nrImgRequested0;
-		int nrImgAcquired;
-		long msTotal, msRecord, msRecordLoop, msXfer, msTout;
-		long msStartAcqStart, msStartAcqEnd;
-		
-#define LEN_TRACEACQ_TRHEAD 11
-		//long msThreadBeforeXfer, msThreadAfterXfer, msThreadEnd;
-		//long msThread[LEN_TRACEACQ_TRHEAD];
-		long msReserved[15-LEN_TRACEACQ_TRHEAD];
-		
-		struct stcLongLongStr usTicks[LEN_TRACEACQ_TRHEAD];
-		double msImgCoc;
-		double sExposure, sDelay;
-		time_t endRecordTimestamp;
-		time_t endXferTimestamp;
-		const char *fnId;
-		const char *fnIdXfer;
-		
-		
-		const char *sPcoStorageRecorderMode;
-		int iPcoStorageMode, iPcoRecorderSubmode;
-		int iPcoBinHorz, iPcoBinVert;
-		int iPcoRoiX0, iPcoRoiX1, iPcoRoiY0, iPcoRoiY1;
-		const char *sPcoTriggerMode;
-		const char *sLimaTriggerMode;
-		int iPcoTriggerMode;
-
-		const char *sPcoAcqMode;
-		int iPcoAcqMode;
-
-		double dLimaExposure, dLimaDelay;
-		int iPcoExposure, iPcoExposureBase;
-		int iPcoDelay, iPcoDelayBase;
-		
-		
-		char msg[LEN_TRACEACQ_MSG+1];
-	} traceAcq;
 
 	DWORD dwPixelRate, dwPixelRateRequested;
 	double fTransferRateMHzMax;
@@ -340,8 +299,6 @@ struct stcPcoData {
 	
 
 	stcPcoData();
-	void traceAcqClean();
-	void traceMsg(char *s);
 };
 
 enum enumChange {
@@ -485,6 +442,54 @@ namespace lima
         WORD _getCameraSubType();
         const char *_getCameraSubTypeStr();
 
+#define LEN_TRACEACQ_TRHEAD 11
+	    struct stcTraceAcq{
+		    DWORD nrImgRecorded;
+		    DWORD maxImgCount;
+		    int nrImgRequested;
+		    int nrImgRequested0;
+		    int nrImgAcquired;
+		    long msTotal, msRecord, msRecordLoop, msXfer, msTout;
+		    long msStartAcqStart, msStartAcqEnd;
+		    int checkImgNrPco, checkImgNrPcoTimestamp, checkImgNrLima;
+		
+		    //long msThreadBeforeXfer, msThreadAfterXfer, msThreadEnd;
+		    //long msThread[LEN_TRACEACQ_TRHEAD];
+		    long msReserved[15-LEN_TRACEACQ_TRHEAD];
+		
+		    struct stcLongLongStr usTicks[LEN_TRACEACQ_TRHEAD];
+		    double msImgCoc;
+		    double sExposure, sDelay;
+		    time_t endRecordTimestamp;
+		    time_t endXferTimestamp;
+		    const char *fnId;
+		    const char *fnIdXfer;
+		    const char *sPcoStorageRecorderMode;
+		    int iPcoStorageMode, iPcoRecorderSubmode;
+		    int iPcoBinHorz, iPcoBinVert;
+		    int iPcoRoiX0, iPcoRoiX1, iPcoRoiY0, iPcoRoiY1;
+		    const char *sPcoTriggerMode;
+		    const char *sLimaTriggerMode;
+		    int iPcoTriggerMode;
+
+		    const char *sPcoAcqMode;
+		    int iPcoAcqMode;
+
+		    double dLimaExposure, dLimaDelay;
+		    int iPcoExposure, iPcoExposureBase;
+		    int iPcoDelay, iPcoDelayBase;
+
+		    char msg[LEN_TRACEACQ_MSG+1];
+
+	    	void traceAcqClean();
+        	void traceMsg(char *s);
+	    } traceAcq;
+
+
+
+
+
+
 	private:
         class _AcqThread;
         friend class _AcqThread;
@@ -500,6 +505,7 @@ namespace lima
 
 		std::string m_log;
         //char pcoErrorMsg[ERR_SIZE+1];
+
 
 		struct stcPcoData *m_pcoData;
 
