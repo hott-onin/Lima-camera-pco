@@ -418,8 +418,24 @@ bool Camera::paramsGet(const char *key, char *&value) {
 	value = (char *) ""; 
 	DEB_ALWAYS() << DEB_VAR3(key, ret, value);
 	return ret;
-
 }
+
+bool Camera::paramsGet(const char *key, unsigned long long &value) {
+	//DEF_FNID;
+	DEB_CONSTRUCTOR();
+	bool ret;
+	char *_str;
+
+
+    ret = paramsGet(key, _str);
+    
+    if(!ret) return false;
+    
+    value = strtoull(_str, NULL, 0);
+
+	return true;
+}
+
 //=========================================================================================================
 //=========================================================================================================
 void Camera::paramsInit(const char *str) 
@@ -503,11 +519,12 @@ Camera::Camera(const char *params)
     m_quit = false;
     m_wait_flag = true;
     
-    
+   	traceAcq.traceAcqClean();
+
 	//delay_time = exp_time = 0;
 	
     char fnLog[PATH_MAX];
-    snprintf(fnLog, PATH_MAX,"pco_edge_grab%s.log",getTimestamp(FnFull));
+    snprintf(fnLog, PATH_MAX,"/tmp/pco_edge_grab%s.log",getTimestamp(FnFull));
 	mylog = new CPco_Log(fnLog);
 	
 	//int error=0;
@@ -540,6 +557,7 @@ Camera::Camera(const char *params)
 	mytalk = new char[LEN_TALK+1];
 	mytalkmax = mytalk + LEN_TALK;
 
+    
 	/***
 	key = "test";
 	key = "withConfig";
@@ -549,9 +567,13 @@ Camera::Camera(const char *params)
 	key = "extValue";
 	ret = paramsGet(key, value);
 
+    m_pcoData->testCmdMode = 0;
+    paramsGet("testMode", m_pcoData->testCmdMode);
+
 	DEB_ALWAYS()
 		<< ALWAYS_NL << DEB_VAR1(m_pcoData->version) 
-		<< ALWAYS_NL << _checkLogFiles();
+		<< ALWAYS_NL << _checkLogFiles()
+		;
 
 	m_bin.changed = Invalid;
 	
@@ -617,7 +639,14 @@ void Camera::_init(){
     //int bufnum=20;
 
     DEB_ALWAYS()  << "setting the log" ;
-    mylog->set_logbits(0x0000F0FF);
+    
+    unsigned long long debugSdk = 0;
+        
+	paramsGet("debugSdk", debugSdk);
+    
+    
+    //mylog->set_logbits(0x0000F0FF);
+    mylog->set_logbits(debugSdk);
     printf("Logging set to 0x%x\n",mylog->get_logbits());
 
     _pco_Open_Cam(iErr);
@@ -967,6 +996,7 @@ void Camera::prepareAcq()
     int iRequestedFrames;
     WORD state;
 
+    m_sync->getNbFrames(iRequestedFrames);
 
 	//SetBinning, SetROI, ARM, GetSizes, AllocateBuffer.
 
@@ -1026,6 +1056,8 @@ void Camera::prepareAcq()
 	_pco_SetTransferParameter_SetActiveLookupTable(error); PCO_THROW_OR_TRACE(error, msg) ;
 
     
+	//--------------------------- PREPARE / cocruntime (valid after PCO_SetDelayExposureTime and ARM)
+	_pco_GetCOCRuntime(error); PCO_THROW_OR_TRACE(error, msg) ;
 
 
 	DEB_ALWAYS() << fnId << " [EXIT]" ;
@@ -1643,8 +1675,8 @@ void _pco_acq_thread_ringBuffer(void *argin) {
 
 
 
-	m_cam->traceAcq.usTicks[0].value = usElapsedTime(usStart);
-	m_cam->traceAcq.usTicks[0].desc = "before xferImag execTime";
+	m_cam->traceAcq.usTicks[traceAcq_xferImagBefore].value = usElapsedTime(usStart);
+	m_cam->traceAcq.usTicks[traceAcq_xferImagBefore].desc = "before xferImag execTime";
 	
 	usElapsedTimeSet(usStart);
 
@@ -1654,26 +1686,26 @@ void _pco_acq_thread_ringBuffer(void *argin) {
 		status = (pcoAcqStatus) m_buffer->_xferImagMult();  //  <------------- USES PCO_GetImageEx (NO waitobj)   0x20
 	}
 
-	m_cam->traceAcq.usTicks[1].value = usElapsedTime(usStart);
-	m_cam->traceAcq.usTicks[1].desc = "xferImag execTime";
+	m_cam->traceAcq.usTicks[traceAcq_xferImag].value = usElapsedTime(usStart);
+	m_cam->traceAcq.usTicks[traceAcq_xferImag].desc = "xferImag execTime";
 	usElapsedTimeSet(usStart);
 
 	
 	m_sync->setExposing(status);
 
-	m_cam->traceAcq.usTicks[2].value = usElapsedTime(usStart);
-	m_cam->traceAcq.usTicks[2].desc = "sync->setExposing(status) execTime";
+	m_cam->traceAcq.usTicks[traceAcq_setExposing].value = usElapsedTime(usStart);
+	m_cam->traceAcq.usTicks[traceAcq_setExposing].desc = "sync->setExposing(status) execTime";
 	usElapsedTimeSet(usStart);
 
 	//m_sync->stopAcq();
 
-	m_cam->traceAcq.usTicks[3].value = usElapsedTime(usStart);
-	m_cam->traceAcq.usTicks[3].desc = "sync->stopAcq execTime";
+	m_cam->traceAcq.usTicks[traceAcq_stopAcq].value = usElapsedTime(usStart);
+	m_cam->traceAcq.usTicks[traceAcq_stopAcq].desc = "sync->stopAcq execTime";
 	usElapsedTimeSet(usStart);
 
 	const char *msg = m_cam->_pco_SetRecordingState(0, error);
-	m_cam->traceAcq.usTicks[4].value = usElapsedTime(usStart);
-	m_cam->traceAcq.usTicks[4].desc = "_pco_SetRecordingState execTime";
+	m_cam->traceAcq.usTicks[traceAcq_SetRecordingState].value = usElapsedTime(usStart);
+	m_cam->traceAcq.usTicks[traceAcq_SetRecordingState].desc = "_pco_SetRecordingState execTime";
 	usElapsedTimeSet(usStart);
 
 	if(error) {
@@ -1698,8 +1730,8 @@ void _pco_acq_thread_ringBuffer(void *argin) {
 	m_cam->_traceMsg(_msg);
 
 
-	m_cam->traceAcq.usTicks[5].desc = "up to _endtrhead execTime";
-	m_cam->traceAcq.usTicks[5].value = usElapsedTime(usStart);
+	m_cam->traceAcq.usTicks[traceAcq_uptoEndThread].desc = "up to _endtrhead execTime";
+	m_cam->traceAcq.usTicks[traceAcq_uptoEndThread].value = usElapsedTime(usStart);
 
 	m_sync->setStarted(false); // to test
 
@@ -2548,6 +2580,7 @@ void Camera::_setCameraState(long long flag, bool val)
 	return;
 }
 
+enum traceAcqId {traceAcq_execTimeTot, };
 
 //=================================================================================================
 //=================================================================================================
@@ -2560,7 +2593,7 @@ void Camera::_AcqThread::threadFunction()
     DEF_FNID;
 
 	TIME_USEC tStart;
-	TIME_UTICKS usStart;
+	TIME_UTICKS usStart, usStartTot;
 
     m_cam.traceAcq.fnId = fnId;
     DEB_ALWAYS() << "[entry]" ;
@@ -2606,14 +2639,18 @@ void Camera::_AcqThread::threadFunction()
         m_cam.m_thread_running = true;
         if(m_cam.m_quit) return;
 
+    	m_cam.traceAcq.usTicks[traceAcq_execTimeTot].desc = "total execTime";
+    	m_cam.traceAcq.usTicks[traceAcq_Lima].desc = "Lima execTime";
+    	m_cam.traceAcq.usTicks[traceAcq_pcoSdk].desc = "SDK execTime";
+
     	msElapsedTimeSet(tStart);
     	usElapsedTimeSet(usStart);
+    	usElapsedTimeSet(usStartTot);
         m_cam.traceAcq.fnId = fnId;
 
-    	m_cam.traceAcq.usTicks[0].desc = "total execTime";
     	m_cam.traceAcq.msStartAcqStart = msElapsedTime(tStart);
-    	
-    	//m_cam.traceAcq.usTicks[7].desc = "xfer to lima / total execTime";
+        
+    	//m_cam.traceAcq.usTicks[traceAcq_Lima].desc = "xfer to lima / total execTime";
 
         m_cam.m_sync->setStarted(true);        
 
@@ -2659,12 +2696,22 @@ void Camera::_AcqThread::threadFunction()
                 {
 
 
+   		            m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
+               		usElapsedTimeSet(usStart);
+
                     pcoFrameNr = limaFrameNr +1;
                     limaBuffPtr =  m_cam.m_buffer->_getFrameBufferPtr(limaFrameNr, nb_allocated_buffers);
                    //B_ALWAYS() << DEB_VAR4(nb_allocated_buffers, _nb_frames, limaFrameNr, limaBuffPtr);
 
+		            m_cam.traceAcq.usTicks[traceAcq_GetImageEx].value += usElapsedTime(usStart);
+                    		usElapsedTimeSet(usStart);
+
                     m_cam._setStatus(Camera::Readout,false);
 
+   		            m_cam.traceAcq.usTicks[traceAcq_Lima].value += usElapsedTime(usStart);
+               		usElapsedTimeSet(usStart);
+
+            		usElapsedTimeSet(usStart);
                     err=m_cam.grabber->Wait_For_Next_Image(&pcoBuffIdx,10);
                     PCO_CHECK_ERROR1(err, "Wait_For_Next_Image");
                     if(err!=PCO_NOERROR)
@@ -2700,9 +2747,15 @@ void Camera::_AcqThread::threadFunction()
                         m_cam.grabber->Extract_Image(limaBuffPtr,pcoBuffPtr,width,height);
                         pcoFrameNrTimestamp=image_nr_from_timestamp(limaBuffPtr,0);
                         
+    		            m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
+                		usElapsedTimeSet(usStart);
+
                         m_cam.traceAcq.checkImgNrPcoTimestamp = pcoFrameNrTimestamp;
                         m_cam.traceAcq.checkImgNrPco = pcoFrameNr;
                         m_cam.traceAcq.checkImgNrLima = limaFrameNr;
+                        m_cam.traceAcq.checkImgNrLima = limaFrameNr;
+                        m_cam.traceAcq.msStartAcqNow = msElapsedTime(tStart);
+
 
                         HwFrameInfoType frame_info;
     		            frame_info.acq_frame_nb = limaFrameNr;
@@ -2710,6 +2763,8 @@ void Camera::_AcqThread::threadFunction()
 			            continueAcq = m_cam.m_buffer->m_buffer_cb_mgr.newFrameReady(frame_info);
 			            //DEB_ALWAYS() << DEB_VAR2(continueAcq, limaFrameNr);
 
+    		            m_cam.traceAcq.usTicks[traceAcq_Lima].value += usElapsedTime(usStart);
+                		usElapsedTimeSet(usStart);
                     }
 
 
@@ -2721,7 +2776,10 @@ void Camera::_AcqThread::threadFunction()
                     if(err!=PCO_NOERROR)
                         printf("\ngrab_loop Unblock_buffer error 0x%x\n",err);
 
-                    if(limaFrameNr % 100)
+   		            m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
+               		usElapsedTimeSet(usStart);
+
+                    if((limaFrameNr % 100) == 0)
                         printf("pcoFrameNr [%d] diff[%d]\r",pcoFrameNr,pcoFrameNrTimestamp-pcoFrameNr);
                     //    printf("\n");
 
@@ -2735,15 +2793,6 @@ void Camera::_AcqThread::threadFunction()
 
 
                     ++limaFrameNr;
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2784,6 +2833,8 @@ void Camera::_AcqThread::threadFunction()
 
         printf("\n");
         
+    	m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
+        usElapsedTimeSet(usStart);
         m_cam._pco_SetRecordingState(0, err);
         PCO_CHECK_ERROR1(err, "SetRecordingState(0)");
  
@@ -2792,8 +2843,11 @@ void Camera::_AcqThread::threadFunction()
          if(err!=PCO_NOERROR)
                printf("\ngrab_loop Stop_Acquire error \n");
 
+    	m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
+        usElapsedTimeSet(usStart);
+
         m_cam.traceAcq.msStartAcqEnd = msElapsedTime(tStart);
-        m_cam.traceAcq.usTicks[0].value = usElapsedTime(usStart);      
+        m_cam.traceAcq.usTicks[traceAcq_execTimeTot].value = usElapsedTime(usStartTot);      
         m_cam._setStatus(Camera::Ready,false);        
 
         aLock.lock();

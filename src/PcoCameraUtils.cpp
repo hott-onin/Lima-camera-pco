@@ -318,7 +318,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 					limaRoi.getSize().getWidth(), limaRoi.getSize().getHeight());
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* cocRunTime[%g] (s) frameRate[%g] (fps)\n",  
-				m_pcoData->cocRunTime, m_pcoData->frameRate);
+				pcoGetCocRunTime(), pcoGetFrameRate());
 			
 
 			double _exposure, _delay;
@@ -485,13 +485,13 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		key = keys[ikey] = "cocRunTime";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "(R) Camera Operation Code runtime covers the delay, exposure and readout time";
 		if(_stricmp(cmd, key) == 0){
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%g",  m_pcoData->cocRunTime);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%g",  pcoGetCocRunTime());
 			return output;
 		}
 		key = keys[ikey] = "frameRate";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "(R) max frame rate (calculated as 1/cocRunTime)";   
 		if(_stricmp(cmd, key) == 0){
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%g", m_pcoData->frameRate);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%g", pcoGetFrameRate());
 			return output;
 		}
 
@@ -626,7 +626,9 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 			Point top_left = m_RoiLima.getTopLeft();
 			Point bot_right = m_RoiLima.getBottomRight();
+
 			Size size = m_RoiLima.getSize();			
+
 			unsigned int bytesPerPix; getBytesPerPixel(bytesPerPix);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* roiLima xy0[%d,%d] xy1[%d,%d] size[%d,%d]\n",  
@@ -637,21 +639,45 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			long long imgSize = size.getWidth()* size.getHeight() * bytesPerPix;
 			long long totSize = imgSize * traceAcq.nrImgRequested;
 			double mbTotSize =  totSize/(1024.*1024.);
-			double xferSpeed = mbTotSize / traceAcq.msXfer * 1000.;
+			//double mbNowSize =  imgSize * traceAcq.checkImgNrPco/(1024.*1024.);
+			double xferSpeed = traceAcq.msXfer > 0. ? mbTotSize / traceAcq.msXfer * 1000. : -1.;
+
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* imgSize[%lld B] totSize[%lld B][%g MB] xferSpeed[%g MB/s]\n",  
 					imgSize, totSize, mbTotSize, xferSpeed);
 
+			double secTotTime = (traceAcq.msStartAcqEnd - traceAcq.msStartAcqStart)/1000.;
+			double secNowTime = (traceAcq.msStartAcqNow - traceAcq.msStartAcqStart)/1000.;
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* nrImgRequested0[%d] nrImgRequested[%d] nrImgAcquired[%d] nrImgRecorded[%u] maxImgCount[%u]\n",
-				traceAcq.nrImgRequested0,
+				"... msStartAcq Start/now/end[%ld][%ld][%ld]ms Time now/tot[%g][%g]s\n",
+				        traceAcq.msStartAcqStart, traceAcq.msStartAcqNow, traceAcq.msStartAcqEnd, 
+				        secNowTime, secTotTime);
+
+            if(secNowTime > 0.) 
+            {
+			    ptr += sprintf_s(ptr, ptrMax - ptr, 
+				    "... now speed[%g]MB/s frameRate actual/pco[%g][%g]fps\n",
+				            imgSize * traceAcq.checkImgNrPco/(1024.*1024.) / secNowTime,
+				            traceAcq.checkImgNrPco/ secNowTime,
+				            pcoGetFrameRate());
+            }
+            
+            if(secTotTime > 0.) 
+            {
+			    ptr += sprintf_s(ptr, ptrMax - ptr, 
+				    "... tot speed[%g]MB/s actual/pco[%g][%g]fps\n",
+				            mbTotSize / secTotTime, 
+				            traceAcq.nrImgRequested/secTotTime,
+				            pcoGetFrameRate());
+            }
+            
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"* nrImgRequested[%d] nrImgRequested0[%d] nrImgAcquired[%d] nrImgRecorded[%u] maxImgCount[%u]\n",
 				traceAcq.nrImgRequested,
+				traceAcq.nrImgRequested0,
 				traceAcq.nrImgAcquired,
 				traceAcq.nrImgRecorded,
 				traceAcq.maxImgCount);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* msStartAcq Start[%ld]  End[%ld] diff[%ld]ms\n",
-				traceAcq.msStartAcqStart, traceAcq.msStartAcqEnd, traceAcq.msStartAcqEnd - traceAcq.msStartAcqStart);
 			
 			for(int _i = 0; _i < LEN_TRACEACQ_TRHEAD; _i++){
 				const char *desc = traceAcq.usTicks[_i].desc;
@@ -679,7 +705,8 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* msImgCoc[%.3g] fps[%.3g] msTout[%ld] msTotal[%ld]\n",
-				traceAcq.msImgCoc, 1000. / traceAcq.msImgCoc,
+				traceAcq.msImgCoc, 
+				traceAcq.msImgCoc > 0. ? 1000. / traceAcq.msImgCoc : -1.,
 				traceAcq.msTout,
 				traceAcq.msTotal);
 
@@ -695,7 +722,6 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				traceAcq.checkImgNrPco,
 				traceAcq.checkImgNrPcoTimestamp,
 				traceAcq.checkImgNrPcoTimestamp - traceAcq.checkImgNrPco);
-
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"%s\n", traceAcq.msg);

@@ -112,7 +112,8 @@
 #define PCO_CL_BAUDRATE_115K2	115200
 
 #define PCO_BUFFER_NREVENTS 4
-struct stcXlatCode2Str {
+struct stcXlatCode2Str 
+{
 		int code;
 		const char *str;
 };
@@ -138,7 +139,8 @@ enum timestampFmt {Iso=1, IsoHMS, FnFull, FnDate};
 char *getTimestamp(timestampFmt fmtIdx, time_t xtime = 0) ;
 time_t getTimestamp();
 
-struct stcFrame {
+struct stcFrame 
+{
 	BOOL	changed;
 	unsigned int nb;
 	unsigned int done;
@@ -150,7 +152,8 @@ struct stcFrame {
 
 };
 #define RING_LOG_BUFFER_SIZE 64
-class ringLog {
+class ringLog 
+{
         //enum { bufferSize = 64 };
         struct data{        
                 time_t timestamp;
@@ -174,19 +177,22 @@ private:
         struct data *buffer;
 };
 
-struct stcTemp {
+struct stcTemp 
+{
 	short wCcd, wCam, wPower;
 	short wMinCoolSet, wMaxCoolSet;
 	short wSetpoint;
 };
 
-struct stcLongLongStr {
+struct stcLongLongStr 
+{
 	long long value;
 	const char *desc;
 };
 
 #define SIZEARR_stcPcoHWIOSignal 10
-struct stcPcoData {
+struct stcPcoData 
+{
 	PCO_General stcPcoGeneral;
 	PCO_CameraType	stcPcoCamType;
 	PCO_Sensor stcPcoSensor;
@@ -301,18 +307,21 @@ struct stcPcoData {
 	stcPcoData();
 };
 
-enum enumChange {
+enum enumChange 
+{
 	Invalid, Valid, Changed,
 };
 
-enum enumStop {
+enum enumStop 
+{
 	stopNone = 0, 
 	stopRequest, 
 	//stopRequestAgain, 
 	//stopProcessing,
 };
 
-enum enumPcoFamily {
+enum enumPcoFamily 
+{
 	Dimax       = 1<<0, 
 	Edge        = 1<<1, 
 	EdgeGL      = 1<<2,
@@ -322,7 +331,8 @@ enum enumPcoFamily {
 };
 
 
-enum enumRoiError {
+enum enumRoiError 
+{
 	Xrange      = 1<<0, 
 	Yrange      = 1<<1, 
 	Xsteps      = 1<<2,
@@ -332,22 +342,42 @@ enum enumRoiError {
 };
 
 
-enum enumPcoStorageMode {
+enum enumPcoStorageMode 
+{
 	Fifo = 1, RecSeq, RecRing, RecInvalid
 };
 
 
-enum enumTblXlatCode2Str {
+enum enumTblXlatCode2Str 
+{
 	ModelType, InterfaceType, ModelSubType
 };
 
-struct stcBinning {
+struct stcBinning 
+{
 	enumChange	changed;		/* have values been changed ? */
 	unsigned int x;			/* amount to bin/group x data.                 */
 	unsigned int y;			/* amount to bin/group y data.                 */
 };
 
-
+enum enumTraceAcqId 
+{
+    traceAcq_ExecTimeTot,
+    traceAcq_Lima,
+    traceAcq_GetImageEx,
+    traceAcq_pcoSdk,
+    traceAcq_GetRecordingState,
+    traceAcq_SetRecordingState,
+    traceAcq_CancelImages,
+    traceAcq_xferImagBefore,
+    traceAcq_xferImag,
+    traceAcq_setExposing,
+    traceAcq_stopAcq,
+    traceAcq_uptoEndThread,
+    
+    
+};
+    
 namespace lima
 {
   namespace Pco
@@ -404,8 +434,6 @@ namespace lima
         unsigned long pcoGetFramesMax(int segmentPco);
 
 		unsigned long	pcoGetFramesPerBuffer() { return m_pcoData->frames_per_buffer; }
-		double pcoGetCocRunTime() { return m_pcoData->cocRunTime; }
-		double pcoGetFrameRate() { return m_pcoData->frameRate; }
 		
 		//char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
 		char *_xlatPcoCode2Str(int code, int table, int &err);
@@ -433,6 +461,7 @@ namespace lima
 		
 		void paramsInit(const char *str);
 		bool paramsGet(const char *key,  char *&value);
+		bool paramsGet(const char *key, unsigned long long &value);
 
         DWORD _getCameraSerialNumber();
         WORD _getInterfaceType();
@@ -450,7 +479,7 @@ namespace lima
 		    int nrImgRequested0;
 		    int nrImgAcquired;
 		    long msTotal, msRecord, msRecordLoop, msXfer, msTout;
-		    long msStartAcqStart, msStartAcqEnd;
+		    long msStartAcqStart, msStartAcqEnd, msStartAcqNow;
 		    int checkImgNrPco, checkImgNrPcoTimestamp, checkImgNrLima;
 		
 		    //long msThreadBeforeXfer, msThreadAfterXfer, msThreadEnd;
@@ -484,10 +513,6 @@ namespace lima
 	    	void traceAcqClean();
         	void traceMsg(char *s);
 	    } traceAcq;
-
-
-
-
 
 
 	private:
@@ -578,7 +603,6 @@ namespace lima
 		void _init_dimax();
 		const char *_pco_SetTransferParameter_SetActiveLookupTable_win(int &error);
 		const char *_pco_SetPixelRate(int &error);
-		const char *_pco_GetCOCRuntime(int &error);
 		const char *_pco_SetMetaDataMode(WORD wMetaDataMode, int &error);
 		void _pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error); 
 
@@ -636,6 +660,10 @@ namespace lima
  		size_t _pco_roi_info(char *ptrOut, size_t lgMax, int &error);
  		void getStatus(Camera::Status& status);
  		void _setStatus(Camera::Status status,bool force);
+
+		double pcoGetCocRunTime();
+		double pcoGetFrameRate();
+ 		void _pco_GetCOCRuntime(int &err);
     };
   }
 }

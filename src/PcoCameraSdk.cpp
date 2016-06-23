@@ -383,7 +383,8 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &err){
 	const char *msg;
 	DWORD pixelrate, pixRateNext;
 	WORD width, height, wXResMax, wYResMax;
-	WORD actlut,lutparam;
+	WORD actlut;
+	//WORD lutparam;
 	int pcoBuffNr = 10;
 
     _pco_GetSizes( &width, &height, &wXResMax, &wYResMax, err);
@@ -936,39 +937,6 @@ const char *Camera::_pco_SetMetaDataMode(WORD wMetaDataMode, int &error){
 }
 //=================================================================================================
 //=================================================================================================
-const char *Camera::_pco_GetCOCRuntime(int &error){
-		
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	const char *msg;
-
-	//====================================== get the coc runtime 
-    //---- only valid if it was used PCO_SetDelayExposureTime
-	//---- and AFTER armed the cam
-
-	// Get and split the 'camera operation code' runtime into two DWORD. One will hold the longer
-	// part, in seconds, and the other will hold the shorter part, in nanoseconds. This function can be
-	// used to calculate the FPS. The sum of dwTime_s and dwTime_ns covers the delay, exposure and
-	// readout time. If external exposure is active, it returns only the readout time.
-
-	DWORD dwTime_s, dwTime_ns;
-    double runTime;
-
-    error=camera->PCO_GetCOCRuntime(&dwTime_s, &dwTime_ns);
-    msg = "PCO_GetCOCRuntime" ; PCO_CHECK_ERROR(error, msg);
-    if(error) return msg;
-
-    m_pcoData->cocRunTime = runTime = ((double) dwTime_ns * NANO) + (double) dwTime_s;
-    m_pcoData->frameRate = (dwTime_ns | dwTime_s) ? 1.0 / runTime : 0.0;
-
-    DEB_TRACE() << DEB_VAR2(m_pcoData->frameRate, m_pcoData->cocRunTime);
-
-	return fnId;
-
-}
-
-//=================================================================================================
-//=================================================================================================
 void Camera::_pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error){
 		
 	DEB_MEMBER_FUNCT();
@@ -1412,8 +1380,8 @@ const char *Camera::_pco_SetRecordingState(int state, int &err){
 
 	//_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
 
-	traceAcq.usTicks[8].value = usElapsedTime(usStart);
-	traceAcq.usTicks[8].desc = "PCO_GetRecordingState execTime";
+	traceAcq.usTicks[traceAcq_GetRecordingState].value = usElapsedTime(usStart);
+	traceAcq.usTicks[traceAcq_GetRecordingState].desc = "PCO_GetRecordingState execTime";
 	usElapsedTimeSet(usStart);
 
 	//if(wRecState_new == wRecState_actual) {error = 0; return fnId; }
@@ -1449,14 +1417,14 @@ const char *Camera::_pco_SetRecordingState(int state, int &err){
 
 	_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
 
-	traceAcq.usTicks[9].value = usElapsedTime(usStart);
-	traceAcq.usTicks[9].desc = "PCO_SetRecordingState execTime";
+	traceAcq.usTicks[traceAcq_SetRecordingState].value = usElapsedTime(usStart);
+	traceAcq.usTicks[traceAcq_SetRecordingState].desc = "PCO_SetRecordingState execTime";
 	usElapsedTimeSet(usStart);
 
 	_armRequired(true);
 
-	traceAcq.usTicks[10].value = usElapsedTime(usStart);
-	traceAcq.usTicks[10].desc = "PCO_CancelImages execTime";
+	traceAcq.usTicks[traceAcq_CancelImages].value = usElapsedTime(usStart);
+	traceAcq.usTicks[traceAcq_CancelImages].desc = "PCO_CancelImages execTime";
 	usElapsedTimeSet(usStart);
 
 	//DEB_ALWAYS() << fnId << ": " << DEB_VAR4(error, state, wRecState_actual, wRecState_new);
@@ -1793,7 +1761,7 @@ size_t Camera::_pco_roi_info(char *ptrOut, size_t lgMax, int &error)
 
     char *ptr = ptrOut;
     char *ptrMax = ptr + lgMax;
-    int lg = ptrMax - ptr;
+    //int lg = ptrMax - ptr;
 
 			unsigned int x0, x1, y0, y1;
 			Roi new_roi;
@@ -1828,4 +1796,57 @@ size_t Camera::_pco_roi_info(char *ptrOut, size_t lgMax, int &error)
 
     return ptr - ptrOut;
 }
+
+//=================================================================================================
+//=================================================================================================
+
+double Camera::pcoGetCocRunTime()
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+    return m_pcoData->cocRunTime;
+}
+
+double Camera::pcoGetFrameRate()
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	
+	return m_pcoData->frameRate;
+
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetCOCRuntime(int &error){
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	const char *msg;
+
+	//====================================== get the coc runtime 
+    //---- only valid if it was used PCO_SetDelayExposureTime
+	//---- and AFTER armed the cam
+
+	// Get and split the 'camera operation code' runtime into two DWORD. One will hold the longer
+	// part, in seconds, and the other will hold the shorter part, in nanoseconds. This function can be
+	// used to calculate the FPS. The sum of dwTime_s and dwTime_ns covers the delay, exposure and
+	// readout time. If external exposure is active, it returns only the readout time.
+
+	DWORD dwTime_s, dwTime_ns;
+    double runTime;
+
+    error=camera->PCO_GetCOCRuntime(&dwTime_s, &dwTime_ns);
+    msg = "PCO_GetCOCRuntime" ; PCO_CHECK_ERROR(error, msg);
+    if(error) return;
+
+    m_pcoData->cocRunTime = runTime = ((double) dwTime_ns * NANO) + (double) dwTime_s;
+    m_pcoData->frameRate = (runTime > 0.) ? 1.0 / runTime : -1.;
+
+    DEB_TRACE() << DEB_VAR2(m_pcoData->frameRate, m_pcoData->cocRunTime);
+
+	return;
+
+}
+
 

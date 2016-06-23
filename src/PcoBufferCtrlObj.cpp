@@ -600,7 +600,7 @@ _RETRY_WAIT:
   #pragma message ("============================================== ABORT - wrong nr of WAIT_OBJECT ")
     DUMMY_FOR_ABORT = 5;
 #endif
-
+dwEvent = 0 ;// dummy for linux to clean
     switch (dwEvent) { 
         case WAIT_OBJECT_0 + 0: 
 			m_allocBuff.bufferReady[0] = 1; 
@@ -862,8 +862,8 @@ int BufferCtrlObj::_xferImagMult()
 
 	m_cam->traceAcq.nrImgRequested = dwRequestedFrames;
 
-	m_cam->traceAcq.usTicks[6].desc = "PCO_GetImageEx total execTime";
-	m_cam->traceAcq.usTicks[7].desc = "xfer to lima / total execTime";
+	m_cam->traceAcq.usTicks[traceAcq_GetImageEx].desc = "PCO_GetImageEx total execTime";
+	m_cam->traceAcq.usTicks[traceAcq_Lima].desc = "xfer to lima / total execTime";
 
 	while(dwFrameIdx <= dwRequestedFrames) {
 		bufIdx++; if(bufIdx >= _iPcoAllocatedBuffNr) bufIdx = 0;
@@ -889,7 +889,7 @@ int BufferCtrlObj::_xferImagMult()
 			wSegment, dwFrameIdxFirst, dwFrameIdxLast, \
 			sBufNr, _wArmWidth, _wArmHeight, _wBitPerPixel), error, "PCO_GetImageEx");
 		
-		m_cam->traceAcq.usTicks[6].value += usElapsedTime(usStart);
+		m_cam->traceAcq.usTicks[traceAcq_GetImageEx].value += usElapsedTime(usStart);
 		usElapsedTimeSet(usStart);
 
 		if(error) {
@@ -939,7 +939,7 @@ int BufferCtrlObj::_xferImagMult()
 		m_sync->setAcqFrames(dwFrameIdx);
 		dwFrameIdx++;
 
-		m_cam->traceAcq.usTicks[7].value += usElapsedTime(usStart);
+		m_cam->traceAcq.usTicks[traceAcq_Lima].value += usElapsedTime(usStart);
 
 	} // while(frameIdx ...
 
