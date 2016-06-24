@@ -57,6 +57,10 @@ typedef uint64_t UINT64;
 #define ULLONG_MAX    0xffffffffffffffffULL      /* maximum unsigned long long int value */
 #endif
 
+#define KBYTEF  (1024.)        
+#define MBYTEF  (KBYTEF * KBYTEF)     
+#define GBYTEF  (KBYTEF * KBYTEF * KBYTEF)     
+
 #define far
 
 #define DECLARE_HANDLE(n) typedef struct n##__{int i;}*n

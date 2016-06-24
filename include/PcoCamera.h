@@ -455,7 +455,6 @@ namespace lima
 
 		bool _isCameraType(int tp);
 		bool _isConfig(){return m_config; };
-		void _pco_set_shutter_rolling_edge(int &error);
 		void msgLog(const char *s);
 		bool _getIsArmed() {return m_isArmed; };
 		void _armRequired(bool armRequiered){m_isArmed = !armRequiered;};
@@ -599,8 +598,6 @@ namespace lima
 		void _presetPixelRate(DWORD &pixRate, int &error);
 
 		//char *_pco_SetCameraSetup(DWORD dwSetup, int &error);
-		bool _get_shutter_rolling_edge(int &error);
-		void _set_shutter_rolling_edge(bool roling, int &error);
 
 		void _init();
 		void _init_edge();

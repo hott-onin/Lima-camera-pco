@@ -573,7 +573,12 @@ const char * Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 
 	DEF_FNID;
 	//------------------------------------------------- triggering mode 
-	WORD trigmode = m_sync->xlatLimaTrigMode2PcoTrigMode(m_pcoData->bExtTrigEnabled);
+    lima::TrigMode limaTrigMode;
+	WORD trigmode;
+	WORD acqmode;
+	
+	m_sync->getTrigMode(limaTrigMode);
+	m_sync->xlatLimaTrigMode2Pco( limaTrigMode,trigmode,acqmode, m_pcoData->bExtTrigEnabled, error); 
 	
     error=camera->PCO_SetTriggerMode(trigmode);
     msg = "PCO_SetTriggerMode" ; PCO_CHECK_ERROR(error, msg);
@@ -584,7 +589,6 @@ const char * Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 	
 	//------------------------------------- acquire mode : ignore or not ext. signal
 
-	WORD acqmode = m_sync->xlatLimaTrigMode2PcoAcqMode();
 
     error=camera->PCO_SetAcquireMode(acqmode);
     msg = "PCO_SetTriggerMode" ; PCO_CHECK_ERROR(error, msg);

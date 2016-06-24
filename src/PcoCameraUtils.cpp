@@ -654,12 +654,13 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 			long long imgSize = size.getWidth()* size.getHeight() * bytesPerPix;
 			long long totSize = imgSize * traceAcq.nrImgRequested;
-			double mbTotSize =  totSize/(1024.*1024.);
+			double mbTotSize =  totSize/MBYTEF;
 			//double mbNowSize =  imgSize * traceAcq.checkImgNrPco/(1024.*1024.);
-			double xferSpeed = traceAcq.msXfer > 0. ? mbTotSize / traceAcq.msXfer * 1000. : -1.;
+			//double xferSpeed = traceAcq.msXfer > 0. ? mbTotSize / traceAcq.msXfer * 1000. : -1.;
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "* imgSize[%lld B] totSize[%lld B][%g MB] xferSpeed[%g MB/s]\n",  
-					imgSize, totSize, mbTotSize, xferSpeed);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* imgSize[%lld]B [%g]MB totSize[%g]MB [%g]GB\n",  
+					imgSize, imgSize/MBYTEF,
+					 mbTotSize, mbTotSize/KBYTEF);
 
 			double secTotTime = (traceAcq.msStartAcqEnd - traceAcq.msStartAcqStart)/1000.;
 			double secNowTime = (traceAcq.msStartAcqNow - traceAcq.msStartAcqStart)/1000.;
@@ -667,15 +668,19 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				"* ... msStartAcq Start/now/end[%ld][%ld][%ld]ms Time now/tot[%g][%g]s\n",
 				        traceAcq.msStartAcqStart, traceAcq.msStartAcqNow, traceAcq.msStartAcqEnd, 
 				        secNowTime, secTotTime);
-
+            
+            double frameRateNow, speedNow, sizeNow;
             if(secNowTime > 0.) 
             {
-			    ptr += sprintf_s(ptr, ptrMax - ptr, 
-				    "* ... now speed[%g]MB/s frameRate actual/pco[%g][%g]fps\n",
-				            imgSize * traceAcq.checkImgNrPco/(1024.*1024.) / secNowTime,
-				            traceAcq.checkImgNrPco/ secNowTime,
-				            pcoGetFrameRate());
+                frameRateNow = traceAcq.checkImgNrPco/ secNowTime;
+                sizeNow = imgSize * traceAcq.checkImgNrPco ;
+                speedNow = sizeNow /secNowTime;
             }
+            else
+            {
+                frameRateNow = speedNow = sizeNow = -1.;
+            }
+            
             
             if(secTotTime > 0.) 
             {
@@ -725,9 +730,17 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				traceAcq.msTotal);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* ... msImgCoc[%.3g] fps[%.3g]\n",
-				traceAcq.msImgCoc, 
-				traceAcq.msImgCoc > 0. ? 1000. / traceAcq.msImgCoc : -1.);
+				"* ... cocRuntime[%.3g]ms frameRate(fps) pco[%.3g] now[%.3g]\n",
+                    traceAcq.msImgCoc,
+                    traceAcq.msImgCoc > 0. ? 1000. / traceAcq.msImgCoc : -1.,
+                    frameRateNow
+				    );
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"* ... sizeNow[%.3g]GB speedNow[%.3g]MB/s\n",
+                    sizeNow/GBYTEF,
+				    speedNow/MBYTEF
+				    );
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* ... msExposure[%g] msDelay[%g]\n",
@@ -740,7 +753,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				traceAcq.nrErrors);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"checkImgNr  lima[%d] pco[%d][%d] diff[%d]\n",  
+				"* ... checkImgNr  lima[%d] pco[%d][%d] diff[%d]\n",  
 				traceAcq.checkImgNrLima,
 				traceAcq.checkImgNrPco,
 				traceAcq.checkImgNrPcoTimestamp,
@@ -778,6 +791,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			}
 			
 			
+#if 0
 			//--- test of close
 			if( (_stricmp(tok[1], "cb")==0)){
 				int error;
@@ -794,7 +808,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				ptr += sprintf_s(ptr, ptrMax - ptr, "%s> closed cam\n", tok[1]);
 				return output;
 			}
-
+#endif
 			
 			//--- test of callback
 			if( (_stricmp(tok[1], "cb")==0)){
@@ -840,7 +854,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		}
 
 
-
+#if 0
 		key = keys[ikey] = "rollingShutter";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "(RW) for EDGE only / rolling shutter mode";     //----------------------------------------------------------------
 		if(_stricmp(cmd, key) == 0){
@@ -923,7 +937,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 		}
 
-
+#endif
 
 		key = keys[ikey] = "roi";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "get actual (fixec) last ROI requested (unfixed) ROIs";     //----------------------------------------------------------------

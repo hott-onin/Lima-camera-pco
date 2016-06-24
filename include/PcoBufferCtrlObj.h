@@ -78,9 +78,6 @@ namespace lima
 
 		SoftBufferCtrlObj::Sync *m_bufferSync;
 		Cond cond;
-		int _assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast, DWORD dwRequestedFrames, int bufIdx, bool live_mode);
-		
-		void _pcoAllocBuffers(bool max = false);
 		struct stcAllocBuff m_allocBuff;
 		unsigned long	m_frames_per_buffer;
 		//-------------------------------------------------------------
@@ -101,11 +98,7 @@ namespace lima
         //-------------------------------------------------------------  moved from taco
         
 	  
-        int _xferImag();
-        int _xferImagMult();
-		//void * BufferCtrlObj::_getLimaBuffer(int lima_buffer_nb, Sync::Status &status);
 		void * _getLimaBuffer(int lima_buffer_nb, Sync::Status &status);
-		void _pcoAllocBuffersFree();
 		void _pcoAllocBuffersInfo(int &nr, DWORD &size);
 		void *_getFrameBufferPtr(int nb_frame, int &nb_allocated_buffers);
 
