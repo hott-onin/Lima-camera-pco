@@ -203,12 +203,13 @@ int Camera::_pco_SetADCOperation(int adc_new, int &adc_working)
 
 //=================================================================================================
 //=================================================================================================
-const char *Camera::_pco_SetPixelRate(int &error){
+void Camera::_pco_SetPixelRate(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	error = 0;
 	const char *msg;
-	DWORD _dwPixelRate, _dwPixelRateOld, _dwPixelRateReq, _dwPixelRateMax;
+	DWORD _dwPixelRate, _dwPixelRateOld, _dwPixelRateReq;
+	DWORD _dwPixelRateMax __attribute__((unused));
     DWORD _dwPixelRateNext;
 
 	if(_isCameraType(Edge)) {
@@ -216,31 +217,26 @@ const char *Camera::_pco_SetPixelRate(int &error){
         _pco_GetPixelRate(m_pcoData->dwPixelRate, _dwPixelRateNext, error);
 		PCO_THROW_OR_TRACE(error, "_pco_GetPixelRate") ;
 
-		//PCOFN2(error, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
-		//PCO_THROW_OR_TRACE(error, msg) ;
-
 		_dwPixelRateOld = m_pcoData->dwPixelRate;
 		_dwPixelRateReq = m_pcoData->dwPixelRateRequested;
-		DEB_ALWAYS() << "PIXEL rate (actual/req): " << DEB_VAR2(_dwPixelRateOld, _dwPixelRateReq) ;
+		//DEB_ALWAYS() << "PIXEL rate (actual/req): " << DEB_VAR2(_dwPixelRateOld, _dwPixelRateReq) ;
 
 		if(_isValid_pixelRate(_dwPixelRateReq) && (_dwPixelRateOld != _dwPixelRateReq)) {
 
             error=camera->PCO_SetPixelRate(_dwPixelRateReq);
             msg = "PCO_SetPixelRate" ; PCO_CHECK_ERROR(error, msg);
-			//PCOFN2(error, msg,PCO_SetPixelRate, m_handle, _dwPixelRateReq);
 			PCO_THROW_OR_TRACE(error, msg) ;
 
             _pco_GetPixelRate(m_pcoData->dwPixelRate, _dwPixelRateNext, error);
-			//PCOFN2(error, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
     		PCO_THROW_OR_TRACE(error, "_pco_GetPixelRate") ;
 
 			_dwPixelRate = m_pcoData->dwPixelRate;
-			DEB_ALWAYS() << "PIXEL rate SET (old/new): "  << DEB_VAR2(_dwPixelRateOld, _dwPixelRate) ;
+			//DEB_ALWAYS() << "PIXEL rate SET (old/new): "  << DEB_VAR2(_dwPixelRateOld, _dwPixelRate) ;
 
 			_armRequired(true);
 		}
 		m_pcoData->dwPixelRateRequested = 0;
-		return fnId;
+		return;
 	}
 
 	if(_isCameraType(Pco2k | Pco4k)) {
@@ -248,25 +244,20 @@ const char *Camera::_pco_SetPixelRate(int &error){
         _pco_GetPixelRate(m_pcoData->dwPixelRate, _dwPixelRateNext, error);
 		PCO_THROW_OR_TRACE(error, "_pco_GetPixelRate") ;
 
-		//PCOFN2(error, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
-		//PCO_THROW_OR_TRACE(error, msg) ;
 
 		_dwPixelRateOld = m_pcoData->dwPixelRate;
 		_dwPixelRateMax = m_pcoData->dwPixelRateMax;
 		_dwPixelRateReq = m_pcoData->dwPixelRateRequested;
 
-		DEB_ALWAYS() << "PIXEL rate (requested/actual/max): " << DEB_VAR3(_dwPixelRateReq, _dwPixelRateOld, _dwPixelRateMax) ;
+		//DEB_ALWAYS() << "PIXEL rate (requested/actual/max): " << DEB_VAR3(_dwPixelRateReq, _dwPixelRateOld, _dwPixelRateMax) ;
 
 		if(_isValid_pixelRate(_dwPixelRateReq) && (_dwPixelRateOld != _dwPixelRateReq)) {
-		//if(_dwPixelRateMax > _dwPixelRateOld) {
-
+		
             error=camera->PCO_SetPixelRate(_dwPixelRateReq);
             msg = "PCO_SetPixelRate" ; PCO_CHECK_ERROR(error, msg);
-			//PCOFN2(error, msg,PCO_SetPixelRate, m_handle, _dwPixelRateReq);
 			PCO_THROW_OR_TRACE(error, msg) ;
 
             _pco_GetPixelRate(m_pcoData->dwPixelRate, _dwPixelRateNext, error);
-			//PCOFN2(error, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
 			PCO_THROW_OR_TRACE(error, "_pco_GetPixelRate") ;
 			
 			_dwPixelRate = m_pcoData->dwPixelRate;
@@ -274,9 +265,9 @@ const char *Camera::_pco_SetPixelRate(int &error){
 
 			_armRequired(true);
 		}
-		return fnId;
+		return;
 	}
-return fnId;
+return;
 }
 //=================================================================================================
 //=================================================================================================
@@ -461,7 +452,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &err){
 
 //=================================================================================================
 //=================================================================================================
-const char *Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
+void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	struct stcPcoData _pcoData;
@@ -571,7 +562,7 @@ const char *Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &erro
 
 
 
-	return fnId;
+	return;
 }
 //=================================================================================================
 //=================================================================================================
@@ -1397,7 +1388,8 @@ const char *Camera::_pco_SetRecordingState(int state, int &err){
 		PCOFN2(error, msg,PCO_GetPendingBuffer, m_handle, &count);
 		PCO_CHECK_ERROR(error, msg); 	if(error) return msg;
 #endif
-		if(count) {
+		if(count && !_isCameraType(Edge)) 
+		{
 			DEB_ALWAYS() << fnId << ": PCO_CancelImages";
 
             err=camera->PCO_CancelImage();
@@ -1405,7 +1397,6 @@ const char *Camera::_pco_SetRecordingState(int state, int &err){
 
             err=camera->PCO_CancelImageTransfer();
             PCO_CHECK_ERROR(err, "PCO_CancelImageTransfer");
-
 		}
 	}
 

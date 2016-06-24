@@ -524,7 +524,8 @@ Camera::Camera(const char *params)
 	//delay_time = exp_time = 0;
 	
     char fnLog[PATH_MAX];
-    snprintf(fnLog, PATH_MAX,"/tmp/pco_edge_grab%s.log",getTimestamp(FnFull));
+    //snprintf(fnLog, PATH_MAX,"/tmp/pco_edge_grab%s.log",getTimestamp(FnFull));
+    snprintf(fnLog, PATH_MAX,"/tmp/pco_edge_grab.log");
 	mylog = new CPco_Log(fnLog);
 	
 	//int error=0;
@@ -1050,14 +1051,15 @@ void Camera::prepareAcq()
 	msg = _pco_SetMetaDataMode(0, error); PCO_THROW_OR_TRACE(error, msg) ;
  
 	//--------------------------- PREPARE / pixel rate - ARM required 
-	msg = _pco_SetPixelRate(error); PCO_THROW_OR_TRACE(error, msg) ;
+	_pco_SetPixelRate(error); PCO_THROW_OR_TRACE(error, "_pco_SetPixelRate") ;
 		
 	//--------------------------- PREPARE / clXferParam, LUT - ARM required 
-	_pco_SetTransferParameter_SetActiveLookupTable(error); PCO_THROW_OR_TRACE(error, msg) ;
+	_pco_SetTransferParameter_SetActiveLookupTable(error); 
+	PCO_THROW_OR_TRACE(error, "_pco_SetTransferParameter_SetActiveLookupTable") ;
 
     
 	//--------------------------- PREPARE / cocruntime (valid after PCO_SetDelayExposureTime and ARM)
-	_pco_GetCOCRuntime(error); PCO_THROW_OR_TRACE(error, msg) ;
+	_pco_GetCOCRuntime(error); PCO_THROW_OR_TRACE(error, "_pco_GetCOCRuntime") ;
 
 
 	DEB_ALWAYS() << fnId << " [EXIT]" ;
@@ -1079,6 +1081,10 @@ void Camera::startAcq()
 
 	TIME_USEC tStart;
 	msElapsedTimeSet(tStart);
+
+	m_sync->getExpTime(traceAcq.sExposure);
+	m_sync->getLatTime(traceAcq.sDelay);
+	traceAcq.msImgCoc = pcoGetCocRunTime() * 1000.;
 
 //=====================================================================
 	DEF_FNID;
@@ -1744,7 +1750,7 @@ void Camera::reset(int reset_level)
 {
 	DEB_MEMBER_FUNCT();
 	int error;
-	const char *msg;
+	//const char *msg;
 
 
 	switch(reset_level) 
@@ -1752,14 +1758,12 @@ void Camera::reset(int reset_level)
 	case RESET_CLOSE_INTERFACE: 
 		DEB_ALWAYS() << "\n... RESET - freeBuff, closeCam, resetLib  " << DEB_VAR1(reset_level) ;
 
-		m_buffer->_pcoAllocBuffersFree();
+		if(m_buffer)
+		    m_buffer->_pcoAllocBuffersFree();
 
-		PCO_FN1(error, msg,PCO_CloseCamera, m_handle);
-		PCO_PRINT_ERR(error, msg); 
-		m_handle = 0;
-
-		PCO_FN0(error, msg,PCO_ResetLib);
-		PCO_PRINT_ERR(error, msg); 
+		_pco_Close_Cam(error);
+		
+		//PCO_FN0(error, msg,PCO_ResetLib); PCO_PRINT_ERR(error, msg); 
 		break;
 
 	default:
@@ -1769,7 +1773,6 @@ void Camera::reset(int reset_level)
 	}
 
 }
-
 
 
 //=========================================================================================================
@@ -2580,6 +2583,51 @@ void Camera::_setCameraState(long long flag, bool val)
 	return;
 }
 
+
+//=================================================================================================
+//=================================================================================================
+void Camera::stopAcq()
+{
+  _stopAcq(true);
+}
+//=================================================================================================
+void Camera::_stopAcq(bool waitForThread)
+{
+    DEB_MEMBER_FUNCT();
+
+    DEB_ALWAYS() << "[entry]" << DEB_VAR1(waitForThread);
+
+    AutoMutex aLock(m_cond.mutex());
+    if(m_status != Camera::Ready)
+    {
+        while(waitForThread && m_thread_running)
+        {
+            m_wait_flag = true;
+            //WaitObject_.Signal();
+            m_cond.wait();
+        }
+        aLock.unlock();
+
+        //Let the acq thread stop the acquisition
+        if(waitForThread) 
+        {
+              DEB_ALWAYS() << "[return]" << DEB_VAR1(waitForThread);
+             return;
+        }
+
+        // Stop acquisition
+        DEB_TRACE() << "Stop acquisition";
+        //Camera_->AcquisitionStop.Execute();
+
+          DEB_ALWAYS() << "[set Ready]" << DEB_VAR1(waitForThread);
+         _setStatus(Camera::Ready,false);
+    }
+}
+//=================================================================================================
+//=================================================================================================
+
+
+
 enum traceAcqId {traceAcq_execTimeTot, };
 
 //=================================================================================================
@@ -2599,7 +2647,7 @@ void Camera::_AcqThread::threadFunction()
     DEB_ALWAYS() << "[entry]" ;
 
     int err;
-    int pcoBuffIdx, pcoFrameNr, pcoFrameNrTimestamp,offsetLostFrames;
+    int pcoBuffIdx, pcoFrameNr, pcoFrameNrTimestamp;
     void *limaBuffPtr;
     void *pcoBuffPtr;
     DWORD width, height;
@@ -2639,6 +2687,9 @@ void Camera::_AcqThread::threadFunction()
         m_cam.m_thread_running = true;
         if(m_cam.m_quit) return;
 
+        Camera::Status _statusReturn = Camera::Ready;
+        bool continueAcq = true;
+
     	m_cam.traceAcq.usTicks[traceAcq_execTimeTot].desc = "total execTime";
     	m_cam.traceAcq.usTicks[traceAcq_Lima].desc = "Lima execTime";
     	m_cam.traceAcq.usTicks[traceAcq_pcoSdk].desc = "SDK execTime";
@@ -2647,6 +2698,8 @@ void Camera::_AcqThread::threadFunction()
     	usElapsedTimeSet(usStart);
     	usElapsedTimeSet(usStartTot);
         m_cam.traceAcq.fnId = fnId;
+        m_cam.traceAcq.fnTimestampEntry = getTimestamp();
+	
 
     	m_cam.traceAcq.msStartAcqStart = msElapsedTime(tStart);
         
@@ -2666,6 +2719,7 @@ void Camera::_AcqThread::threadFunction()
         
         err = m_cam.grabber->Get_actual_size(&width,&height,NULL);
         PCO_CHECK_ERROR1(err, "Get_actual_size");
+        if(err)  m_cam.traceAcq.nrErrors++;
 
         DEB_ALWAYS() << DEB_VAR3(width, height, _nb_frames);
 
@@ -2673,163 +2727,132 @@ void Camera::_AcqThread::threadFunction()
 
         m_cam._pco_SetRecordingState(1, err);
         PCO_CHECK_ERROR1(err, "SetRecordingState(1)");
+        if(err)  m_cam.traceAcq.nrErrors++;
 
         err = m_cam.grabber->Start_Acquire(_nb_frames);
         PCO_CHECK_ERROR1(err, "Start_Acquire");
 
 
-
         if(err!=PCO_NOERROR) 
         {
-            m_cam._setStatus(Camera::Fault,false);        
+            m_cam.traceAcq.nrErrors++;
+            //m_cam._setStatus(Camera::Fault,false);        
+            _statusReturn = Camera::Fault;
+            continueAcq = false;        
             aLock.lock();
             m_cam.m_wait_flag = true;
-            goto whileend;
         }       
         
-        // try
+        while(  !m_cam.m_wait_flag && 
+                continueAcq && 
+                ((_nb_frames == 0) || limaFrameNr < _nb_frames))
         {
-            bool continueAcq = true;
-            while(continueAcq && (!_nb_frames || limaFrameNr < _nb_frames))
-            {
-                //if(waitset.WaitForAny(m_cam.m_timeout,&event_number)) // Wait m_timeout
-                {
 
+            m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
+       		usElapsedTimeSet(usStart);
 
-   		            m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
-               		usElapsedTimeSet(usStart);
+            pcoFrameNr = limaFrameNr +1;
+            limaBuffPtr =  m_cam.m_buffer->_getFrameBufferPtr(limaFrameNr, nb_allocated_buffers);
+           //B_ALWAYS() << DEB_VAR4(nb_allocated_buffers, _nb_frames, limaFrameNr, limaBuffPtr);
 
-                    pcoFrameNr = limaFrameNr +1;
-                    limaBuffPtr =  m_cam.m_buffer->_getFrameBufferPtr(limaFrameNr, nb_allocated_buffers);
-                   //B_ALWAYS() << DEB_VAR4(nb_allocated_buffers, _nb_frames, limaFrameNr, limaBuffPtr);
-
-		            m_cam.traceAcq.usTicks[traceAcq_GetImageEx].value += usElapsedTime(usStart);
-                    		usElapsedTimeSet(usStart);
-
-                    m_cam._setStatus(Camera::Readout,false);
-
-   		            m_cam.traceAcq.usTicks[traceAcq_Lima].value += usElapsedTime(usStart);
-               		usElapsedTimeSet(usStart);
-
+            m_cam.traceAcq.usTicks[traceAcq_GetImageEx].value += usElapsedTime(usStart);
             		usElapsedTimeSet(usStart);
-                    err=m_cam.grabber->Wait_For_Next_Image(&pcoBuffIdx,10);
-                    PCO_CHECK_ERROR1(err, "Wait_For_Next_Image");
-                    if(err!=PCO_NOERROR)
-                        printf("\ngrab_loop Error while waiting for image number %d",pcoFrameNr);
 
+            m_cam._setStatus(Camera::Readout,false);
 
-                    if(err==PCO_NOERROR)
-                    {
-                        err=m_cam.grabber->Check_DMA_Length(pcoBuffIdx);
-                        PCO_CHECK_ERROR1(err, "Check_DMA_Length");
-                        if(err!=PCO_NOERROR)
-                            printf("\ngrab_loop Check_DMA_Length error 0x%x",err);
-                    }
-                    if(err!=PCO_NOERROR)
-                    {
-                        printf("\ngrab_loop Error break loop at image number %d",pcoFrameNr);
-                        m_cam._setStatus(Camera::Fault,false);        
-                        aLock.lock();
-                        m_cam.m_wait_flag = true;
-                        goto whileend;
-                    }
-                    
+            m_cam.traceAcq.usTicks[traceAcq_Lima].value += usElapsedTime(usStart);
+       		usElapsedTimeSet(usStart);
 
-                    //DEB_ALWAYS()  << "lima image#  " << DEB_VAR1(limaFrameNr) <<" acquired !";
-
-                    err=m_cam.grabber->Get_Framebuffer_adr(pcoBuffIdx,&pcoBuffPtr);
-                    PCO_CHECK_ERROR1(err, "Get_Framebuffer_adr");
-                    if(err!=PCO_NOERROR)
-                        printf("\ngrab_loop Get_Framebuffer_adr(%d,) error",pcoBuffIdx);
-
-                    if(err==PCO_NOERROR)
-                    {
-                        m_cam.grabber->Extract_Image(limaBuffPtr,pcoBuffPtr,width,height);
-                        pcoFrameNrTimestamp=image_nr_from_timestamp(limaBuffPtr,0);
-                        
-    		            m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
-                		usElapsedTimeSet(usStart);
-
-                        m_cam.traceAcq.checkImgNrPcoTimestamp = pcoFrameNrTimestamp;
-                        m_cam.traceAcq.checkImgNrPco = pcoFrameNr;
-                        m_cam.traceAcq.checkImgNrLima = limaFrameNr;
-                        m_cam.traceAcq.checkImgNrLima = limaFrameNr;
-                        m_cam.traceAcq.msStartAcqNow = msElapsedTime(tStart);
-
-
-                        HwFrameInfoType frame_info;
-    		            frame_info.acq_frame_nb = limaFrameNr;
-			            //DEB_ALWAYS() << DEB_VAR2(limaFrameNr, pcoFrameNrTimestamp);
-			            continueAcq = m_cam.m_buffer->m_buffer_cb_mgr.newFrameReady(frame_info);
-			            //DEB_ALWAYS() << DEB_VAR2(continueAcq, limaFrameNr);
-
-    		            m_cam.traceAcq.usTicks[traceAcq_Lima].value += usElapsedTime(usStart);
-                		usElapsedTimeSet(usStart);
-                    }
-
-
-                    if(pcoFrameNr==1)
-                        offsetLostFrames=0;
-
-                    err=m_cam.grabber->Unblock_buffer(pcoBuffIdx); 
-                    PCO_CHECK_ERROR1(err, "Unblock_buffer");
-                    if(err!=PCO_NOERROR)
-                        printf("\ngrab_loop Unblock_buffer error 0x%x\n",err);
-
-   		            m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
-               		usElapsedTimeSet(usStart);
-
-                    if((limaFrameNr % 100) == 0)
-                        printf("pcoFrameNr [%d] diff[%d]\r",pcoFrameNr,pcoFrameNrTimestamp-pcoFrameNr);
-                    //    printf("\n");
-
-
-                    //for testing only lost images can also be seen at summary output
-                    if((pcoFrameNrTimestamp-offsetLostFrames)!=pcoFrameNr)
-                    {
-                        offsetLostFrames = pcoFrameNrTimestamp-offsetLostFrames;
-                        //   printf("\ngrab_loop Error number: camera %d grabber %d offset now %d\n",pcoFrameNrTimestamp,pcoFrameNr,offsetLostFrames);
-                    }
-
-
-                    ++limaFrameNr;
-
-
-
-                            if (1)    //Grabbed == Result.Status())
-                            {
-                            } // img ok
-                            else if (0)   //(Failed == Result.Status())
-                            {
-                                // Error handling
-                                DEB_ERROR() << "No image acquired!";
-                                            //<< Result.GetErrorDescription();
-                                
-                                if(_nb_frames) //Do not stop acquisition in "live" mode, just IGNORE  error
-                                {
-                                    //m_cam.StreamGrabber_->QueueBuffer(Result.Handle(), NULL);
-                                }
-                                else            //in "snap" mode , acquisition must be stopped
-                                {
-                                    m_cam._setStatus(Camera::Fault,false);
-                                    continueAcq = false;
-                                }
-                            } // img err error
-                    //} sw
-                }  // got image
-#if 0
-                else
+    		usElapsedTimeSet(usStart);
+            err=m_cam.grabber->Wait_For_Next_Image(&pcoBuffIdx,10);
+            PCO_CHECK_ERROR1(err, "Wait_For_Next_Image");
+            if(err!=PCO_NOERROR)
+            {
+                m_cam.traceAcq.nrErrors++;
+                printf("\ngrab_loop Error while waiting for image number %d",pcoFrameNr);
+            }
+            
+            if(err==PCO_NOERROR)
+            {
+                err=m_cam.grabber->Check_DMA_Length(pcoBuffIdx);
+                PCO_CHECK_ERROR1(err, "Check_DMA_Length");
+                if(err!=PCO_NOERROR)
                 {
-                    // Timeout
-                    DEB_ERROR() << "Timeout occurred!";
-                    m_cam._setStatus(Camera::Fault,false);
-                    continueAcq = false;
+                    m_cam.traceAcq.nrErrors++;
+                    printf("\ngrab_loop Check_DMA_Length error 0x%x",err);
                 }
-#endif
+            }
 
-            } // while  nb_grames
-            //m_cam._stopAcq(true);
-        } // try
+            if(err!=PCO_NOERROR)
+            {
+                printf("\ngrab_loop Error break loop at image number %d",pcoFrameNr);
+                _statusReturn = Camera::Fault;
+                //m_cam._setStatus(Camera::Fault,false);
+                continueAcq = false;        
+                aLock.lock();
+                m_cam.m_wait_flag = true;
+                goto whileend;
+            }
+            
+            //DEB_ALWAYS()  << "lima image#  " << DEB_VAR1(limaFrameNr) <<" acquired !";
+
+            err=m_cam.grabber->Get_Framebuffer_adr(pcoBuffIdx,&pcoBuffPtr);
+            PCO_CHECK_ERROR1(err, "Get_Framebuffer_adr");
+            if(err!=PCO_NOERROR)
+            {
+                m_cam.traceAcq.nrErrors++;
+                printf("\ngrab_loop Get_Framebuffer_adr(%d,) error",pcoBuffIdx);
+            }
+            if(err==PCO_NOERROR)
+            {
+                m_cam.grabber->Extract_Image(limaBuffPtr,pcoBuffPtr,width,height);
+                pcoFrameNrTimestamp=image_nr_from_timestamp(limaBuffPtr,0);
+                
+	            m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
+        		usElapsedTimeSet(usStart);
+
+                m_cam.traceAcq.checkImgNrPcoTimestamp = pcoFrameNrTimestamp;
+                m_cam.traceAcq.checkImgNrPco = pcoFrameNr;
+                m_cam.traceAcq.checkImgNrLima = limaFrameNr;
+                m_cam.traceAcq.checkImgNrLima = limaFrameNr;
+                m_cam.traceAcq.msStartAcqNow = msElapsedTime(tStart);
+
+
+                HwFrameInfoType frame_info;
+	            frame_info.acq_frame_nb = limaFrameNr;
+	            continueAcq = m_cam.m_buffer->m_buffer_cb_mgr.newFrameReady(frame_info);
+
+	            m_cam.traceAcq.usTicks[traceAcq_Lima].value += usElapsedTime(usStart);
+        		usElapsedTimeSet(usStart);
+            }
+
+            err=m_cam.grabber->Unblock_buffer(pcoBuffIdx); 
+            PCO_CHECK_ERROR1(err, "Unblock_buffer");
+            if(err!=PCO_NOERROR)
+            {
+                m_cam.traceAcq.nrErrors++;
+                printf("\ngrab_loop Unblock_buffer error 0x%x\n",err);
+            }
+            m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
+       		usElapsedTimeSet(usStart);
+
+            if((limaFrameNr % 100) == 0)
+                printf("pcoFrameNr [%d] diff[%d]\r",pcoFrameNr,pcoFrameNrTimestamp-pcoFrameNr);
+            //    printf("\n");
+
+            ++limaFrameNr;
+
+            if(0) // TODO - FAULT
+            {
+                //m_cam._setStatus(Camera::Fault,false);
+                _statusReturn = Camera::Fault;
+                continueAcq = false;
+                m_cam.m_wait_flag = true;
+            }
+whileend:;
+        } // while  nb_frames, continue, wait
+
+        m_cam._stopAcq(false);
 
         printf("\n");
         
@@ -2837,27 +2860,38 @@ void Camera::_AcqThread::threadFunction()
         usElapsedTimeSet(usStart);
         m_cam._pco_SetRecordingState(0, err);
         PCO_CHECK_ERROR1(err, "SetRecordingState(0)");
+        if(err) m_cam.traceAcq.nrErrors++;
  
         err=m_cam.grabber->Stop_Acquire(); 
         PCO_CHECK_ERROR1(err, "Stop_Acquire");
-         if(err!=PCO_NOERROR)
-               printf("\ngrab_loop Stop_Acquire error \n");
+        if(err!=PCO_NOERROR)
+        {
+            m_cam.traceAcq.nrErrors++;
+            printf("\ngrab_loop Stop_Acquire error \n");
+        }
 
+        err=m_cam.grabber->Free_Framebuffer(); 
+        PCO_CHECK_ERROR1(err, "Free_Framebuffer");
+        if(err!=PCO_NOERROR)
+        {
+            m_cam.traceAcq.nrErrors++;
+            printf("\ngrab_loop Free_Framebuffer error \n");
+        }
     	m_cam.traceAcq.usTicks[traceAcq_pcoSdk].value += usElapsedTime(usStart);
         usElapsedTimeSet(usStart);
 
+        m_cam.traceAcq.fnTimestampExit = getTimestamp();
         m_cam.traceAcq.msStartAcqEnd = msElapsedTime(tStart);
         m_cam.traceAcq.usTicks[traceAcq_execTimeTot].value = usElapsedTime(usStartTot);      
-        m_cam._setStatus(Camera::Ready,false);        
+        m_cam._setStatus(_statusReturn,false);        
 
         aLock.lock();
         m_cam.m_wait_flag = true;
         m_cam.m_sync->setStarted(false);        
 
-whileend:;
 
-    } // while quite
-  DEB_ALWAYS() << "[entry]" ;
+    } // while quit
+    DEB_ALWAYS() << "[exit]" ;
 }
 
 //=================================================================================================

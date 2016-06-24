@@ -411,6 +411,8 @@ namespace lima
         void 	startAcq();
         void 	prepareAcq();
 		void	reset(int reset_level);
+        void    stopAcq();
+        void    _stopAcq(bool waitForThread);
 
 		HANDLE& getHandle() {return m_handle;}
 
@@ -478,6 +480,7 @@ namespace lima
 		    int nrImgRequested;
 		    int nrImgRequested0;
 		    int nrImgAcquired;
+		    int nrErrors;
 		    long msTotal, msRecord, msRecordLoop, msXfer, msTout;
 		    long msStartAcqStart, msStartAcqEnd, msStartAcqNow;
 		    int checkImgNrPco, checkImgNrPcoTimestamp, checkImgNrLima;
@@ -492,6 +495,7 @@ namespace lima
 		    time_t endRecordTimestamp;
 		    time_t endXferTimestamp;
 		    const char *fnId;
+		    time_t fnTimestampEntry, fnTimestampExit;
 		    const char *fnIdXfer;
 		    const char *sPcoStorageRecorderMode;
 		    int iPcoStorageMode, iPcoRecorderSubmode;
@@ -601,8 +605,8 @@ namespace lima
 		void _init();
 		void _init_edge();
 		void _init_dimax();
-		const char *_pco_SetTransferParameter_SetActiveLookupTable_win(int &error);
-		const char *_pco_SetPixelRate(int &error);
+		void _pco_SetTransferParameter_SetActiveLookupTable_win(int &error);
+		void _pco_SetPixelRate(int &error);
 		const char *_pco_SetMetaDataMode(WORD wMetaDataMode, int &error);
 		void _pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error); 
 

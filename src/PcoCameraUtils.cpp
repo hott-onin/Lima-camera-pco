@@ -597,8 +597,9 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			return output;
 		}
 
-		key = keys[ikey] = "lastImgAcquired";     //----------------------------------------------------------------
-		keys_desc[ikey++] = "last image acquired";     //----------------------------------------------------------------
+		//----------------------------------------------------------------
+		key = keys[ikey] = "lastImgAcquired";
+		keys_desc[ikey++] = "last image acquired";
 		if(_stricmp(cmd, key) == 0){
 			DWORD lastImgAcquired = traceAcq.nrImgAcquired;
 
@@ -607,8 +608,9 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			return output;
 		}
 
-		key = keys[ikey] = "traceAcq";     //----------------------------------------------------------------
-		keys_desc[ikey++] = "(R) trace details (not all records are filled!)";     //----------------------------------------------------------------
+		//----------------------------------------------------------------
+		key = keys[ikey] = "traceAcq";     
+		keys_desc[ikey++] = "(R) trace details (not all records are filled!)";
 		if(_stricmp(cmd, key) == 0){
 			time_t _timet;
 
@@ -623,6 +625,20 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				traceAcq.fnId,
 				PCO_BUFFER_NREVENTS,
 				traceAcq.fnIdXfer);
+
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"* fnId[%s]\n",
+				traceAcq.fnId);
+				
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"* ... entry[%s]\n",
+				getTimestamp(Iso, traceAcq.fnTimestampEntry));
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"* ...  exit[%s]\n",
+				getTimestamp(Iso, traceAcq.fnTimestampExit));
+
 
 			Point top_left = m_RoiLima.getTopLeft();
 			Point bot_right = m_RoiLima.getBottomRight();
@@ -648,14 +664,14 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			double secTotTime = (traceAcq.msStartAcqEnd - traceAcq.msStartAcqStart)/1000.;
 			double secNowTime = (traceAcq.msStartAcqNow - traceAcq.msStartAcqStart)/1000.;
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"... msStartAcq Start/now/end[%ld][%ld][%ld]ms Time now/tot[%g][%g]s\n",
+				"* ... msStartAcq Start/now/end[%ld][%ld][%ld]ms Time now/tot[%g][%g]s\n",
 				        traceAcq.msStartAcqStart, traceAcq.msStartAcqNow, traceAcq.msStartAcqEnd, 
 				        secNowTime, secTotTime);
 
             if(secNowTime > 0.) 
             {
 			    ptr += sprintf_s(ptr, ptrMax - ptr, 
-				    "... now speed[%g]MB/s frameRate actual/pco[%g][%g]fps\n",
+				    "* ... now speed[%g]MB/s frameRate actual/pco[%g][%g]fps\n",
 				            imgSize * traceAcq.checkImgNrPco/(1024.*1024.) / secNowTime,
 				            traceAcq.checkImgNrPco/ secNowTime,
 				            pcoGetFrameRate());
@@ -664,7 +680,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
             if(secTotTime > 0.) 
             {
 			    ptr += sprintf_s(ptr, ptrMax - ptr, 
-				    "... tot speed[%g]MB/s actual/pco[%g][%g]fps\n",
+				    "* ... tot speed[%g]MB/s actual/pco[%g][%g]fps\n",
 				            mbTotSize / secTotTime, 
 				            traceAcq.nrImgRequested/secTotTime,
 				            pcoGetFrameRate());
@@ -704,20 +720,27 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				getTimestamp(Iso, traceAcq.endXferTimestamp));
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* msImgCoc[%.3g] fps[%.3g] msTout[%ld] msTotal[%ld]\n",
-				traceAcq.msImgCoc, 
-				traceAcq.msImgCoc > 0. ? 1000. / traceAcq.msImgCoc : -1.,
+				"* msTout[%ld] msTotal[%ld]\n",
 				traceAcq.msTout,
 				traceAcq.msTotal);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* msExposure[%g] msDelay[%g]\n",
+				"* ... msImgCoc[%.3g] fps[%.3g]\n",
+				traceAcq.msImgCoc, 
+				traceAcq.msImgCoc > 0. ? 1000. / traceAcq.msImgCoc : -1.);
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"* ... msExposure[%g] msDelay[%g]\n",
 				traceAcq.sExposure * 1000.,
 				traceAcq.sDelay * 1000.);
 
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* ... checkImgNr  lima[%d] pco[%d][%d] diff[%d]\n",  
+				"* ... nrErrors [%d]\n",  
+				traceAcq.nrErrors);
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"checkImgNr  lima[%d] pco[%d][%d] diff[%d]\n",  
 				traceAcq.checkImgNrLima,
 				traceAcq.checkImgNrPco,
 				traceAcq.checkImgNrPcoTimestamp,
