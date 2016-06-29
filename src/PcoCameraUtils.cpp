@@ -394,7 +394,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			if(_isCameraType(Dimax | Pco2k)){
 				
 				ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n", "* --- DIMAX info ---");
-				ptr += sprintf_s(ptr, ptrMax - ptr, "* pagesInRam[%d] pixPerPage[%d] bytesPerPix[%d] ramGB[%.3g]\n",  
+				ptr += sprintf_s(ptr, ptrMax - ptr, "* pagesInRam[%d] pixPerPage[%d] bytesPerPix[%d] ramGB[%g]\n",  
 					m_pcoData->dwRamSize, m_pcoData->wPixPerPage,pixbytes,
 					(1.0e-9 * m_pcoData->dwRamSize) * m_pcoData->wPixPerPage * pixbytes);
 
@@ -619,17 +619,18 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				return output;
 			}
 
+#ifdef __linux__
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"* fnId[%s]\n",
+				traceAcq.fnId);
+#else
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* fnId[%s] nrEvents[%d]\n"
 				"* fnIdXfer[%s]\n",
 				traceAcq.fnId,
 				PCO_BUFFER_NREVENTS,
 				traceAcq.fnIdXfer);
-
-
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* fnId[%s]\n",
-				traceAcq.fnId);
+#endif
 				
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* ... entry[%s]\n",
@@ -730,14 +731,14 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				traceAcq.msTotal);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* ... cocRuntime[%.3g]ms frameRate(fps) pco[%.3g] now[%.3g]\n",
+				"* ... cocRuntime[%g]ms frameRate(fps) pco[%g] now[%g]\n",
                     traceAcq.msImgCoc,
                     traceAcq.msImgCoc > 0. ? 1000. / traceAcq.msImgCoc : -1.,
                     frameRateNow
 				    );
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* ... sizeNow[%.3g]GB speedNow[%.3g]MB/s\n",
+				"* ... sizeNow[%g]GB speedNow[%g]MB/s\n",
                     sizeNow/GBYTEF,
 				    speedNow/MBYTEF
 				    );
@@ -886,6 +887,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			return output;
 		}
 
+#endif
 
 		key = keys[ikey] = "pixelRate";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "(RW) pixelrate (Hz) for reading images from the image sensor";     //----------------------------------------------------------------
@@ -937,7 +939,6 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 		}
 
-#endif
 
 		key = keys[ikey] = "roi";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "get actual (fixec) last ROI requested (unfixed) ROIs";     //----------------------------------------------------------------
