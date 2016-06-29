@@ -10,3 +10,8 @@
 PcoGitVersion.*
 [0-9]*
 *.cpp.*
+*.h.*
+*.P
+*.o
+Makefile.*
+
