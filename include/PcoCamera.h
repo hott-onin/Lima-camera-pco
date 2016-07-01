@@ -331,6 +331,19 @@ enum enumPcoFamily
 };
 
 
+enum enumInterfaces 
+{
+	Fw          = 1<<0, 
+	Usb         = 1<<1, 
+	Eth         = 1<<2,
+	Serial      = 1<<3, 
+	Usb3        = 1<<4,
+	Cl          = 1<<5,
+	ClHs        = 1<<6,
+	Coaxpress   = 1<<7,
+};
+
+
 enum enumRoiError 
 {
 	Xrange      = 1<<0, 
@@ -454,6 +467,7 @@ namespace lima
 		int dumpRecordedImages(int &nrImages, int &error);
 
 		bool _isCameraType(int tp);
+		bool _isInterfaceType(int tp);
 		bool _isConfig(){return m_config; };
 		void msgLog(const char *s);
 		bool _getIsArmed() {return m_isArmed; };

@@ -1951,12 +1951,12 @@ void Camera::_get_MaxImageSize(Size& max_image_size)
 
 //=================================================================================================
 //=================================================================================================
-bool Camera::_isCameraType(int tp){
-		
+bool Camera::_isCameraType(int tp)
+{
 	DEB_MEMBER_FUNCT();
-	//DEF_FNID;
 
-	switch(_getCameraType()) {
+	switch(_getCameraType()) 
+	{
 		case CAMERATYPE_PCO_DIMAX_STD: 
 			return !!(tp & Dimax) ;
 		
@@ -1972,27 +1972,53 @@ bool Camera::_isCameraType(int tp){
 		case CAMERATYPE_PCO4000:
 			return !!(tp & Pco4k) ;
 
+		default:
+			return FALSE;
+	}
+}
+
+//=================================================================================================
+//=================================================================================================
+bool Camera::_isInterfaceType(int tp)
+{
+	DEB_MEMBER_FUNCT();
+
+	switch(_getInterfaceType()) 
+	{
+		case INTERFACE_FIREWIRE: 
+			return !!(tp & Fw) ;
+		
+		case INTERFACE_CAMERALINK:
+			return !!(tp & Cl);
+
+		case INTERFACE_USB:
+			return !!(tp & Usb);
+
+		case INTERFACE_ETHERNET:
+			return !!(tp & Eth) ;
+
+		case INTERFACE_SERIAL:
+			return !!(tp & Serial) ;
+
+		case INTERFACE_USB3:
+			return !!(tp & Usb3);
+
+		case INTERFACE_CAMERALINKHS:
+			return !!(tp & ClHs);
+
+		case INTERFACE_COAXPRESS:
+			return !!(tp & Coaxpress);
 
 		default:
 			return FALSE;
-
-	}
-		
+    }
 }
 
-
-
-
-
-
-
-
-
 //=================================================================================================
 //=================================================================================================
-void Camera::_get_XYsteps(Point &xy_steps){
+void Camera::_get_XYsteps(Point &xy_steps)
+{
 	DEB_MEMBER_FUNCT();
-	//DEF_FNID;
 
 		unsigned int xSteps, ySteps;
 
@@ -2004,9 +2030,9 @@ void Camera::_get_XYsteps(Point &xy_steps){
 
 //=================================================================================================
 //=================================================================================================
-void Camera::_presetPixelRate(DWORD &pixRate, int &error){
+void Camera::_presetPixelRate(DWORD &pixRate, int &error)
+{
 	DEB_MEMBER_FUNCT();
-	//DEF_FNID;
 		if(!_isCameraType(Edge) || !_isValid_pixelRate(pixRate)) {
 			pixRate = 0;
 			error = -1;
@@ -2020,7 +2046,8 @@ void Camera::_presetPixelRate(DWORD &pixRate, int &error){
 
 //=================================================================================================
 //=================================================================================================
-void Camera::msgLog(const char *s) {
+void Camera::msgLog(const char *s) 
+{
 	m_msgLog->add(s); 
 }
 
@@ -2032,17 +2059,20 @@ void Camera::msgLog(const char *s) {
 
 //=================================================================================================
 //=================================================================================================
-DWORD Camera::_getCameraSerialNumber(){
+DWORD Camera::_getCameraSerialNumber()
+{
 	DEB_MEMBER_FUNCT();
 	return m_pcoData->stcPcoCamType.dwSerialNumber;
 }
 
-WORD Camera::_getInterfaceType(){
+WORD Camera::_getInterfaceType()
+{
 	DEB_MEMBER_FUNCT();
 	return m_pcoData->stcPcoCamType.wInterfaceType;
 }
 
-const char *Camera::_getInterfaceTypeStr(){
+const char *Camera::_getInterfaceTypeStr()
+{
 	DEB_MEMBER_FUNCT();
 	return m_pcoData->iface;
 }
@@ -2051,12 +2081,14 @@ const char *Camera::_getInterfaceTypeStr(){
 
 //=================================================================================================
 //=================================================================================================
-WORD Camera::_getCameraType(){
+WORD Camera::_getCameraType()
+{
 	DEB_MEMBER_FUNCT();
 	return m_pcoData->stcPcoCamType.wCamType;
 }
 
-const char *Camera::_getCameraTypeStr(){
+const char *Camera::_getCameraTypeStr()
+{
 	DEB_MEMBER_FUNCT();
 	return m_pcoData->model;
 }
@@ -2065,14 +2097,17 @@ const char *Camera::_getCameraTypeStr(){
 
 //=================================================================================================
 //=================================================================================================
-WORD Camera::_getCameraSubType(){
+WORD Camera::_getCameraSubType()
+{
 	DEB_MEMBER_FUNCT();
 	return m_pcoData->stcPcoCamType.wCamSubType;
 }
 
-const char *Camera::_getCameraSubTypeStr(){
+const char *Camera::_getCameraSubTypeStr()
+{
 	DEB_MEMBER_FUNCT();
-	return m_pcoData->modelSubType;}
+	return m_pcoData->modelSubType;
+}
 
 
 //=================================================================================================
@@ -2145,8 +2180,6 @@ void Camera::_stopAcq(bool waitForThread)
 //=================================================================================================
 //=================================================================================================
 
-
-
 enum traceAcqId {traceAcq_execTimeTot, };
 
 //=================================================================================================
@@ -2209,6 +2242,7 @@ void Camera::_AcqThread::threadFunction()
         Camera::Status _statusReturn = Camera::Ready;
         bool continueAcq = true;
 
+        
     	m_cam.traceAcq.usTicks[traceAcq_execTimeTot].desc = "total execTime";
     	m_cam.traceAcq.usTicks[traceAcq_Lima].desc = "Lima execTime";
     	m_cam.traceAcq.usTicks[traceAcq_pcoSdk].desc = "SDK execTime";
@@ -2244,13 +2278,29 @@ void Camera::_AcqThread::threadFunction()
 
         pcoBuffIdx=1;
 
-        m_cam._pco_SetRecordingState(1, err);
-        PCO_CHECK_ERROR1(err, "SetRecordingState(1)");
-        if(err)  m_cam.traceAcq.nrErrors++;
+        bool acquireFirst = m_cam._isCameraType(Edge) && m_cam._isInterfaceType(Cl);
 
-        err = m_cam.grabber->Start_Acquire(_nb_frames);
-        PCO_CHECK_ERROR1(err, "Start_Acquire");
+        if(acquireFirst)
+        {
+            err = m_cam.grabber->Start_Acquire(_nb_frames);
+            PCO_CHECK_ERROR1(err, "Start_Acquire");
+            if(err)  m_cam.traceAcq.nrErrors++;
 
+            m_cam._pco_SetRecordingState(1, err);
+            PCO_CHECK_ERROR1(err, "SetRecordingState(1)");
+            if(err)  m_cam.traceAcq.nrErrors++;
+        }
+        else
+        {
+            m_cam._pco_SetRecordingState(1, err);
+            PCO_CHECK_ERROR1(err, "SetRecordingState(1)");
+            if(err)  m_cam.traceAcq.nrErrors++;
+
+            err = m_cam.grabber->Start_Acquire(_nb_frames);
+            PCO_CHECK_ERROR1(err, "Start_Acquire");
+            if(err)  m_cam.traceAcq.nrErrors++;
+        }
+        
 
         if(err!=PCO_NOERROR) 
         {
