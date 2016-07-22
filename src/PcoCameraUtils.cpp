@@ -631,6 +631,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				PCO_BUFFER_NREVENTS,
 				traceAcq.fnIdXfer);
 #endif
+            
 				
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* ... entry[%s]\n",
@@ -640,6 +641,12 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				"* ...  exit[%s]\n",
 				getTimestamp(Iso, traceAcq.fnTimestampExit));
 
+            if(_isInterfaceType(Cl | ClHs)) 
+            {
+    			ptr += sprintf_s(ptr, ptrMax - ptr, 
+    				"* clSettings[%s]\n",
+    				m_pcoData->sClTransferParameterSettings);
+            }
 
 			Point top_left = m_RoiLima.getTopLeft();
 			Point bot_right = m_RoiLima.getBottomRight();

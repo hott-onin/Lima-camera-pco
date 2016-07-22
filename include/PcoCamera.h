@@ -287,6 +287,7 @@ struct stcPcoData
 	WORD wXResActual, wYResActual;
 	WORD wXResMax, wYResMax;
 	WORD wLUT_Identifier, wLUT_Parameter;
+	const char *sClTransferParameterSettings;
 
 	DWORD dwAllocatedBufferSize;
 	int iAllocatedBufferNumber;

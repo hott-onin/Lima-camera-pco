@@ -396,6 +396,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &err){
 		pbla += sprintf_s(pbla,myblamax - pbla, 
 		    "%s> width[%d] > 1920  && pixelrate[%d] >= 286000000 -> Dataformat[0x%x] lut[0x%x]",
 					fnId, width, pixelrate,clpar.DataFormat, lut);
+		m_pcoData->sClTransferParameterSettings = "Edge 5x12 topCenter botCenter lut 0x1612";
     }
     else
     {
@@ -404,6 +405,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &err){
 		pbla += sprintf_s(pbla,myblamax - pbla, 
 		    "%s> width[%d] <= 1920  && pixelrate[%d] < 286000000 -> Dataformat[0x%x] lut[0x%x]",
 					fnId, width, pixelrate,clpar.DataFormat, lut);
+		m_pcoData->sClTransferParameterSettings = "PCO 5x16 topCenter botCenter lut 0";
     }
 
     pbla += sprintf_s(pbla,myblamax - pbla, 
@@ -485,6 +487,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 				//m_pcoData->clTransferParam.Transmit = 1;
 				//_pcoData.clTransferParam.Transmit = m_pcoData->clTransferParam.Transmit;
 				m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_2x12; //=2
+					m_pcoData->sClTransferParameterSettings = "Dimax 2x12";
 		} else 
 
 		if(_isCameraType(EdgeGL)) {
@@ -493,6 +496,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 				SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
 				//SCCMOS_FORMAT_TOP_BOTTOM;
 			m_pcoData->wLUT_Identifier = 0; //Switch LUT->off
+			m_pcoData->sClTransferParameterSettings = "EdgeGL 5x12 topCenter botCenter lutNone";
 			doLut = true;
 		} else 
 			
@@ -503,16 +507,19 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 					m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x16 | 
 						SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
 					m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
+					m_pcoData->sClTransferParameterSettings = "EdgeR 5x16 topCenter botCenter lutNone";
 				} else 
 				if( ((m_pcoData->dwPixelRate >= PCO_EDGE_PIXEL_RATE_HIGH) & 
 						(wXResActual > PCO_EDGE_WIDTH_HIGH))) {
 					m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x12L | 
 						SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
 					m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_SQRT; //Switch LUT->sqrt
+					m_pcoData->sClTransferParameterSettings = "EdgeR 5x12 topCenter botCenter lutSqrt";
 				} else {
 					m_pcoData->clTransferParam.DataFormat = PCO_CL_DATAFORMAT_5x16 | 
 						SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
 					m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
+					m_pcoData->sClTransferParameterSettings = "EdgeR 5x16 topCenter botCenter lutNone";
 				}
 				doLut = true;
 		} 
