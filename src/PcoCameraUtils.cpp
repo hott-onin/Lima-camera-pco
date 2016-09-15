@@ -947,7 +947,31 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		}
 
 
-		key = keys[ikey] = "roi";     //----------------------------------------------------------------
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "pixelRateValidValues";
+		keys_desc[ikey++] = "(R) valid values of pixelrate (Hz) for reading images from the image sensor";
+		if(_stricmp(cmd, key) == 0){
+			DWORD dwPixRate ; int  i, nr;
+
+			for(nr = i = 0; i<4; i++) 
+			{
+				dwPixRate = m_pcoData->stcPcoDesc1.dwPixelRateDESC[i];
+				if(dwPixRate){
+					nr++;
+					ptr += sprintf_s(ptr, ptrMax - ptr, "%u  ",dwPixRate);
+				}  
+			}	
+
+            if(nr == 0)			
+                ptr += sprintf_s(ptr, ptrMax - ptr, "%d  ",nr);
+
+            return output;
+		}
+
+
+
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "roi";
 		keys_desc[ikey++] = "get actual (fixec) last ROI requested (unfixed) ROIs";     //----------------------------------------------------------------
 		if(_stricmp(cmd, key) == 0){
 			//unsigned int x0, x1, y0, y1;

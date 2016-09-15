@@ -589,7 +589,11 @@ const char * Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 	
     error=camera->PCO_SetTriggerMode(trigmode);
     msg = "PCO_SetTriggerMode" ; PCO_CHECK_ERROR(error, msg);
-	if(error) return msg;
+	if(error) 
+	{
+        DEB_ALWAYS() << "ERROR PCO_SetTriggerMode" << DEB_VAR1(trigmode) ;
+	    return msg;
+    }
 	//PCO_THROW_OR_TRACE(error, "PCO_SetTriggerMode") ;
 	//DEB_TRACE() << DEB_VAR1(trigmode);
 
@@ -598,9 +602,12 @@ const char * Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 
 
     error=camera->PCO_SetAcquireMode(acqmode);
-    msg = "PCO_SetTriggerMode" ; PCO_CHECK_ERROR(error, msg);
-
-	if(error) return msg;
+    msg = "PCO_SetAcquireMode" ; PCO_CHECK_ERROR(error, msg);
+	if(error) 
+	{
+        DEB_ALWAYS() << "ERROR PCO_SetAcquireMode" << DEB_VAR1(acqmode) ;
+	    return msg;
+    }
    //PCO_THROW_OR_TRACE(error, "PCO_SetAcquireMode") ;
 
 	return fnId;

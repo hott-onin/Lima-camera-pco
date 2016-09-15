@@ -1,3 +1,31 @@
+2016/09/15  ==========================================
+- runing version on lid15adata1
+$Id: comp[2016/07/01 21:07:43] file[2016/07/01 10:02:02] [PcoCamera.cpp] $
+$Id: comp[2016/07/01 21:07:42] file[2016/06/24 18:20:45] [PcoSyncCtrlObj.cpp] $
+$Id: comp[2016/07/01 21:07:41] file[2016/06/24 12:47:49] [PcoInterface.cpp] $
+$Id: comp[2016/07/01 21:07:44] file[2016/06/24 16:41:19] [PcoBufferCtrlObj.cpp] $
+$Id: comp[2016/07/01 21:07:41] file[2016/03/08 13:02:54] [PcoDetInfoCtrlObj.cpp] $
+$Id: comp[2016/07/01 21:19:38] file[2016/07/01 21:19:29] [PcoCameraUtils.cpp] $
+$Id: comp[2016/07/01 21:07:42] file[2016/03/08 13:03:56] [PcoRoiCtrlObj.cpp] $
+$Id:       PCO rev[2016-06-29 20:54:03 +0200] head[66d3141][66d3141e0da8721fdad101d3ed18b5a853a3c01d] ref[ (HEAD, gitrh/linux_dev, linux_dev)] at [2016/07/01 10:41:02] $
+$Id:   PROCLIB rev[2015-06-09 14:50:05 +0200] head[7d49ed4][7d49ed48b9fe864251f4e6a9477699011297e39f] ref[ (HEAD, master)] at [2016/07/01 10:41:02] $
+$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/07/01 10:41:02] $
+$Id:      LIMA rev[2016-06-24 13:08:05 +0200] head[c428f70][c428f705b9421ab35a853b197214f0ee49e81e11] ref[ (HEAD, gitrh/pcolinux, pcolinux)] at [2016/07/01 10:41:02] $
+$Id:     TANGO rev[2016-06-24 13:08:05 +0200] head[c428f70][c428f705b9421ab35a853b197214f0ee49e81e11] ref[ (HEAD, gitrh/pcolinux, pcolinux)] at [2016/07/01 10:41:02] $
+$Id:      SPEC rev[2015-09-09 10:35:50 +0200] head[41d9ad2][41d9ad2aa553848db71bb8c86082fc8154165ee5] ref[ (HEAD)] at [2016/07/01 10:41:02] $
+
+       timestamp: 2016/09/14 18:16:30
+   computer name: lid15adata1
+       user name: ERROR: GetUserName
+VS configuration: platform[linux] configuration[x64]
+
+- fixed m_sync->xlatLimaTrigMode2Pco( limaTrigMode,trigmode,acqmode, m_pcoData->bExtTrigEnabled, error);
+  trigmode and acqmode were inverted
+  some cosmetics
+  
+- add talk "pixelRateValidValues"
+  implemented in window but not updated to linux
+
 
 
 2016/07/01 10:41:03 ==========================================

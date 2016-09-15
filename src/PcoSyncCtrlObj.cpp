@@ -148,7 +148,7 @@ enum TrigMode {
 
 
 void SyncCtrlObj::xlatLimaTrigMode2Pco(
-        lima::TrigMode limaTrigMode, WORD &pcoAcqMode, WORD &pcoTrigMode, bool &extTrig, int &err)
+        lima::TrigMode limaTrigMode, WORD &pcoTrigMode, WORD &pcoAcqMode, bool &extTrig, int &err)
 {
 	DEB_MEMBER_FUNCT();
     DEF_FNID;
@@ -298,7 +298,7 @@ void SyncCtrlObj::xlatLimaTrigMode2Pco(
 	extTrig = ext_trig;
 	DEB_ALWAYS() 
 	    << "\n ... " << DEB_VAR1(sLimaTriggerMode)
-	    << "\n ... " << DEB_VAR3(sPcoTriggerMode, _pcoTrigMode, ext_trig)
+	    << "\n ... " << DEB_VAR3(sPcoTriggerMode, pcoTrigMode, extTrig)
 	    << "\n ... " << DEB_VAR2(sPcoAcqMode, pcoAcqMode);
 
 	return ;
