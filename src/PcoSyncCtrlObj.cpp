@@ -758,11 +758,13 @@ void SyncCtrlObj::setStarted(bool started) {
 
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-	AutoMutex lock(m_cond.mutex());
+	
+	
+	//AutoMutex lock(m_cond.mutex());
 
 	
 	m_started = started;
-	m_cond.broadcast();
+	//m_cond.broadcast();
 
 	DEB_ALWAYS() << fnId << "[exit]" << ": " << DEB_VAR2(m_started, started);
 }
