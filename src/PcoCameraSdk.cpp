@@ -86,8 +86,10 @@ WORD Camera::_pco_GetActiveRamSegment()
 	WORD act_segment;
 	int err;
 	char errstr[LEN_ERRSTR+1];
+	DWORD capsDesc1;
 
-	if((m_pcoData->stcPcoDescription.dwGeneralCapsDESC1&GENERALCAPS1_NO_RECORDER)==0)
+	_pco_GetGeneralCapsDESC(capsDesc1, err);
+	if((capsDesc1 & GENERALCAPS1_NO_RECORDER)==0)
 	{
 		err=PCO_GetActiveRamSegment(m_handle,&act_segment);
 		if(err!=PCO_NOERROR)
@@ -370,9 +372,14 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 	//================================================================================================
 	// PCO_SetTransferParameter
 	//================================================================================================
+	// PCO_CL_DATAFORMAT_5x12   0x07     //extract data to 12bit
+	// PCO_CL_DATAFORMAT_5x12L  0x09     //extract data to 16Bit
+	// PCO_CL_DATAFORMAT_5x12R  0x0A     //without extract
 
-	if (_getInterfaceType()==INTERFACE_CAMERALINK) 
+	if ((_getInterfaceType()==INTERFACE_CAMERALINK) || (_getInterfaceType()==INTERFACE_CAMERALINKHS)) 
 	{
+		char *info = "[none]";
+
 		PCO_FN3(error, pcoFn,PCO_GetTransferParameter, m_handle, &m_pcoData->clTransferParam, sizeof(PCO_SC2_CL_TRANSFER_PARAM));
 		PCO_THROW_OR_TRACE(error, pcoFn) ;
 	
@@ -384,8 +391,9 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 				//m_pcoData->clTransferParam.Transmit = 1;
 				//_pcoData.clTransferParam.Transmit = m_pcoData->clTransferParam.Transmit;
 				m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_2x12; //=2
+				info = "DIMAX / 2x12 ";
 		} else 
-
+			
 		if(_isCameraType(EdgeGL)) {
 			m_pcoData->clTransferParam.Transmit = 1;
 			m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x12 | 
@@ -393,25 +401,38 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 				//SCCMOS_FORMAT_TOP_BOTTOM;
 			m_pcoData->wLUT_Identifier = 0; //Switch LUT->off
 			doLut = true;
+			info = "EDGE GL / 5x12 TOP_CENTER_BOTTOM_CENTER / LUT off";
 		} else 
 			
-		if(_isCameraType(EdgeRolling)){
+		if(_isCameraType(EdgeHS)) {
+			m_pcoData->clTransferParam.Transmit = 1;
+			m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x16 | 
+						SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
+			m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
+			doLut = true;
+			info = "EDGE HS / 5x16 TOP_CENTER_BOTTOM_CENTER / LUT off";
+		} else 
+
+			if(_isCameraType(EdgeRolling)){
 				m_pcoData->clTransferParam.Transmit = 1;
 
 				if(m_pcoData->dwPixelRate <= PCO_EDGE_PIXEL_RATE_LOW){
 					m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x16 | 
 						SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
 					m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
+					info = "EDGE Rolling / 5x16 TOP_CENTER_BOTTOM_CENTER / LUT off";
 				} else 
 				if( ((m_pcoData->dwPixelRate >= PCO_EDGE_PIXEL_RATE_HIGH) & 
 						(wXResActual > PCO_EDGE_WIDTH_HIGH))) {
 					m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x12L | 
 						SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
 					m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_SQRT; //Switch LUT->sqrt
+					info = "EDGE Rolling / 5x12L TOP_CENTER_BOTTOM_CENTER / LUT SQRT";
 				} else {
 					m_pcoData->clTransferParam.DataFormat = PCO_CL_DATAFORMAT_5x16 | 
 						SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
 					m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
+					info = "EDGE Rolling / 5x16 TOP_CENTER_BOTTOM_CENTER / LUT off";
 				}
 				doLut = true;
 		} 
@@ -420,7 +441,7 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 			(_pcoData.clTransferParam.DataFormat != m_pcoData->clTransferParam.DataFormat) ||
 			(_pcoData.clTransferParam.Transmit != m_pcoData->clTransferParam.Transmit)	)
 		{
-			DEB_ALWAYS() << "PCO_SetTransferParameter (ckTransferParam)" ;
+			DEB_ALWAYS() << "PCO_SetTransferParameter (clTransferParam) " << info ;
 			PCO_FN3(error, pcoFn,PCO_SetTransferParameter,m_handle, &m_pcoData->clTransferParam, sizeof(m_pcoData->clTransferParam));
 			if(error){
 				sprintf_s(msg,ERRMSG_SIZE, "PCO_SetTransferParameter - baudrate[%d][%d] dataFormat[x%08x][x%08x] trasmit[%d][%d]",
@@ -960,8 +981,10 @@ char *Camera::_pco_GetCameraType(int &error){
 
 		//m_pcoData->stcPcoCamType.wSize= sizeof(m_pcoData->stcPcoCamType);
 
-		error = PCO_GetGigEIPAddress(m_handle, &m_pcoData->ipField[0], &m_pcoData->ipField[1], &m_pcoData->ipField[2], &m_pcoData->ipField[3]);
-		if(error) {m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;}
+		// OBSOLETE function after sdk 120
+		//error = PCO_GetGigEIPAddress(m_handle, &m_pcoData->ipField[0], &m_pcoData->ipField[1], &m_pcoData->ipField[2], &m_pcoData->ipField[3]);
+		//if(error) {m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;}
+		m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;
 
 		PCO_FN2(error, msg,PCO_GetCameraType, m_handle, &m_pcoData->stcPcoCamType);
 		PCO_PRINT_ERR(error, msg); 	
@@ -1023,7 +1046,10 @@ char *Camera::_pco_GetCameraType(int &error){
 					m_pcoData->dwPixelRateMax = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
 	}	
 
-	m_pcoData->bMetaDataAllowed = !!(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_METADATA) ;
+	DWORD capsDesc1;
+	_pco_GetGeneralCapsDESC(capsDesc1, error);
+
+	m_pcoData->bMetaDataAllowed = !!(capsDesc1 & GENERALCAPS1_METADATA) ;
 
 
 	// -- Get General
@@ -1079,4 +1105,99 @@ char *Camera::_pco_GetCameraType(int &error){
 
 
 	return fnId;
+}
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_SetTimestampMode(WORD mode, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	char *msg;
+	int error;
+	err = error = 0;
+
+    WORD modeNew, modeOld, modeMax;
+    
+	DWORD capsDesc1; 
+	_pco_GetGeneralCapsDESC(capsDesc1, error);
+
+	if(capsDesc1 & BIT8)
+	{
+	    DEB_ALWAYS() << "\n   timestampmode not allowed" ;
+		err = -1;
+		return;
+	}
+	modeMax = (capsDesc1 & BIT3) ? 3 : 2;
+	if(mode > modeMax)
+	{
+	    DEB_ALWAYS() << "\n  invalid value" << DEB_VAR2(mode, modeMax);
+		err = -1;
+		return;
+	}
+
+	_pco_GetTimestampMode(modeOld, err);
+	if(err) return;
+
+	if(mode == modeOld)
+	{
+	    DEB_ALWAYS()<< "\n   no change " << DEB_VAR2(mode, modeOld); 
+		return;
+	}
+
+	PCO_FN2(error, msg,PCO_SetTimestampMode,m_handle, mode);
+	PCO_PRINT_ERR(error, msg); 	
+	err |= error;
+	if(err) return;
+
+	_pco_GetTimestampMode(modeNew, err);
+	if(err) return;
+
+    DEB_ALWAYS() << "\n   " << DEB_VAR3(mode, modeOld, modeNew) 
+        ;
+
+    return;
+}
+
+void Camera::_pco_GetTimestampMode(WORD &mode, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	char *msg;
+	int error;
+	err = error = 0;
+    
+	PCO_FN2(error, msg,PCO_GetTimestampMode,m_handle, &mode);
+	PCO_PRINT_ERR(error, msg); 	
+	err |= error;
+	if(err) return;
+
+    DEB_ALWAYS() << "\n   " << DEB_VAR1(mode);
+
+    return;
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_GetGeneralCapsDESC(DWORD &capsDesc1, int &err)
+{
+	err = 0;
+	capsDesc1 = m_pcoData->stcPcoDescription.dwGeneralCapsDESC1;
+	return;
+}
+
+	
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_GetTransferParameter(void* buffer, int ilen, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	char *pcoFn;
+
+	err = 0;
+	PCO_FN3(err, pcoFn,PCO_GetTransferParameter, m_handle, buffer, ilen);
+	return;
 }

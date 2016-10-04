@@ -143,6 +143,7 @@ char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 		{0, NULL}
 	};
 
+
 	struct stcXlatCode2Str modelSubType[] = {
 		{CAMERATYPE_PCO1200HS, "PCO 1200 HS"},
 		{CAMERASUBTYPE_PCO_DIMAX_Weisscam, "DIMAX_Weisscam"},
@@ -152,13 +153,18 @@ char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 		{CAMERASUBTYPE_PCO_DIMAX_HS1, "DIMAX_HS1"},
 		{CAMERASUBTYPE_PCO_DIMAX_HS2, "DIMAX_HS2"},
 		{CAMERASUBTYPE_PCO_DIMAX_HS4, "DIMAX_HS4"},
+
 		{CAMERASUBTYPE_PCO_EDGE_SPRINGFIELD, "EDGE_SPRINGFIELD"},
+		{CAMERASUBTYPE_PCO_EDGE_31, "EDGE_31"},
+		{CAMERASUBTYPE_PCO_EDGE_42, "EDGE_42"},
+		{CAMERASUBTYPE_PCO_EDGE_55, "EDGE_55"},
 		{CAMERASUBTYPE_PCO_EDGE_DEVELOPMENT, "EDGE_DEVELOPMENT"},
 		{CAMERASUBTYPE_PCO_EDGE_X2, "EDGE_X2"},
 		{CAMERASUBTYPE_PCO_EDGE_RESOLFT, "EDGE_RESOLFT"},
 		{CAMERASUBTYPE_PCO_EDGE_GOLD, "EDGE_GOLD"},
 		{CAMERASUBTYPE_PCO_EDGE_DUAL_CLOCK, "DUAL_CLOCK"},
 		{CAMERASUBTYPE_PCO_EDGE_DICAM, "DICAM"},
+		{CAMERASUBTYPE_PCO_EDGE_42_LT, "EDGE_42_LT"},
 		{0, "NO_subType"},
 		{0, NULL}
 	};
@@ -2430,6 +2436,8 @@ bool Camera::_isCameraType(int tp){
 			return !!(tp & (EdgeUSB | EdgeRolling | Edge));
 
 		case CAMERATYPE_PCO_EDGE_HS:
+			return !!(tp & (EdgeHS | EdgeRolling | Edge));
+
 		case CAMERATYPE_PCO_EDGE_42:
 		case CAMERATYPE_PCO_EDGE:
 			return !!(tp & (EdgeRolling | Edge));
@@ -2566,10 +2574,11 @@ void Camera::_checkImgNrInit(bool &checkImgNr, int &imgNrDiff, int &alignmentShi
 	checkImgNr = false;
 	imgNrDiff = 1;
 	alignmentShift = 0;
+	int err;
 
 	WORD wTimeStampMode;
 
-	PCO_GetTimestampMode(m_handle, &wTimeStampMode);
+	_pco_GetTimestampMode(wTimeStampMode, err);
 
 	if(wTimeStampMode == 0) return;
 	checkImgNr = true;
@@ -2620,6 +2629,7 @@ void Camera::_setCameraState(long long flag, bool val)
 
 bool Camera::_isRunAfterAssign()
 {
-	return false;
+	return _isCameraType(Edge);
+	//return false;
 }
 
