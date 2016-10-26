@@ -191,6 +191,7 @@ struct stcLongLongStr
 };
 
 #define SIZEARR_stcPcoHWIOSignal 10
+#define SIZESTR_PcoHWIOSignal 32
 struct stcPcoData 
 {
 	PCO_General stcPcoGeneral;
@@ -207,6 +208,7 @@ struct stcPcoData
 	PCO_Recording stcPcoRecording;
 	PCO_Single_Signal_Desc stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
 	PCO_Signal stcPcoHWIOSignal[SIZEARR_stcPcoHWIOSignal];
+	char sPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal][SIZESTR_PcoHWIOSignal+1];
 	WORD wNrPcoHWIOSignal0;
 	WORD wNrPcoHWIOSignal;
 	unsigned long long debugLevel;

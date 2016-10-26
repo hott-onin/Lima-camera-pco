@@ -526,8 +526,9 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			return output;
 		}
 
-		key = keys[ikey] = "dumpRecordedImg";     //----------------------------------------------------------------
-		keys_desc[ikey++] = "(R) for DIMAX only / TODO";     //----------------------------------------------------------------
+		//----------------------------------------------------------------
+		key = keys[ikey] = "dumpRecordedImg";     
+		keys_desc[ikey++] = "(R) for DIMAX only / TODO"; 
 		if(_stricmp(cmd, key) == 0){
 			int res, nrImages, error;
 
@@ -1170,20 +1171,21 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			_pco_GetHWIOSignal(error);
 			if(error) {
 				ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR [%d]", error);
-				return output;
+				//return output;
 			}
 			//ptr += sprintf_s(ptr, ptrMax - ptr, "signals [%d] [%d]\n", m_pcoData->wNrPcoHWIOSignal0, m_pcoData->wNrPcoHWIOSignal);
 			
 			for(i=0; i< m_pcoData->wNrPcoHWIOSignal; i++) {
 				ptr += sprintf_s(ptr, ptrMax - ptr, 
-					"name[%s] [%s] [%s] [%s] idx[%d] num[%d] \n"
+					"sigNames[%s] [%s] [%s] [%s] idx[%d]/[%d] sigNum[%d] \n"
 					"-def:     def[0x%x] type[0x%x] pol[0x%x] filt[0x%x]\n"
-					"-sig:    enab[0x%x] type[0x%x] pol[0x%x] filt[0x%x] sel[0x%x]\n\n", 
+					"-sig:    enab[0x%x] type[0x%x] pol[0x%x] filt[0x%x] sel[0x%x]" 
+					"-sig:    name[%s]\n\n", 
 					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[0],
 					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[1],
 					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[2],
 					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[3],
-					i, 
+					i, m_pcoData->wNrPcoHWIOSignal,
 					m_pcoData->stcPcoHWIOSignal[i].wSignalNum,
 
 					m_pcoData->stcPcoHWIOSignalDesc[i].wSignalDefinitions,
@@ -1195,7 +1197,8 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 					m_pcoData->stcPcoHWIOSignal[i].wType,
 					m_pcoData->stcPcoHWIOSignal[i].wPolarity,
 					m_pcoData->stcPcoHWIOSignal[i].wFilterSetting,
-					m_pcoData->stcPcoHWIOSignal[i].wSelected
+					m_pcoData->stcPcoHWIOSignal[i].wSelected,
+					&m_pcoData->sPcoHWIOSignalDesc[i][0]
 					);
 			}
 

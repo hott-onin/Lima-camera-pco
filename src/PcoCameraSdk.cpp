@@ -382,6 +382,11 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &err){
 
 #ifdef USERSET
     //transfer dataformat must be changed depending on pixelrate and horizontal resolution
+    // SC2_SDKAddendum.h:#define PCO_CL_DATAFORMAT_5x12   0x07     //extract data to 12bit
+    // SC2_SDKAddendum.h:#define PCO_CL_DATAFORMAT_5x12L  0x09     //extract data to 16Bit
+    // SC2_SDKAddendum.h:#define PCO_CL_DATAFORMAT_5x12R  0x0A     //without extract
+
+    
     WORD lut;
 
     _pco_GetPixelRate(pixelrate, pixRateNext, err);
@@ -391,7 +396,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &err){
 
     if((width>1920)&&(pixelrate>=286000000)&&(camtype==CAMERATYPE_PCO_EDGE))
     {
-        clpar.DataFormat=SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER|PCO_CL_DATAFORMAT_5x12;
+        clpar.DataFormat=SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER|PCO_CL_DATAFORMAT_5x12L;
         lut=0x1612;
 		pbla += sprintf_s(pbla,myblamax - pbla, 
 		    "%s> width[%d] > 1920  && pixelrate[%d] >= 286000000 -> Dataformat[0x%x] lut[0x%x]",
@@ -403,7 +408,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &err){
         clpar.DataFormat=SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER|PCO_CL_DATAFORMAT_5x16;
         lut=0;
 		pbla += sprintf_s(pbla,myblamax - pbla, 
-		    "%s> width[%d] <= 1920  && pixelrate[%d] < 286000000 -> Dataformat[0x%x] lut[0x%x]",
+		    "%s> width[%d] <= 1920  || pixelrate[%d] < 286000000 -> Dataformat[0x%x] lut[0x%x]",
 					fnId, width, pixelrate,clpar.DataFormat, lut);
 		m_pcoData->sClTransferParameterSettings = "PCO 5x16 topCenter botCenter lut 0";
     }
@@ -746,19 +751,30 @@ void Camera::_pco_GetHWIOSignal(int &errorTot){
 	imax = m_pcoData->wNrPcoHWIOSignal = 
 		(m_pcoData->wNrPcoHWIOSignal0 <= SIZEARR_stcPcoHWIOSignal) ? m_pcoData->wNrPcoHWIOSignal0 : SIZEARR_stcPcoHWIOSignal;
 
-	//DEB_ALWAYS()  << "--- size" << DEB_VAR3(imax, m_pcoData->wNrPcoHWIOSignal0 , m_pcoData->wNrPcoHWIOSignal ) ;
+	DEB_ALWAYS()  << "--- size" << DEB_VAR3(imax, m_pcoData->wNrPcoHWIOSignal0 , m_pcoData->wNrPcoHWIOSignal ) ;
 
     WORD Enabled,Type,Polarity,FilterSetting, Selected;
 
 	for(i=0; i< imax; i++) {
-		//DEB_ALWAYS()  << "---  descriptor" << DEB_VAR2(i, m_pcoData->stcPcoHWIOSignalDesc[i].wSize) ;
+	    int sizeName = SIZESTR_PcoHWIOSignal;
+	    char *ptrName = &m_pcoData->sPcoHWIOSignalDesc[i][0];
+	    
+		DEB_ALWAYS()  << "---  descriptor" << DEB_VAR2(i, m_pcoData->stcPcoHWIOSignalDesc[i].wSize) ;
         
         error=camera->PCO_GetHWIOSignalDescriptor( i, 
             (SC2_Get_HW_IO_Signal_Descriptor_Response *) &m_pcoData->stcPcoHWIOSignalDesc[i]);
-        msg = "PCO_GetHWIOSignalDescriptor" ; PCO_CHECK_ERROR(error, msg);
+        msg = "PCO_GetHWIOSignalDescriptor (struct)" ; PCO_CHECK_ERROR(error, msg);
 		errorTot |= error;
 
 		//DEB_ALWAYS()  << "---  signal" << DEB_VAR2(i, m_pcoData->stcPcoHWIOSignal[i].wSize) ;
+		
+		//DWORD PCO_GetHWIOSignalDescriptor ( WORD SignalNum, char &outbuf, int &size )
+        
+        error=camera->PCO_GetHWIOSignalDescriptor( i,  ptrName, &sizeName);
+        msg = "PCO_GetHWIOSignalDescriptor (name)" ; PCO_CHECK_ERROR(error, msg);
+		errorTot |= error;
+		
+		DEB_ALWAYS()  << "---  signal name " << DEB_VAR2(i, ptrName) ;
 
         error=camera->PCO_GetHWIOSignal( i, &Enabled,&Type, &Polarity,&FilterSetting, &Selected);
         msg = "PCO_GetHWIOSignal" ; PCO_CHECK_ERROR(error, msg);
@@ -770,6 +786,8 @@ void Camera::_pco_GetHWIOSignal(int &errorTot){
 		m_pcoData->stcPcoHWIOSignal[i].wSelected = Selected;
 		//PCO3(error, msg,PCO_GetHWIOSignal, m_handle, i, &m_pcoData->stcPcoHWIOSignal[i]);
 		errorTot |= error;
+
+		DEB_ALWAYS()  << "---  " << DEB_VAR6( i, Enabled, Type,  Polarity, FilterSetting, Selected) ;
 	}
 
 }
@@ -1855,7 +1873,14 @@ void Camera::_pco_GetCOCRuntime(int &error){
     DEB_TRACE() << DEB_VAR2(m_pcoData->frameRate, m_pcoData->cocRunTime);
 
 	return;
-
+	WORD wType, wLen;
+	DWORD *wpArr; 
+	
+	//DWORD PCO_GetCameraSetup ( WORD *Type, DWORD *Setup, WORD *Len )
+	//DWORD PCO_SetCameraSetup ( WORD Type, DWORD *Setup, WORD Len )
+	
+	error=camera->PCO_GetCameraSetup(&wType, wpArr, &wLen);  
+	error=camera->PCO_SetCameraSetup(wType, wpArr, wLen);
 }
 
 
