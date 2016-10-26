@@ -237,6 +237,17 @@ char *str_toupper(char *s) {
 	return s;
 }
 
+char *str_printable(char *s) {
+	char *ptr = s;
+	char c;
+	while(*ptr) {
+	    c = *ptr;
+	    if((c <= 0x20) || (c >= 0x7f))  
+		    *ptr = 0x20;
+		ptr++;
+	}
+	return s;
+}
 
 //=========================================================================================================
 //=========================================================================================================
@@ -1170,7 +1181,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 			_pco_GetHWIOSignal(error);
 			if(error) {
-				ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR [%d]", error);
+				ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR [%d]\n", error);
 				//return output;
 			}
 			//ptr += sprintf_s(ptr, ptrMax - ptr, "signals [%d] [%d]\n", m_pcoData->wNrPcoHWIOSignal0, m_pcoData->wNrPcoHWIOSignal);
@@ -1179,12 +1190,12 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				ptr += sprintf_s(ptr, ptrMax - ptr, 
 					"sigNames[%s] [%s] [%s] [%s] idx[%d]/[%d] sigNum[%d] \n"
 					"-def:     def[0x%x] type[0x%x] pol[0x%x] filt[0x%x]\n"
-					"-sig:    enab[0x%x] type[0x%x] pol[0x%x] filt[0x%x] sel[0x%x]" 
+					"-sig:    enab[0x%x] type[0x%x] pol[0x%x] filt[0x%x] sel[0x%x]\n" 
 					"-sig:    name[%s]\n\n", 
-					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[0],
-					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[1],
-					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[2],
-					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[3],
+					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[0],
+					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[1],
+					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[2],
+					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[3],
 					i, m_pcoData->wNrPcoHWIOSignal,
 					m_pcoData->stcPcoHWIOSignal[i].wSignalNum,
 
@@ -1198,8 +1209,10 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 					m_pcoData->stcPcoHWIOSignal[i].wPolarity,
 					m_pcoData->stcPcoHWIOSignal[i].wFilterSetting,
 					m_pcoData->stcPcoHWIOSignal[i].wSelected,
-					&m_pcoData->sPcoHWIOSignalDesc[i][0]
+					str_printable(&m_pcoData->sPcoHWIOSignalDesc[i][0])
 					);
+					
+					//print_hex_dump_buff(&m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[0][0], 24*4);
 			}
 
 			

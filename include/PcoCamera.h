@@ -206,7 +206,10 @@ struct stcPcoData
 	PCO_Timing stcPcoTiming;
 	PCO_Storage stcPcoStorage;
 	PCO_Recording stcPcoRecording;
-	PCO_Single_Signal_Desc stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
+
+	//PCO_Single_Signal_Desc stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
+	SC2_Get_HW_IO_Signal_Descriptor_Response stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
+
 	PCO_Signal stcPcoHWIOSignal[SIZEARR_stcPcoHWIOSignal];
 	char sPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal][SIZESTR_PcoHWIOSignal+1];
 	WORD wNrPcoHWIOSignal0;
