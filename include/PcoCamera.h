@@ -210,7 +210,7 @@ struct stcPcoData
 	//PCO_Single_Signal_Desc stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
 	SC2_Get_HW_IO_Signal_Descriptor_Response stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
 
-	PCO_Signal stcPcoHWIOSignal[SIZEARR_stcPcoHWIOSignal];
+	PCO_Signal stcPcoHWIOSignal[SIZEARR_stcPcoHWIOSignal][4];
 	char sPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal][SIZESTR_PcoHWIOSignal+1];
 	WORD wNrPcoHWIOSignal0;
 	WORD wNrPcoHWIOSignal;

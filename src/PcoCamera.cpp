@@ -381,8 +381,12 @@ stcPcoData::stcPcoData(){
 	stcPcoStorage.wSize = sizeof(stcPcoStorage);
 	stcPcoRecording.wSize = sizeof(stcPcoRecording);
 
-	for(i=0; i < SIZEARR_stcPcoHWIOSignal; i++) {
-		stcPcoHWIOSignal[i].wSize = sizeof(stcPcoHWIOSignal[i]);
+	for(i=0; i < SIZEARR_stcPcoHWIOSignal; i++) 
+	{
+        for(int j=0; j<4; j++)
+        {
+		    stcPcoHWIOSignal[i][j].wSize = sizeof(stcPcoHWIOSignal[i][j]);
+		}
 		stcPcoHWIOSignalDesc[i].wSize = sizeof(stcPcoHWIOSignalDesc[i]);
 	}
 
@@ -2234,13 +2238,13 @@ void Camera::_AcqThread::threadFunction()
     {
         while(m_cam.m_wait_flag && !m_cam.m_quit)
         {
-          DEB_ALWAYS() << "++++++++++++++++++++++++++++++++++Wait";
+          DEB_ALWAYS() << "++++++++++++++++++++++++++++++++++Wait " << getTimestamp(Iso);
           m_cam.m_thread_running = false;
           m_cam.m_cond.broadcast();
           m_cam.m_cond.wait();
         } // while wait
         
-        DEB_ALWAYS() << "++++++++++++++++++++++++++++++++++Run";
+        DEB_ALWAYS() << "++++++++++++++++++++++++++++++++++Run " << getTimestamp(Iso);
         m_cam.m_thread_running = true;
         if(m_cam.m_quit) return;
 

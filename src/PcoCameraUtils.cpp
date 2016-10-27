@@ -1174,6 +1174,16 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		}
 
 
+/***************************************************************
+wSignalFilter: Flags showing the filter option:
+- 0x01: Filter can be switched off (t > ~65ns)
+- 0x02: Filter can be switched to medium (t > ~1us)
+- 0x04: Filter can be switched to high (t > ~100ms)
+Notes: the command will be rejected, if Recording State is [run]
+***************************************************************/
+
+
+
 		key = keys[ikey] = "hwioSignals";     //----------------------------------------------------------------
 		keys_desc[ikey++] = "(R) for DIMAX/EDGE only / get hw io signals";     
 		if(_stricmp(cmd, key) == 0){
@@ -1187,31 +1197,179 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			//ptr += sprintf_s(ptr, ptrMax - ptr, "signals [%d] [%d]\n", m_pcoData->wNrPcoHWIOSignal0, m_pcoData->wNrPcoHWIOSignal);
 			
 			for(i=0; i< m_pcoData->wNrPcoHWIOSignal; i++) {
+			    WORD wSelected = 0;
 				ptr += sprintf_s(ptr, ptrMax - ptr, 
 					"sigNames[%s] [%s] [%s] [%s] idx[%d]/[%d] sigNum[%d] \n"
 					"-def:     def[0x%x] type[0x%x] pol[0x%x] filt[0x%x]\n"
-					"-sig:    enab[0x%x] type[0x%x] pol[0x%x] filt[0x%x] sel[0x%x]\n" 
+					"-sig:    enab[0x%x] type[0x%x] pol[0x%x] filt[0x%x] signalSelected[0x%x]\n" 
 					"-sig:    name[%s]\n\n", 
 					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[0],
 					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[1],
 					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[2],
 					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[3],
 					i, m_pcoData->wNrPcoHWIOSignal,
-					m_pcoData->stcPcoHWIOSignal[i].wSignalNum,
+					m_pcoData->stcPcoHWIOSignal[i][wSelected].wSignalNum,
 
 					m_pcoData->stcPcoHWIOSignalDesc[i].wSignalDefinitions,
 					m_pcoData->stcPcoHWIOSignalDesc[i].wSignalTypes,
 					m_pcoData->stcPcoHWIOSignalDesc[i].wSignalPolarity,
 					m_pcoData->stcPcoHWIOSignalDesc[i].wSignalFilter,
 
-					m_pcoData->stcPcoHWIOSignal[i].wEnabled,
-					m_pcoData->stcPcoHWIOSignal[i].wType,
-					m_pcoData->stcPcoHWIOSignal[i].wPolarity,
-					m_pcoData->stcPcoHWIOSignal[i].wFilterSetting,
-					m_pcoData->stcPcoHWIOSignal[i].wSelected,
-					str_printable(&m_pcoData->sPcoHWIOSignalDesc[i][0])
+					m_pcoData->stcPcoHWIOSignal[i][wSelected].wEnabled,
+					m_pcoData->stcPcoHWIOSignal[i][wSelected].wType,
+					m_pcoData->stcPcoHWIOSignal[i][wSelected].wPolarity,
+					m_pcoData->stcPcoHWIOSignal[i][wSelected].wFilterSetting,
+					m_pcoData->stcPcoHWIOSignal[i][wSelected].wSelected,
+					&m_pcoData->sPcoHWIOSignalDesc[i][0]
+					//str_printable(&m_pcoData->sPcoHWIOSignalDesc[i][0])
+					//&(m_pcoData->sPcoHWIOSignalDesc[iSignal][0])
 					);
+
+
+				WORD val;
+
+
+/***************************************************************
+wSignalDefinitions: Flags showing signal options:
+- 0x01: Signal can be enabled/disabled
+- 0x02: Signal is a status output
+- 0x10: Signal function 1 has got parameter value
+- 0x20: Signal function 2 has got parameter value
+- 0x40: Signal function 3 has got parameter value
+- 0x80: Signal function 4 has got parameter value
+****************************************************************/
+				val = m_pcoData->stcPcoHWIOSignalDesc[i].wSignalDefinitions;
+				ptr += sprintf_s(ptr, ptrMax - ptr, "def[0x%x]: ", val); 
+                if(val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal can be enabled/disabled]");				
+                if(val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal is a status output]");				
+                if(val & 0x10) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 1 has got parameter value]");				
+                if(val & 0x20) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 2 has got parameter value]");				
+                if(val & 0x40) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 3 has got parameter value]");				
+                if(val & 0x80) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 4 has got parameter value]");				
+				ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
 					
+
+/***************************************************************
+wSignalTypes: Flags showing which signal type is available:
+- 0x01: TTL
+- 0x02: High Level TTL
+- 0x04: Contact Mode
+- 0x08: RS485 differential
+***************************************************************/
+				val = m_pcoData->stcPcoHWIOSignalDesc[i].wSignalTypes;
+				ptr += sprintf_s(ptr, ptrMax - ptr, "type[0x%x]: ", val); 
+                if(val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[TTL]");				
+                if(val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level TTL]");				
+                if(val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Contact Mode]");				
+                if(val & 0x08) ptr += sprintf_s(ptr, ptrMax - ptr, "[RS485 differential]");				
+				ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
+
+
+/***************************************************************
+wSignalPolarity: Flags showing which signal polarity can be selected:
+- 0x01: Low level active
+- 0x02: High Level active
+- 0x04: Rising edge active
+- 0x08: Falling edge active
+***************************************************************/
+				val = m_pcoData->stcPcoHWIOSignalDesc[i].wSignalPolarity;
+				ptr += sprintf_s(ptr, ptrMax - ptr, "pol[0x%x]: ", val); 
+                if(val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Low level active]");				
+                if(val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level active]");				
+                if(val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Rising edge active]");				
+                if(val & 0x08) ptr += sprintf_s(ptr, ptrMax - ptr, "[Falling edge active]");				
+				ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
+
+/***************************************************************
+wSignalFilter: Flags showing the filter option:
+- 0x01: Filter can be switched off (t > ~65ns)
+- 0x02: Filter can be switched to medium (t > ~1us)
+- 0x04: Filter can be switched to high (t > ~100ms)
+Notes: the command will be rejected, if Recording State is [run]
+***************************************************************/
+
+				val = m_pcoData->stcPcoHWIOSignalDesc[i].wSignalFilter;
+				ptr += sprintf_s(ptr, ptrMax - ptr, "filter[0x%x]: ", val); 
+                if(val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched off (t > ~65ns)]");				
+                if(val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to medium (t > ~1us)]");				
+                if(val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to high (t > ~100ms)]");				
+				ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
+
+
+
+                for(wSelected = 0; wSelected < 3 ; wSelected++)
+                { 
+
+                    if(m_pcoData->stcPcoHWIOSignal[i][wSelected].wSelected <4)
+                    {
+        /***************************************************************
+        Enabled Flags showing enable state of the signal
+         0x00: Signal is off
+         0x01: Signal is active
+        ***************************************************************/
+
+				        val = m_pcoData->stcPcoHWIOSignal[i][wSelected].wEnabled;
+				        ptr += sprintf_s(ptr, ptrMax - ptr, "enabled[0x%x]: ", val); 
+                        if(val) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal is active]");
+                        else ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal is off]");				
+				        ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
+
+
+        /***************************************************************
+        Type Flags showing which signal type is selected
+         0x01: TTL
+         0x02: High Level TTL
+         0x04: Contact Mode
+         0x08: RS485 differential
+        ***************************************************************/
+				        val = m_pcoData->stcPcoHWIOSignal[i][wSelected].wType;
+				        ptr += sprintf_s(ptr, ptrMax - ptr, "type[0x%x]: ", val); 
+                        if(val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[TTL]");				
+                        if(val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level TTL]");				
+                        if(val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Contact Mode]");				
+                        if(val & 0x08) ptr += sprintf_s(ptr, ptrMax - ptr, "[RS485 differential]");				
+				        ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
+
+
+        /***************************************************************
+        Polarity Flags showing which signal polarity is selected
+         0x01: High level active
+         0x02: Low level active
+         0x04: Rising edge active
+         0x08: Falling edge active
+        ***************************************************************/
+
+				        val = m_pcoData->stcPcoHWIOSignal[i][wSelected].wPolarity;
+				        ptr += sprintf_s(ptr, ptrMax - ptr, "pol[0x%x]: ", val); 
+                        if(val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Low level active]");				
+                        if(val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level active]");				
+                        if(val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Rising edge active]");				
+                        if(val & 0x08) ptr += sprintf_s(ptr, ptrMax - ptr, "[Falling edge active]");				
+				        ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
+
+
+        /***************************************************************
+        FilterSetting Flags showing the filter option which is selected
+         0x01: Filter can be switched off (t > ~65ns)
+         0x02: Filter can be switched to medium (t > ~1 u)
+         0x04: Filter can be switched to high (t > ~100ms)
+        Selected In case the HWIOSignaldescription shows more than one SignalNames, this parameter can be
+        used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
+        ***************************************************************/
+
+				        val = m_pcoData->stcPcoHWIOSignal[i][wSelected].wFilterSetting;
+				        ptr += sprintf_s(ptr, ptrMax - ptr, "filter[0x%x]: ", val); 
+                        if(val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched off (t > ~65ns)]");				
+                        if(val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to medium (t > ~1us)]");				
+                        if(val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to high (t > ~100ms)]");				
+				        ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
+
+				        val = m_pcoData->stcPcoHWIOSignal[i][wSelected].wSelected;
+				        ptr += sprintf_s(ptr, ptrMax - ptr, "signalSelected[0x%x] [%s]\n", 
+				            val, m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[val]);				
+
+                    }
+				}
 					//print_hex_dump_buff(&m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[0][0], 24*4);
 			}
 
@@ -1224,8 +1382,13 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		keys_desc[ikey++] = "(R) for DIMAX only / get hw io signals";     
 		if(_stricmp(cmd, key) == 0){
 			int error, idx;
-			WORD val;
+			WORD val, wSelected;
 
+            wSelected = 0;
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR function not implemented yet");
+            return output;
+                        
 			if(tokNr != 1){
 				ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR tokNr[%d]", tokNr);
 				return output;
@@ -1241,7 +1404,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				
 
 			idx = 0;
-			m_pcoData->stcPcoHWIOSignal[idx].wPolarity = val;
+			m_pcoData->stcPcoHWIOSignal[idx][wSelected].wPolarity = val;
 
 	
 			_pco_SetHWIOSignal(idx,error);
