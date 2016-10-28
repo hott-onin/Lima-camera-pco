@@ -1068,8 +1068,9 @@ DWORD CPco_com::PCO_GetHWIOSignalDescriptor(WORD SignalNum,char *outbuf,int *siz
   return err;
 }
 
-
-DWORD CPco_com::PCO_GetHWIOSignal(WORD SignalNum ATTRIBUTE_UNUSED,WORD *Enabled,WORD *Type,WORD *Polarity,WORD *FilterSetting,WORD *Selected)
+// 2016-10-27 rh / from Martin: changed this line
+//DWORD CPco_com::PCO_GetHWIOSignal(WORD SignalNum ATTRIBUTE_UNUSED,WORD *Enabled,WORD *Type,WORD *Polarity,WORD *FilterSetting,WORD *Selected)
+DWORD CPco_com::PCO_GetHWIOSignal(WORD SignalNum,WORD *Enabled,WORD *Type,WORD *Polarity,WORD *FilterSetting,WORD *Selected)
 {
   DWORD err;
   SC2_Get_HW_IO_Signal com;
@@ -1077,6 +1078,8 @@ DWORD CPco_com::PCO_GetHWIOSignal(WORD SignalNum ATTRIBUTE_UNUSED,WORD *Enabled,
 
   com.wCode=GET_HW_IO_SIGNAL;
   com.wSize=sizeof(SC2_Get_HW_IO_Signal);
+  // 2016-10-27 rh / from Martin: added this line
+  com.wNumSignal=SignalNum;
 
   err=Control_Command(&com,sizeof(com),&resp,sizeof(resp));
   if(err==PCO_NOERROR)

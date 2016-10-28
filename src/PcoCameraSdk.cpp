@@ -762,7 +762,7 @@ void Camera::_pco_GetHWIOSignal(int &errorTot){
 		DEB_ALWAYS()  << "---  descriptor" << DEB_VAR2(iSignal, m_pcoData->stcPcoHWIOSignalDesc[iSignal].wSize) ;
         
         // telegram structure 4 signals * 24 char
-	    memset(&m_pcoData->stcPcoHWIOSignalDesc[iSignal].szSignalName[0][0],0,24*4);
+	    //memset(&m_pcoData->stcPcoHWIOSignalDesc[iSignal].szSignalName[0][0],0,24*4);
 
         error=camera->PCO_GetHWIOSignalDescriptor( iSignal, 
             (SC2_Get_HW_IO_Signal_Descriptor_Response *) &m_pcoData->stcPcoHWIOSignalDesc[iSignal]);
@@ -774,6 +774,7 @@ void Camera::_pco_GetHWIOSignal(int &errorTot){
 		//DWORD PCO_GetHWIOSignalDescriptor ( WORD SignalNum, char &outbuf, int &size )
         
         // Gets the signal descriptor of the requested signal number as a string for console output.
+        *ptrName = 0;
         error=camera->PCO_GetHWIOSignalDescriptor( iSignal,  ptrName, &sizeName);
         msg = "PCO_GetHWIOSignalDescriptor (name)" ; PCO_CHECK_ERROR(error, msg);
 		errorTot |= error;
@@ -785,8 +786,9 @@ void Camera::_pco_GetHWIOSignal(int &errorTot){
         
 	    if( _isCameraType(Dimax | Edge) ) {
 	    
-            for(wSelected=0; wSelected<=4; wSelected++)
+            for(int i=0; i<=4; i++)
             {
+                wSelected=i;
                 if(m_pcoData->stcPcoHWIOSignalDesc[iSignal].szSignalName[wSelected][0]) 
                 {
                     error=camera->PCO_GetHWIOSignal( iSignal, &wEnabled,&wType, &wPolarity,&wFilterSetting, &wSelected);
@@ -844,7 +846,7 @@ void Camera::_pco_GetHWIOSignal(int &errorTot){
 **************************************************************************************************/
 
 
-void Camera::_pco_initHWIOSignal(int mode, int &error){
+void Camera::_pco_initHWIOSignal(int mode, WORD wVal, int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
@@ -861,17 +863,31 @@ void Camera::_pco_initHWIOSignal(int mode, int &error){
 
 	_pco_GetHWIOSignal(_err); error |= _err;
 
-	//	name[Acquire Enable] idx[0] num[0]
-	idx = 0; val = 2;
-	wSelected = 0;
-	name = m_pcoData->stcPcoHWIOSignalDesc[idx].szSignalName[0];
-	m_pcoData->stcPcoHWIOSignal[idx][wSelected].wPolarity = 2;
+    if(mode ==0) 
+    {
+    
+        /***************************************************************
+        wSignalPolarity: Flags showing which signal polarity can be selected:
+        - 0x01: Low level active
+        - 0x02: High Level active
+        - 0x04: Rising edge active
+        - 0x08: Falling edge active
+        ***************************************************************/
 
-	_pco_SetHWIOSignal(idx, _err); error |= _err;
+	    //	name[Acquire Enable] idx[0] num[0]
+	    idx = 0; // descriptor
+	    wSelected = 0;
+	    WORD wPolarity = wVal; 
+	
+	
+	    name = m_pcoData->stcPcoHWIOSignalDesc[idx].szSignalName[wSelected];
+	    m_pcoData->stcPcoHWIOSignal[idx][wSelected].wPolarity = wPolarity;
 
-	DEB_ALWAYS() << "set PcoHWIOSignal polarity "  << DEB_VAR3(name, idx, val) ;
+	    _pco_SetHWIOSignal(idx, wSelected, _err); error |= _err;
 
+	    DEB_ALWAYS() << "set PcoHWIOSignal polarity "  << DEB_VAR4(name, idx, wSelected, wPolarity) ;
 
+    }
 }
 
 
@@ -941,27 +957,31 @@ void Camera::_pco_SetDelayExposureTime(int &error, int ph){
 
 //=================================================================================================
 //=================================================================================================
-void Camera::_pco_SetHWIOSignal(int sigNum, int &error){
+void Camera::_pco_SetHWIOSignal(int sigNum, int selected, int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	const char *msg __attribute__((unused));
 
-    WORD wSelected;
+    WORD wSelected = selected;
+    WORD wType = m_pcoData->stcPcoHWIOSignal[sigNum][wSelected].wType;
+    WORD wEnabled = m_pcoData->stcPcoHWIOSignal[sigNum][wSelected].wEnabled;
+    WORD wPolarity = m_pcoData->stcPcoHWIOSignal[sigNum][wSelected].wPolarity;
+    WORD wFilterSetting = m_pcoData->stcPcoHWIOSignal[sigNum][wSelected].wFilterSetting;
     
+    int iSignalMax = m_pcoData->wNrPcoHWIOSignal; 
+	
 	if(!( _isCameraType(Dimax |Edge))  || 
-		(sigNum < 0) || (sigNum >= m_pcoData->wNrPcoHWIOSignal) ) {
+		(sigNum < 0) || (sigNum >= iSignalMax) ) {
 		error = -1;
+        DEB_ALWAYS() << "ERROR " << DEB_VAR2(sigNum, iSignalMax);
 		return;
 	}
 
-    wSelected = 0;
     
-    error=camera->PCO_SetHWIOSignal( sigNum,
-        m_pcoData->stcPcoHWIOSignal[sigNum][wSelected].wEnabled,
-	    m_pcoData->stcPcoHWIOSignal[sigNum][wSelected].wType,
-	    m_pcoData->stcPcoHWIOSignal[sigNum][wSelected].wPolarity,
-	    m_pcoData->stcPcoHWIOSignal[sigNum][wSelected].wFilterSetting,
-	    m_pcoData->stcPcoHWIOSignal[sigNum][wSelected].wSelected);
+    DEB_ALWAYS() << DEB_VAR6(sigNum, wEnabled, wType, wPolarity, wFilterSetting, wSelected);
+    
+    error=camera->PCO_SetHWIOSignal( sigNum, wEnabled, wType, wPolarity, wFilterSetting, wSelected);
+//	    m_pcoData->stcPcoHWIOSignal[sigNum][wSelected].wSelected);
 
     msg = "PCO_SetHWIOSignal" ; PCO_CHECK_ERROR(error, msg);
 

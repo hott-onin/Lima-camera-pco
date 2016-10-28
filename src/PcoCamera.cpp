@@ -679,6 +679,7 @@ void Camera::_init(){
 
     _pco_SetTimestampMode(2, iErr);
 
+	_pco_initHWIOSignal(0, 0x08, iErr);
 
 #if 0    
 

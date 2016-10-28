@@ -191,7 +191,7 @@ struct stcLongLongStr
 };
 
 #define SIZEARR_stcPcoHWIOSignal 10
-#define SIZESTR_PcoHWIOSignal 32
+#define SIZESTR_PcoHWIOSignal 1024
 struct stcPcoData 
 {
 	PCO_General stcPcoGeneral;
@@ -644,8 +644,8 @@ namespace lima
 		void _get_DetectorType(std::string& det_type);
 		void _get_MaxImageSize(Size& max_image_size);
 		void _pco_GetHWIOSignal(int &error);
-		void _pco_SetHWIOSignal(int sigNum, int &error);
-		void _pco_initHWIOSignal(int mode, int &error);
+		void _pco_SetHWIOSignal(int sigNum, int selected, int &error);
+		void _pco_initHWIOSignal(int mode, WORD wVar, int &error);
 		unsigned long long _getDebug(unsigned long long mask);
 
 		ringLog *m_msgLog;
