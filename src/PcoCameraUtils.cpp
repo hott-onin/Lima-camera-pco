@@ -506,10 +506,13 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			return output;
 		}
 
-		key = keys[ikey] = "timestamp";     //----------------------------------------------------------------
-		keys_desc[ikey++] = "(R) timestamp of compiled modules";     //----------------------------------------------------------------
+		//----------------------------------------------------------------
+		key = keys[ikey] = "timestamp";
+		keys_desc[ikey++] = "(R) timestamp of compiled modules";    
 		if(_stricmp(cmd, key) == 0){
 			ptr += sprintf_s(ptr, ptrMax - ptr,  m_pcoData->version);
+			ptr += sprintf_s(ptr, ptrMax - ptr,  "timestamp /   constructor [%s]\n", getTimestamp(Iso, m_pcoData->timestamps.constructor));
+			ptr += sprintf_s(ptr, ptrMax - ptr,  "timestamp / last startAcq [%s]\n", getTimestamp(Iso, m_pcoData->timestamps.startAcq));
 			return output;
 		}
 

@@ -309,6 +309,14 @@ struct stcPcoData
 	
 	WORD wBitAlignment; // 0 = MSB (left) alignment
 	
+	struct 
+	{
+	    time_t 
+	        constructor,
+	        startAcq,
+	        stopAcq;
+	} timestamps;
+	            
 
 	stcPcoData();
 };

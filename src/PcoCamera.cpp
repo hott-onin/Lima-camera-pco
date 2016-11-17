@@ -585,6 +585,8 @@ Camera::Camera(const char *params)
     m_acq_thread->start();
     DEB_ALWAYS() << "... exit";
 	
+	m_pcoData->timestamps.constructor = getTimestamp();
+	
 	m_config = FALSE;
 	_setStatus(Camera::Ready,true);
 
@@ -1085,6 +1087,8 @@ void Camera::startAcq()
 	m_sync->getExpTime(traceAcq.sExposure);
 	m_sync->getLatTime(traceAcq.sDelay);
 	traceAcq.msImgCoc = pcoGetCocRunTime() * 1000.;
+
+	m_pcoData->timestamps.startAcq = getTimestamp();
 
 //=====================================================================
 	DEF_FNID;
