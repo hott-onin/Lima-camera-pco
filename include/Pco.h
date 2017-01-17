@@ -59,6 +59,7 @@
 #define MSG_SIZE	512
 #define BUFF_XLAT_SIZE 128
 #define MSG1K	(1024 * 1)
+#define MSG2K	(1024 * 2)
 #define MSG4K	(1024 * 4)
 #define MSG8K	(1024 * 8)
 

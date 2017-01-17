@@ -299,7 +299,7 @@ struct stcPcoData {
 	bool bAllocatedBufferDone;
 	bool bRollingShutter;
 
-	char version[BUFF_VERSION];
+	char *version;
 
 	double min_exp_time, min_exp_time_err, step_exp_time;
 	double max_exp_time, max_exp_time_err;

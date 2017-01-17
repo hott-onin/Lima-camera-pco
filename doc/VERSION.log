@@ -1,4 +1,27 @@
 
+
+2017/01/17 10:27:17 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-01-10 17:57:53 +0100] head[1ee4329][1ee43294dc62ed78da8b0bb3437a6f900dfd0b9d] ref[ (HEAD, tag: pco-win64-1.701, gitrh/pco-1.604, gitlab/pco-1.604, pco-1.604, master)] at [2017/01/17 10:27:17] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-01-11 09:12:23 +0100] head[9a5be39][9a5be397ae9cdd85991621191279e0e0cd9debea] ref[ (HEAD, tag: pilatus-1.7.1, github/core-1.7, core-1.7)] at [2017/01/17 10:27:17] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2016-12-02 15:09:41 +0100] head[970d79b][970d79b4d3a163ecee61e1256cf6a7b10d10a32a] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/01/17 10:27:17] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/01/17 10:27:17] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-01-16 16:06:15 +0100] head[66913b0][66913b0f965bbae3cb4eadc2368895a3c0495cb6] ref[ (HEAD, tag: tango-camera-pco-1.7.1, github/master, github/HEAD, master)] at [2017/01/17 10:27:17] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-01-04 17:36:22 +0100] head[47fed76][47fed76ed21740e99d294f4e1ee4464152bf8956] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/01/17 10:27:17] $"
+
+
+
+2017/01/17 10:07:42 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-17_100736]
+  to: [/t/rhoms1/install-2017-01-17_100736]
+  to: [/t/rhoms1/install-beta]
+
+- Seb - fixed HwSavingCtrlObj.sip for windows
+- minor increase size of version
+
+
 2017/01/10 17:31:48 ==========================================
 scp: copied local directory to segfs and /tmp_14_days:
 from: [../../install/] and [./bat/]

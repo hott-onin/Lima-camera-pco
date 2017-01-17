@@ -214,7 +214,7 @@ char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 //=========================================================================================================
 
 #define BUFFER_LEN 256
-#define BUFFVERSION_LEN 2048
+#define BUFFVERSION_LEN ( MSG8K )
 stcPcoData::stcPcoData(){
 
 	char *ptr, *ptrMax;
@@ -223,8 +223,14 @@ stcPcoData::stcPcoData(){
 	
 	memset(this, 0, sizeof(struct stcPcoData));
 
+	version = new char[BUFFVERSION_LEN];
+	if(!version)
+	{
+		throw LIMA_HW_EXC(Error, "version > creation error");
+	}
+
 	ptr = version; *ptr = 0;
-	ptrMax = ptr + sizeof(version) - 1;
+	ptrMax = ptr + BUFFVERSION_LEN - 1;
 
 	ptr += sprintf_s(ptr, ptrMax - ptr, "\n");
 	ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n", _split_date(_timestamp_pcocamera()));
