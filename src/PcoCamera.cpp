@@ -251,9 +251,9 @@ stcPcoData::stcPcoData(){
 	ptr += sprintf_s(ptr, ptrMax - ptr, "       user name: %s\n", _getUserName(buff, BUFFER_LEN));
 	ptr += sprintf_s(ptr, ptrMax - ptr, "VS configuration: %s\n", _getVSconfiguration(buff, BUFFER_LEN));
 	ptr += sprintf_s(ptr, ptrMax - ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, "sc2_cam.dll"));
-	//ptr += sprintf_s(ptr, ptrMax - ptr, "                  %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, "sc2_cl_me4.dll"));
-	//ptr += sprintf_s(ptr, ptrMax - ptr, "                  %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, "sc2_clhs.dll"));
-	//ptr += sprintf_s(ptr, ptrMax - ptr, "    lima pco dll: %s\n", _getDllPath(FILE_PCO_DLL, buff, BUFFER_LEN));
+	ptr += sprintf_s(ptr, ptrMax - ptr, "                  %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, "sc2_cl_me4.dll"));
+	ptr += sprintf_s(ptr, ptrMax - ptr, "                  %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, "sc2_clhs.dll"));
+	ptr += sprintf_s(ptr, ptrMax - ptr, "    lima pco dll: %s\n", _getDllPath(FILE_PCO_DLL, buff, BUFFER_LEN));
 
 
 	stcPcoGeneral.wSize = sizeof(stcPcoGeneral);
@@ -962,7 +962,7 @@ void Camera::startAcq()
 	m_buffer->_pcoAllocBuffers(false);
 
 	//--------------------------- PREPARE / img parameters
-	msg = _pco_SetCamLinkSetImageParameters(error); PCO_THROW_OR_TRACE(error, msg) ;
+	msg = _pco_SetImageParameters(error); PCO_THROW_OR_TRACE(error, msg) ;
 
 	//--------------------------- PREPARE / cocruntime (valid after PCO_SetDelayExposureTime and ARM)
 	msg = _pco_GetCOCRuntime(error); PCO_THROW_OR_TRACE(error, msg) ;
@@ -1587,20 +1587,20 @@ void _pco_acq_thread_edge(void *argin) {
 	
 	m_sync->setStarted(false); // updated
 
-
+	char *errMsg = NULL;
 	switch(status) 
 	{
-		case pcoAcqRecordTimeout:
-		case pcoAcqWaitTimeout:
-		case pcoAcqWaitError:
-		case pcoAcqError:
-		case pcoAcqPcoError:
-		//Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::Default, "timeout");
-		Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamFault, "timeout");
+		case pcoAcqRecordTimeout: errMsg = "pcoAcqRecordTimeout" ; break;
+		case pcoAcqWaitTimeout:   errMsg = "pcoAcqWaitTimeout" ; break;
+		case pcoAcqWaitError:     errMsg = "pcoAcqWaitError" ; break;
+		case pcoAcqError:         errMsg = "pcoAcqError" ; break;
+		case pcoAcqPcoError:      errMsg = "pcoAcqPcoError" ; break;
+	}
+
+	if(errMsg) 
+	{
+		Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamFault, errMsg);
 		m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
-			  break;
-
-
 	}
 
 	_endthread();
@@ -2144,6 +2144,35 @@ bool Camera::_isValid_pixelRate(DWORD dwPixelRate){
 //=================================================================================================
 //=================================================================================================
 
+void Camera::getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsigned int &xMax, unsigned int &yMax, unsigned int &xMinSize, unsigned int &yMinSize ){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	unsigned int xMinSize0;
+
+	
+	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
+	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
+
+	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+
+	xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wMinSizeHorzDESC;
+	yMinSize = m_pcoData->stcPcoDescription.wMinSizeVertDESC;
+
+
+	{ // patch meanwhile firmware 1.19 is fixed
+		bool ret;
+		char *value;
+		ret = paramsGet("xMinSize", value);
+		if(ret) {
+			xMinSize += xSteps;
+			DEB_ALWAYS() << "PATCH APPLIED: " << DEB_VAR2(xMinSize0, xMinSize);
+		
+		}
+	}
+
+}
+
 void Camera::getXYsteps(unsigned int &xSteps, unsigned int &ySteps){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
@@ -2151,7 +2180,7 @@ void Camera::getXYsteps(unsigned int &xSteps, unsigned int &ySteps){
 	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
 	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
 }
-        
+
 void Camera::getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
@@ -2165,6 +2194,8 @@ void Camera::getMaxWidthHeight(DWORD &xMax, DWORD &yMax){
 	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
 	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
 }
+
+
 
 
 void Camera::getBytesPerPixel(unsigned int& pixbytes){
@@ -2192,23 +2223,69 @@ int Camera::_checkValidRoi(const Roi &roi_new, Roi &roi_fixed){
 	int iInvalid;
 	unsigned int x0, x1, y0, y1;
 	unsigned int x0org, x1org, y0org, y1org;
-	unsigned int diff0, diff1, tmp;
 
-	unsigned int xMax, yMax, xSteps, ySteps;
-	getMaxWidthHeight(xMax, yMax);
-	getXYsteps(xSteps, ySteps);
+	unsigned int xMax, yMax, xSteps, ySteps, xMinSize, yMinSize;
+	getXYdescription(xSteps, ySteps, xMax, yMax, xMinSize, yMinSize); 
 
-	if((xMax < 1) || (yMax < 1) || (xSteps < 1) || (ySteps < 1)) 
-	{
-		DEB_ALWAYS()  
-			<< "\nERROR - invalid values - check PcoDescription !!!!\n / getXYsteps " << DEB_VAR4(xMax, yMax, xSteps, ySteps);
-			throw LIMA_HW_EXC(InvalidValue,"check PcoDescription");
-	}
+	bool bSymX = false, bSymY = false;
+	if(_isCameraType(Dimax)){ bSymX = bSymY = true; }
+	if(_isCameraType(Edge)) { bSymY = true; }
+
+	int adc_working, adc_max;
+	_pco_GetADCOperation(adc_working, adc_max);
+	if(adc_working != 1) { bSymX = true; }
+
+	// lima roi [0,2047]
+	//  pco roi [1,2048]
 
 	x0org = x0 = roi_new.getTopLeft().x+1;
 	x1org = x1 = roi_new.getBottomRight().x+1;
 	y0org = y0 = roi_new.getTopLeft().y+1;
 	y1org = y1 = roi_new.getBottomRight().y+1;
+
+
+
+	iInvalid = _fixValidRoi(x0, x1, xMax, xSteps, xMinSize, bSymX) |
+				_fixValidRoi(y0, y1, yMax, ySteps, yMinSize, bSymY) ;
+
+
+
+	roi_fixed.setTopLeft(Point(x0-1, y0-1));
+	roi_fixed.setSize(Size(x1 -x0+1, y1-y0+1));
+
+	if(_getDebug(DBG_ROI) || iInvalid) {
+		unsigned int X0, Y0, Xsize, Ysize;
+		X0=x0-1; Y0=y0-1; Xsize=x1-x0+1; Ysize=y1-y0+1;
+		DEB_ALWAYS()  
+			<< "\nREQUESTED roiX (pco from 1): " << DEB_VAR5(x0org, x1org, xSteps, xMax, xMinSize)   
+			<< "\nREQUESTED roiY (pco from 1): " << DEB_VAR5(y0org, y1org, ySteps, yMax, yMinSize) 
+			<< "\n    FIXED roi  (pco from 1): " << DEB_VAR4(x0, x1, y0, y1)
+			<< "\n    FIXED roi (lima from 0): " << DEB_VAR4(X0, Y0, Xsize, Ysize)
+			<< "\n                     STATUS: " << DEB_VAR3(iInvalid, bSymX, bSymY);
+	}
+
+	return iInvalid ;
+
+}
+
+int Camera::_fixValidRoi(unsigned int &x0, unsigned int &x1, unsigned int xMax, unsigned int xSteps, unsigned int xMinSize, bool bSymX)
+{
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	int iInvalid;
+	unsigned int diff0, diff1, tmp;
+
+	unsigned int size, diff;
+
+
+	if((xMax < 1) || (xSteps < 1) || (xMinSize < 1) ) 
+	{
+		DEB_ALWAYS()  
+			<< "\nERROR - invalid values - check PcoDescription !!!!\n / getXYsteps " << DEB_VAR3(xMax, xSteps, xMinSize);
+			throw LIMA_HW_EXC(InvalidValue,"check PcoDescription");
+	}
 
 	// lima roi [0,2047]
 	//  pco roi [1,2048]
@@ -2219,35 +2296,17 @@ int Camera::_checkValidRoi(const Roi &roi_new, Roi &roi_fixed){
 	if(x1 > xMax) {x1 = xMax ; iInvalid |= Xrange;}
 	if(x0 > x1) { tmp = x0 ; x0 = x1 ; x1 = tmp;  iInvalid |= Xrange; }
 
-	if ( (diff0 = (x0 - 1) % xSteps) != 0 ) { x0 -= diff0; iInvalid |= Xsteps; }
-	if ( (diff1 = x1 % xSteps) != 0 ) { x1 += xSteps - diff1; iInvalid |= Xsteps; }
+	if ( (diff = (x0 - 1) % xSteps) != 0 ) { x0 -= diff; iInvalid |= Xsteps; }
+	if ( (diff = x1 % xSteps) != 0 ) { x1 += xSteps - diff; iInvalid |= Xsteps; }
 
-	if(y0 < 1) {y0 = 1 ; iInvalid |= Yrange;}
-	if(y1 > yMax) {y1 = yMax ; iInvalid |= Yrange;}
-	if(y0 > y1) { tmp = y0 ; y0 = y1 ; y1 = tmp;  iInvalid |= Yrange; }
-
-	if ( (diff0 = (y0 - 1) % ySteps) != 0 ) { y0 -= diff0; iInvalid |= Ysteps; }
-	if ( (diff1 = y1 % ySteps) != 0 ) { y1 += ySteps - diff1; iInvalid |= Ysteps; }
-
-
-	bool bSymX = false, bSymY = false;
-	if(_isCameraType(Dimax)){ bSymX = bSymY = true; }
-	if(_isCameraType(Edge)) { bSymY = true; }
-
-	int adc_working, adc_max;
-	_pco_GetADCOperation(adc_working, adc_max);
-	if(adc_working != 1) { bSymX = true; }
-
-	if(bSymY){
-		if( (diff0 = y0 - 1) != (diff1 = yMax - y1) ){
-			if(diff0 > diff1) 
-				y0 -= diff0 - diff1;
-			else
-				y1 += diff1 - diff0;
-
-			iInvalid |= Ysym;
-		}
+	if ( (size = x1 - x0 +1) <  xMinSize)  
+	{ 
+		diff = xMinSize - size;
+		iInvalid |= Xrange;
+		if(x0  >= 1 + diff) {x0 -= diff;}
+		else {x1 += diff;}
 	}
+
 
 	if(bSymX){
 		if( (diff0 = x0 - 1) != (diff1 = xMax - x1) ){
@@ -2260,21 +2319,9 @@ int Camera::_checkValidRoi(const Roi &roi_new, Roi &roi_fixed){
 		}
 	}
 
-	roi_fixed.setTopLeft(Point(x0-1, y0-1));
-	roi_fixed.setSize(Size(x1 -x0+1, y1-y0+1));
-
-	if(_getDebug(DBG_ROI) || iInvalid) {
-		DEB_ALWAYS()  
-			<< "\nREQUESTED roiX " << DEB_VAR4(x0org, x1org, xSteps, xMax)   
-			<< "\nREQUESTED roiY " << DEB_VAR4(y0org, y1org, ySteps, yMax) 
-			<< "\n     FIXED roi " << DEB_VAR4(x0, x1, y0, y1)
-			<< "\n       STATUS  " << DEB_VAR3(iInvalid, bSymX, bSymY);
-	}
-
 	return iInvalid ;
 
 }
-
 
 //=================================================================================================
 //=================================================================================================
@@ -2458,7 +2505,6 @@ bool Camera::_isCameraType(int tp){
 		case CAMERATYPE_PCO_EDGE_GL:
 			return !!(tp & (EdgeGL | Edge));
 
-
 		case CAMERATYPE_PCO_EDGE_USB3:
 			return !!(tp & (EdgeUSB | EdgeRolling | Edge));
 
@@ -2495,10 +2541,10 @@ bool Camera::_isInterfaceType(int tp){
 			return !!(tp & ifFirewire) ;
 		
 		case INTERFACE_CAMERALINK:
-			return !!(tp & (ifCameralink));
+			return !!(tp & (ifCameralink | ifCameralinkAll));
 
 		case INTERFACE_CAMERALINKHS:
-			return !!(tp & (ifCameralinkHS));
+			return !!(tp & (ifCameralinkHS | ifCameralinkAll));
 
 		case INTERFACE_USB:
 			return !!(tp & (ifUsb));
@@ -2696,7 +2742,7 @@ void Camera::_setCameraState(long long flag, bool val)
 
 bool Camera::_isRunAfterAssign()
 {
-	return (_isCameraType(Edge) && _isInterfaceType(ifCameralink));
+	return (_isCameraType(Edge) && (_isInterfaceType(ifCameralinkAll))  );
 }
 
 //=================================================================================================

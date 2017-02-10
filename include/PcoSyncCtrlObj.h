@@ -114,6 +114,8 @@ namespace lima
 		Cond  m_cond;
 		int m_requestStop, m_requestStopRetry;
 
+		bool m_extTrigSingle_eq_Multi;
+
 	};
 
   } // namespace Pco

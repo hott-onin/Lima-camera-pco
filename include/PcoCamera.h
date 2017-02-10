@@ -352,11 +352,13 @@ enum enumInterfaceTypes {
     ifFirewire          = 1<<0, 
     ifCameralink        = 1<<1, 
     ifCameralinkHS      = 1<<2,
-    ifUsb               = 1<<3, 
-    ifUsb3              = 1<<4,
-    ifEth               = 1<<5,
-    ifSerial            = 1<<6,
-    ifCoaxpress         = 1<<7,
+	ifCameralinkAll     = 1<<3, 
+    ifUsb               = 1<<4, 
+    ifUsb3              = 1<<5,
+    ifEth               = 1<<6,
+    ifSerial            = 1<<7,
+    ifCoaxpress         = 1<<8,
+    
 };
 
 enum enumRoiError {
@@ -413,6 +415,7 @@ namespace lima
 		void getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax);
 		
 		void getXYsteps(unsigned int &xSteps, unsigned int &ySteps);
+		void getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsigned int &xMax, unsigned int &yMax, unsigned int &xMinSize, unsigned int &yMinSize); 
 
 //        void getArmWidthHeight(WORD& width,WORD& height){width = m_pcoData->wXResActual, height = m_pcoData->wYResActual;}
         void getArmWidthHeight(WORD& width,WORD& height);
@@ -507,6 +510,8 @@ namespace lima
 		bool _isValid_pixelRate(DWORD dwPixelRate);
 		
 		int _checkValidRoi(const Roi &new_roi, Roi &fixed_roi);
+		int _fixValidRoi(unsigned int &x0, unsigned int &x1, unsigned int xMax, unsigned int xSteps, unsigned int xMinSize, bool bSymX);
+
 
 		void _set_Roi(const Roi &roi, const Roi &roiRequested, int &error);
 		void _get_Roi(Roi &roi);
@@ -597,7 +602,7 @@ namespace lima
 		char *_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode, int &error);
 		int  _pco_GetStorageMode_GetRecorderSubmode();
 		char *_pco_SetDelayExposureTime(int &error);
-		char *_pco_SetCamLinkSetImageParameters(int &error);
+		char *_pco_SetImageParameters(int &error);
 		char *_pco_GetCameraType(int &error);
 		char *_pco_GetTemperatureInfo(int &error);
 		void _pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error);

@@ -337,15 +337,12 @@ int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast,
 		DEB_ALWAYS() << "PCO_AddBufferEx -> " << DEB_VAR6(error, dwFrame, iPcoBufIdx, bufIdx,wArmWidth, wArmHeight);
 	}
 
-	if(error) {
-		printf("==== %s error [%s]\n", fnId, sErr);
-		printf("==== dwFrame[%d] dwFrameFirst[%d] dwFrameLast[%d]\n", dwFrame, dwFrameFirst, dwFrameLast);
-		printf("==== wArmWidth[%d] wArmHeight[%d] wBitPerPixel[%d]\n", wArmWidth, wArmHeight, wBitPerPixel);
-
-    	DEB_TRACE() << sErr;
-    	DEB_TRACE() << DEB_VAR2(dwFrameFirst, dwFrameLast);
-    	DEB_TRACE() << DEB_VAR3(wArmWidth, wArmHeight, wBitPerPixel);
-		THROW_HW_ERROR(NotSupported) << sErr;
+	if(error) 
+	{
+		DEB_ALWAYS()	<< "\n*** ERROR - SDK ***" 
+						<< "\n    " << sErr
+    					<< "\n    " << DEB_VAR6(dwFrame, dwFrameFirst, dwFrameLast, wArmWidth, wArmHeight, wBitPerPixel);
+		return -1;
 	}
 
 #endif

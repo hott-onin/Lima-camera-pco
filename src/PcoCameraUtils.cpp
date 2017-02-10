@@ -275,6 +275,20 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		keys_desc[ikey++] = "(R) detailed cam info (type, if, sn, hw & fw ver, ...)";     
 		if(_stricmp(cmd, key) == 0){
 			_camInfo(ptr, ptrMax, CAMINFO_ALL);
+
+			return output;
+		}
+
+		//----------------------------------------------------------------------------------------------------------
+#define BUFFER_LEN 256
+		key = keys[ikey] = "getVersionDLL";     
+		keys_desc[ikey++] = "(R) get verions of loaded DLLs";     
+		if(_stricmp(cmd, key) == 0){
+			char buff[BUFFER_LEN+1];
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%s", _getPcoSdkVersion(buff, BUFFER_LEN, "sc2_cam.dll"));
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%s", _getPcoSdkVersion(buff, BUFFER_LEN, "sc2_cl_me4.dll"));
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%s", _getPcoSdkVersion(buff, BUFFER_LEN, "sc2_clhs.dll"));
 			return output;
 		}
 
@@ -1912,76 +1926,10 @@ char * _getUserName(char *infoBuff, DWORD  bufCharCount  )
 #include <winver.h>
 #pragma comment(lib, "version.lib")
 
-struct TRANSLATION {
-  WORD langID;
-  WORD charset;
-} ;
-
-int _getFileVerStruct(const TCHAR* pzFileName, int* ima, int* imi, int* imb, TCHAR* pcver, int ipclen)
-{
-  TCHAR* pzStr;
-  DWORD dwVerInfoSize = 0;
-  DWORD dwVerHnd = 0;
-  TCHAR* lpstrVffInfo;
-  UINT VersionLen;
-  TRANSLATION Translation;
-
-  // extracting the version info structure size
-  if ((dwVerInfoSize = GetFileVersionInfoSize(pzFileName, &dwVerHnd)) > 0)
-  {
-    LPVOID lpvi;
-    UINT iLen;
-    lpstrVffInfo = (TCHAR*)malloc(dwVerInfoSize*sizeof(TCHAR));
-    
-    GetFileVersionInfo(pzFileName, dwVerHnd, dwVerInfoSize, lpstrVffInfo);
-    // extracting the language/character value from the file.
-    if ((VerQueryValue((LPVOID)lpstrVffInfo, TEXT("\\VarFileInfo\\Translation"),
-      &lpvi, &iLen)) > 0)
-    {
-      Translation = *(TRANSLATION*)lpvi;
-      
-      pzStr = _T("");
-      TCHAR strVerCar[_MAX_PATH] = _T("\0");
-      _stprintf_s(strVerCar, sizeof(strVerCar)/sizeof(TCHAR), _T("\\StringFileInfo\\%04x%04x\\%s"),
-        Translation.langID,
-        Translation.charset,
-        _T("ProductVersion"));
-      // querying the file with the correct language/character value.
-      VerQueryValue((LPVOID)lpstrVffInfo,
-        strVerCar,
-        (LPVOID *)&pzStr,
-        &VersionLen);
-      
-      unsigned int j = 0;
-
-      if(_tcsstr(pzStr, _T(",")))
-        _stscanf_s(pzStr, _T("%d,%d,%d,%d"), ima, imi, &j, imb);
-      else
-        _stscanf_s(pzStr, _T("%d.%d.%d.%d"), ima, imi, &j, imb);
-      if(pcver != NULL)
-      {
-        if(_tcslen(pzStr) < (unsigned int)ipclen)
-          _tcscpy_s(pcver, ipclen, pzStr);
-      }
-    }
-    else
-    {
-      // an error occurred trying to retrieve the version structure
-      return -1;
-    }
-    free(lpstrVffInfo);
-  }
-  else
-  {
-    // could not open or find file to get the version information
-    return -1;
-  }
- 
-  return 0;
-}
-
 #define LEN_DRIVE	7
 #define LEN_DIR		MAX_PATH
+
+
 
 //====================================================================
 //====================================================================
@@ -2029,24 +1977,69 @@ char * _getDllPath(const char* pzFileName, char *path, size_t strLen)
 	return path;
 }
 
+//=======================================================================================================
+//=======================================================================================================
+HRESULT LastError()
+{
+		return -1;
+}
 
+HRESULT GetFileVersion(TCHAR *filename, VS_FIXEDFILEINFO *pvsf)
+{
+  DWORD dwHandle;
+  DWORD cchver = GetFileVersionInfoSize(filename,&dwHandle);
+  if(cchver == 0)
+   return LastError();
+
+  char* pver = new char[cchver];
+  BOOL bret = GetFileVersionInfo(filename,0,cchver,pver);
+  if(!bret)
+  {
+   delete[] pver;
+   return LastError();
+  }
+  UINT uLen;
+  void *pbuf;
+  bret = VerQueryValue(pver,_T("\\"),&pbuf,&uLen);
+  if(!bret)
+  {
+   delete[] pver;
+   return LastError();
+  }
+  memcpy(pvsf,pbuf,sizeof(VS_FIXEDFILEINFO));
+  delete[] pver;
+  return S_OK;
+}
+
+int GetFileVerStructA(TCHAR* pzFileName, int* ima, int* imi, int* imb)
+{
+  HRESULT ret;
+
+  VS_FIXEDFILEINFO vsf1;
+  if(SUCCEEDED(ret=GetFileVersion(pzFileName,&vsf1)))
+  {
+   *ima=vsf1.dwFileVersionMS>>16;
+   *imi=vsf1.dwFileVersionMS&0xFFFF;
+   *imb=vsf1.dwFileVersionLS&0xFFFF;
+   return 0;
+  }
+  return -1;
+}
+
+//=======================================================================================================
+//=======================================================================================================
 
 char * _getPcoSdkVersion(char *infoBuff, int strLen, char *lib)
 {
 	int ima, imi, imb;
-	//char *lib = PCOSDK_FILENAME;
 	int nr;
 	char *ptr = infoBuff;
 
-	nr = sprintf_s(ptr, strLen, "file[%s] ver[", lib);
+	*ptr = 0;
 
-	if(_getFileVerStruct(lib, &ima, &imi, &imb, ptr+nr, strLen-nr-2))
+	if(!GetFileVerStructA(lib, &ima, &imi, &imb))
 	{
-		strncat_s(ptr, strLen, "NOT FOUND", _TRUNCATE);
-	}
-	else
-	{
-		strncat_s(ptr, strLen, "]", _TRUNCATE);
+		nr = sprintf_s(ptr, strLen, "file[%s] ver[%d.%d.%d]\n", lib, ima, imi, imb);
 	}
 
 	return infoBuff ;
@@ -2206,12 +2199,13 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 	//--------------------- size, roi, ...
 	if(flag & CAMINFO_ROI){
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* size, roi, ... \n");
-		unsigned int maxWidth, maxHeight,Xstep, Ystep; 
-		getMaxWidthHeight(maxWidth, maxHeight);
-		getXYsteps(Xstep, Ystep);
+		unsigned int maxWidth, maxHeight,Xstep, Ystep, xMinSize, yMinSize; 
+		getXYdescription(Xstep, Ystep, maxWidth, maxHeight, xMinSize, yMinSize); 
+
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... maxWidth=[%d] maxHeight=[%d] \n",  maxWidth,  maxHeight);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    Xstep=[%d] Ystep=[%d] (PCO ROI steps)\n",  Xstep,  Ystep);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... xMinSize=[%d] uMinSize=[%d] \n",  xMinSize,  yMinSize);
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... wXResActual=[%d] wYResActual=[%d] \n",  m_pcoData->wXResActual,  m_pcoData->wYResActual);
 
@@ -2316,7 +2310,7 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 
 
 	if(flag & CAMINFO_CAMERALINK) {
-		if (_getInterfaceType()==INTERFACE_CAMERALINK){ 
+		if (_isInterfaceType(ifCameralinkAll)){ 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "*** CameraLink transfer parameters\n");
 			ptr += sprintf_s(ptr, ptrMax - ptr, "*      baudrate[%u] %g Kbps\n", m_pcoData->clTransferParam.baudrate, m_pcoData->clTransferParam.baudrate/1000.);
 			ptr += sprintf_s(ptr, ptrMax - ptr, "*ClockFrequency[%u] %g MHz\n", m_pcoData->clTransferParam.ClockFrequency, m_pcoData->clTransferParam.ClockFrequency/1000000.);
@@ -2330,8 +2324,8 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 
 	if(flag & CAMINFO_UNSORTED) {
 		ptr += sprintf_s(ptr, ptrMax - ptr, "*** unsorted parameters\n");
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* bMetaDataAllowed[%d] wMetaDataSize[%d] wMetaDataVersion[%d] \n",  
-			m_pcoData->bMetaDataAllowed, m_pcoData->wMetaDataSize,  m_pcoData->wMetaDataVersion);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* bMetaDataAllowed[%d] wMetaDataMode[%d] wMetaDataSize[%d] wMetaDataVersion[%d] \n",  
+			m_pcoData->bMetaDataAllowed, m_pcoData->wMetaDataMode, m_pcoData->wMetaDataSize,  m_pcoData->wMetaDataVersion);
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* wLUT_Identifier[x%04x] wLUT_Parameter [x%04x]\n",
 			m_pcoData->wLUT_Identifier, m_pcoData->wLUT_Parameter);

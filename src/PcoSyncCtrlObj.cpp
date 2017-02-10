@@ -55,8 +55,14 @@ SyncCtrlObj::SyncCtrlObj(Camera *cam,BufferCtrlObj *buffer) :
   m_exposing(pcoAcqIdle),
   m_started(false)
 {
-  DEB_CONSTRUCTOR();
+	DEB_CONSTRUCTOR();
     _setRequestStop(stopNone);
+	bool ret;
+	char *value;
+	
+	ret = cam->paramsGet("trigSingleMulti", value);
+	m_extTrigSingle_eq_Multi = ret && (!!atoi(value));
+
 
 }
 
@@ -91,7 +97,7 @@ bool SyncCtrlObj::checkTrigMode(TrigMode trig_mode)
 			return true;
 
 		case ExtTrigSingle:
-			if (m_cam->_isCameraType(Dimax)) return true ;
+			if ((m_cam->_isCameraType(Dimax)) || m_extTrigSingle_eq_Multi) return true ;
 				break;
 		
 		case IntTrigMult:
@@ -175,15 +181,22 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 			break;
 
 		case ExtTrigSingle:
-			// trig (at ACQ ENABLE) starts a sequence of int trigger (dimax only)
-			//   StorageMode 0 - record mode
-			//   RecorderSubmode 1 - ring buffer
-			//   Triggermode 0 - auto
-			//   Acquiremode 0 - auto / ignored
-			sLimaTriggerMode = "ExtTrigSingle";
-			sPcoAcqMode = "acqEnbl_Ignored";
-			pcoAcqMode= 0x0000;
-			break;
+			if(m_cam->_isCameraType(Dimax))
+			{
+				// trig (at ACQ ENABLE) starts a sequence of int trigger (dimax only)
+				//   StorageMode 0 - record mode
+				//   RecorderSubmode 1 - ring buffer
+				//   Triggermode 0 - auto
+				//   Acquiremode 0 - auto / ignored
+				sLimaTriggerMode = "ExtTrigSingle";
+				sPcoAcqMode = "acqEnbl_Ignored";
+				pcoAcqMode= 0x0000;
+				break;
+			}
+
+		// if ExtTrigSingle is forced and is NOT a dimax, it is considered as ExtTrigMulti
+		// to be compatible with spec 
+		// need to be isolated the case of dimax in other mode!!!!
 
 		case ExtTrigMult:
 			sLimaTriggerMode = "ExtTrigMult";

@@ -326,29 +326,52 @@ int Camera::_pco_GetImageTiming(double &frameTime, double &expTime, double &sysD
 }
 //=================================================================================================
 //=================================================================================================
-char *Camera::_pco_SetCamLinkSetImageParameters(int &error){
+//SC2_SDK_FUNC int WINAPI PCO_SetImageParameters(HANDLE ph, WORD wxres, WORD wyres, DWORD dwflags, void* param, int ilen);
+// Necessary while using a soft-roi enabled interface. It is recommended to use this function
+// with all interface types of pco when soft-roi is enabled. This function can be used as a replacement for
+// PCO_CamLinkSetImageParameters
+// If there is a change in buffer size (ROI, binning) and/or ROI relocation this function must
+// be called with the new x and y resolution. Additionally this function has to be called,
+// if you switch to another camera internal memory segment with different x and y size or ROI and like to get images.
+// In: HANDLE ph -> Handle to a previously opened camera.
+//     WORD wxres -> X Resolution of the images to be transferred
+//     WORD wyres -> Y Resolution of the images to be transferred
+//     DWORD dwflags -> Flags to select the correct soft-ROI for interface preparation
+//                      Set IMAGEPARAMETERS_READ_FROM_SEGMENTS when the next image operation will read images
+//                      from one of the camera internal memory segments (if available).
+//                      Set IMAGEPARAMETERS_READ_WHILE_RECORDING when the next image operation is a recording
+//     void* param -> Pointer to a structure for future use (set to NULL); Currently not used.
+//     int ilen -> int to hold the length of the param structure for future use (set to 0); Currently not used.
+// Out: int -> Error message.
+
+char *Camera::_pco_SetImageParameters(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	char *pcoFn;
+    WORD wXres, wYres;
 
-	// camLink -> imgPar
-	// GigE    -> imgPar 
-	switch (_getInterfaceType()) {
-        case INTERFACE_CAMERALINK: 
-		case INTERFACE_ETHERNET:
-		    WORD wXres, wYres;
+	void *param = NULL;
+	int iLenParam = 0;
+	DWORD dwFlags = 0;
 
-            wXres= m_pcoData->wXResActual;
-            wYres= m_pcoData->wYResActual;
-			
-			DEB_ALWAYS() << "PCO_CamLinkSetImageParameters: " <<  DEB_VAR2(wXres, wYres);
+	dwFlags = _isCameraType(Edge) ? 
+					IMAGEPARAMETERS_READ_WHILE_RECORDING :
+					IMAGEPARAMETERS_READ_FROM_SEGMENTS;
 
-			PCO_FN3(error, pcoFn,PCO_CamLinkSetImageParameters, m_handle, wXres, wYres);
-			if(error) { throw LIMA_HW_EXC(Error, pcoFn); }
+    wXres= m_pcoData->wXResActual;
+    wYres= m_pcoData->wYResActual;
+	
+	DEB_ALWAYS() << "PCO_SetImageParameters: " << DEB_VAR3(wXres, wYres, dwFlags);
 
-        default: break;
-    } // switch
+	//error = PCO_SetImageParameters(m_handle, wXres, wYres, dwFlags, param, iLenParam);
 
+	PCO_FN6(error, pcoFn,PCO_SetImageParameters, m_handle, wXres, wYres, dwFlags, param, iLenParam);
+
+	if(error) 
+	{ 
+		DEB_ALWAYS() << "ERROR: \n" << DEB_VAR2(pcoFn, error);
+		throw LIMA_HW_EXC(Error, pcoFn); 
+	}
 
 	return fnId;
 }
@@ -376,7 +399,7 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 	// PCO_CL_DATAFORMAT_5x12L  0x09     //extract data to 16Bit
 	// PCO_CL_DATAFORMAT_5x12R  0x0A     //without extract
 
-	if ((_getInterfaceType()==INTERFACE_CAMERALINK) || (_getInterfaceType()==INTERFACE_CAMERALINKHS)) 
+	if (_isInterfaceType(ifCameralinkAll)) 
 	{
 		char *info = "[none]";
 
@@ -393,7 +416,6 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 				m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_2x12; //=2
 				info = "DIMAX / 2x12 ";
 		} else 
-			
 		if(_isCameraType(EdgeGL)) {
 			m_pcoData->clTransferParam.Transmit = 1;
 			m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x12 | 
@@ -403,7 +425,6 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 			doLut = true;
 			info = "EDGE GL / 5x12 TOP_CENTER_BOTTOM_CENTER / LUT off";
 		} else 
-			
 		if(_isCameraType(EdgeHS)) {
 			m_pcoData->clTransferParam.Transmit = 1;
 			m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x16 | 
@@ -412,29 +433,28 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 			doLut = true;
 			info = "EDGE HS / 5x16 TOP_CENTER_BOTTOM_CENTER / LUT off";
 		} else 
+		if(_isCameraType(EdgeRolling)){
+			m_pcoData->clTransferParam.Transmit = 1;
 
-			if(_isCameraType(EdgeRolling)){
-				m_pcoData->clTransferParam.Transmit = 1;
-
-				if(m_pcoData->dwPixelRate <= PCO_EDGE_PIXEL_RATE_LOW){
-					m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x16 | 
-						SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
-					m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
-					info = "EDGE Rolling / 5x16 TOP_CENTER_BOTTOM_CENTER / LUT off";
-				} else 
-				if( ((m_pcoData->dwPixelRate >= PCO_EDGE_PIXEL_RATE_HIGH) & 
-						(wXResActual > PCO_EDGE_WIDTH_HIGH))) {
-					m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x12L | 
-						SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
-					m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_SQRT; //Switch LUT->sqrt
-					info = "EDGE Rolling / 5x12L TOP_CENTER_BOTTOM_CENTER / LUT SQRT";
-				} else {
-					m_pcoData->clTransferParam.DataFormat = PCO_CL_DATAFORMAT_5x16 | 
-						SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
-					m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
-					info = "EDGE Rolling / 5x16 TOP_CENTER_BOTTOM_CENTER / LUT off";
-				}
-				doLut = true;
+			if(m_pcoData->dwPixelRate <= PCO_EDGE_PIXEL_RATE_LOW){
+				m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x16 | 
+					SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
+				m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
+				info = "EDGE Rolling / 5x16 TOP_CENTER_BOTTOM_CENTER / LUT off";
+			} else 
+			if( ((m_pcoData->dwPixelRate >= PCO_EDGE_PIXEL_RATE_HIGH) & 
+					(wXResActual > PCO_EDGE_WIDTH_HIGH))) {
+				m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x12L | 
+					SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
+				m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_SQRT; //Switch LUT->sqrt
+				info = "EDGE Rolling / 5x12L TOP_CENTER_BOTTOM_CENTER / LUT SQRT";
+			} else {
+				m_pcoData->clTransferParam.DataFormat = PCO_CL_DATAFORMAT_5x16 | 
+					SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
+				m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
+				info = "EDGE Rolling / 5x16 TOP_CENTER_BOTTOM_CENTER / LUT off";
+			}
+			doLut = true;
 		} 
 
 		if((_pcoData.clTransferParam.baudrate != m_pcoData->clTransferParam.baudrate) ||
@@ -451,7 +471,13 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 				throw LIMA_HW_EXC(Error, msg); 
 			} 
 			_armRequired(true);
+		} 
+		else 
+		{
+			DEB_ALWAYS() << "PCO_SetTransferParameter (clTransferParam) NOT DONE@" << info ;
+			
 		}
+
 	} // if cameralink
 
 
@@ -885,9 +911,11 @@ char * Camera::_pco_SetRecordingState(int state, int &error){
 		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 #endif
 		if(count) {
-			DEB_ALWAYS() << fnId << ": PCO_CancelImages";
+			DEB_ALWAYS() << ":  PCO_CancelImages() - CALLING";
 			PCO_FN1(error, msg,PCO_CancelImages, m_handle);
 			PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+		} else {
+			DEB_ALWAYS() << ":  PCO_CancelImages() - BYPASSED";
 		}
 	}
 
@@ -925,13 +953,29 @@ char *Camera::_pco_SetMetaDataMode(WORD wMetaDataMode, int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	char *msg;
+	WORD _wMetaDataMode, _wMetaDataSize, _wMetaDataVersion ;
 
-	m_pcoData->wMetaDataSize = m_pcoData->wMetaDataVersion = 0;
-	if(_isCameraType(Dimax)) {
-		m_pcoData->wMetaDataMode = wMetaDataMode;
-		PCO_FN4(error, msg,PCO_SetMetaDataMode, m_handle, wMetaDataMode, &m_pcoData->wMetaDataSize, &m_pcoData->wMetaDataVersion);
-		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
-	}
+	m_pcoData->wMetaDataSize = m_pcoData->wMetaDataVersion = m_pcoData->wMetaDataMode = 0;
+
+	if(!m_pcoData->bMetaDataAllowed) return fnId;
+
+	PCO_FN4(error, msg, PCO_GetMetaDataMode, m_handle, &_wMetaDataMode, &_wMetaDataSize, &_wMetaDataVersion);
+	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+
+	m_pcoData->wMetaDataSize =  _wMetaDataSize;
+	m_pcoData->wMetaDataVersion = _wMetaDataVersion;
+	m_pcoData->wMetaDataMode = _wMetaDataMode;
+	
+	// now pco edge also allows metatada (not only dimax)
+	//if(_isCameraType(Dimax)) {
+
+	PCO_FN4(error, msg,PCO_SetMetaDataMode, m_handle, wMetaDataMode, &_wMetaDataSize, &_wMetaDataVersion);
+	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+
+	m_pcoData->wMetaDataSize =  _wMetaDataSize;
+	m_pcoData->wMetaDataVersion = _wMetaDataVersion;
+	m_pcoData->wMetaDataMode = wMetaDataMode;
+	
 	return fnId;
 }
 //=================================================================================================
