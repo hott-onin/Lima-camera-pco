@@ -1,3 +1,18 @@
+2017/03/21 17:30:47 ==========================================
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-03-21 17:22:49 +0100] head[f54d7cd][f54d7cd97c3e44f9d93af9f51f7ecb2797124f36] ref[ (HEAD, gitrh/linux_dev, linux_dev)] at [2017/03/21 17:30:46] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2016-07-01 20:02:18 +0200] head[28fd160][28fd1602273b9aac7e87935d5dacf5132eb5454d] ref[ (HEAD, gitrh/master, master)] at [2017/03/21 17:30:46] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2016-01-15 15:44:08 +0100] head[3a08863][3a0886386e57a24ced072832d321d2dc43449e0b] ref[ (HEAD, origin/master, origin/HEAD)] at [2017/03/21 17:30:46] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2017/03/21 17:30:46] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2016-07-01 20:02:18 +0200] head[28fd160][28fd1602273b9aac7e87935d5dacf5132eb5454d] ref[ (HEAD, gitrh/master, master)] at [2017/03/21 17:30:46] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2015-09-09 10:35:50 +0200] head[41d9ad2][41d9ad2aa553848db71bb8c86082fc8154165ee5] ref[ (HEAD)] at [2017/03/21 17:30:46] $"
+
+timestampmode:
+- deleted the forced timestampmode=2 in the init
+- included getTimestampMode
+- included timestampmode in talk
+    
+testing in lid015adata1
+
 
 
 2016/10/28 18:28:27 ==========================================
