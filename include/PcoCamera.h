@@ -58,6 +58,11 @@
 #define LEN_BLA                 1023
 #define LEN_TALK                5000
 
+//--------------------------------------- bits
+#define BIT3	(0x00000001 << 3)
+#define BIT8	(0x00000001 << 8)
+
+
 //--------------------------------------- debug const for talk
 #define DBG_BUFF           0x00000001
 #define DBG_XFER2LIMA      0x00000002
@@ -676,6 +681,7 @@ namespace lima
 		void _pco_GetTransferParameter(int &error);
 		void _pco_GetLut(int &err);
 		void _pco_SetTimestampMode(WORD mode, int &err);
+		void _pco_GetTimestampMode(WORD &mode, int &err);
 		void _pco_Open_Cam(int &err);
  		void _pco_Open_Grab(int &err);
  		void _pco_ResetSettingsToDefault(int &err);

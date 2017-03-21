@@ -679,7 +679,7 @@ void Camera::_init(){
     _pco_GetLut(iErr);
     _pco_SetRecordingState(0, iErr);
 
-    _pco_SetTimestampMode(2, iErr);
+    //_pco_SetTimestampMode(2, iErr);
 
 	_pco_initHWIOSignal(0, 0x08, iErr);
 

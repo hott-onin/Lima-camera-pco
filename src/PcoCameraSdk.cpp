@@ -1550,6 +1550,26 @@ void Camera::_pco_SetTimestampMode(WORD mode, int &err)
     return;
 }
 
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetTimestampMode(WORD &mode, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+    err=camera->PCO_GetTimestampMode(&mode);
+    PCO_CHECK_ERROR(err, "PCO_GetTimestampMode"); 
+
+
+    DEB_ALWAYS() 
+        << "\n   " << DEB_VAR1(mode) 
+        ;
+
+    return;
+}
+
+
 //=================================================================================================
 //=================================================================================================
 void Camera::_pco_Open_Cam(int &err)
