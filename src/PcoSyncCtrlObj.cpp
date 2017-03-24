@@ -28,34 +28,30 @@
 #include "PcoSyncCtrlObj.h"
 #include "PcoBufferCtrlObj.h"
 
-#define THROW_LIMA_HW_EXC(Error, x)  { \
-	printf("========*** LIMA_HW_EXC %s\n", x ); \
-			throw LIMA_HW_EXC(Error, x); \
-} 
-
-
 using namespace lima;
 using namespace lima::Pco;
 
 //=========================================================================================================
-char* _timestamp_pcosyncctrlobj() {return ID_TIMESTAMP ;}
+const char* _timestamp_pcosyncctrlobj() {return ID_FILE_TIMESTAMP ;}
 //=========================================================================================================
 
 //=========================================================================================================
 //=========================================================================================================
 SyncCtrlObj::SyncCtrlObj(Camera *cam,BufferCtrlObj *buffer) :
+  m_exp_time(0.),
+  m_lat_time(0.),
+
   m_cam(cam),
   m_handle(cam->getHandle()),
-  m_pcoData(cam->_getPcoData()),
   m_trig_mode(IntTrig),
   m_buffer(buffer),
-  m_lat_time(0.), m_exp_time(0.),
   m_nb_frames(1),
   m_nb_acq_frames(0),
+  m_started(false),
   m_exposing(pcoAcqIdle),
-  m_started(false)
+  m_pcoData(cam->_getPcoData())
 {
-	DEB_CONSTRUCTOR();
+  DEB_CONSTRUCTOR();
     _setRequestStop(stopNone);
 	bool ret;
 	char *value;
@@ -107,7 +103,7 @@ bool SyncCtrlObj::checkTrigMode(TrigMode trig_mode)
 			break;
 	}
 
-	//DEB_ALWAYS() << "<Trig mode not allowed>  " << DEB_VAR1(trig_mode);
+	//DEB_TRACE() << "<Trig mode not allowed>  " << DEB_VAR1(trig_mode);
 	return false;
 }
 
@@ -144,17 +140,25 @@ enum TrigMode {
 ******************************************************************************/
 
 
-WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
+void SyncCtrlObj::xlatLimaTrigMode2Pco(
+        lima::TrigMode limaTrigMode, WORD &pcoTrigMode, WORD &pcoAcqMode, bool &extTrig, int &err)
 {
 	DEB_MEMBER_FUNCT();
     DEF_FNID;
 
-	WORD pcoAcqMode;
-	char *sLimaTriggerMode = "invalid";
-	char *sPcoAcqMode = "invalid";
+	const char *sLimaTriggerMode = "invalid";
+
+	const char *sPcoTriggerMode = "invalid";
+	WORD _pcoTrigMode = 0;
+
+	const char *sPcoAcqMode = "invalid";
+	WORD _pcoAcqMode = 0;
+	bool ext_trig;
+    err = -1;
 
 
-	if(!checkTrigMode(m_trig_mode)){
+
+	if(!checkTrigMode(limaTrigMode)){
 		throw LIMA_HW_EXC(NotSupported,"Trigger type not supported");
 	}
 
@@ -173,40 +177,79 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 //            enabled (see camera description).
 
 
-    switch( m_trig_mode)	{
+
+    switch( limaTrigMode)	{
+
+			//  TRIG MODE PCO = 0x0000
+			// A new image exposure is automatically started best possible compared to
+			// the readout of an image. If a CCD is used and the images are taken in a
+			// sequence, then exposures and sensor readout are started simultaneously.
+			// Signals at the trigger input (<exp trig>) are irrelevant.
+
+
 		case IntTrig: // 0 SOFT (spec)
 			sLimaTriggerMode = "IntTrig";
+
+			sPcoTriggerMode = "auto";
+			ext_trig = false;
+			_pcoTrigMode= 0x0000;  // 0 = SOFT (spec)
+
 			sPcoAcqMode = "acqEnbl_Ignored";
 			pcoAcqMode= 0x0000;
 			break;
+
+
 
 		case ExtTrigSingle:
-			if(m_cam->_isCameraType(Dimax))
-			{
-				// trig (at ACQ ENABLE) starts a sequence of int trigger (dimax only)
-				//   StorageMode 0 - record mode
-				//   RecorderSubmode 1 - ring buffer
-				//   Triggermode 0 - auto
-				//   Acquiremode 0 - auto / ignored
-				sLimaTriggerMode = "ExtTrigSingle";
-				sPcoAcqMode = "acqEnbl_Ignored";
-				pcoAcqMode= 0x0000;
-				break;
-			}
+			// trig (at ACQ ENABLE) starts a sequence of int trigger (dimax only)
+			//   StorageMode 0 - record mode
+			//   RecorderSubmode 1 - ring buffer
+			//   Triggermode 0 - auto
+			//   Acquiremode 0 - auto / ignored
 
-		// if ExtTrigSingle is forced and is NOT a dimax, it is considered as ExtTrigMulti
-		// to be compatible with spec 
-		// need to be isolated the case of dimax in other mode!!!!
+			sLimaTriggerMode = "ExtTrigSingle";
 
-		case ExtTrigMult:
-			sLimaTriggerMode = "ExtTrigMult";
+			sPcoTriggerMode = "auto";
+			ext_trig = true;
+			_pcoTrigMode= 0x0000;
+
 			sPcoAcqMode = "acqEnbl_Ignored";
 			pcoAcqMode= 0x0000;
 			break;
 
-			//case IntTrigMult: // 1 START (spec)
+
+
+			// TRIG MODE PCO = 0x0002
+			// A delay / exposure sequence is started at the RISING or FALLING edge
+			// (depending on the DIP switch setting) of the trigger input (<exp trig>).
+		//case IntTrigMult: return 0x0002;   // 1 = START (spec)
+		case ExtTrigMult: 
+			sLimaTriggerMode = "ExtTrigMult";
+
+			sPcoTriggerMode = "startExposure";
+			ext_trig = true;
+			_pcoTrigMode= 0x0002;   // 1 = START (spec)
+
+			sPcoAcqMode = "acqEnbl_Ignored";
+			pcoAcqMode= 0x0000;
+			break;
+
+
+			// TRIG MODE PCO = 0x0003
+			// The exposure time is defined by the pulse length at the trigger
+			// input(<exp trig>). The delay and exposure time values defined by the
+			// set/request delay and exposure command are ineffective. (Exposure
+			// time length control is also possible for double image mode; exposure
+			// time of the second image is given by the readout time of the first image.)
 		case ExtGate:  // 2 GATE (spec)
 			sLimaTriggerMode = "ExtGate";
+
+			sPcoTriggerMode = "extGate";
+			ext_trig = true;
+			_pcoTrigMode= 0x0003;  // 2 = GATE (spec)
+
+
+			//case IntTrigMult: // 1 START (spec)
 
 #ifdef DISABLE_ACQ_ENBL_SIGNAL
 			sPcoAcqMode = "acqEnbl_Ignored";
@@ -222,106 +265,36 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 //			sPcoAcqMode = "acqEnbl_startModulationMode";
 
 
-		default:
-			throw LIMA_HW_EXC(NotSupported,"Invalid value");
+
+
+	  default:
+		 throw LIMA_HW_EXC(NotSupported,"Invalid value");
+
 	}
 
-	m_pcoData->traceAcq.iPcoAcqMode = pcoAcqMode;
+
+
 	m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
+
+	m_pcoData->traceAcq.iPcoTriggerMode = _pcoTrigMode;
+	m_pcoData->traceAcq.sPcoTriggerMode = sPcoTriggerMode;
+	m_pcoData->traceAcq.iPcoAcqMode = pcoAcqMode;
+	m_pcoData->traceAcq.sPcoAcqMode = sPcoAcqMode;
+	m_pcoData->traceAcq.iPcoAcqMode = pcoAcqMode;
 	m_pcoData->traceAcq.sPcoAcqMode = sPcoAcqMode;
 
-	DEB_ALWAYS() << fnId << ": " << DEB_VAR2(pcoAcqMode, m_trig_mode);
-	return pcoAcqMode;
+    err = 0;
+    pcoTrigMode = _pcoTrigMode;
+    pcoAcqMode = _pcoAcqMode;
+	extTrig = ext_trig;
+	DEB_ALWAYS() 
+	    << "\n ... " << DEB_VAR1(sLimaTriggerMode)
+	    << "\n ... " << DEB_VAR3(sPcoTriggerMode, pcoTrigMode, extTrig)
+	    << "\n ... " << DEB_VAR2(sPcoAcqMode, pcoAcqMode);
+
+	return ;
 
 }
-
-//=========================================================================================================
-//=========================================================================================================
-
-WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
-	DEB_MEMBER_FUNCT();
-    DEF_FNID;
-
-	WORD pcoTrigMode;
-	char *sLimaTriggerMode = "invalid";
-	char *sPcoTriggerMode = "invalid";
-
-	if(!checkTrigMode(m_trig_mode)){
-		throw LIMA_HW_EXC(NotSupported,"Trigger type not supported");
-	}
-
-
-	// xlat from lima trig mode to PCO trig mode
-  	//------------------------------------------------- triggering mode 
-	switch (m_trig_mode) {  // trig mode in spec
-			//  PCO = 0x0000
-			// A new image exposure is automatically started best possible compared to
-			// the readout of an image. If a CCD is used and the images are taken in a
-			// sequence, then exposures and sensor readout are started simultaneously.
-			// Signals at the trigger input (<exp trig>) are irrelevant.
-	    default: 
-			sLimaTriggerMode = "intTrig_DEFAULT";
-			sPcoTriggerMode = "auto";
-			ext_trig = false;
-			pcoTrigMode= 0x0000;  // 0 = SOFT (spec)
-			break;
-
-		case IntTrig: 
-			sLimaTriggerMode = "intTrig";
-			sPcoTriggerMode = "auto";
-			ext_trig = false;
-			pcoTrigMode= 0x0000;  // 0 = SOFT (spec)
-			break;
-
-			// PCO = 0x0002
-			// A delay / exposure sequence is started at the RISING or FALLING edge
-			// (depending on the DIP switch setting) of the trigger input (<exp trig>).
-		//case IntTrigMult: return 0x0002;   // 1 = START (spec)
-		case ExtTrigMult: 
-			sLimaTriggerMode = "ExtTrigMult";
-			sPcoTriggerMode = "startExposure";
-			ext_trig = true;
-			pcoTrigMode= 0x0002;   // 1 = START (spec)
-			break;
-
-			// PCO = 0x0003
-			// The exposure time is defined by the pulse length at the trigger
-			// input(<exp trig>). The delay and exposure time values defined by the
-			// set/request delay and exposure command are ineffective. (Exposure
-			// time length control is also possible for double image mode; exposure
-			// time of the second image is given by the readout time of the first image.)
-		case ExtGate: 
-			sLimaTriggerMode = "ExtGate";
-			sPcoTriggerMode = "extGate";
-			ext_trig = true;
-			pcoTrigMode= 0x0003;  // 2 = GATE (spec)
-			break;
-
-
-		case ExtTrigSingle:
-			// trig starts a sequence of int trigger (dimax only)
-			//   StorageMode 0 - record mode
-			//   RecorderSubmode 1 - ring buffer
-			//   Triggermode 0 - auto
-			//   Acquiremode 0 - auto / ignored
-			sLimaTriggerMode = "ExtTrigSingle";
-			sPcoTriggerMode = "auto";
-			ext_trig = true;
-			pcoTrigMode= 0x0000;
-			break;
-
-	
-	}
-
-	m_pcoData->traceAcq.iPcoTriggerMode = pcoTrigMode;
-	m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
-	m_pcoData->traceAcq.sPcoTriggerMode = sPcoTriggerMode;
-
-	DEB_ALWAYS() << fnId <<": " << DEB_VAR3(pcoTrigMode, m_trig_mode, ext_trig);
-
-	return pcoTrigMode;
-}
-
 
 //=========================================================================================================
 //=========================================================================================================
@@ -337,16 +310,16 @@ void SyncCtrlObj::setExpTime(double exp_time)
   char buff[LEN_DUMP];
 
   _hex_dump_bytes(&exp_time, sizeof(exp_time), buff, LEN_DUMP);
-	DEB_ALWAYS() << DEB_VAR2(exp_time, buff);
+	DEB_TRACE() << DEB_VAR2(exp_time, buff);
 
 	_hex_dump_bytes(&valid_ranges.min_exp_time, sizeof(valid_ranges.min_exp_time), buff, LEN_DUMP);
-	DEB_ALWAYS() << DEB_VAR2(valid_ranges.min_exp_time, buff);
+	DEB_TRACE() << DEB_VAR2(valid_ranges.min_exp_time, buff);
 
 	_hex_dump_bytes(&m_pcoData->min_exp_time, sizeof(m_pcoData->min_exp_time), buff, LEN_DUMP);
-	DEB_ALWAYS() << DEB_VAR2(m_pcoData->min_exp_time, buff);
+	DEB_TRACE() << DEB_VAR2(m_pcoData->min_exp_time, buff);
 
 	_hex_dump_bytes(&m_pcoData->min_exp_time_err, sizeof(m_pcoData->min_exp_time_err), buff, LEN_DUMP);
-	DEB_ALWAYS() << DEB_VAR2(m_pcoData->min_exp_time_err, buff);
+	DEB_TRACE() << DEB_VAR2(m_pcoData->min_exp_time_err, buff);
 
 #endif
 
@@ -372,12 +345,12 @@ void SyncCtrlObj::setExpTime(double exp_time)
 
 	if (exp_time < m_pcoData->min_exp_time){
 		m_exp_time = m_pcoData->min_exp_time;
-		DEB_ALWAYS() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
+		DEB_TRACE() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
 		return;
 	}
 
 	m_exp_time = m_pcoData->max_exp_time;
-	DEB_ALWAYS() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
+	DEB_TRACE() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
 	return;
 }
 
@@ -455,7 +428,6 @@ void SyncCtrlObj::getNbHwFrames(int& nb_frames)
 //=========================================================================================================
 void SyncCtrlObj::getValidRanges(ValidRangesType& valid_ranges)
 {
-	DEF_FNID;
 
 
 	m_pcoData->step_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureStepDESC) * NANO ;	//step exposure time in ns
@@ -484,12 +456,13 @@ void SyncCtrlObj::getValidRanges(ValidRangesType& valid_ranges)
 void SyncCtrlObj::startAcq()
 {
   DEB_MEMBER_FUNCT();
+  DEF_FNID;
   
   bool _started = getStarted();
 
-  m_cam->msgLog("startAcq");
+  DEB_ALWAYS() << m_cam->_sprintComment(fnId, "[ENTRY]");
 
-  DEB_ALWAYS() << ": SyncCtrlObj::startAcq() " << DEB_VAR1(_started);
+  DEB_TRACE() << ": SyncCtrlObj::startAcq() " << DEB_VAR1(_started);
 
   if(!_started)
     {
@@ -501,10 +474,41 @@ void SyncCtrlObj::startAcq()
 		_setRequestStop(stopNone);
 		setExposing(pcoAcqStart);
 		m_cam->startAcq();
+
+		AutoMutex lock(m_cond.mutex());
+
+		bool resWait;
+		int retry = 3;
+		int val, val0; val0 = pcoAcqStart;
+
+		while( ((val =  getExposing()) == val0) && retry--)
+		{
+			DEB_TRACE() << "+++ getExposing - WAIT for != pcoAcqStart - " << DEB_VAR3(val, val0, retry);
+			resWait = m_cond.wait(2.);
+		}
+		DEB_TRACE() << "+++ getExposing - EXIT - " << DEB_VAR3(val, val0, retry);
+		lock.unlock();
+
+
 		setStarted(true);
     }
 }
 
+
+//=========================================================================================================
+//=========================================================================================================
+void SyncCtrlObj::setExposing(pcoAcqStatus exposing) {
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	AutoMutex lock(m_cond.mutex());
+
+	
+	m_exposing = exposing;
+	m_cond.broadcast();
+
+	DEB_TRACE() << fnId << "[exit]" << ": " << DEB_VAR2(m_exposing, exposing);
+}
 
 
 //=========================================================================================================
@@ -519,7 +523,7 @@ void SyncCtrlObj::setStarted(bool started) {
 	m_started = started;
 	m_cond.broadcast();
 
-	DEB_ALWAYS() << fnId << "[exit]" << ": " << DEB_VAR2(m_started, started);
+	DEB_TRACE() << fnId << "[exit]" << ": " << DEB_VAR2(m_started, started);
 }
 
 //=========================================================================================================
@@ -536,18 +540,19 @@ void SyncCtrlObj::stopAcq(bool clearQueue)
 
 	AutoMutex lock(m_cond.mutex());
 
-	m_cam->msgLog("stopAcq");
+	DEB_ALWAYS() << m_cam->_sprintComment(fnId, "[ENTRY]");
 
 	_stopRequestIn = _getRequestStop(_nrStop);
 
-	while(_started = getStarted()) {
+	while( (_started = getStarted()) ) 
+	{
 		_setRequestStop(stopRequest);
         resWait = m_cond.wait(5.);
 	}
 	lock.unlock();
 	_stopRequestOut = _getRequestStop(_nrStop);
 
-	DEB_ALWAYS() << fnId << " [exit]" << ": " << DEB_VAR5(_started, _stopRequestIn, _stopRequestOut, _nrStop, resWait);
+	DEB_TRACE() << fnId << " [exit]" << ": " << DEB_VAR5(_started, _stopRequestIn, _stopRequestOut, _nrStop, resWait);
 }
 //=========================================================================================================
 //=========================================================================================================
@@ -555,8 +560,7 @@ void SyncCtrlObj::getStatus(HwInterface::StatusType& status)
 {
 	bool _started = getStarted();
 	DEB_MEMBER_FUNCT();
-	DEB_TRACE() << DEB_VAR3(_started, m_buffer, m_exposing);
-	DEF_FNID;
+	//DEB_TRACE() << DEB_VAR3(_started, m_buffer, m_exposing);
 	
 	if(_started){
       if(m_buffer){
@@ -600,7 +604,6 @@ void SyncCtrlObj::getStatus(HwInterface::StatusType& status)
 
   if(m_cam->_getDebug(DBG_STATUS)) {DEB_ALWAYS() << DEB_VAR2(m_exposing, status);}	
 
-  DEB_RETURN() << DEB_VAR1(status);
 }
 
 //=========================================================================================================
@@ -615,7 +618,6 @@ int SyncCtrlObj::_getRequestStop(int &nrStop)
 void SyncCtrlObj::_setRequestStop(int requestStop) 
 { 
 	DEB_MEMBER_FUNCT();
-	DEF_FNID;
 
 	int m_requestStop0 = m_requestStop;
 
@@ -631,7 +633,8 @@ void SyncCtrlObj::_setRequestStop(int requestStop)
 				break;
 
 	}
-	//DEB_ALWAYS() <<  fnId << " [exit]: "  << DEB_VAR4(m_requestStop0, m_requestStop, m_requestStopRetry, requestStop);
+	DEB_TRACE() 
+		<< DEB_VAR4(m_requestStop0, m_requestStop, m_requestStopRetry, requestStop);
 
 }
 //=========================================================================================================

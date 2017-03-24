@@ -21,21 +21,20 @@
  along with this program; if not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 **************************************************************************/
-#ifndef PCOCAMERAUTILS_H
-#define PCOCAMERAUTILS_H
+#ifndef PCOCAMERASDK_H
+#define PCOCAMERASDK_H
 
-#include <time.h>
-#include "processlib/Compatibility.h"
+#ifndef __linux
 
-#define FILE_PCO_DLL				"liblimapco.dll"
-#define FILENAME_INSTALL_VERSION	"INSTALL_VERSION"
-#define FILEEXT_INSTALL_VERSION		"txt"
+#define PCO_FN0(er,mg, fn) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( ), #fn ); }
+#define PCO_FN1(er,mg, fn, x1) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1) ), #fn ); }
+#define PCO_FN2(er,mg, fn, x1, x2) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2) ), #fn ) ; }
+#define PCO_FN3(er,mg, fn, x1, x2, x3) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3) ), #fn ) ; }
+#define PCO_FN4(er,mg, fn, x1, x2, x3, x4) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4) ), #fn ) ; }
+#define PCO_FN5(er,mg, fn, x1, x2, x3, x4, x5) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5) ), #fn ) ; }
+#define PCO_FN6(er,mg, fn, x1, x2, x3, x4, x5, x6) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5),(x6) ), #fn ) ; }
 
-char * _getComputerName(char *infoBuff, DWORD  bufCharCount);
-char * _getUserName(char *infoBuff, DWORD  bufCharCount);
-char * _getVSconfiguration(char *infoBuff, DWORD  bufCharCount);
-char * _getPcoSdkVersion(char *infoBuff, int strLen, char *lib);
-char * _getDllPath(const char* pzFileName, char *path, size_t strLen);
 
+#endif
 
 #endif

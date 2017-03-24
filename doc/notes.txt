@@ -502,3 +502,45 @@ $ cat config
         remote = origin
         merge = refs/heads/master
 
+
+
+
+#======================================================================
+# 2013/10/07 - ram memory / bits per pixel ...
+#======================================================================
+
+The CRC bit is used, too. Thus you'll have to divide by 9.
+It does not sum up exactly to 4GB since there is additional alignment and other memory use.
+
+
+(14/8 bytes/pix) - 639 * 2048 * 2048 * 14 / 8 / (1024*1024*1024)= 4,36
+
+(14/9 bytes/pix) - 639 * 2048 * 2048 * 14 / 9 / (1024*1024*1024)= 3,88  - why /9???
+
+((14+1)/8 bytes/pix) - 639 * 2048 * 2048 * 15 / 8 / (1024*1024*1024) = 4,68
+
+#----------
+http://www.pco.de   support@pco.de
+
+- the camera has 4GB of ram
+
+- from sdk functions i get
+2097152 pages in RAM
+1280 pix per page
+14 bit per pix
+
+but
+(2 bytes / pix) - 2097152 * 1280 * 2bytes = 536870912 bytes
+(14/8 bytes/pix) - 2097152 * 1280 * 14/8 = 4697620480 bytes
+
+- for images of 2048 * 2048, i get the max img count = 639 (assigned all
+the ram to 1 segment)
+
+so
+(2 bytes / pix) - 639 * 2048 * 2048 * 2 = 5360320512
+(14/8 bytes/pix) - 639 * 2048 * 2048 * 14 / 8 = 4690280448
+
+in any case these values are little more than 4GB (4294967296)
+
+
+ 

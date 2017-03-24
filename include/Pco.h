@@ -32,23 +32,106 @@
 	#define _x86
 #endif
 
+#ifdef __linux__
+
+#include <defs.h>
+
+#include <stdint.h>
+typedef uint32_t       DWORD;
+//typedef unsigned long       DWORD;
+typedef unsigned char       BYTE;
+typedef unsigned short      WORD;
+typedef bool                BOOL;
+
+#ifndef HANDLE
+typedef  int HANDLE;
+#endif
+
+typedef short SHORT;
+//typedef long LONG;
+
+typedef uint64_t UINT64;
+
+#ifndef ULLONG_MAX
+#define LONG_MAX      2147483647L
+#define ULONG_MAX     0xffffffffUL
+#define ULLONG_MAX    0xffffffffffffffffULL      /* maximum unsigned long long int value */
+#endif
+
+#define KBYTEF  (1024.)        
+#define MBYTEF  (KBYTEF * KBYTEF)     
+#define GBYTEF  (KBYTEF * KBYTEF * KBYTEF)     
+
+#define far
+
+#define DECLARE_HANDLE(n) typedef struct n##__{int i;}*n
+
+DECLARE_HANDLE(HWND);
+
+#ifndef __TIMESTAMP__
+#define __TIMESTAMP__
+#endif
+
+
+
+//#define sprintf_s(buffer, buffer_size, stringbuffer, ...) (snprintf(buffer, buffer_size, stringbuffer, __VA_ARGS__))
+
+#define sprintf_s snprintf
+
+#define _stricmp strcasecmp
+#define strcpy_s(d, l, s) strncpy( (d), (s), (l) )
+
+#define strncpy_s(d, s, l) strncpy( (d), (s), (l) )
+#define strncpy_s4(d, l , s , n) strncpy( (d), (s), (l) )
+
+#define VS_PLATFORM "osLinux"
+#define VS_CONFIGURATION x64
+
+#define localtime_s(stc, tm )  (localtime_r( (tm) , (stc) ))
+
+#define  sscanf_s sscanf
+#define  strtok_s strtok_r
+typedef struct timeval TIME_USEC;
+#define  TIME_UTICKS struct timespec
+#define UNUSED __attribute__((unused))
+
+#else
+#define UNUSED
+
+typedef struct __timeb64 TIME_USEC;
+#define  TIME_UTICKS LARGE_INTEGER 
+
+#endif
+
+
+#ifndef __linux__
 
 #include "processlib/Compatibility.h"
 #include "PCO_Structures.h"
-#include "PCO_ConvStructures.h"
+#include "Pco_ConvStructures.h"
 #include "Pco_ConvDlgExport.h"
-#include "sc2_SDKStructures.h"
+#include "sc2_SDKStructures.h"  // TODO
 #include "sc2_common.h"
 #include "SC2_CamExport.h"
 #include "sc2_defs.h"
 #include "SC2_SDKAddendum.h"
 #include "PCO_errt.h"
 
+#else
+
+#include "processlib/Compatibility.h"
+#include "sc2_common.h"
+#include "sc2_defs.h"
+#include "SC2_SDKAddendum.h"
+#include "PCO_errt.h"
+
+#endif
+
 
 #include <math.h>
 
 
-#define DWORD_MAX ULONG_MAX 
+#define DWORD_MAX 0xffffffff 
 
 #define ERR_SIZE	256
 #define ERRMSG_SIZE	(256+128)
@@ -63,7 +146,11 @@
 #define MSG4K	(1024 * 4)
 #define MSG8K	(1024 * 8)
 
-#define ID_TIMESTAMP "$Id: [" __DATE__ " " __TIME__ "] [" __TIMESTAMP__ "] [" __FILE__ "] $"
+#define ID_FILE_TIMESTAMP "$Id: [" __DATE__ " " __TIME__ "] [" __TIMESTAMP__ "] [" __FILE__ "] $"
+
+#ifndef __linux__
+#define strncpy_s4  strncpy_s
+#endif
 
 typedef DWORD tPvUint32;
 typedef int tPvErr;
@@ -101,7 +188,7 @@ typedef int tPvErr;
 { \
 		if(__err__){ \
 			char ___buff___[ERRMSG_SIZE+1]; \
-			sprintf_s(___buff___, ERRMSG_SIZE, "LIMA_HW_EXC ===> %s PcoError[x%08x][%s]", __msg__, m_pcoData->pcoError,  m_pcoData->pcoErrorMsg); \
+			sprintf_s(___buff___, ERRMSG_SIZE, "LIMA_HW_EXC ===> %s PcoError[0x%08x][%s] error[0x%08x]", __msg__, m_pcoData->pcoError,  m_pcoData->pcoErrorMsg, __err__); \
 			DEB_ALWAYS() << ___buff___; \
 			throw LIMA_HW_EXC(Error, ___buff___); \
 		} \
@@ -118,19 +205,55 @@ typedef int tPvErr;
 		} \
 }
 
+#ifndef __linux__
 #define DEF_FNID 	static char *fnId =__FUNCTION__;
+
+#define PCO_CHECK_ERROR(er, fn)   (PcoCheckError(__LINE__, __FILE__, ( er ) , ( fn ) ))
+
+#else
+#define DEF_FNID 	const char *fnId  __attribute__((unused)) =__FUNCTION__ ;
+
+#define PCO_CHECK_ERROR(__err__ , __comments__)  \
+{ \
+		if(__err__) \
+		{ \
+			__err__ = PcoCheckError(__LINE__, __FILE__, __err__, fnId , __comments__); \
+		} \
+}
+
+#define PCO_CHECK_ERROR1(__err__ , __comments__)  \
+{ \
+		if(__err__) \
+		{ \
+			__err__ = m_cam.PcoCheckError(__LINE__, __FILE__, __err__, fnId , __comments__); \
+		} \
+}
+
+#endif
+
 
 #define PRINTLINES { for(int i = 0; i<50;i++) printf("=====  %s [%d]/[%d]\n", __FILE__, __LINE__,i); }
 
-#define PCO_FN0(er,mg, fn) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( ), #fn ); }
-#define PCO_FN1(er,mg, fn, x1) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1) ), #fn ); }
-#define PCO_FN2(er,mg, fn, x1, x2) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2) ), #fn ) ; }
-#define PCO_FN3(er,mg, fn, x1, x2, x3) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3) ), #fn ) ; }
-#define PCO_FN4(er,mg, fn, x1, x2, x3, x4) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4) ), #fn ) ; }
-#define PCO_FN5(er,mg, fn, x1, x2, x3, x4, x5) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5) ), #fn ) ; }
-#define PCO_FN6(er,mg, fn, x1, x2, x3, x4, x5, x6) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5),(x6) ), #fn ) ; }
 
-char * _sprintComment(char *comment, char *comment1 ="" , char *comment2 ="" );
+//====================================================
+// bypass win fn
+//====================================================
+
+#ifdef __linux
+
+unsigned int * _beginthread( void (*) (void *), unsigned int, void*);
+void _endthread(void);
+void* CreateEvent(void*, bool,bool, void*);
+DWORD WaitForMultipleObjects(DWORD, void**, bool, DWORD); 
+#define WAIT_OBJECT_0 0
+#define WAIT_TIMEOUT 5
+
+#endif
+
+
 int _get_imageNr_from_imageTimestamp(void *buf,int shift);
+#ifndef __linux__
 int _get_time_from_imageTimestamp(void *buf,int shift,SYSTEMTIME *st);
+#endif
+
 #endif

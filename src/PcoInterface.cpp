@@ -29,6 +29,7 @@
 #include "PcoBufferCtrlObj.h"
 #include "PcoSyncCtrlObj.h"
 #include "PcoRoiCtrlObj.h"
+#include "PcoBinCtrlObj.h"
 #include "PcoHwEventCtrlObj.h"
 
 using namespace lima;
@@ -36,7 +37,7 @@ using namespace lima::Pco;
 
 
 //=========================================================================================================
-char* _timestamp_pcointerface() {return ID_TIMESTAMP ;}
+const char* _timestamp_pcointerface() {return ID_FILE_TIMESTAMP ;}
 //=========================================================================================================
 
 
@@ -50,6 +51,7 @@ Interface::Interface(Camera *cam) :
   //cam->m_HwEventCtrlObj = m_HwEventCtrlObj = new PcoHwEventCtrlObj(cam);
   cam->m_HwEventCtrlObj = m_HwEventCtrlObj = new PcoHwEventCtrlObj();
   
+  m_BinCtrlObj = new BinCtrlObj(*cam);
   m_RoiCtrlObj = new RoiCtrlObj(cam);
   m_det_info = new DetInfoCtrlObj(cam);
 
@@ -68,12 +70,12 @@ Interface::Interface(Camera *cam) :
 //=========================================================================================================
 //=========================================================================================================
   
-  RoiCtrlObj *Interface::m_RoiCtrlObjXXX = NULL;
   Interface::~Interface()
 {
 	DEB_DESTRUCTOR();
 	delete m_HwEventCtrlObj;
 	delete m_RoiCtrlObj;
+	delete m_BinCtrlObj;
 	delete m_buffer;
 	delete m_det_info;
 	delete m_sync;
@@ -85,6 +87,7 @@ void Interface::getCapList(CapList &cap_list) const
 {
 	cap_list.push_back(HwCap(m_HwEventCtrlObj));
 	cap_list.push_back(HwCap(m_RoiCtrlObj));
+	cap_list.push_back(HwCap(m_BinCtrlObj));
 	cap_list.push_back(HwCap(m_sync));
 	cap_list.push_back(HwCap(m_det_info));
 	cap_list.push_back(HwCap(m_buffer));
@@ -101,7 +104,7 @@ void Interface::reset(ResetLevel reset_level)
 
   m_cam->_setActionTimestamp(tsReset);
 
-  DEB_ALWAYS() << fnId << ": " DEB_VAR2(reset_level, intLevel);
+  DEB_TRACE() << fnId << ": " DEB_VAR2(reset_level, intLevel);
 
   m_sync->stopAcq();
   m_cam->reset(intLevel);
@@ -116,12 +119,16 @@ void Interface::prepareAcq()
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
-	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]");
+	DEB_ALWAYS() << m_cam->_sprintComment(fnId, "[ENTRY]");
 
 	m_cam->_setActionTimestamp(tsPrepareAcq);
 
 	if(m_buffer)
+	{
 		m_buffer->prepareAcq();
+	}
+	m_cam->prepareAcq();
+
 }
 
 //=========================================================================================================
@@ -131,7 +138,7 @@ void Interface::startAcq()
   DEB_MEMBER_FUNCT();
   DEF_FNID;
 
-	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]");
+	DEB_ALWAYS() << m_cam->_sprintComment(fnId, "[ENTRY]");
 
 	m_cam->_setActionTimestamp(tsStartAcq);
 
@@ -147,7 +154,8 @@ void Interface::stopAcq()
   DEB_MEMBER_FUNCT();
   DEF_FNID;
 
-	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]");
+	DEB_ALWAYS() << m_cam->_sprintComment(fnId, "[ENTRY]");
+
 	m_cam->_setActionTimestamp(tsStopAcq);
 	m_sync->stopAcq();
 }
@@ -157,12 +165,43 @@ void Interface::stopAcq()
 void Interface::getStatus(StatusType& status)
 {
   DEB_MEMBER_FUNCT();
+
+#ifndef __linux__
 	if(m_cam->_isConfig()){
 		status.acq = AcqConfig;
 		status.det = DetIdle;
 	} else {
 		m_sync->getStatus(status);
 	}
+
+#else
+
+  Camera::Status _status = Camera::Ready;
+  m_cam->getStatus(_status);
+  switch (_status)
+    {
+    case Camera::Fault:
+      status.set(HwInterface::StatusType::Fault);   // 0
+      break;
+    case Camera::Ready:
+      status.set(HwInterface::StatusType::Ready);   // 1
+      break;
+    case Camera::Exposure:
+      status.set(HwInterface::StatusType::Exposure);   // 2
+      break;
+    case Camera::Readout:
+      status.set(HwInterface::StatusType::Readout);   // 3
+      break;
+    case Camera::Latency:
+      status.set(HwInterface::StatusType::Latency);   // 4
+      break;
+    case Camera::Config:
+      status.set(HwInterface::StatusType::Config);   // 5
+      break;
+    }
+
+#endif
+
 	DEB_RETURN() << DEB_VAR1(status);
 }
 

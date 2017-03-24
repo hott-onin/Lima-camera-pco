@@ -1,41 +1,401 @@
 
+2017/07/06 11:59:51 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-07-06_115948]
+  to: [/t/rhoms1/install-2017-07-06_115948]
+  to: [/t/rhoms1/install-beta]
 
-2017/02/24 11:53:59 ==========================================
+
+
+2017/07/06 11:53:21 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
-#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-02-10 11:39:40 +0100] head[1cce602][1cce60282e3629d0579f76d7f82a6506bd44e84a] ref[ (HEAD, gitrh/pco-win64-1.702, gitlab/pco-win64-1.702, pco-win64-1.702, master)] at [2017/02/24 11:53:59] $"
-#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-02-21 15:20:27 +0100] head[89594f5][89594f5b7c13dfcbae33bb4c2e39aba60b2e6b07] ref[ (HEAD, github/core-1.7, core-1.7)] at [2017/02/24 11:53:59] $"
-#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2016-12-02 15:09:41 +0100] head[970d79b][970d79b4d3a163ecee61e1256cf6a7b10d10a32a] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/02/24 11:53:59] $"
-#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/02/24 11:53:59] $"
-#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-01-16 16:06:15 +0100] head[66913b0][66913b0f965bbae3cb4eadc2368895a3c0495cb6] ref[ (HEAD, tag: tango-camera-pco-1.7.1, master)] at [2017/02/24 11:53:59] $"
-#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-01-04 17:36:22 +0100] head[47fed76][47fed76ed21740e99d294f4e1ee4464152bf8956] ref[ (HEAD, master)] at [2017/02/24 11:53:59] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-07-05 18:05:25 +0200] head[bc48517][bc485170d3b74493bbeca61020be9534f596e651] ref[ (HEAD, gitrh/pco-win64-1.703-dev, github/pco-win64-1.703-dev, pco-win64-1.703-dev)] at [2017/07/06 11:53:21] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, core-1.7)] at [2017/07/06 11:53:21] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, master)] at [2017/07/06 11:53:21] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/07/06 11:53:21] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-06-20 12:58:01 +0200] head[06fba6b][06fba6b3d6158820a80331c13e5baa4e510dedc6] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/07/06 11:53:21] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, master)] at [2017/07/06 11:53:21] $"
+
+
+
+
+2017/07/05 18:32:45 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-07-05 18:05:25 +0200] head[bc48517][bc485170d3b74493bbeca61020be9534f596e651] ref[ (HEAD, gitrh/pco-win64-1.703-dev, github/pco-win64-1.703-dev, pco-win64-1.703-dev)] at [2017/07/05 18:32:44] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, core-1.7)] at [2017/07/05 18:32:44] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, master)] at [2017/07/05 18:32:44] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/07/05 18:32:44] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-06-20 12:58:01 +0200] head[06fba6b][06fba6b3d6158820a80331c13e5baa4e510dedc6] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/07/05 18:32:44] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, master)] at [2017/07/05 18:32:44] $"
+
+
+
+2017/07/05 15:45:35 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-07-05_154533]
+  to: [/t/rhoms1/install-2017-07-05_154533]
+  to: [/t/rhoms1/install-beta]
+
+
+2017/07/05 13:50:38 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-07-05 13:42:59 +0200] head[4a16b5f][4a16b5fe3ed678672ec511d09123dd54967d8bc3] ref[ (HEAD, pco-win64-1.703-dev)] at [2017/07/05 13:50:36] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, core-1.7)] at [2017/07/05 13:50:36] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, master)] at [2017/07/05 13:50:36] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/07/05 13:50:36] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-06-20 12:58:01 +0200] head[06fba6b][06fba6b3d6158820a80331c13e5baa4e510dedc6] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/07/05 13:50:36] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, master)] at [2017/07/05 13:50:36] $"
+
+
+
+2017/07/05 13:37:06 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-07-05_133704]
+  to: [/t/rhoms1/install-2017-07-05_133704]
+  to: [/t/rhoms1/install-beta]
+
+- included the option of open cam with a s/n
+
+2017/06/28 22:00:59 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-06-28 21:30:22 +0200] head[b693eb6][b693eb6795ed2cd099712706eea7b480c64d2061] ref[ (HEAD, gitrh/pco-win64-1.703-dev, pco-win64-1.703-dev)] at [2017/06/28 22:00:58] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, core-1.7)] at [2017/06/28 22:00:58] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, master)] at [2017/06/28 22:00:58] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/28 22:00:58] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-06-20 12:58:01 +0200] head[06fba6b][06fba6b3d6158820a80331c13e5baa4e510dedc6] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/28 22:00:58] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, master)] at [2017/06/28 22:00:58] $"
+
+
+
+2017/06/27 14:32:04 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-27_143158]
+  to: [/t/rhoms1/install-2017-06-27_143158]
+  to: [/t/rhoms1/install-beta]
+
+
+
+2017/06/27 14:31:05 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-06-27 14:30:31 +0200] head[6c28394][6c28394aa60a292a335d0d88918353624856a7df] ref[ (HEAD, pco-win64-1.703-dev)] at [2017/06/27 14:31:04] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, core-1.7)] at [2017/06/27 14:31:04] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, master)] at [2017/06/27 14:31:04] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/27 14:31:04] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-06-20 12:58:01 +0200] head[06fba6b][06fba6b3d6158820a80331c13e5baa4e510dedc6] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/27 14:31:04] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, master)] at [2017/06/27 14:31:04] $"
+
+
+    [WIP]
+    - fix bug in cooling temp 
+    - refactoring / tmp save
+    - included hw bin 
+    -- hwbin and hwroi/hwbin / cosmetics
+    - sync with linux
+
+
+2017/06/27 13:47:15 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-27_134708]
+  to: [/t/rhoms1/install-2017-06-27_134708]
+  to: [/t/rhoms1/install-beta]
+
+
+
+2017/06/19 22:39:57 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-19_223950]
+  to: [/t/rhoms1/install-2017-06-19_223950]
+  to: [/t/rhoms1/install-beta]
+
+
+
+2017/06/19 22:38:54 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-06-19 22:38:12 +0200] head[884d2b3][884d2b3d2df5c0fa3f4be25a8fef2efbdacf9c27] ref[ (HEAD, gitrh/pco-win64-1.703-dev, pco-win64-1.703-dev)] at [2017/06/19 22:38:52] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, core-1.7)] at [2017/06/19 22:38:52] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, master)] at [2017/06/19 22:38:52] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/19 22:38:52] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-04-13 20:38:53 +0200] head[bdd9338][bdd93380f4e832ac81429d6602ad7b1e92092dcf] ref[ (HEAD, master)] at [2017/06/19 22:38:52] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, master)] at [2017/06/19 22:38:52] $"
+
+
+
+2017/06/19 18:50:03 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-19_184956]
+  to: [/t/rhoms1/install-2017-06-19_184956]
+  to: [/t/rhoms1/install-beta]
+
+
+2017/06/19 16:30:26 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-19_163017]
+  to: [/t/rhoms1/install-2017-06-19_163017]
+  to: [/t/rhoms1/install-beta]
+
+
+2017/06/19 16:16:03 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-19_161557]
+  to: [/t/rhoms1/install-2017-06-19_161557]
+  to: [/t/rhoms1/install-beta]
+
+
+2017/06/19 14:44:08 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-19_144401]
+  to: [/t/rhoms1/install-2017-06-19_144401]
+  to: [/t/rhoms1/install-beta]
+
+
+2017/06/19 13:20:48 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-19_132041]
+  to: [/t/rhoms1/install-2017-06-19_132041]
+  to: [/t/rhoms1/install-beta]
+
+
+2017/06/15 13:57:20 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-15_135714]
+  to: [/t/rhoms1/install-2017-06-15_135714]
+  to: [/t/rhoms1/install-beta]
+
+
+
+2017/06/15 13:56:01 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-06-15 13:54:48 +0200] head[3be4092][3be409239ffe321b421985b58301412aef71cd3e] ref[ (HEAD, gitrh/pco-win64-1.703-dev, pco-win64-1.703-dev)] at [2017/06/15 13:56:00] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, core-1.7)] at [2017/06/15 13:56:00] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, master)] at [2017/06/15 13:56:00] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/15 13:56:00] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-04-13 20:38:53 +0200] head[bdd9338][bdd93380f4e832ac81429d6602ad7b1e92092dcf] ref[ (HEAD, master)] at [2017/06/15 13:56:00] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, master)] at [2017/06/15 13:56:00] $"
+
+
+    [WIP] refactoring / tmp save
+    [WIP] binning / tmp save & cosmetics
+    [WIP] hwbin and hwroi/hwbin
+    [WIP] included hw bin / tmp save
+    [WIP] sync with linux
+
+2017/06/14 16:32:29 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-06-14 16:13:51 +0200] head[4d9411d][4d9411d5b05f3daa061648a4c02f11e3189de539] ref[ (HEAD, gitrh/pco-win64-1.703-dev, pco-win64-1.703-dev)] at [2017/06/14 16:32:27] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, core-1.7)] at [2017/06/14 16:32:27] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, master)] at [2017/06/14 16:32:27] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/14 16:32:27] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-04-13 20:38:53 +0200] head[bdd9338][bdd93380f4e832ac81429d6602ad7b1e92092dcf] ref[ (HEAD, master)] at [2017/06/14 16:32:27] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, master)] at [2017/06/14 16:32:27] $"
+
+
+2017/06/05 18:32:39 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-06-05 16:57:09 +0200] head[b8230ca][b8230cae72b392ff2802f6a0e7951e1e6adf1709] ref[ (HEAD, gitrh/pco-win64-1.703-dev, gitlab/pco-win64-1.703-dev, github/pco-win64-1.703-dev, pco-win64-1.703-dev)] at [2017/06/05 18:32:39] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, core-1.7)] at [2017/06/05 18:32:39] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, master)] at [2017/06/05 18:32:39] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/05 18:32:39] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-04-13 20:38:53 +0200] head[bdd9338][bdd93380f4e832ac81429d6602ad7b1e92092dcf] ref[ (HEAD, master)] at [2017/06/05 18:32:39] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, master)] at [2017/06/05 18:32:39] $"
+
+
+
+2017/06/05 16:48:03 ==========================================
+- attributes: getSdkRelease, getCameraName, getCameraNameBase, getCameraNameEx 
+- change DEB_ALWAYS by DEB_TRACE
+- added capsCamRam, capsMetadata, capsTimestamp
+- attributes: get temp info, get/set cooling setpoint
+
+2017/06/02 17:05:58 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-06-02 16:23:10 +0200] head[04f6ca2][04f6ca2b5d1905caa5d5b8a9f909e47f459f1728] ref[ (HEAD, gitrh/pco-win64-1.703-dev, pco-win64-1.703-dev)] at [2017/06/02 17:05:57] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, github/core-1.7, core-1.7)] at [2017/06/02 17:05:57] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/02 17:05:57] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/02 17:05:57] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-04-13 20:38:53 +0200] head[bdd9338][bdd93380f4e832ac81429d6602ad7b1e92092dcf] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/02 17:05:57] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/02 17:05:57] $"
+
+
+2017/05/08 ==========================================
+- sync PcoCameraUtils.cpp / linux-win
+
+2017/04/28 ==========================================
+- compile option ENABLE_GETDLLPATH
+- _pco_GetNumberOfImagesInSegment_MaxCalc, _isCameraType / debug for dimax hs
+
+2017/04/27 15:34:09 ==========================================
+
+- validation values in setHWIO signals
+- _pco_GetNumberOfImagesInSegment_MaxCalc fix bug for dimaxHS
+- debug info in startAcq
+- minor / clening log - tmp save 
+
+2017/04/26 17:58:14 ==========================================
+
+- improvement HWIO signals
+- dimax / recording - fixed stop ram recording bug
+
+2017/04/26 11:26:12 ==========================================
+
+- new format for all the HWIO signals 
+
+----------------------------------------------------
+Command: d05/limapco/edge/talk  - "hwioSignalsLin"
+
+
+* number of HWIO signal descriptors[4]
+
+#=============== HWIO Signal Descriptor [0] (max[3])
+* Signal Names:
+   [Exposure Trigger]  selected[0]
+
+* OPTIONS of the HWIO signal for descriptor[0]
+   def[0x1]: [Signal can be enabled/disabled (0x1)] 
+   type[0x1]: [TTL (0x1)] 
+   pol[0xc]: [Rising edge active (0x4)] [Falling edge active (0x8)] 
+   filter[0x0]: 
+
+* STATUS of the HWIO signal for descriptor[0] selected[0] [Exposure Trigger]
+   enabled[0x1]: [Signal is active]
+   type[0x1]: [TTL (0x1)] 
+   pol[0x2]: [High Level active (0x2)] 
+   filter[0x0]: 
+
+#=============== HWIO Signal Descriptor [1] (max[3])
+* Signal Names:
+   [Acquire Enable]  selected[0]
+
+* OPTIONS of the HWIO signal for descriptor[1]
+   def[0x1]: [Signal can be enabled/disabled (0x1)] 
+   type[0x1]: [TTL (0x1)] 
+   pol[0x3]: [Low level active (0x1)] [High Level active (0x2)] 
+   filter[0x0]: 
+
+* STATUS of the HWIO signal for descriptor[1] selected[0] [Acquire Enable]
+   enabled[0x1]: [Signal is active]
+   type[0x1]: [TTL (0x1)] 
+   pol[0x1]: [Low level active (0x1)] 
+   filter[0x0]: 
+
+#=============== HWIO Signal Descriptor [2] (max[3])
+* Signal Names:
+   [Status Busy]  selected[0]
+
+* OPTIONS of the HWIO signal for descriptor[2]
+   def[0x3]: [Signal can be enabled/disabled (0x1)] [Signal is a status output (0x2)] 
+   type[0x1]: [TTL (0x1)] 
+   pol[0x3]: [Low level active (0x1)] [High Level active (0x2)] 
+   filter[0x0]: 
+
+* STATUS of the HWIO signal for descriptor[2] selected[0] [Status Busy]
+   enabled[0x1]: [Signal is active]
+   type[0x1]: [TTL (0x1)] 
+   pol[0x1]: [Low level active (0x1)] 
+   filter[0x0]: 
+
+#=============== HWIO Signal Descriptor [3] (max[3])
+* Signal Names:
+   [Status Expos]  selected[0]
+   [Status Line]  selected[1]
+
+* OPTIONS of the HWIO signal for descriptor[3]
+   def[0x3]: [Signal can be enabled/disabled (0x1)] [Signal is a status output (0x2)] 
+   type[0x1]: [TTL (0x1)] 
+   pol[0x3]: [Low level active (0x1)] [High Level active (0x2)] 
+   filter[0x0]: 
+
+* STATUS of the HWIO signal for descriptor[3] selected[0] [Status Expos]
+   enabled[0x1]: [Signal is active]
+   type[0x1]: [TTL (0x1)] 
+   pol[0x1]: [Low level active (0x1)] 
+   filter[0x0]: 
+
+
+
+
+
+2017/04/11 10:03:49 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-11_100326]
+  to: [/t/rhoms1/install-2017-04-11_100326]
+  to: [/t/rhoms1/install-beta]
+
+
+
+
+2017/04/10 18:03:21 ==========================================
+
+- rolling shutter: fix bug / include all modes
+
+2017/04/10 11:16:34 ==========================================
+
+
+2017/04/10 10:13:55 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-04-10 10:13:15 +0200] head[6b2f28f][6b2f28f52677da012dfc5397df6f8666e17f31bf] ref[ (HEAD, master)] at [2017/04/10 10:13:54] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, github/core-1.7, core-1.7)] at [2017/04/10 10:13:54] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 10:13:54] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 10:13:54] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-02-06 09:35:41 +0100] head[4527bfc][4527bfc00e9d88c9e0e8b9528dec7f6b444cf93d] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 10:13:54] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 10:13:54] $"
+
+
+2017/04/03 12:36:30 ==========================================
+
+
+2017/03/30 18:12:36 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-03-30 18:11:51 +0200] head[b5c57da][b5c57da0e3e57b3a723989c86278d01bb278ecb2] ref[ (HEAD, master)] at [2017/03/30 18:12:36] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, github/core-1.7, core-1.7)] at [2017/03/30 18:12:36] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/03/30 18:12:36] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/03/30 18:12:36] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-02-06 09:35:41 +0100] head[4527bfc][4527bfc00e9d88c9e0e8b9528dec7f6b444cf93d] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/03/30 18:12:36] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/03/30 18:12:36] $"
+
+
+- included options for HS dimax family, CDI and double image
+- function to get the subType model in dimax family
+- minor modifications in attributes and sdk functions
+- more information in memory segment debug for dimax
+
+
+2017/03/24 ==========================================
+
+- start acq sync
+- documentation
+- attribute lastFixedRoi
+- improve debug info during wait for event
+
+
+2017/03/16 11:10:35 ==========================================
+
+2017/02/24 18:43:52 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-02-10 11:39:40 +0100] head[218da5f][218da5f2e8b5efed102c72ce57e662f92b65eca9] ref[ (HEAD, tag: pco-win64-1.702, gitrh/pco-win64-1.702-master, gitlab/pco-win64-1.702-master, github/master, github/HEAD, pco-win64-1.702-master, master)] at [2017/02/24 18:43:52] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-02-24 15:07:24 +0100] head[09d2058][09d20581b8f5f2ba9e352245a336ef48a4b0eb75] ref[ (HEAD, tag: pco-1.7.2, github/core-1.7, core-1.7)] at [2017/02/24 18:43:52] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2016-12-02 15:09:41 +0100] head[970d79b][970d79b4d3a163ecee61e1256cf6a7b10d10a32a] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/02/24 18:43:52] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/02/24 18:43:52] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-02-06 09:35:41 +0100] head[4527bfc][4527bfc00e9d88c9e0e8b9528dec7f6b444cf93d] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/02/24 18:43:52] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/02/24 18:43:52] $"
 
 
 
 - temp patch in xMinSize (roi) up to firmware 1.19 if fixed (param xMinSize)
 
 2017/02/10 13:23:20 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-02-10_132314]
-  to: [/t/rhoms1/install-2017-02-10_132314]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/02/10 12:50:54 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-02-10_125048]
-  to: [/t/rhoms1/install-2017-02-10_125048]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/02/10 12:12:41 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-02-10_121234]
-  to: [/t/rhoms1/install-2017-02-10_121234]
-  to: [/t/rhoms1/install-beta]
-
 
 
 2017/02/10 12:10:14 ==========================================
@@ -61,18 +421,6 @@ from: [../../install/] and [./bat/]
 
  		
 2017/02/09 17:20:38 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-02-09_172032]
-  to: [/t/rhoms1/install-2017-02-09_172032]
-  to: [/t/rhoms1/install-beta]
-
-2017/02/06 18:34:56 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-02-06_183450]
-  to: [/t/rhoms1/install-2017-02-06_183450]
-  to: [/t/rhoms1/install-beta]
 
 
 
@@ -88,32 +436,12 @@ from: [../../install/] and [./bat/]
 
 
 2017/01/17 10:07:42 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-17_100736]
-  to: [/t/rhoms1/install-2017-01-17_100736]
-  to: [/t/rhoms1/install-beta]
 
 - Seb - fixed HwSavingCtrlObj.sip for windows
 - minor increase size of version
 
 
 2017/01/10 17:31:48 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-10_173142]
-  to: [/t/rhoms1/install-2017-01-10_173142]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/01/10 15:47:39 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-10_154733]
-  to: [/t/rhoms1/install-2017-01-10_154733]
-  to: [/t/rhoms1/install-beta]
-
-
 
 2017/01/10 15:46:32 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
@@ -126,16 +454,7 @@ from: [../../install/] and [./bat/]
 
 
 
-
-
 2017/01/10 14:11:57 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-10_141151]
-  to: [/t/rhoms1/install-2017-01-10_141151]
-  to: [/t/rhoms1/install-beta]
-
-
 
 
 2017/01/10 12:13:34 ==========================================
@@ -150,11 +469,6 @@ from: [../../install/] and [./bat/]
 
 
 2017/01/09 13:06:12 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-09_130606]
-  to: [/t/rhoms1/install-2017-01-09_130606]
-  to: [/t/rhoms1/install-beta]
 
 2017/01/09 13:05:02 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
@@ -166,20 +480,10 @@ from: [../../install/] and [./bat/]
 #define       SPEC_GIT_VERSION "$Id:      SPEC rev[2016-10-10 09:40:10 +0200] head[65690d3][65690d3b7d24783256b279542a796c8a8a3f795f] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/01/09 13:05:01] $"
 
 2017/01/09 12:36:07 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-09_123602]
-  to: [/t/rhoms1/install-2017-01-09_123602]
-  to: [/t/rhoms1/install-beta]
 
 - fix the start recording (dimax) to be compatible with edge/cameralink
 
 2016/12/09 20:48:29 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-12-09_204823]
-  to: [/t/rhoms1/install-2016-12-09_204823]
-  to: [/t/rhoms1/install-beta]
 
 
 - _pco_acq_thread_edge - hw error event timeout
@@ -198,11 +502,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/11/18 19:00:00 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-11-18_185951]
-  to: [/t/rhoms1/install-2016-11-18_185951]
-  to: [/t/rhoms1/install-beta]
 
 
 
@@ -218,12 +517,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/11/18 18:47:02 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-11-18_184653]
-  to: [/t/rhoms1/install-2016-11-18_184653]
-  to: [/t/rhoms1/install-beta]
-
 
 - working test in wid15dimax2 / pco edge 5.5 ch hs me5
 - minor / tmp save
@@ -243,22 +536,6 @@ from: [../../install/] and [./bat/]
 - minor / tmp save
 
 2016/11/17 12:49:48 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-11-17_124940]
-  to: [/t/rhoms1/install-2016-11-17_124940]
-  to: [/t/rhoms1/install-beta]
-
-
-
-
-2016/11/14 17:34:12 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-11-14_173403]
-  to: [/t/rhoms1/install-2016-11-14_173403]
-  to: [/t/rhoms1/install-beta]
-
 
 
 2016/11/14 17:33:16 ==========================================
@@ -273,10 +550,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/10/28 13:34:16 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-28_133410]
-  to: [/t/rhoms1/install-2016-10-28_133410]
   to: [/t/rhoms1/install-beta]
 
 
@@ -313,8 +586,6 @@ from: [../../install/] and [./bat/]
 =============================== merged github/gitrh
 
 
-
-
 2016/10/24 11:32:02 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
 #define        PCO_GIT_VERSION "$Id:       PCO rev[2016-10-21 17:33:10 +0200] head[0fdff6b][0fdff6be950f6ea5dc12231c9c1cdd9917b46fee] ref[ (HEAD, gitrh/master, master)] at [2016/10/24 11:32:01] $"
@@ -327,11 +598,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/10/24 10:07:04 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-24_100657]
-  to: [/t/rhoms1/install-2016-10-24_100657]
-  to: [/t/rhoms1/install-beta]
 
 - clTransferParameters / included cameralinkHS
 
@@ -347,11 +613,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/10/21 16:51:02 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-21_165055]
-  to: [/t/rhoms1/install-2016-10-21_165055]
-  to: [/t/rhoms1/install-beta]
   
 - added new pco edge subtypes
 - added CLHS dll
@@ -402,22 +663,12 @@ from: [../../install/] and [./bat/]
 
 
 2016/10/07 18:48:58 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-07_184851]
-  to: [/t/rhoms1/install-2016-10-07_184851]
-  to: [/t/rhoms1/install-beta]
 
 Camera::_isRunAfterAssign() - check for pco
 beta test / wid16napco2
 temp save
 
 2016/10/07 16:11:54 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-07_161148]
-  to: [/t/rhoms1/install-2016-10-07_161148]
-  to: [/t/rhoms1/install-beta]
 
 
     sdk functions
@@ -429,11 +680,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/10/04 12:08:32 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-04_120826]
-  to: [/t/rhoms1/install-2016-10-04_120826]
-  to: [/t/rhoms1/install-beta]
 
 upgrade sdk118 to sdk120
 
@@ -449,11 +695,6 @@ upgrade sdk118 to sdk120
 
 
 2016/06/07 19:17:26 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-06-07_191718]
-  to: [/t/rhoms1/install-2016-06-07_191718]
-  to: [/t/rhoms1/install-beta]
 
 - tmp save
 - sip fix getMaxWidthHeight to int
@@ -462,12 +703,6 @@ from: [../../install/] and [./bat/]
 - vc project / included sip files
 
 2016/06/07 15:28:06 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-06-07_152754]
-  to: [/t/rhoms1/install-2016-06-07_152754]
-  to: [/t/rhoms1/install-beta]
-
 
 
 2016/06/07 15:27:12 ==========================================
@@ -481,11 +716,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/06/07 15:05:10 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-06-07_150503]
-  to: [/t/rhoms1/install-2016-06-07_150503]
-  to: [/t/rhoms1/install-beta]
 
 - temp save
 - added function _isRunAfterAssign() in order to manage the start record for all types
@@ -493,11 +723,6 @@ from: [../../install/] and [./bat/]
 -- long tests done with edge/usb3 OK
 
 2016/06/06 17:29:24 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-06-06_172917]
-  to: [/t/rhoms1/install-2016-06-06_172917]
-  to: [/t/rhoms1/install-beta]
 
 - temp save
 - fixed the procedure for pco edge usb / different from pco edge cameralink
