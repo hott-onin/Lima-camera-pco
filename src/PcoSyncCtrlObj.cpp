@@ -501,10 +501,41 @@ void SyncCtrlObj::startAcq()
 		_setRequestStop(stopNone);
 		setExposing(pcoAcqStart);
 		m_cam->startAcq();
+
+		AutoMutex lock(m_cond.mutex());
+
+		bool resWait;
+		int retry = 3;
+		int val, val0; val0 = pcoAcqStart;
+
+		while( ((val =  getExposing()) == val0) && retry--)
+		{
+			DEB_ALWAYS() << "+++ getExposing - WAIT for != pcoAcqStart - " << DEB_VAR3(val, val0, retry);
+			resWait = m_cond.wait(2.);
+		}
+		DEB_ALWAYS() << "+++ getExposing - EXIT - " << DEB_VAR3(val, val0, retry);
+		lock.unlock();
+
+
 		setStarted(true);
     }
 }
 
+
+//=========================================================================================================
+//=========================================================================================================
+void SyncCtrlObj::setExposing(pcoAcqStatus exposing) {
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	AutoMutex lock(m_cond.mutex());
+
+	
+	m_exposing = exposing;
+	m_cond.broadcast();
+
+	DEB_ALWAYS() << fnId << "[exit]" << ": " << DEB_VAR2(m_exposing, exposing);
+}
 
 
 //=========================================================================================================

@@ -201,7 +201,44 @@ char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 	if((ptr = xlatCode2Str(code, stc)) != NULL) {
 		err = 0;
 		return ptr;
-	} else {
+	} 
+
+	if((stc == modelSubType) && _isCameraType(Dimax))
+	{
+		switch(code)
+		{
+		  case   0:  ptr = "STD";      break;
+		  case 100:  ptr = "OEM Variant 100";         break;
+		  case 200:  ptr = "OEM Variant 200";         break;
+		  default:
+			switch(code / 0x100)
+			{
+			  case 0x01:  ptr = "S1";       break;
+			  case 0x02:  ptr = "S2";       break;
+			  case 0x04:  ptr = "S4";       break;
+	 
+			  case 0x80:  ptr = "HD";       break;
+			  case 0xC0:  ptr = "HD+";      break;
+	 
+			  case 0x20:  ptr = "HS1";      break;
+			  case 0x21:  ptr = "HS2";      break;
+			  case 0x23:  ptr = "HS4";      break;
+			  
+			  default: ptr = NULL;
+			} // switch(camtype.wCamSubType / 0x100) ...
+		} // switch(camtype.wCamSubType) ...
+
+		if(ptr)
+		{
+			sprintf_s(buff, BUFF_XLAT_SIZE, "subType DIMAX %s code [0x%04x]", ptr, code);
+			err = 0;
+			return buff;
+	
+		}
+	}
+
+	
+	{
 		sprintf_s(buff, BUFF_XLAT_SIZE, "UNKNOWN %s code [0x%04x]", errTable, code);
 		err = 1;
 		return buff;
@@ -418,6 +455,15 @@ Camera::Camera(const char *params) :
 	ret = paramsGet(key, value);
 	iValue = ret ? atoi(value) : 3;
 	m_pcoData->acqTimeoutRetry = (iValue < 0 ) ? 0 : iValue;
+
+	// patch in xMinSize meanwhile firmware for CLHS 1.19 is fixed
+	key = "xMinSize";
+	m_pcoData->params_xMinSize = !!paramsGet(key, value);
+
+	// ignore the nbMaxImages calculated for dimax HS
+	key = "ignoreMaxImages";
+	m_pcoData->params_ignoreMaxImages = !!paramsGet(key, value);
+
 
 	DEB_ALWAYS()
 		<< ALWAYS_NL << DEB_VAR1(m_pcoData->version) 
@@ -864,6 +910,15 @@ void Camera::startAcq()
 	m_pcoData->traceAcq.iPcoRoiY0 = m_pcoData->wRoiY0Now;
 	m_pcoData->traceAcq.iPcoRoiY1 = m_pcoData->wRoiY1Now;
 
+    //------------------------------------------------- set CDI if needed
+	{
+		WORD cdi;
+		int err;
+		_pco_GetCDIMode(cdi, err);
+		if(!err && (cdi != m_cdi_mode))
+				_pco_SetCDIMode(m_cdi_mode, err);
+	}
+
 	//------------------------------------------------- triggering mode 
     //------------------------------------- acquire mode : ignore or not ext. signal
 	msg = _pco_SetTriggerMode_SetAcquireMode(error);
@@ -968,22 +1023,58 @@ void Camera::startAcq()
 	msg = _pco_GetCOCRuntime(error); PCO_THROW_OR_TRACE(error, msg) ;
 
 
-    //------------------------------------------------- checking nr of frames
-    if(_isCameraType(Dimax)){
+    //------------------------------------------------- checking nr of frames for cams with memory
+
+#if 0
+	if(_isCameraType(Dimax)){
         unsigned long framesMax;
-        framesMax = pcoGetFramesMax(m_pcoData->wActiveRamSegment);
+        framesMax = pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment);
 
         if ((((unsigned long) iRequestedFrames) > framesMax)) {
             throw LIMA_HW_EXC(Error, "frames OUT OF RANGE");
         }
     } 
-	
+#endif
+
+	unsigned long ulFramesMaxInSegment = pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment);
+	unsigned long ulRequestedFrames = (unsigned long) iRequestedFrames;
+
+	if(ulFramesMaxInSegment > 0)
+	{
+		WORD wDoubleImage;
+		int err;
+
+		// Double Image -> requested images will be the total nr of images (basic + primary)
+		//      must be even and twice of the nr of images for pco
+		_pco_GetDoubleImageMode(wDoubleImage, err);
+		if(wDoubleImage) 
+		{
+			if ( ((ulRequestedFrames % 2) != 0) || (ulRequestedFrames/2 > ulFramesMaxInSegment) )
+			{
+	            throw LIMA_HW_EXC(Error, "frames OUT OF RANGE");
+			}
+		}
+		else
+		{
+			if ( ulRequestedFrames > ulFramesMaxInSegment )
+			{
+	            throw LIMA_HW_EXC(Error, "frames OUT OF RANGE");
+			}
+		}
+	}
+
+
+
+
+
 	//------------------------------------------------- start acquisition
 
 	m_pcoData->traceAcq.msStartAcqStart = msElapsedTime(tStart);
 
 	m_sync->setStarted(true);
-	m_sync->setExposing(pcoAcqRecordStart);
+	//m_sync->setExposing(pcoAcqRecordStart);
+	m_sync->setExposing(pcoAcqStart);
+	
 
 	if(!_isRunAfterAssign())
 	{
@@ -992,7 +1083,25 @@ void Camera::startAcq()
 	}
 
 	if(_isCameraType(Edge)){
+
 		_beginthread( _pco_acq_thread_edge, 0, (void*) this);
+
+#if 0
+		AutoMutex lock(m_cond.mutex());
+
+		bool resWait;
+		int retry = 3;
+		int val, val0; val0 = pcoAcqRecordStart;
+
+		while( ((val =  m_sync->getExposing()) != val0) && retry--)
+		{
+			DEB_ALWAYS() << "+++ getExposing / pcoAcqRecordStart - WAIT - " << DEB_VAR3(val, val0, retry);
+			resWait = m_cond.wait(2.);
+		}
+		DEB_ALWAYS() << "+++ getExposing / pcoAcqRecordStart - EXIT - " << DEB_VAR3(val, val0, retry);
+		lock.unlock();
+#endif
+
 		m_pcoData->traceAcq.msStartAcqEnd = msElapsedTime(tStart);
 		return;
 	}
@@ -1522,7 +1631,7 @@ void _pco_shutter_thread_edge(void *argin) {
 	sprintf_s(_msg, LEN_MSG, "%s> [EXIT]", fnId);
 	m_cam->_traceMsg(_msg);
 
-	m_sync->setStarted(false); // to test
+	//m_sync->setStarted(false); // to test
 
 	_endthread();
 }
@@ -1866,54 +1975,86 @@ char* Camera::_PcoCheckError(int line, char *file, int err, int &error, char *fn
 
 //=========================================================================================================
 //=========================================================================================================
-unsigned long Camera::pcoGetFramesMax(int segmentPco){
+unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
+{
+	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
-		int segmentArr = segmentPco-1;
-		unsigned long framesMax;
-		unsigned long xroisize,yroisize;
-		unsigned long long pixPerFrame, pagesPerFrame;
+	int segmentArr = segmentPco-1;
+	unsigned long framesMax;
+	unsigned long ulWidth,ulHeigth;
+	unsigned long long pixPerFrame, pagesPerFrame;
 
-		if(_isCameraType(Edge)) {
-			return LONG_MAX;
-		}
+	// if(_isCameraType(Edge)) {return LONG_MAX;}
 
-
-
-		if(!_isCameraType(Dimax | Pco2k | Pco4k)) {
-			printf("=== %s> unknown camera type [%d]\n", fnId, _getCameraType());
-			return -1;
-		}
-
-		if((segmentPco <1) ||(segmentPco > PCO_MAXSEGMENTS)) {
-			printf("=== %s> ERROR segmentPco[%d]\n", fnId, segmentPco);
-			return -1;
-		}
-
-		xroisize = m_RoiLima.getSize().getWidth();
-		yroisize = m_RoiLima.getSize().getHeight();
-
-		//xroisize = m_roi.x[1] - m_roi.x[0] + 1;
-		//yroisize = m_roi.y[1] - m_roi.y[0] + 1;
-
-		pixPerFrame = (unsigned long long)xroisize * (unsigned long long)yroisize;
-
-		if(pixPerFrame <0) {
-			printf("=== %s> ERROR pixPerFrame[%lld]\n", fnId, pixPerFrame);
-			return -1;
-		}
-
-		if(m_pcoData->wPixPerPage < 1) {
-			printf("=== %s> ERROR m_pcoData->wPixPerPage[%d]\n", fnId, m_pcoData->wPixPerPage);
-			return -1;
-		}
-		pagesPerFrame = (pixPerFrame / m_pcoData->wPixPerPage) + 1;
-		if(pixPerFrame % m_pcoData->wPixPerPage) pagesPerFrame++;
-
-		framesMax = m_pcoData->dwMaxFramesInSegment[segmentArr] = (unsigned long)(((long long) m_pcoData->dwSegmentSize[segmentArr] ) / pagesPerFrame);
-
-		return framesMax;
+	if(!_isCameraType(Dimax | Pco2k | Pco4k)) 
+	{
+		//printf("=== %s> unknown camera type [%d]\n", fnId, _getCameraType());
+		return 0;
 	}
+		
+	// based in the calculation for std dimax WITHOUT COMPRESSION!!!!
+	// in dimax HS there is comprenssion and this value es invalid!!!
+
+	if((segmentPco <1) ||(segmentPco > PCO_MAXSEGMENTS)) 
+	{
+		DEB_ALWAYS() << "ERROR segmentPco " << DEB_VAR1(segmentPco);
+		return 0;
+	}
+
+	ulWidth = m_RoiLima.getSize().getWidth();
+	ulHeigth = m_RoiLima.getSize().getHeight();
+	//ulWidth = m_roi.x[1] - m_roi.x[0] + 1;
+	//ulHeigth = m_roi.y[1] - m_roi.y[0] + 1;
+
+	if(!_isCameraType(DimaxHS)) 
+	{
+		// W = Width of ROI
+		// H = Height of ROI
+		// m = Number of pages for the segment, as configured using PCO_SetRamSegmentSize
+		// n = Number of Images within segment [-0, +1] (tolerance due to sync of read/write operation)
+		WORD wCdi, wDImg;
+		int err, iA, iB, iC, iPagesInSegment;
+		unsigned long ulNrImages;
+
+		iPagesInSegment = m_pcoData->dwSegmentSize[segmentArr]; 
+		_pco_GetCDIMode(wCdi, err);
+		_pco_GetDoubleImageMode(wDImg, err);
+
+		iA = (int) ceil((ulWidth + 2.) / 96.);  // round up to the nearest integer
+		iB = (int) ceil((ulHeigth + 2.) / 4.);
+
+		iC = (wCdi || wDImg) ?
+			2 * iA * iB + 1  //for CDI or Double Image mode
+			: iA * iB + 1;   //    otherwise
+
+		ulNrImages = iPagesInSegment / iC - 1;
+
+		//return m_pcoData->dwMaxImageCnt[segmentPco];
+		return ulNrImages;
+	}
+
+
+	pixPerFrame = (unsigned long long)ulWidth * (unsigned long long)ulHeigth;
+
+	if(pixPerFrame <0) 
+	{
+		DEB_ALWAYS() << "ERROR pixPerFrame " << DEB_VAR1(pixPerFrame);
+		return 0;
+	}
+
+	if(m_pcoData->wPixPerPage < 1) 
+	{
+		DEB_ALWAYS() << "ERROR m_pcoData->wPixPerPage " << DEB_VAR1(m_pcoData->wPixPerPage);
+		return 0;
+	}
+	pagesPerFrame = (pixPerFrame / m_pcoData->wPixPerPage) + 1;
+	if(pixPerFrame % m_pcoData->wPixPerPage) pagesPerFrame++;
+
+	framesMax = m_pcoData->dwMaxFramesInSegment[segmentArr] = (unsigned long)(((long long) m_pcoData->dwSegmentSize[segmentArr] ) / pagesPerFrame);
+
+	return framesMax;
+}
 
 
 
@@ -1982,22 +2123,39 @@ int Camera::dumpRecordedImages(int &nrImages, int &error){
 
 //=================================================================================================
 //=================================================================================================
+bool Camera::_isValid_rollingShutter(DWORD dwRolling)
+{
 
-
-void Camera::_set_shutter_rolling_edge(bool rolling, int &error){
-		
-	DEB_MEMBER_FUNCT();
-
-
-	error = 0;
-
-	if(!_isCameraType(Edge)) {
-		error = -1;
-		return ;
+	switch(dwRolling) 
+	{
+		case PCO_EDGE_SETUP_ROLLING_SHUTTER: return _isCapsDesc(capsRollingShutter);   // 1
+		case PCO_EDGE_SETUP_GLOBAL_SHUTTER: return _isCapsDesc(capsGlobalShutter) ;    // 2
+		case PCO_EDGE_SETUP_GLOBAL_RESET: return _isCapsDesc(capsGlobalResetShutter) ; //4
+		default: return FALSE;
 	}
 
-	m_pcoData->bRollingShutter = rolling;
+}
 
+
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_set_shutter_rolling_edge(DWORD dwRolling, int &error)
+{
+		
+	DEB_MEMBER_FUNCT();
+	error = 0;
+
+	if(!_isValid_rollingShutter(dwRolling)) 
+	{
+		DEB_ALWAYS() << "ERROR requested Rolling Shutter not allowed " << DEB_VAR1(dwRolling);
+		error = -1;
+		return;
+	}
+
+	m_pcoData->dwRollingShutter = dwRolling;
+
+	DEB_ALWAYS() << "requested Rolling Shutter OK " << DEB_VAR1(dwRolling);
 
 	_beginthread( _pco_shutter_thread_edge, 0, (void*) this);
 
@@ -2014,10 +2172,10 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	char *msg;
 	char msgBuff[MSG_SIZE+1];
 
-	DWORD _dwSetup;
+	DWORD dwRollingShRequested, dwRollingShNow;
 	DWORD m_dwSetup[10];
 	WORD m_wLen = 10;
-	WORD m_wType;
+	WORD m_wType = 0;
 
 	// PCO recommended timing values
 	int ts[3] = {2000, 3000, 250}; // command, image, channel timeout
@@ -2048,23 +2206,35 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	// #define PCO_EDGE_SETUP_GLOBAL_SHUTTER  0x00000002         // global shutter
 
 	
-	_dwSetup = m_pcoData->bRollingShutter ? PCO_EDGE_SETUP_ROLLING_SHUTTER : PCO_EDGE_SETUP_GLOBAL_SHUTTER;
+	dwRollingShRequested = m_pcoData->dwRollingShutter ;
 
-    PCO_FN4(error, msg,PCO_GetCameraSetup, m_handle, &m_wType, &m_dwSetup[0], &m_wLen);
-    PCO_PRINT_ERR(error, msg); 	if(error) return;
+	m_wType = 0;
+	PCO_FN4(error, msg,PCO_GetCameraSetup, m_handle, &m_wType, &m_dwSetup[0], &m_wLen);
+    PCO_PRINT_ERR(error, msg); 	
+	if(error)
+	{
+		DEB_ALWAYS() << fnId << " [ERROR PCO_GetCameraSetup] " << msg;
+		m_config = FALSE;
+		return;
+	}
 
-	if(m_dwSetup[0] == _dwSetup) { 
-		DEB_ALWAYS() << fnId << " [exit - no change] ";
+
+	dwRollingShNow = m_dwSetup[0];
+
+	
+	if(m_dwSetup[0] == dwRollingShRequested) { 
+		DEB_ALWAYS() << "exit NO Change in ROLLING SHUTTER " << DEB_VAR2(dwRollingShNow, dwRollingShRequested);
 		m_config = FALSE;
 		return;
 	}
 
 	msg = msgBuff;
 	sprintf_s(msg, MSG_SIZE, "[Change ROLLING SHUTTER from [%d] to [%d]]", 
-		m_dwSetup[0]==PCO_EDGE_SETUP_ROLLING_SHUTTER, _dwSetup==PCO_EDGE_SETUP_ROLLING_SHUTTER);
-	DEB_ALWAYS() << fnId << " " << msg;
+		m_dwSetup[0]==PCO_EDGE_SETUP_ROLLING_SHUTTER, dwRollingShRequested==PCO_EDGE_SETUP_ROLLING_SHUTTER);
 
-	m_dwSetup[0] = _dwSetup;
+	DEB_ALWAYS() << "Change in ROLLING SHUTTER " << DEB_VAR2(dwRollingShNow, dwRollingShRequested);
+
+	m_dwSetup[0] = dwRollingShRequested;
 
     PCO_FN3(error, msg,PCO_SetTimeouts, m_handle, &ts[0], sizeof(ts));
     PCO_PRINT_ERR(error, msg); 	if(error) return;
@@ -2072,7 +2242,13 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	msg = "[PCO_SetCameraSetup]";
 	DEB_ALWAYS() << fnId << " " << msg;
     PCO_FN4(error, msg,PCO_SetCameraSetup, m_handle, m_wType, &m_dwSetup[0], m_wLen);
-    PCO_PRINT_ERR(error, msg); 	if(error) return;
+    PCO_PRINT_ERR(error, msg); 	
+	if(error)
+	{
+		DEB_ALWAYS() << fnId << " [ERROR PCO_SetCameraSetup] " << msg;
+		m_config = FALSE;
+		return;
+	}
 
 	msg = "[PCO_RebootCamera]";
 	DEB_ALWAYS() << fnId << " " << msg;
@@ -2104,8 +2280,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 
 //=================================================================================================
 //=================================================================================================
-bool Camera::_get_shutter_rolling_edge(int &error){
-		
+void Camera::_get_shutter_rolling_edge(DWORD &dwRolling, int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
@@ -2114,11 +2289,13 @@ bool Camera::_get_shutter_rolling_edge(int &error){
 	WORD m_wType;
 	char *msg;
 
-
+	m_wType = 0;
     PCO_FN4(error, msg,PCO_GetCameraSetup, m_handle, &m_wType, &m_dwSetup[0], &m_wLen);
-    PCO_PRINT_ERR(error, msg); 	if(error) return FALSE;
+    PCO_PRINT_ERR(error, msg); 	
+	
+	dwRolling =  error ? 0 :  m_dwSetup[0];
 
-	return (m_dwSetup[0] == PCO_EDGE_SETUP_ROLLING_SHUTTER);
+	return;
 
 }
 //=================================================================================================
@@ -2140,7 +2317,21 @@ bool Camera::_isValid_pixelRate(DWORD dwPixelRate){
 }
 
 
+//=================================================================================================
+//=================================================================================================
 
+void Camera::getRoiSymetrie(bool &bSymX, bool &bSymY ){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	bSymY = bSymX = false;
+	if(_isCameraType(Dimax)){ bSymX = bSymY = true; }
+	if(_isCameraType(Edge)) { bSymY = true; }
+
+	int adc_working, adc_max;
+	_pco_GetADCOperation(adc_working, adc_max);
+	if(adc_working != 1) { bSymX = true; }
+}
 //=================================================================================================
 //=================================================================================================
 
@@ -2161,10 +2352,7 @@ void Camera::getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsign
 
 
 	{ // patch meanwhile firmware 1.19 is fixed
-		bool ret;
-		char *value;
-		ret = paramsGet("xMinSize", value);
-		if(ret) {
+		if(m_pcoData->params_xMinSize) {
 			xMinSize += xSteps;
 			DEB_ALWAYS() << "PATCH APPLIED: " << DEB_VAR2(xMinSize0, xMinSize);
 		
@@ -2351,6 +2539,24 @@ void Camera::_set_Roi(const Roi &new_roi, const Roi &requested_roi, int &error){
 	return ;
 }
 
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_set_logLastFixedRoi(const Roi &requested_roi, const Roi &fixed_roi){
+		m_Roi_lastFixed_hw = fixed_roi;
+		m_Roi_lastFixed_requested = requested_roi;
+		m_Roi_lastFixed_time = time(NULL);
+
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_get_logLastFixedRoi(Roi &requested_roi, Roi &fixed_roi, time_t & dt){
+		fixed_roi = m_Roi_lastFixed_hw;
+		requested_roi = m_Roi_lastFixed_requested;
+		dt = m_Roi_lastFixed_time;
+
+}
 //=================================================================================================
 //=================================================================================================
 
@@ -2500,8 +2706,23 @@ bool Camera::_isCameraType(int tp){
 
 	switch(_getCameraType()) {
 		case CAMERATYPE_PCO_DIMAX_STD: 
-			return !!(tp & Dimax) ;
-		
+		case CAMERATYPE_PCO_DIMAX_TV:
+		case CAMERATYPE_PCO_DIMAX_CS:
+			if(tp & Dimax) return TRUE;
+			switch(_getCameraSubType() >> 8)
+			{
+				case 0x20:
+					if((tp & DimaxHS1)) return TRUE;
+				case 0x21:
+					if((tp & DimaxHS2)) return TRUE;
+				case 0x23:
+					if((tp & DimaxHS4)) return TRUE;
+					if((tp & DimaxHS)) return TRUE;
+				default:
+					break;
+			}
+			return FALSE;
+
 		case CAMERATYPE_PCO_EDGE_GL:
 			return !!(tp & (EdgeGL | Edge));
 
@@ -2522,10 +2743,11 @@ bool Camera::_isCameraType(int tp){
 			return !!(tp & Pco4k) ;
 
 		default:
-			return FALSE;
-
+			break;
 	}
 		
+
+	return FALSE;
 }
 
 
@@ -2762,3 +2984,36 @@ void Camera::_setActionTimestamp(int action)
 		m_pcoData->action_timestamp.ts[action] = time(NULL);
 	}
 }
+
+
+
+//=================================================================================================
+//=================================================================================================
+
+bool Camera::_isCapsDesc(int caps)
+{
+	switch(caps)
+	{
+		case capsCDI:
+			return !!(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_CDI_MODE);
+
+		case capsDoubleImage:
+			return !!(m_pcoData->stcPcoDescription.wDoubleImageDESC);
+	
+		case capsRollingShutter:
+			return _isCameraType(Edge);
+
+		case capsGlobalShutter:
+			//#define GENERALCAPS1_NO_GLOBAL_SHUTTER                 0x00080000 // Camera does not support global shutter
+			return _isCameraType(Edge) && !(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_NO_GLOBAL_SHUTTER);
+
+		case capsGlobalResetShutter:
+			//#define GENERALCAPS1_GLOBAL_RESET_MODE                 0x00100000 // Camera supports global reset rolling readout
+			return _isCameraType(Edge) && !!(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_GLOBAL_RESET_MODE);
+
+		default:
+			return FALSE;
+	}
+
+}
+

@@ -382,7 +382,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				return output;
 			}
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", pcoGetFramesMax(m_pcoData->wActiveRamSegment));
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment));
 			return output;
 		}
 
@@ -649,15 +649,13 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			//--- test of close
 			if((tokNr >= 1) &&  (_stricmp(tok[1], "close")==0)){
 				int error;
-				char *msg;
+				//char *msg;
 
 				m_cam_connected = false;
 
 				//m_sync->_getBufferCtrlObj()->_pcoAllocBuffersFree();
 				m_buffer->_pcoAllocBuffersFree();
-				PCO_FN1(error, msg,PCO_CloseCamera, m_handle);
-				PCO_PRINT_ERR(error, msg); 
-				m_handle = NULL;
+				_pco_CloseCamera(error);
 
 				ptr += sprintf_s(ptr, ptrMax - ptr, "%s> closed cam\n", tok[1]);
 				return output;
@@ -714,30 +712,30 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		keys_desc[ikey++] = "(RW) for EDGE only / rolling shutter mode";
 		if(_stricmp(cmd, key) == 0){
 			int error;
-			bool rolling, rollingNew;
+			DWORD dwRolling, dwRollingNew;
 
 			if(!_isCameraType(Edge)) {
 				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", -1);
 				return output;
 			}
 			
-			rolling = _get_shutter_rolling_edge(error);
+			_get_shutter_rolling_edge(dwRolling, error);
 			if(tokNr == 0) {
-				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", rolling);
+				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", dwRolling);
 				return output;
 			}
 
-			if((tokNr != 1) || ((strcmp(tok[1],"0") != 0) && (strcmp(tok[1],"1") != 0))){
-				ptr += sprintf_s(ptr, ptrMax - ptr, "syntax ERROR - %s <0 | 1>", cmd);
+			dwRollingNew = atoi(tok[1]);
+
+			if( (tokNr != 1) || !((dwRollingNew == 1) || (dwRollingNew == 2) || (dwRollingNew == 4)) ){
+				ptr += sprintf_s(ptr, ptrMax - ptr, "syntax ERROR - %s <1 (rolling), 2 (global), 4 (global reset)>", cmd);
 				return output;
 			}
 			
-			rollingNew = atoi(tok[1]) != 0;
-
-			if(rollingNew != rolling){
-				_set_shutter_rolling_edge(rollingNew, error);
+			if(dwRollingNew != dwRolling){
+				_set_shutter_rolling_edge(dwRollingNew, error);
 			}
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", rollingNew);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", dwRollingNew);
 			return output;
 		}
 
@@ -903,7 +901,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 		//----------------------------------------------------------------------------------------------------------
 		key = keys[ikey] = "roi";
-		keys_desc[ikey++] = "get actual (fixec) last ROI requested (unfixed) ROIs";
+		keys_desc[ikey++] = "get actual (fixed) last ROI requested (unfixed) ROIs";
 		if(_stricmp(cmd, key) == 0){
 			unsigned int x0, x1, y0, y1;
 			Roi new_roi;
@@ -946,6 +944,60 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 		}
 
+
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "lastFixedRoi";
+		keys_desc[ikey++] = "get last ROI fixed";
+		if(_stricmp(cmd, key) == 0){
+			unsigned int x0, x1, y0, y1;
+			Roi new_roi;
+
+			Roi limaRoiRequested, limaRoiFixed, limaRoi;
+			time_t dt;
+			
+			_get_logLastFixedRoi(limaRoiRequested, limaRoiFixed,  dt);
+
+				
+			_get_Roi(limaRoi);
+			x0 = limaRoi.getTopLeft().x - 1;
+			x1 = limaRoi.getBottomRight().x - 1;
+			y0 = limaRoi.getTopLeft().y - 1;
+			y1 = limaRoi.getBottomRight().y - 1;
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO ACTUAL X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+					x0, x1, y0, y1, x1-x0+1, y1-y0+1);
+
+			limaRoi = limaRoiRequested; 
+			x0 = limaRoi.getTopLeft().x - 1;
+			x1 = limaRoi.getBottomRight().x - 1;
+			y0 = limaRoi.getTopLeft().y - 1;
+			y1 = limaRoi.getBottomRight().y - 1;
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO REQUESTED X(%d,%d) Y(%d,%d) size(%d,%d) [%s]\n",  
+					x0, x1, y0, y1, x1-x0+1, y1-y0+1, getTimestamp(Iso, dt));
+
+			limaRoi = limaRoiFixed; 
+			x0 = limaRoi.getTopLeft().x - 1;
+			x1 = limaRoi.getBottomRight().x - 1;
+			y0 = limaRoi.getTopLeft().y - 1;
+			y1 = limaRoi.getBottomRight().y - 1;
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO FIXED X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+					x0, x1, y0, y1, x1-x0+1, y1-y0+1);
+
+			bool bSymX, bSymY;
+			unsigned int xMax, yMax, xSteps, ySteps, xMinSize, yMinSize;
+			getXYdescription(xSteps, ySteps, xMax, yMax, xMinSize, yMinSize); 
+			getRoiSymetrie(bSymX, bSymY );
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* xSteps[%d] ySteps[%d] xMinSize[%d] yMinSize[%d] xSym[%d] ySym[%d]\n",  
+					xSteps, ySteps, xMinSize, yMinSize, bSymX, bSymY);
+
+
+
+			return output;
+
+		}
 
 		//----------------------------------------------------------------------------------------------------------
 		// dwGeneralCapsDESC1;      // General capabilities:
@@ -2205,7 +2257,7 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... maxWidth=[%d] maxHeight=[%d] \n",  maxWidth,  maxHeight);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    Xstep=[%d] Ystep=[%d] (PCO ROI steps)\n",  Xstep,  Ystep);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... xMinSize=[%d] uMinSize=[%d] \n",  xMinSize,  yMinSize);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... xMinSize=[%d] yMinSize=[%d] \n",  xMinSize,  yMinSize);
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... wXResActual=[%d] wYResActual=[%d] \n",  m_pcoData->wXResActual,  m_pcoData->wYResActual);
 
@@ -2279,12 +2331,17 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
     //------ DIMAX
 	if( (flag & CAMINFO_DIMAX) && (_isCameraType(Dimax | Pco2k | Pco4k)) ){
 		unsigned int bytesPerPix; getBytesPerPixel(bytesPerPix);
+		WORD bitsPerPix; getBitsPerPixel(bitsPerPix);
 		int segmentPco = m_pcoData->wActiveRamSegment;
 		int segmentArr = segmentPco -1;
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "*** DIMAX - 2k - 4k info \n");
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* pagesInRam[%ld] pixPerPage[%d] bytesPerPix[%d] ramGB[%.3g]\n",  
-			m_pcoData->dwRamSize, m_pcoData->wPixPerPage, bytesPerPix,
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* pagesInRam[%ld] pixPerPage[%d] bitsPerPix[%d] ramGB[%.3g] bytesPerPix[%d] imgGB[%.3g]\n",  
+			m_pcoData->dwRamSize, 
+			m_pcoData->wPixPerPage, 
+			bitsPerPix,
+			(1.0e-9 * m_pcoData->dwRamSize) * m_pcoData->wPixPerPage *  bitsPerPix / 8.0,
+			bytesPerPix,
 			(1.0e-9 * m_pcoData->dwRamSize) * m_pcoData->wPixPerPage *  bytesPerPix);
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* PcoActiveSegment=[%d]\n", segmentArr+1);
@@ -2292,6 +2349,24 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwSegmentSize[%d]=[%d pages]\n", segmentArr, m_pcoData->dwSegmentSize[segmentArr]);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwValidImageCnt[%d]=[%ld]\n", segmentArr, m_pcoData->dwValidImageCnt[segmentArr]);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwMaxImageCnt[%d]=[%ld]\n", segmentArr, m_pcoData->dwMaxImageCnt[segmentArr]);
+
+
+		int err;
+		_pco_GetSegmentInfo(err);
+		
+		struct stcSegmentInfo *_stc;
+		for(int iseg = 0; iseg <  PCO_MAXSEGMENTS; iseg++)
+		{
+			_stc = &m_pcoData->m_stcSegmentInfo[iseg];
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* segmentInformation seg[%d][%d] err[%d]\n", iseg + 1, _stc->iSegId, _stc->iErr);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*    bin[%d,%d] res[%d,%d] roiX[%d,%d] roiY[%d,%d]\n",
+				_stc->wBinHorz, _stc->wBinVert,
+				_stc->wXRes, _stc->wYRes,
+				_stc->wRoiX0, _stc->wRoiX1, 
+				_stc->wRoiY0, _stc->wRoiY1);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*    validImgCount[%ld] maxImgCount[%ld]\n",
+				_stc->dwValidImageCnt,_stc->dwMaxImageCnt);
+		}
 
 		_pco_GetStorageMode_GetRecorderSubmode();
 				
@@ -2602,36 +2677,73 @@ int _get_time_from_imageTimestamp(void *buf,int shift,SYSTEMTIME *st)
 void Camera::getRollingShutter(int &val)
 {
 	int error;
-	bool rolling;
+	DWORD dwRolling;
 
 	if(!_isCameraType(Edge)) 
 	{
 		val = -1;
 		return;
 	} 
-	rolling = _get_shutter_rolling_edge(error);
-	val = rolling;
+	_get_shutter_rolling_edge(dwRolling, error);
+	val = dwRolling;
 
 }
 
 
 void Camera::setRollingShutter(int val)
 {
-	int error;
-	bool rolling, rollingNew;
+	DEB_MEMBER_FUNCT();
 
-	if(!_isCameraType(Edge)) {
+	int error;
+	DWORD dwRolling, dwRollingNew;
+
+	dwRollingNew = (DWORD) val;
+
+	if(!_isValid_rollingShutter(dwRollingNew))
+	{
+		DEB_ALWAYS() << "ERROR requested Rolling Shutter not allowed " << DEB_VAR1(dwRollingNew);
+		error = -1;
 		return;
 	}
 
-	rolling = _get_shutter_rolling_edge(error);
+	_get_shutter_rolling_edge(dwRolling, error);
 			
-	rollingNew = !!val;
 
-	if(rollingNew != rolling){
-		_set_shutter_rolling_edge(rollingNew, error);
+	if(dwRollingNew != dwRolling){
+		_set_shutter_rolling_edge(dwRollingNew, error);
 	}
 }
+
+
+void Camera::getRollingShutterInfo(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+	int val;
+
+	bool bRS = _isCapsDesc(capsRollingShutter);
+    bool bGL = _isCapsDesc(capsGlobalShutter);
+    bool bGR = _isCapsDesc(capsGlobalResetShutter);
+
+	if( !(bRS || bGL || bGR)) 
+	{
+		ptr += sprintf_s(ptr, ptrMax - ptr, "Rolling Shutter is not allowed");
+		o_sn = buff;
+		return;
+	}
+
+	getRollingShutter(val);
+	ptr += sprintf_s(ptr, ptrMax - ptr, "actual[%d] valid: ", val);
+
+	if(bRS) ptr += sprintf_s(ptr, ptrMax - ptr, "rolling[%d] ", PCO_EDGE_SETUP_ROLLING_SHUTTER);
+	if(bGL) ptr += sprintf_s(ptr, ptrMax - ptr, "global[%d] ", PCO_EDGE_SETUP_GLOBAL_SHUTTER);
+	if(bGR) ptr += sprintf_s(ptr, ptrMax - ptr, "globalReset[%d] ",  PCO_EDGE_SETUP_GLOBAL_RESET);
+	
+	o_sn = buff;
+	return;
+}
+
+
 
 //====================================================================
 //====================================================================
@@ -2706,22 +2818,22 @@ void Camera::getFrameRate(double &framerate)
 
 //====================================================================
 //====================================================================
-void Camera::getLastImgRecorded(int & img)
+void Camera::getLastImgRecorded(unsigned long & img)
 {
 
 	img =  m_pcoData->traceAcq.nrImgRecorded;
 }
 
-void Camera::getLastImgAcquired(int & img)
+void Camera::getLastImgAcquired(unsigned long & img)
 {
 
 	img =  m_pcoData->traceAcq.nrImgAcquired;
 }
 //====================================================================
 //====================================================================
-void Camera::getMaxNbImages(int & nr)
+void Camera::getMaxNbImages(unsigned long & nr)
 {
-	nr = (!_isCameraType(Dimax | Pco2k | Pco4k )) ?  -1 : pcoGetFramesMax(m_pcoData->wActiveRamSegment);
+	nr = (!_isCameraType(Dimax | Pco2k | Pco4k )) ?  -1 : pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment);
 }
 
 void Camera::getPcoLogsEnabled(int & enabled)
@@ -2956,4 +3068,86 @@ void Camera::getPixelRateValidValues(std::string &o_sn)
 		ptr += sprintf_s(ptr, ptrMax - ptr, "%d  ",nr);
 
 	o_sn = buff;
+}
+
+//====================================================================
+//====================================================================
+void Camera::getLastFixedRoi(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+
+//------
+	unsigned int x0, x1, y0, y1;
+	Roi new_roi;
+
+	Roi limaRoiRequested, limaRoiFixed, limaRoi;
+	time_t dt;
+	
+	_get_logLastFixedRoi(limaRoiRequested, limaRoiFixed,  dt);
+
+		
+	_get_Roi(limaRoi);
+	x0 = limaRoi.getTopLeft().x - 1;
+	x1 = limaRoi.getBottomRight().x - 1;
+	y0 = limaRoi.getTopLeft().y - 1;
+	y1 = limaRoi.getBottomRight().y - 1;
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO ACTUAL X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+			x0, x1, y0, y1, x1-x0+1, y1-y0+1);
+
+	limaRoi = limaRoiRequested; 
+	x0 = limaRoi.getTopLeft().x - 1;
+	x1 = limaRoi.getBottomRight().x - 1;
+	y0 = limaRoi.getTopLeft().y - 1;
+	y1 = limaRoi.getBottomRight().y - 1;
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO REQUESTED X(%d,%d) Y(%d,%d) size(%d,%d) [%s]\n",  
+			x0, x1, y0, y1, x1-x0+1, y1-y0+1, getTimestamp(Iso, dt));
+
+	limaRoi = limaRoiFixed; 
+	x0 = limaRoi.getTopLeft().x - 1;
+	x1 = limaRoi.getBottomRight().x - 1;
+	y0 = limaRoi.getTopLeft().y - 1;
+	y1 = limaRoi.getBottomRight().y - 1;
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO FIXED X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+			x0, x1, y0, y1, x1-x0+1, y1-y0+1);
+
+	bool bSymX, bSymY;
+	unsigned int xMax, yMax, xSteps, ySteps, xMinSize, yMinSize;
+	getXYdescription(xSteps, ySteps, xMax, yMax, xMinSize, yMinSize); 
+	getRoiSymetrie(bSymX, bSymY );
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "* xSteps[%d] ySteps[%d] xMinSize[%d] yMinSize[%d] xSym[%d] ySym[%d]\n",  
+			xSteps, ySteps, xMinSize, yMinSize, bSymX, bSymY);
+
+
+//------
+
+
+	o_sn = buff;
+}
+
+//====================================================================
+//====================================================================
+void Camera::getCDIMode(int &cdi)
+{
+	int error;
+	WORD wCdi;
+
+	_pco_GetCDIMode(wCdi, error);
+
+	cdi = error ? -1 : wCdi;
+}
+
+void Camera::setCDIMode(int cdi)
+{
+	int error;
+	WORD wCdi = (WORD) cdi;
+
+	m_cdi_mode = wCdi;
+
+	_pco_SetCDIMode(wCdi, error);
+
 }

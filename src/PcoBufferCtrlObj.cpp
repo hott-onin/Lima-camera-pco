@@ -438,7 +438,17 @@ int BufferCtrlObj::_xferImag()
 		m_cam->_pco_SetRecordingState(1, error);
 	}
 #endif
-	
+
+	// cleaning the buffers
+	for(int _id = 0; _id < PCO_BUFFER_NREVENTS; _id++) {
+		m_allocBuff.bufferReady[_id]= 0;
+		m_allocBuff.bufferAssignedFrameFirst[_id] = -1;
+		m_allocBuff.limaAllocBufferPtr[_id] = NULL;
+		m_allocBuff.dwLimaAllocBufferSize[_id] = 0;
+	}
+
+
+
 // --------------- prepare the first buffer 
 // ------- in PCO DIMAX only 1 image can be retreived
 //         (dwFramesPerBuffer = 1) ====> (dwFrameLast2assign = dwFrameFirst2assign)
@@ -518,7 +528,7 @@ _RETRY:
 
     for(bufIdx = 0; bufIdx < PCO_BUFFER_NREVENTS; bufIdx++) {
       if((m_allocBuff.bufferAssignedFrameFirst[bufIdx] == dwFrameIdx) && m_allocBuff.bufferReady[bufIdx]) {
-			// lima frame nr is from 0 .... N-1        
+			// lima frame nr is from 0 .... N-1, PCO nr is from 1 ... N        
 			lima_buffer_nb = dwFrameIdx -1; // this frame was already readout to the buffer
           
 #ifdef DEBUG_XFER_IMAG
@@ -579,6 +589,7 @@ _RETRY:
 #endif
 
 		if(m_cam->_getDebug(DBG_DUMMY_IMG)){
+			// creating a dummy image
 			int val = dwFrameIdx & 0xf;
 			memset(ptrDest, val, size);
 			DEB_ALWAYS() << "===== dummy image!!! " << DEB_VAR1(val);
@@ -590,10 +601,8 @@ _RETRY:
 				DEB_ALWAYS() << "xferImag - memcpy " << DEB_VAR3(ptrDest, ptrSrc, size);
 			}
 #endif
+			// copy the real imaga ptrSrc -> ptrDest
 			memcpy(ptrDest, ptrSrc, size);
-
-
-
 		}		
 		
 		
@@ -606,12 +615,14 @@ _RETRY:
 #endif
 
 
+		//----- the image dwFrameIdx is already in the buffer -> callback newFrameReady
+		//----- lima frame (0 ... N-1) PCO frame (1 ... N)
 		HwFrameInfoType frame_info;
 		iLimaFrame = frame_info.acq_frame_nb = lima_buffer_nb;
 		m_buffer_cb_mgr.newFrameReady(frame_info);
 
 
-			//=============================== checkImgNr
+			//=============================== check PCO ImgNr with the limaFrame
 			if(checkImgNr) {
 				int imgNr, diff;
 				imgNr = _get_imageNr_from_imageTimestamp(ptrSrc, alignmentShift);
@@ -624,8 +635,7 @@ _RETRY:
 				}
 			}
 
-
-        //----- the image dwFrameIdx is already in the buffer -> callback!
+			//----- the image dwFrameIdx is already in the buffer -> callback!
 		if((m_sync->_getRequestStop(_nrStop) == stopRequest) && (_nrStop > MAX_NR_STOP)) {goto _EXIT_STOP;}
 		if(dwFrameFirst2assign <= dwRequestedFrames) {
 
@@ -707,13 +717,44 @@ _RETRY_WAIT:
 			goto _RETRY;
 
         case WAIT_TIMEOUT: 
-			maxWaitTimeout--; 
-			if(m_cam->_getDebug(DBG_WAITOBJ)){m_cam->m_tmpLog->dumpPrint(true);}
-			printf("=== %s> WAITOBJ ERROR - TIMEOUT [%d]\n", fnId, maxWaitTimeout);
-			if(maxWaitTimeout) goto _RETRY_WAIT; // retry when >0 (counting down up to 0) / <0 infinite
-			return pcoAcqWaitTimeout;
+			{
+				maxWaitTimeout--; 
+				if(m_cam->_getDebug(DBG_WAITOBJ)){m_cam->m_tmpLog->dumpPrint(true);}
+				
+				char errstr[MSG4K+1];
+				char *ptr = errstr;
+				char *ptrMax = errstr + MSG4K;
+				char* flag;
+				for(int _id = 0; _id<PCO_BUFFER_NREVENTS; _id++)
+				{
+					flag = m_allocBuff.bufferAssignedFrameFirst[_id] == dwFrameIdx ? "***" : "   ";
+					ptr += sprintf_s(ptr, ptrMax - ptr, 
+						"\n%s [%d] pcoBuffNr[%d] ready[%d] limaFrame[%d] limaPtr[%p] pcoPtr[%p] limaSize[%ld] pcoSize[%ld]",
+						flag, _id,
+						m_allocBuff.pcoAllocBufferNr[_id],
+						m_allocBuff.bufferReady[_id],
+						m_allocBuff.bufferAssignedFrameFirst[_id],
+						(void *) m_allocBuff.limaAllocBufferPtr[_id],
+						(void *) m_allocBuff.pcoAllocBufferPtr[_id],
+						m_allocBuff.dwLimaAllocBufferSize[_id],
+						m_allocBuff.dwPcoAllocBufferSize[_id]);
+				}
 
-        default: 
+				if(maxWaitTimeout)
+				{
+					DEB_ALWAYS() << "\nWAITOBJ ERROR - TIMEOUT - RETRY " << DEB_VAR2(maxWaitTimeout, dwFrameIdx) << errstr;
+					goto _RETRY_WAIT; // retry when >0 (counting down up to 0) / <0 infinite
+				
+				} 
+				else
+				{
+					DEB_ALWAYS() << "\nWAITOBJ ERROR - TIMEOUT - ABORT " << DEB_VAR2(maxWaitTimeout, dwFrameIdx) << errstr;
+					return pcoAcqWaitTimeout;
+				}
+			}
+        
+		
+		default: 
 			printf("=== %s> WAITOBJ default ????\n", fnId);
 			return pcoAcqWaitError;
     }
@@ -1607,18 +1648,29 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
     char *sErr;
 	DWORD _dwMaxWidth, _dwMaxHeight;
 	WORD _wArmWidth, _wArmHeight;
-    WORD _wBitPerPixel;
+    WORD _wBitPerPixel, _wPixPerPage;
     unsigned int _bytesPerPixel;
 
 	if(!m_allocBuff.pcoAllocBufferDone){
 		m_cam->getBytesPerPixel(_bytesPerPixel);
 		m_cam->getBitsPerPixel(_wBitPerPixel);
+		_wPixPerPage = m_cam->m_pcoData->wPixPerPage;
 
 		m_cam->getMaxWidthHeight(_dwMaxWidth, _dwMaxHeight); // max
 		m_cam->getArmWidthHeight(_wArmWidth, _wArmHeight);  // actual
 
 		DWORD _dwAllocatedBufferSizeMax = _dwMaxWidth * _dwMaxHeight * (DWORD) _bytesPerPixel ;
 		DWORD _dwArmSize = (DWORD) _wArmWidth * (DWORD) _wArmHeight * (DWORD) _bytesPerPixel;
+
+		// CDI and Double Image requires a double size + 1 page for metadata
+		WORD wCdi, wDImg;
+		int err;
+		m_cam->_pco_GetCDIMode(wCdi, err);
+		m_cam->_pco_GetDoubleImageMode(wDImg, err);
+
+		// reserve ImageWidth * ImageHeight * 2, for standard mode and CDI mode. Double this for double image.
+		if(wDImg) _dwArmSize = _dwArmSize*2;
+
 		//_dwAllocatedBufferSizeMax -= _dwAllocatedBufferSizeMax % _dwArmSize;
 
 		DWORD _dwAllocatedBufferSize = max ? _dwAllocatedBufferSizeMax : _dwArmSize ; 
