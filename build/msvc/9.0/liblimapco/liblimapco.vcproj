@@ -634,11 +634,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\doc\errors.log"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\doc\index.rst"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\..\doc\notes.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\applications\tango\python\doc\camera\pco.rst"
 				>
 			</File>
 			<File

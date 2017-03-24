@@ -903,7 +903,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 		//----------------------------------------------------------------------------------------------------------
 		key = keys[ikey] = "roi";
-		keys_desc[ikey++] = "get actual (fixec) last ROI requested (unfixed) ROIs";
+		keys_desc[ikey++] = "get actual (fixed) last ROI requested (unfixed) ROIs";
 		if(_stricmp(cmd, key) == 0){
 			unsigned int x0, x1, y0, y1;
 			Roi new_roi;
@@ -946,6 +946,60 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 		}
 
+
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "lastFixedRoi";
+		keys_desc[ikey++] = "get last ROI fixed";
+		if(_stricmp(cmd, key) == 0){
+			unsigned int x0, x1, y0, y1;
+			Roi new_roi;
+
+			Roi limaRoiRequested, limaRoiFixed, limaRoi;
+			time_t dt;
+			
+			_get_logLastFixedRoi(limaRoiRequested, limaRoiFixed,  dt);
+
+				
+			_get_Roi(limaRoi);
+			x0 = limaRoi.getTopLeft().x - 1;
+			x1 = limaRoi.getBottomRight().x - 1;
+			y0 = limaRoi.getTopLeft().y - 1;
+			y1 = limaRoi.getBottomRight().y - 1;
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO ACTUAL X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+					x0, x1, y0, y1, x1-x0+1, y1-y0+1);
+
+			limaRoi = limaRoiRequested; 
+			x0 = limaRoi.getTopLeft().x - 1;
+			x1 = limaRoi.getBottomRight().x - 1;
+			y0 = limaRoi.getTopLeft().y - 1;
+			y1 = limaRoi.getBottomRight().y - 1;
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO REQUESTED X(%d,%d) Y(%d,%d) size(%d,%d) [%s]\n",  
+					x0, x1, y0, y1, x1-x0+1, y1-y0+1, getTimestamp(Iso, dt));
+
+			limaRoi = limaRoiFixed; 
+			x0 = limaRoi.getTopLeft().x - 1;
+			x1 = limaRoi.getBottomRight().x - 1;
+			y0 = limaRoi.getTopLeft().y - 1;
+			y1 = limaRoi.getBottomRight().y - 1;
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO FIXED X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+					x0, x1, y0, y1, x1-x0+1, y1-y0+1);
+
+			bool bSymX, bSymY;
+			unsigned int xMax, yMax, xSteps, ySteps, xMinSize, yMinSize;
+			getXYdescription(xSteps, ySteps, xMax, yMax, xMinSize, yMinSize); 
+			getRoiSymetrie(bSymX, bSymY );
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* xSteps[%d] ySteps[%d] xMinSize[%d] yMinSize[%d] xSym[%d] ySym[%d]\n",  
+					xSteps, ySteps, xMinSize, yMinSize, bSymX, bSymY);
+
+
+
+			return output;
+
+		}
 
 		//----------------------------------------------------------------------------------------------------------
 		// dwGeneralCapsDESC1;      // General capabilities:
@@ -2954,6 +3008,65 @@ void Camera::getPixelRateValidValues(std::string &o_sn)
 
 	if(nr == 0)			
 		ptr += sprintf_s(ptr, ptrMax - ptr, "%d  ",nr);
+
+	o_sn = buff;
+}
+
+//====================================================================
+//====================================================================
+void Camera::getLastFixedRoi(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+
+//------
+	unsigned int x0, x1, y0, y1;
+	Roi new_roi;
+
+	Roi limaRoiRequested, limaRoiFixed, limaRoi;
+	time_t dt;
+	
+	_get_logLastFixedRoi(limaRoiRequested, limaRoiFixed,  dt);
+
+		
+	_get_Roi(limaRoi);
+	x0 = limaRoi.getTopLeft().x - 1;
+	x1 = limaRoi.getBottomRight().x - 1;
+	y0 = limaRoi.getTopLeft().y - 1;
+	y1 = limaRoi.getBottomRight().y - 1;
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO ACTUAL X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+			x0, x1, y0, y1, x1-x0+1, y1-y0+1);
+
+	limaRoi = limaRoiRequested; 
+	x0 = limaRoi.getTopLeft().x - 1;
+	x1 = limaRoi.getBottomRight().x - 1;
+	y0 = limaRoi.getTopLeft().y - 1;
+	y1 = limaRoi.getBottomRight().y - 1;
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO REQUESTED X(%d,%d) Y(%d,%d) size(%d,%d) [%s]\n",  
+			x0, x1, y0, y1, x1-x0+1, y1-y0+1, getTimestamp(Iso, dt));
+
+	limaRoi = limaRoiFixed; 
+	x0 = limaRoi.getTopLeft().x - 1;
+	x1 = limaRoi.getBottomRight().x - 1;
+	y0 = limaRoi.getTopLeft().y - 1;
+	y1 = limaRoi.getBottomRight().y - 1;
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO FIXED X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+			x0, x1, y0, y1, x1-x0+1, y1-y0+1);
+
+	bool bSymX, bSymY;
+	unsigned int xMax, yMax, xSteps, ySteps, xMinSize, yMinSize;
+	getXYdescription(xSteps, ySteps, xMax, yMax, xMinSize, yMinSize); 
+	getRoiSymetrie(bSymX, bSymY );
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "* xSteps[%d] ySteps[%d] xMinSize[%d] yMinSize[%d] xSym[%d] ySym[%d]\n",  
+			xSteps, ySteps, xMinSize, yMinSize, bSymX, bSymY);
+
+
+//------
+
 
 	o_sn = buff;
 }

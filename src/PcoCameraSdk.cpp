@@ -927,6 +927,9 @@ char * Camera::_pco_SetRecordingState(int state, int &error){
 		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 	}
 
+	if(wRecState_new) 
+		m_sync->setExposing(pcoAcqRecordStart);
+
 	PCO_FN2(error, msg,PCO_GetRecordingState, m_handle, &wRecState_actual);
 	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
 

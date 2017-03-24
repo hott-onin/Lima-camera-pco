@@ -89,7 +89,7 @@ namespace lima
 		WORD xlatLimaTrigMode2PcoAcqMode();
 
 		//BufferCtrlObj* _getBufferCtrlObj() {return m_buffer;}
-		void setExposing(pcoAcqStatus exposing) {m_exposing = exposing;}
+		void setExposing(pcoAcqStatus exposing);
 		void setStarted(bool started); 
 		bool getStarted() {return m_started;}
 		pcoAcqStatus getExposing() {return m_exposing;}

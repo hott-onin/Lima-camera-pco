@@ -47,6 +47,8 @@ Intoduction
 - **Interface buses**
 
  - **Cameralink:** used by **PCO.dimax** and **PCO.edge**
+ - **Cameralink HS:** used by **PCO.edge**
+ - **USB3.0:** used by **PCO.edge**
  - **GigE:** used by **PCO.2000** and **PCO.4000**
  
 
@@ -56,7 +58,7 @@ Intoduction
 
 - **OS supported**
 
- - **Win7 Professional** (english) 32 bits SP1.
+ - **Win7 Professional** (english) 64 bits SP1.
 
 
 
@@ -95,49 +97,55 @@ Prerequisites
 
 .. code-block:: sh
 
- Silicon Software Runtime 5.1.4
-     545a30a4aa07260072615257c5c983cd   58881018 DD_DCCLSISORT514WIN32_103.zip
-     ca22c0385fc63b92e259d28b11b65021   58930007 RuntimeSetup_v5.1.4_IA32.exe
+ Silicon Software Runtime 5.4.4
+     f8317c5145bac803f142c51b7c54ba27  RuntimeSetup_with_Applets_v5.4.4_Win64.exe
 
 .. code-block:: sh
 
- pco-sdk 1.15
-     ===> select: silicon softwre section dll meIV
-     89619de780943569dcfc885cb0a720d8   11608288 SW_PCOSDKWIN_115.exe
-     bb030a743efd0954bb60b05dbfe3c45e   11560659 SW_PCOSDKWIN_115.zip
+ pco-sdk 1.20
+     eb73ab0495a66c068c408344e20c8ad9  read_me.txt
+     69a8f5667b71a8cf206d782e20f526ab  SW_PCOSDKWIN_120.exe
 
 .. code-block:: sh
 
- camware 3.08 
-    ===> select: silicon softwre section dll meIV
-    8bd64a957c57287c4c30c0ce7811343e     12037008 SW_CAMWAREWIN32_308.exe
-    ecf7936f451ed3a17cabbff7aa4ec645     11993859 SW_CAMWAREWIN32_308.zip
+ CAMWARE v403_1 
+    a9f8b2e465b7702ff727ba349ef327e8     SW_CAMWAREWIN64_403_1.exe
  
 .. code-block:: sh
 
- VC++ express edition 2008 with SP1 
-     62f764849e8fcdf8bfbc342685641304     2728440 vcsetup.exe
- 
-.. code-block:: sh
+ VC++ compiler 
+    Microsoft Visual Studio 2008
+    Version 9.0.30729.1 SP
+    Microsoft .NET Framework
+    Version 3.5 SP1
 
- GSL GNU Scientific Lib (required for Process Lib) 
-     d0c114f842933622a156bfa757ee14c2     6476814 gsl-1.8.exe
- 
-.. code-block:: sh
-
- Python / SIP / modules
-     80b1ef074a3b86f34a2e6b454a05c8eb    15227904 python-2.6.6.msi
-     267627e760277e5f6a74a83772a4f1d0     2342045 numpy-1.5.1.win32-py2.6-nosse.exe
-     97a9c9b88fac273e1dfb4de9d0dce4ea    27712518 PyQt-Py2.6-x86-gpl-4.8.6-1.exe
-     dc5200e3199947a9574014537905a4b7     3670016 PyTango-7.1.1.win32-py2.6.msi
- 
+    Installed Edition: Professional
+    Microsoft Visual C++ 2008   91605-270-4441125-60040
+    Microsoft Visual C++ 2008
 
 .. code-block:: sh
 
- GIT
-     a8ab298fb7a728d41f7d787aef7dc8d1    14026948 Git-1.7.7.1-preview20111027.exe
- 
+ Python 
+     8d10ff41492919ae93a989aba4963d14  numpy-MKL-1.8.1.win-amd64-py2.7.exe
+     5a38820953d38db6210a90e58f85548d  PyTango-8.0.4.win-amd64-py2.7.exe
+     b73f8753c76924bc7b75afaa6d304645  python-2.7.6.amd64.msi
 
+.. code-block:: sh
+
+ pco edge CLHS / for firmware upgrade to 1.19
+     9790828ce5265bab8b89585d8b8e83a9  pco.programmer_edgeHS.exe
+     b9266e03a04ac9a9ff835311f0e27d94  pco_clhs_info.exe
+     7e2f767684fb4ffaf5a5fac1af0c7679  sc2_clhs.dll
+     2ed778785489846fd141f968dca3735b  README.txt
+     6bdb7a27b0d7738762c878a33983dada  /FW_pco.edge_CLHS_020_V01_19.ehs
+
+.. code-block:: sh
+
+ UTILS
+    38ba677d295b4b6c17368bb86b661103  FileZilla_3.22.1_win64-setup_bundled.exe
+    0377ccd0a3283617d161f24d080fb105  Git-1.9.0-preview20140217.exe
+    3cbd2488210b6e7b3e7fa1baf05022d4  MobaXterm_Setup_7.1.msi
+ 
 - **Enviroment variables** 
 
  - **system variables** 

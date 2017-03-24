@@ -983,7 +983,9 @@ void Camera::startAcq()
 	m_pcoData->traceAcq.msStartAcqStart = msElapsedTime(tStart);
 
 	m_sync->setStarted(true);
-	m_sync->setExposing(pcoAcqRecordStart);
+	//m_sync->setExposing(pcoAcqRecordStart);
+	m_sync->setExposing(pcoAcqStart);
+	
 
 	if(!_isRunAfterAssign())
 	{
@@ -992,7 +994,25 @@ void Camera::startAcq()
 	}
 
 	if(_isCameraType(Edge)){
+
 		_beginthread( _pco_acq_thread_edge, 0, (void*) this);
+
+#if 0
+		AutoMutex lock(m_cond.mutex());
+
+		bool resWait;
+		int retry = 3;
+		int val, val0; val0 = pcoAcqRecordStart;
+
+		while( ((val =  m_sync->getExposing()) != val0) && retry--)
+		{
+			DEB_ALWAYS() << "+++ getExposing / pcoAcqRecordStart - WAIT - " << DEB_VAR3(val, val0, retry);
+			resWait = m_cond.wait(2.);
+		}
+		DEB_ALWAYS() << "+++ getExposing / pcoAcqRecordStart - EXIT - " << DEB_VAR3(val, val0, retry);
+		lock.unlock();
+#endif
+
 		m_pcoData->traceAcq.msStartAcqEnd = msElapsedTime(tStart);
 		return;
 	}
@@ -2140,7 +2160,21 @@ bool Camera::_isValid_pixelRate(DWORD dwPixelRate){
 }
 
 
+//=================================================================================================
+//=================================================================================================
 
+void Camera::getRoiSymetrie(bool &bSymX, bool &bSymY ){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	bSymY = bSymX = false;
+	if(_isCameraType(Dimax)){ bSymX = bSymY = true; }
+	if(_isCameraType(Edge)) { bSymY = true; }
+
+	int adc_working, adc_max;
+	_pco_GetADCOperation(adc_working, adc_max);
+	if(adc_working != 1) { bSymX = true; }
+}
 //=================================================================================================
 //=================================================================================================
 
@@ -2351,6 +2385,24 @@ void Camera::_set_Roi(const Roi &new_roi, const Roi &requested_roi, int &error){
 	return ;
 }
 
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_set_logLastFixedRoi(const Roi &requested_roi, const Roi &fixed_roi){
+		m_Roi_lastFixed_hw = fixed_roi;
+		m_Roi_lastFixed_requested = requested_roi;
+		m_Roi_lastFixed_time = time(NULL);
+
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_get_logLastFixedRoi(Roi &requested_roi, Roi &fixed_roi, time_t & dt){
+		fixed_roi = m_Roi_lastFixed_hw;
+		requested_roi = m_Roi_lastFixed_requested;
+		dt = m_Roi_lastFixed_time;
+
+}
 //=================================================================================================
 //=================================================================================================
 

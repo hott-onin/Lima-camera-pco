@@ -480,6 +480,12 @@ namespace lima
 
         struct stcBinning m_bin;
 		Roi m_RoiLima, m_RoiLimaRequested ;
+
+		Roi m_Roi_lastFixed_hw;
+		Roi m_Roi_lastFixed_requested;
+		time_t m_Roi_lastFixed_time;
+
+
 		
 		//struct stcSize m_size;
 
@@ -513,6 +519,9 @@ namespace lima
 		int _fixValidRoi(unsigned int &x0, unsigned int &x1, unsigned int xMax, unsigned int xSteps, unsigned int xMinSize, bool bSymX);
 
 
+		void Camera::getRoiSymetrie(bool &bSymX, bool &bSymY );
+		void _get_logLastFixedRoi(Roi &requested_roi, Roi &fixed_roi, time_t & dt);
+		void _set_logLastFixedRoi(const Roi &requested_roi, const Roi &fixed_roi);
 		void _set_Roi(const Roi &roi, const Roi &roiRequested, int &error);
 		void _get_Roi(Roi &roi);
 		void _get_Roi(unsigned int &x0, unsigned int &x1, unsigned int &y0, unsigned int &y1);
@@ -552,9 +561,9 @@ namespace lima
 		bool _isRunAfterAssign();
 
 
-	  public:
-		//----------- attributes
-
+	 
+	public:		//----------- attributes
+	
 		void getAcqTimeoutRetry(int &val);
 		void setAcqTimeoutRetry(int val);
 
@@ -591,9 +600,11 @@ namespace lima
 		void getRollingShutter(int & val);
 		void setRollingShutter(int val);
 
+		void getLastFixedRoi(std::string &o_sn);
 
-	  public:
-		//----------- pco sdk functions
+
+	
+	public:		//----------- pco sdk functions
 		WORD _pco_GetActiveRamSegment(); // {return m_pcoData->wActiveRamSegment;}
 
 		char *_pco_SetRecordingState(int state, int &error);

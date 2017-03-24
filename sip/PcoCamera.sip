@@ -51,8 +51,7 @@ namespace Pco
 		void getRollingShutter(int & val /Out/);
 		void setRollingShutter(int val);
 
-
-		
+		void getLastFixedRoi(std::string &o_sn /Out/) ;
 
   };
 };

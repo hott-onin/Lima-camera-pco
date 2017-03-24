@@ -87,6 +87,8 @@ void RoiCtrlObj::setRoi(const Roi& set_roi)
 
 	if(iRoi_error){
 		DEB_ALWAYS() << "m_cam->_set_Roi FIXED: " << DEB_VAR2(set_roi, hw_roi);
+
+		m_cam->_set_logLastFixedRoi(set_roi, hw_roi);
 	}
 
 	m_cam->_set_Roi(hw_roi, set_roi, error);
