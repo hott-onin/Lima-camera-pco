@@ -100,10 +100,28 @@
 #define PCO_CL_BAUDRATE_115K2	115200
 
 #define PCO_BUFFER_NREVENTS 4
-struct stcXlatCode2Str {
+struct stcXlatCode2Str 
+{
 		int code;
 		char *str;
 };
+
+struct stcSegmentInfo
+{
+	int	 iSegId;
+	int	 iErr;
+	WORD wXRes;
+	WORD wYRes;
+	WORD wBinHorz;
+	WORD wBinVert;
+	WORD wRoiX0;
+	WORD wRoiY0;
+	WORD wRoiX1;
+	WORD wRoiY1;
+	DWORD dwValidImageCnt;
+	DWORD dwMaxImageCnt;
+};
+
 
 #define LEN_TRACEACQ_MSG 512
 #define LEN_ERROR_MSG			(512-1)
@@ -123,6 +141,12 @@ double usElapsedTimeTicsPerSec() ;
 
 #define DIM_ACTION_TIMESTAMP 10
 enum actionTimestamp {tsConstructor = 0, tsStartAcq, tsStopAcq, tsPrepareAcq, tsReset};
+
+enum capsDesc 
+{
+	capsCDI = 1,
+	capsDoubleImage,
+};
 
 enum timestampFmt {Iso=1, IsoHMS, FnFull, FnDate};
 char *getTimestamp(timestampFmt fmtIdx, time_t xtime = 0) ;
@@ -228,6 +252,8 @@ struct stcPcoData {
     WORD    wPixPerPage;
     DWORD   dwMaxFramesInSegment[4];
     DWORD   dwSegmentSize[4];
+
+	struct stcSegmentInfo m_stcSegmentInfo[PCO_MAXSEGMENTS];
 
     DWORD   dwValidImageCnt[4];
     DWORD   dwMaxImageCnt[4];
@@ -346,6 +372,10 @@ enum enumPcoFamily {
 	Pco4k				= 1<<5,
 	EdgeUSB				= 1<<6,
 	EdgeHS				= 1<<7,
+	DimaxHS				= 1<<8,
+	DimaxHS1			= 1<<9,
+	DimaxHS2			= 1<<10,
+	DimaxHS4			= 1<<11,
 };
 
 enum enumInterfaceTypes {
@@ -560,6 +590,7 @@ namespace lima
 		void _setCameraState(long long flag, bool val);
 		bool _isRunAfterAssign();
 
+		bool _isCapsDesc(int caps);
 
 	 
 	public:		//----------- attributes
@@ -587,10 +618,10 @@ namespace lima
 		
 
 
-		void getLastImgRecorded(int & img);
-		void getLastImgAcquired(int & img);
+		void getLastImgRecorded(unsigned long & img);
+		void getLastImgAcquired(unsigned long & img);
 
-		void getMaxNbImages(int & nr);
+		void getMaxNbImages(unsigned long & nr);
 		void  getPcoLogsEnabled(int & enabled);
 
 
@@ -639,8 +670,13 @@ namespace lima
 		void _pco_GetGeneralCapsDESC(DWORD &capsDesc1, int &err);
 		void _pco_GetTransferParameter(void* buffer, int ilen, int &err);
 
+		void _pco_GetSegmentInfo(int &err);
+		void _pco_GetNumberOfImagesInSegment(WORD wSegment, DWORD& dwValidImageCnt, DWORD& dwMaxImageCnt, int &err);
+		
+		void _pco_GetCDIMode(WORD &cdi, int &err);
+		void _pco_SetCDIMode(WORD cdi, int &err);
 
-
+		void _pco_FillStructures(int &err);
 
     };
   }

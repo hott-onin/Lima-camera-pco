@@ -40,9 +40,9 @@ namespace Pco
 		void getFrameRate(double & frameRate /Out/);
 		
 
-		void getLastImgRecorded(int & img /Out/);
-		void getLastImgAcquired(int & img /Out/);
-		void getMaxNbImages(int & nr /Out/);
+		void getLastImgRecorded(unsigne long & img /Out/);
+		void getLastImgAcquired(unsigned long & img /Out/);
+		void getMaxNbImages(unsigned long & nr /Out/);
 		void getPcoLogsEnabled(int & enabled /Out/);
 
 		void getPixelRate(int & val /Out/);

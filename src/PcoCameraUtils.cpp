@@ -2259,7 +2259,7 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... maxWidth=[%d] maxHeight=[%d] \n",  maxWidth,  maxHeight);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    Xstep=[%d] Ystep=[%d] (PCO ROI steps)\n",  Xstep,  Ystep);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... xMinSize=[%d] uMinSize=[%d] \n",  xMinSize,  yMinSize);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... xMinSize=[%d] yMinSize=[%d] \n",  xMinSize,  yMinSize);
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... wXResActual=[%d] wYResActual=[%d] \n",  m_pcoData->wXResActual,  m_pcoData->wYResActual);
 
@@ -2333,12 +2333,17 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
     //------ DIMAX
 	if( (flag & CAMINFO_DIMAX) && (_isCameraType(Dimax | Pco2k | Pco4k)) ){
 		unsigned int bytesPerPix; getBytesPerPixel(bytesPerPix);
+		WORD bitsPerPix; getBitsPerPixel(bitsPerPix);
 		int segmentPco = m_pcoData->wActiveRamSegment;
 		int segmentArr = segmentPco -1;
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "*** DIMAX - 2k - 4k info \n");
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* pagesInRam[%ld] pixPerPage[%d] bytesPerPix[%d] ramGB[%.3g]\n",  
-			m_pcoData->dwRamSize, m_pcoData->wPixPerPage, bytesPerPix,
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* pagesInRam[%ld] pixPerPage[%d] bitsPerPix[%d] ramGB[%.3g] bytesPerPix[%d] imgGB[%.3g]\n",  
+			m_pcoData->dwRamSize, 
+			m_pcoData->wPixPerPage, 
+			bitsPerPix,
+			(1.0e-9 * m_pcoData->dwRamSize) * m_pcoData->wPixPerPage *  bitsPerPix / 8.0,
+			bytesPerPix,
 			(1.0e-9 * m_pcoData->dwRamSize) * m_pcoData->wPixPerPage *  bytesPerPix);
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* PcoActiveSegment=[%d]\n", segmentArr+1);
@@ -2346,6 +2351,24 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwSegmentSize[%d]=[%d pages]\n", segmentArr, m_pcoData->dwSegmentSize[segmentArr]);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwValidImageCnt[%d]=[%ld]\n", segmentArr, m_pcoData->dwValidImageCnt[segmentArr]);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwMaxImageCnt[%d]=[%ld]\n", segmentArr, m_pcoData->dwMaxImageCnt[segmentArr]);
+
+
+		int err;
+		_pco_GetSegmentInfo(err);
+		
+		struct stcSegmentInfo *_stc;
+		for(int iseg = 0; iseg <  PCO_MAXSEGMENTS; iseg++)
+		{
+			_stc = &m_pcoData->m_stcSegmentInfo[iseg];
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* segmentInformation seg[%d][%d] err[%d]\n", iseg + 1, _stc->iSegId, _stc->iErr);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*    bin[%d,%d] res[%d,%d] roiX[%d,%d] roiY[%d,%d]\n",
+				_stc->wBinHorz, _stc->wBinVert,
+				_stc->wXRes, _stc->wYRes,
+				_stc->wRoiX0, _stc->wRoiX1, 
+				_stc->wRoiY0, _stc->wRoiY1);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*    validImgCount[%ld] maxImgCount[%ld]\n",
+				_stc->dwValidImageCnt,_stc->dwMaxImageCnt);
+		}
 
 		_pco_GetStorageMode_GetRecorderSubmode();
 				
@@ -2760,20 +2783,20 @@ void Camera::getFrameRate(double &framerate)
 
 //====================================================================
 //====================================================================
-void Camera::getLastImgRecorded(int & img)
+void Camera::getLastImgRecorded(unsigned long & img)
 {
 
 	img =  m_pcoData->traceAcq.nrImgRecorded;
 }
 
-void Camera::getLastImgAcquired(int & img)
+void Camera::getLastImgAcquired(unsigned long & img)
 {
 
 	img =  m_pcoData->traceAcq.nrImgAcquired;
 }
 //====================================================================
 //====================================================================
-void Camera::getMaxNbImages(int & nr)
+void Camera::getMaxNbImages(unsigned long & nr)
 {
 	nr = (!_isCameraType(Dimax | Pco2k | Pco4k )) ?  -1 : pcoGetFramesMax(m_pcoData->wActiveRamSegment);
 }

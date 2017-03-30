@@ -201,7 +201,44 @@ char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 	if((ptr = xlatCode2Str(code, stc)) != NULL) {
 		err = 0;
 		return ptr;
-	} else {
+	} 
+
+	if((stc == modelSubType) && _isCameraType(Dimax))
+	{
+		switch(code)
+		{
+		  case   0:  ptr = "STD";      break;
+		  case 100:  ptr = "OEM Variant 100";         break;
+		  case 200:  ptr = "OEM Variant 200";         break;
+		  default:
+			switch(code / 0x100)
+			{
+			  case 0x01:  ptr = "S1";       break;
+			  case 0x02:  ptr = "S2";       break;
+			  case 0x04:  ptr = "S4";       break;
+	 
+			  case 0x80:  ptr = "HD";       break;
+			  case 0xC0:  ptr = "HD+";      break;
+	 
+			  case 0x20:  ptr = "HS1";      break;
+			  case 0x21:  ptr = "HS2";      break;
+			  case 0x23:  ptr = "HS4";      break;
+			  
+			  default: ptr = NULL;
+			} // switch(camtype.wCamSubType / 0x100) ...
+		} // switch(camtype.wCamSubType) ...
+
+		if(ptr)
+		{
+			sprintf_s(buff, BUFF_XLAT_SIZE, "subType DIMAX %s code [0x%04x]", ptr, code);
+			err = 0;
+			return buff;
+	
+		}
+	}
+
+	
+	{
 		sprintf_s(buff, BUFF_XLAT_SIZE, "UNKNOWN %s code [0x%04x]", errTable, code);
 		err = 1;
 		return buff;
@@ -2552,8 +2589,23 @@ bool Camera::_isCameraType(int tp){
 
 	switch(_getCameraType()) {
 		case CAMERATYPE_PCO_DIMAX_STD: 
-			return !!(tp & Dimax) ;
-		
+		case CAMERATYPE_PCO_DIMAX_TV:
+		case CAMERATYPE_PCO_DIMAX_CS:
+			if(tp & Dimax) return TRUE;
+			switch(_getCameraSubType() >> 8)
+			{
+				case 0x20:
+					if((tp & DimaxHS1)) return TRUE;
+				case 0x21:
+					if((tp & DimaxHS2)) return TRUE;
+				case 0x23:
+					if((tp & DimaxHS4)) return TRUE;
+					if((tp & DimaxHS)) return TRUE;
+				default:
+					break;
+			}
+			return FALSE;
+
 		case CAMERATYPE_PCO_EDGE_GL:
 			return !!(tp & (EdgeGL | Edge));
 
@@ -2574,10 +2626,11 @@ bool Camera::_isCameraType(int tp){
 			return !!(tp & Pco4k) ;
 
 		default:
-			return FALSE;
-
+			break;
 	}
 		
+
+	return FALSE;
 }
 
 
@@ -2813,4 +2866,26 @@ void Camera::_setActionTimestamp(int action)
 	{
 		m_pcoData->action_timestamp.ts[action] = time(NULL);
 	}
+}
+
+
+
+//=================================================================================================
+//=================================================================================================
+
+bool Camera::_isCapsDesc(int caps)
+{
+	switch(caps)
+	{
+		case capsCDI:
+			return !!(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_CDI_MODE);
+
+		case capsDoubleImage:
+			return !!(m_pcoData->stcPcoDescription.wDoubleImageDESC);
+	
+
+		default:
+			return FALSE;
+	}
+
 }

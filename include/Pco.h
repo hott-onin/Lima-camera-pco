@@ -118,6 +118,8 @@ typedef int tPvErr;
 		} \
 }
 
+#define PCO_CHECK_ERROR(er, fn)   (PcoCheckError(__LINE__, __FILE__, ( er ) , ( fn ) ))
+
 #define DEF_FNID 	static char *fnId =__FUNCTION__;
 
 #define PRINTLINES { for(int i = 0; i<50;i++) printf("=====  %s [%d]/[%d]\n", __FILE__, __LINE__,i); }
