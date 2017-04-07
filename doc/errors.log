@@ -1,4 +1,72 @@
 =================================================
+=================================================
+
+c:\blissadm\pco\install_1.401>python LimaCCDs.py edge -ORBendPoint giop:tcp:160.103.125.176:
+Failed to import EventChannelFactory notifd/factory/WPCOID191.esrf.fr from the Tango database
+============= Properties =============
+         keys: {'cam_ip_addresse': 'dummy'}
+       params: []
+     paramsIn:
+debug_control: [0] [0x0]
+ debug_module: [0] [0x0]
+ debug_format: [0x31] [0x31]
+   debug_type: [0] [0x0]
+======================================
+[2017/04/04 12:34:15.732220] lima::Pco::Camera::Camera (..\..\..\..\src\PcoCamera.cpp:255): m_pcoData->version=
+$Id: comp[2015/10/21 14:37:49] file[2015/10/21 14:02:09] [..\..\..\..\src\PcoCamera.cpp] $
+$Id: comp[2015/10/21 14:37:45] file[2015/10/20 19:16:19] [..\..\..\..\src\PcoSyncCtrlObj.cpp] $
+$Id: comp[2015/10/21 14:37:47] file[2015/10/20 19:16:19] [..\..\..\..\src\PcoInterface.cpp] $
+$Id: comp[2015/10/21 14:37:50] file[2015/10/20 19:16:19] [..\..\..\..\src\PcoBufferCtrlObj.cpp] $
+$Id: comp[2015/10/21 14:37:48] file[2015/10/20 18:02:26] [..\..\..\..\src\PcoDetInfoCtrlObj.cpp] $
+$Id: comp[2015/10/21 14:37:48] file[2015/10/21 09:50:51] [..\..\..\..\src\PcoCameraUtils.cpp] $
+$Id: comp[2015/10/21 14:37:46] file[2015/10/20 18:02:26] [..\..\..\..\src\PcoRoiCtrlObj.cpp] $
+$Id:       PCO rev[2015-10-21 14:29:54 +0200] head[99e7b41][99e7b410d97baa80576b0eab9932cf1172b364f7] ref[ (HEAD, origin/develop_02, develop_02)] at [2015/
+10/21 14:32:27] $
+$Id:   PROCLIB rev[2015-06-09 14:50:05 +0200] head[7d49ed4][7d49ed48b9fe864251f4e6a9477699011297e39f] ref[ (HEAD, origin/master, origin/HEAD, master)] at [
+2015/10/21 14:32:27] $
+$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, origin/master, origin/HEAD, master)] at [
+2015/10/21 14:32:27] $
+$Id:      LIMA rev[2015-09-25 13:19:22 +0200] head[753502f][753502fa269791d412013ded76ebb81bfdee4bd0] ref[ (HEAD, origin/core-1.4, core-1.4)] at [2015/10/2
+1 14:32:27] $
+$Id:     TANGO rev[2015-09-25 13:19:22 +0200] head[753502f][753502fa269791d412013ded76ebb81bfdee4bd0] ref[ (HEAD, origin/core-1.4, core-1.4)] at [2015/10/2
+1 14:32:27] $
+
+       timestamp: 2017/04/04 12:34:15
+   computer name: WPCOID191
+       user name: opd05
+VS configuration: $Id: [Oct 21 2015 14:37:48] VS platform[Win32]  configuration[Release_Win7_Sync]   $
+
+[2017/04/04 12:34:15.919420] lima::Pco::Camera::_init (..\..\..\..\src\PcoCamera.cpp:270): lima::Pco::Camera::_init [entry]
+[2017/04/04 12:34:24.624220] lima::Pco::Camera::_pcoGet_Camera_Type (..\..\..\..\src\PcoCamera.cpp:1793): m_pcoData->model=PCO EDGE GL, m_pcoData->iface=CA
+
+
+
+[2017/04/04 12:35:22.547316] lima::Pco::Camera::PcoCheckError (..\..\..\..\src\PcoCamera.cpp:1296): lima::Pco::Camera::PcoCheckError: msg=Firmware error 80
+03101e at device 'SC2 Main uP': Value is out of range. [..\..\..\..\src\PcoCamera.cpp][2226]
+=== PCO_GetCameraSetup PcoError[x8003101e][Firmware error 8003101e at device 'SC2 Main uP': Value is out of range. [..\..\..\..\src\PcoCamera.cpp][2226]] [
+..\..\..\..\src\PcoCamera.cpp][2228]
+[2017/04/04 12:36:07.335777] lima::Pco::Camera::PcoCheckError (..\..\..\..\src\PcoCamera.cpp:1296): lima::Pco::Camera::PcoCheckError: msg=Firmware error 80
+03101e at device 'SC2 Main uP': Value is out of range. [..\..\..\..\src\PcoCamera.cpp][2226]
+
+=== PCO_GetCameraSetup PcoError[x8003101e][Firmware error 8003101e at device 'SC2 Main uP': Value is out of range. [..\..\..\..\src\PcoCamera.cpp][2226]] [
+..\..\..\..\src\PcoCamera.cpp][2228]
+
+=== _pco_shutter_thread_edge 2017/04/04 12:36:07> ENTRY
+[2017/04/04 12:36:07.382578] lima::Pco::Camera::_pco_set_shutter_rolling_edge (..\..\..\..\src\PcoCamera.cpp:2136): lima::Pco::Camera::_pco_set_shutter_rol
+ling_edge [entry - edge]
+[2017/04/04 12:36:07.398178] lima::Pco::Camera::PcoCheckError (..\..\..\..\src\PcoCamera.cpp:1296): lima::Pco::Camera::PcoCheckError: msg=Firmware error 80
+03101e at device 'SC2 Main uP': Value is out of range. [..\..\..\..\src\PcoCamera.cpp][2159]
+
+=== PCO_GetCameraSetup PcoError[x8003101e][Firmware error 8003101e at device 'SC2 Main uP': Value is out of range. [..\..\..\..\src\PcoCamera.cpp][2159]] [
+..\..\..\..\src\PcoCamera.cpp][2161]
+
+=== _pco_shutter_thread_edge> EXIT
+[2017/04/04 12:36:07.429379] lima::Pco::SyncCtrlObj::setStarted (..\..\..\..\src\PcoSyncCtrlObj.cpp:458): lima::Pco::SyncCtrlObj::setStarted[exit]: m_start
+ed=0, started=0
+
+
+=================================================
+=================================================
 --- 2017/03/14 17:09:05 lima::Pco::Camera::startAcq [ENTRY]
 
 lima::Pco::Camera::startAcq (..\..\..\..\src\PcoCamera.cpp:838):

@@ -53,6 +53,9 @@ namespace Pco
 
 		void getLastFixedRoi(std::string &o_sn /Out/) ;
 
+		void getCDIMode(int & val /Out/);
+		void setCDIMode(int val);
+
   };
 };
 

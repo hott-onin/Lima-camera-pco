@@ -146,6 +146,8 @@ enum capsDesc
 {
 	capsCDI = 1,
 	capsDoubleImage,
+	capsRollingShutter, capsGlobalShutter, capsGlobalResetShutter,
+
 };
 
 enum timestampFmt {Iso=1, IsoHMS, FnFull, FnDate};
@@ -348,6 +350,9 @@ struct stcPcoData {
 
 	int acqTimeoutRetry; // max nr of timeout during acq (wait for mult obj)
 
+	bool params_xMinSize;
+	bool params_ignoreMaxImages;
+
 	long reserved[32];
 
 };
@@ -526,6 +531,7 @@ namespace lima
 
 		long long m_state;
 
+		WORD m_cdi_mode; 
 		//----------------------------------
 
         int PcoCheckError(int line, char *file, int err, char *fn = "***");
@@ -633,6 +639,8 @@ namespace lima
 
 		void getLastFixedRoi(std::string &o_sn);
 
+		void getCDIMode(int & val);
+		void setCDIMode(int val);
 
 	
 	public:		//----------- pco sdk functions
@@ -673,10 +681,14 @@ namespace lima
 		void _pco_GetSegmentInfo(int &err);
 		void _pco_GetNumberOfImagesInSegment(WORD wSegment, DWORD& dwValidImageCnt, DWORD& dwMaxImageCnt, int &err);
 		
-		void _pco_GetCDIMode(WORD &cdi, int &err);
-		void _pco_SetCDIMode(WORD cdi, int &err);
+		void _pco_GetCDIMode(WORD &wCDIMode, int &err);
+		void _pco_SetCDIMode(WORD wCDIMode, int &err);
+
+		void _pco_GetDoubleImageMode(WORD &wDoubleImage, int &err);
+		void _pco_SetDoubleImageMode(WORD wDoubleImage, int &err);
 
 		void _pco_FillStructures(int &err);
+		void _pco_CloseCamera(int &err);
 
     };
   }

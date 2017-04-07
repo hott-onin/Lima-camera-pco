@@ -1349,7 +1349,7 @@ void Camera::_pco_GetNumberOfImagesInSegment(WORD wSegment, DWORD& dwValidImageC
 // CDI mode is available if in the camera descriptor the flag
 
 
-void Camera::_pco_GetCDIMode(WORD &cdi, int &err)
+void Camera::_pco_GetCDIMode(WORD &wCDIMode, int &err)
 {
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
@@ -1359,13 +1359,13 @@ void Camera::_pco_GetCDIMode(WORD &cdi, int &err)
 
 	if(!_isCapsDesc(capsCDI))
 	{
-		cdi = 0;
+		wCDIMode = 0;
 		err = 1;
 		return;
 	}
 	
 	err = 0;
-	pcoErr = PCO_GetCDIMode(m_handle, &cdi);
+	pcoErr = PCO_GetCDIMode(m_handle, &wCDIMode);
 	
 	err |= pcoErr;
 
@@ -1374,7 +1374,7 @@ void Camera::_pco_GetCDIMode(WORD &cdi, int &err)
 
 //=================================================================================================
 //=================================================================================================
-void Camera::_pco_SetCDIMode(WORD cdi, int &err)
+void Camera::_pco_SetCDIMode(WORD wCDIMode, int &err)
 {
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
@@ -1388,13 +1388,70 @@ void Camera::_pco_SetCDIMode(WORD cdi, int &err)
 		return;
 	}
 	
+	if(wCDIMode) wCDIMode = 1;
+
 	err = 0;
-	pcoErr = PCO_SetCDIMode(m_handle, cdi);
+	pcoErr = PCO_SetCDIMode(m_handle, wCDIMode);
 	
 	err |= pcoErr;
 
 	return;
 }
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetDoubleImageMode(WORD &wDoubleImage, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	//char *pcoFn;
+	int pcoErr;
+	err = 0;
+
+	if(!_isCapsDesc(capsDoubleImage))
+	{
+		wDoubleImage = 0;
+		err = 1;
+		return;
+	}
+	
+	err = 0;
+	pcoErr = PCO_GetDoubleImageMode(m_handle, &wDoubleImage);
+	
+	err |= pcoErr;
+
+	return;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_SetDoubleImageMode(WORD wDoubleImage, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	//char *pcoFn;
+	int pcoErr;
+	err = 0;
+
+	if(!_isCapsDesc(capsDoubleImage))
+	{
+		err = 1;
+		return;
+	}
+	
+	if(wDoubleImage) wDoubleImage = 1;
+
+	err = 0;
+	pcoErr = PCO_SetDoubleImageMode(m_handle, wDoubleImage);
+	err |= pcoErr;
+
+	return;
+}
+
+
+
+
+
 //=================================================================================================
 //=================================================================================================
 
@@ -1465,3 +1522,22 @@ void Camera::_pco_FillStructures(int &err)
 
 }
 
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_CloseCamera(int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	//char *pcoFn;
+	int pcoErr;
+	
+	//PCO_PRINT_ERR(error, msg); 
+
+	err = 0;
+	pcoErr = PCO_CloseCamera(m_handle);
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_CloseCamera");
+
+	m_handle = NULL;
+
+	return;
+}

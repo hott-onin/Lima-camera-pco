@@ -655,9 +655,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 				//m_sync->_getBufferCtrlObj()->_pcoAllocBuffersFree();
 				m_buffer->_pcoAllocBuffersFree();
-				PCO_FN1(error, msg,PCO_CloseCamera, m_handle);
-				PCO_PRINT_ERR(error, msg); 
-				m_handle = NULL;
+				_pco_CloseCamera(error);
 
 				ptr += sprintf_s(ptr, ptrMax - ptr, "%s> closed cam\n", tok[1]);
 				return output;
@@ -3092,4 +3090,27 @@ void Camera::getLastFixedRoi(std::string &o_sn)
 
 
 	o_sn = buff;
+}
+
+//====================================================================
+//====================================================================
+void Camera::getCDIMode(int &cdi)
+{
+	int error;
+	WORD wCdi;
+
+	_pco_GetCDIMode(wCdi, error);
+
+	cdi = error ? -1 : wCdi;
+}
+
+void Camera::setCDIMode(int cdi)
+{
+	int error;
+	WORD wCdi = (WORD) cdi;
+
+	m_cdi_mode = wCdi;
+
+	_pco_SetCDIMode(wCdi, error);
+
 }
