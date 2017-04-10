@@ -1648,18 +1648,28 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
     char *sErr;
 	DWORD _dwMaxWidth, _dwMaxHeight;
 	WORD _wArmWidth, _wArmHeight;
-    WORD _wBitPerPixel;
+    WORD _wBitPerPixel, _wPixPerPage;
     unsigned int _bytesPerPixel;
 
 	if(!m_allocBuff.pcoAllocBufferDone){
 		m_cam->getBytesPerPixel(_bytesPerPixel);
 		m_cam->getBitsPerPixel(_wBitPerPixel);
+		_wPixPerPage = m_cam->m_pcoData->wPixPerPage;
 
 		m_cam->getMaxWidthHeight(_dwMaxWidth, _dwMaxHeight); // max
 		m_cam->getArmWidthHeight(_wArmWidth, _wArmHeight);  // actual
 
 		DWORD _dwAllocatedBufferSizeMax = _dwMaxWidth * _dwMaxHeight * (DWORD) _bytesPerPixel ;
 		DWORD _dwArmSize = (DWORD) _wArmWidth * (DWORD) _wArmHeight * (DWORD) _bytesPerPixel;
+
+		// CDI and Double Image requires a double size + 1 page for metadata
+		WORD wCdi, wDImg;
+		int err;
+		m_cam->_pco_GetCDIMode(wCdi, err);
+		m_cam->_pco_GetDoubleImageMode(wDImg, err);
+
+		if(wCdi || wDImg) _dwArmSize = _dwArmSize*2 + (DWORD)_wPixPerPage * (DWORD)_bytesPerPixel;
+
 		//_dwAllocatedBufferSizeMax -= _dwAllocatedBufferSizeMax % _dwArmSize;
 
 		DWORD _dwAllocatedBufferSize = max ? _dwAllocatedBufferSizeMax : _dwArmSize ; 

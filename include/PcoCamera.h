@@ -464,7 +464,7 @@ namespace lima
 
         char *talk(char *cmd);
 
-        unsigned long pcoGetFramesMax(int segmentPco);
+        unsigned long pcoGetFramesMaxInSegment(int segmentPco);
 
 		unsigned long	pcoGetFramesPerBuffer() { return m_pcoData->frames_per_buffer; }
 		double pcoGetCocRunTime() { return m_pcoData->cocRunTime; }

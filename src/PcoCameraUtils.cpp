@@ -382,7 +382,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				return output;
 			}
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", pcoGetFramesMax(m_pcoData->wActiveRamSegment));
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment));
 			return output;
 		}
 
@@ -649,7 +649,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			//--- test of close
 			if((tokNr >= 1) &&  (_stricmp(tok[1], "close")==0)){
 				int error;
-				char *msg;
+				//char *msg;
 
 				m_cam_connected = false;
 
@@ -2796,7 +2796,7 @@ void Camera::getLastImgAcquired(unsigned long & img)
 //====================================================================
 void Camera::getMaxNbImages(unsigned long & nr)
 {
-	nr = (!_isCameraType(Dimax | Pco2k | Pco4k )) ?  -1 : pcoGetFramesMax(m_pcoData->wActiveRamSegment);
+	nr = (!_isCameraType(Dimax | Pco2k | Pco4k )) ?  -1 : pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment);
 }
 
 void Camera::getPcoLogsEnabled(int & enabled)
