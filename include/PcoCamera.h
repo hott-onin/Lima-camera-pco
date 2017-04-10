@@ -325,7 +325,7 @@ struct stcPcoData {
 	int iAllocatedBufferNumber;
 	int iAllocatedBufferNumberLima;
 	bool bAllocatedBufferDone;
-	bool bRollingShutter;
+	DWORD dwRollingShutter;
 
 	char *version;
 
@@ -542,14 +542,15 @@ namespace lima
 
 		void _presetPixelRate(DWORD &pixRate, int &error);
 
-		bool _get_shutter_rolling_edge(int &error);
-		void _set_shutter_rolling_edge(bool roling, int &error);
+		void _get_shutter_rolling_edge(DWORD &dwRolling, int &error);
+		void _set_shutter_rolling_edge(DWORD dwRolling, int &error);
 
 		void _init();
 		void _init_edge();
 		void _init_dimax();
 
 		bool _isValid_pixelRate(DWORD dwPixelRate);
+		bool _isValid_rollingShutter(DWORD dwRollingShutter);
 		
 		int _checkValidRoi(const Roi &new_roi, Roi &fixed_roi);
 		int _fixValidRoi(unsigned int &x0, unsigned int &x1, unsigned int xMax, unsigned int xSteps, unsigned int xMinSize, bool bSymX);

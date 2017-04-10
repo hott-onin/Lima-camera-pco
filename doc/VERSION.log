@@ -1,4 +1,33 @@
 
+2017/04/10 18:03:21 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-10_180258]
+  to: [/t/rhoms1/install-2017-04-10_180258]
+  to: [/t/rhoms1/install-beta]
+
+- rolling shutter: fix bug / include all modes
+
+2017/04/10 11:16:34 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-10_111611]
+  to: [/t/rhoms1/install-2017-04-10_111611]
+  to: [/t/rhoms1/install-beta]
+
+
+
+2017/04/10 10:13:55 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-04-10 10:13:15 +0200] head[6b2f28f][6b2f28f52677da012dfc5397df6f8666e17f31bf] ref[ (HEAD, master)] at [2017/04/10 10:13:54] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, github/core-1.7, core-1.7)] at [2017/04/10 10:13:54] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 10:13:54] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 10:13:54] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-02-06 09:35:41 +0100] head[4527bfc][4527bfc00e9d88c9e0e8b9528dec7f6b444cf93d] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 10:13:54] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 10:13:54] $"
+
+
+
 2017/04/03 12:36:30 ==========================================
 scp: copied local directory to segfs and /tmp_14_days:
 from: [../../install/] and [./bat/]

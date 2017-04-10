@@ -712,30 +712,30 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		keys_desc[ikey++] = "(RW) for EDGE only / rolling shutter mode";
 		if(_stricmp(cmd, key) == 0){
 			int error;
-			bool rolling, rollingNew;
+			DWORD dwRolling, dwRollingNew;
 
 			if(!_isCameraType(Edge)) {
 				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", -1);
 				return output;
 			}
 			
-			rolling = _get_shutter_rolling_edge(error);
+			_get_shutter_rolling_edge(dwRolling, error);
 			if(tokNr == 0) {
-				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", rolling);
+				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", dwRolling);
 				return output;
 			}
 
-			if((tokNr != 1) || ((strcmp(tok[1],"0") != 0) && (strcmp(tok[1],"1") != 0))){
-				ptr += sprintf_s(ptr, ptrMax - ptr, "syntax ERROR - %s <0 | 1>", cmd);
+			dwRollingNew = atoi(tok[1]);
+
+			if( (tokNr != 1) || !((dwRollingNew == 1) || (dwRollingNew == 2) || (dwRollingNew == 4)) ){
+				ptr += sprintf_s(ptr, ptrMax - ptr, "syntax ERROR - %s <1 (rolling), 2 (global), 4 (global reset)>", cmd);
 				return output;
 			}
 			
-			rollingNew = atoi(tok[1]) != 0;
-
-			if(rollingNew != rolling){
-				_set_shutter_rolling_edge(rollingNew, error);
+			if(dwRollingNew != dwRolling){
+				_set_shutter_rolling_edge(dwRollingNew, error);
 			}
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", rollingNew);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", dwRollingNew);
 			return output;
 		}
 
@@ -2677,34 +2677,40 @@ int _get_time_from_imageTimestamp(void *buf,int shift,SYSTEMTIME *st)
 void Camera::getRollingShutter(int &val)
 {
 	int error;
-	bool rolling;
+	DWORD dwRolling;
 
 	if(!_isCameraType(Edge)) 
 	{
 		val = -1;
 		return;
 	} 
-	rolling = _get_shutter_rolling_edge(error);
-	val = rolling;
+	_get_shutter_rolling_edge(dwRolling, error);
+	val = dwRolling;
 
 }
 
 
 void Camera::setRollingShutter(int val)
 {
-	int error;
-	bool rolling, rollingNew;
+	DEB_MEMBER_FUNCT();
 
-	if(!_isCameraType(Edge)) {
+	int error;
+	DWORD dwRolling, dwRollingNew;
+
+	dwRollingNew = (DWORD) val;
+
+	if(!_isValid_rollingShutter(dwRollingNew))
+	{
+		DEB_ALWAYS() << "ERROR requested Rolling Shutter not allowed " << DEB_VAR1(dwRollingNew);
+		error = -1;
 		return;
 	}
 
-	rolling = _get_shutter_rolling_edge(error);
+	_get_shutter_rolling_edge(dwRolling, error);
 			
-	rollingNew = !!val;
 
-	if(rollingNew != rolling){
-		_set_shutter_rolling_edge(rollingNew, error);
+	if(dwRollingNew != dwRolling){
+		_set_shutter_rolling_edge(dwRollingNew, error);
 	}
 }
 

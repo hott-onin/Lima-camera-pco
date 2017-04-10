@@ -1631,7 +1631,7 @@ void _pco_shutter_thread_edge(void *argin) {
 	sprintf_s(_msg, LEN_MSG, "%s> [EXIT]", fnId);
 	m_cam->_traceMsg(_msg);
 
-	m_sync->setStarted(false); // to test
+	//m_sync->setStarted(false); // to test
 
 	_endthread();
 }
@@ -2123,22 +2123,39 @@ int Camera::dumpRecordedImages(int &nrImages, int &error){
 
 //=================================================================================================
 //=================================================================================================
+bool Camera::_isValid_rollingShutter(DWORD dwRolling)
+{
 
-
-void Camera::_set_shutter_rolling_edge(bool rolling, int &error){
-		
-	DEB_MEMBER_FUNCT();
-
-
-	error = 0;
-
-	if(!_isCameraType(Edge)) {
-		error = -1;
-		return ;
+	switch(dwRolling) 
+	{
+		case PCO_EDGE_SETUP_ROLLING_SHUTTER: return _isCapsDesc(capsRollingShutter);   // 1
+		case PCO_EDGE_SETUP_GLOBAL_SHUTTER: return _isCapsDesc(capsGlobalShutter) ;    // 2
+		case PCO_EDGE_SETUP_GLOBAL_RESET: return _isCapsDesc(capsGlobalResetShutter) ; //4
+		default: return FALSE;
 	}
 
-	m_pcoData->bRollingShutter = rolling;
+}
 
+
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_set_shutter_rolling_edge(DWORD dwRolling, int &error)
+{
+		
+	DEB_MEMBER_FUNCT();
+	error = 0;
+
+	if(!_isValid_rollingShutter(dwRolling)) 
+	{
+		DEB_ALWAYS() << "ERROR requested Rolling Shutter not allowed " << DEB_VAR1(dwRolling);
+		error = -1;
+		return;
+	}
+
+	m_pcoData->dwRollingShutter = dwRolling;
+
+	DEB_ALWAYS() << "requested Rolling Shutter OK " << DEB_VAR1(dwRolling);
 
 	_beginthread( _pco_shutter_thread_edge, 0, (void*) this);
 
@@ -2155,7 +2172,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	char *msg;
 	char msgBuff[MSG_SIZE+1];
 
-	DWORD _dwSetup;
+	DWORD dwRollingShRequested, dwRollingShNow;
 	DWORD m_dwSetup[10];
 	WORD m_wLen = 10;
 	WORD m_wType = 0;
@@ -2189,9 +2206,10 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	// #define PCO_EDGE_SETUP_GLOBAL_SHUTTER  0x00000002         // global shutter
 
 	
-	_dwSetup = m_pcoData->bRollingShutter ? PCO_EDGE_SETUP_ROLLING_SHUTTER : PCO_EDGE_SETUP_GLOBAL_SHUTTER;
+	dwRollingShRequested = m_pcoData->dwRollingShutter ;
 
-    PCO_FN4(error, msg,PCO_GetCameraSetup, m_handle, &m_wType, &m_dwSetup[0], &m_wLen);
+	m_wType = 0;
+	PCO_FN4(error, msg,PCO_GetCameraSetup, m_handle, &m_wType, &m_dwSetup[0], &m_wLen);
     PCO_PRINT_ERR(error, msg); 	
 	if(error)
 	{
@@ -2200,18 +2218,23 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 		return;
 	}
 
-	if(m_dwSetup[0] == _dwSetup) { 
-		DEB_ALWAYS() << fnId << " [exit - no change] ";
+
+	dwRollingShNow = m_dwSetup[0];
+
+	
+	if(m_dwSetup[0] == dwRollingShRequested) { 
+		DEB_ALWAYS() << "exit NO Change in ROLLING SHUTTER " << DEB_VAR2(dwRollingShNow, dwRollingShRequested);
 		m_config = FALSE;
 		return;
 	}
 
 	msg = msgBuff;
 	sprintf_s(msg, MSG_SIZE, "[Change ROLLING SHUTTER from [%d] to [%d]]", 
-		m_dwSetup[0]==PCO_EDGE_SETUP_ROLLING_SHUTTER, _dwSetup==PCO_EDGE_SETUP_ROLLING_SHUTTER);
-	DEB_ALWAYS() << fnId << " " << msg;
+		m_dwSetup[0]==PCO_EDGE_SETUP_ROLLING_SHUTTER, dwRollingShRequested==PCO_EDGE_SETUP_ROLLING_SHUTTER);
 
-	m_dwSetup[0] = _dwSetup;
+	DEB_ALWAYS() << "Change in ROLLING SHUTTER " << DEB_VAR2(dwRollingShNow, dwRollingShRequested);
+
+	m_dwSetup[0] = dwRollingShRequested;
 
     PCO_FN3(error, msg,PCO_SetTimeouts, m_handle, &ts[0], sizeof(ts));
     PCO_PRINT_ERR(error, msg); 	if(error) return;
@@ -2257,8 +2280,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 
 //=================================================================================================
 //=================================================================================================
-bool Camera::_get_shutter_rolling_edge(int &error){
-		
+void Camera::_get_shutter_rolling_edge(DWORD &dwRolling, int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
@@ -2267,11 +2289,13 @@ bool Camera::_get_shutter_rolling_edge(int &error){
 	WORD m_wType;
 	char *msg;
 
-
+	m_wType = 0;
     PCO_FN4(error, msg,PCO_GetCameraSetup, m_handle, &m_wType, &m_dwSetup[0], &m_wLen);
-    PCO_PRINT_ERR(error, msg); 	if(error) return FALSE;
+    PCO_PRINT_ERR(error, msg); 	
+	
+	dwRolling =  error ? 0 :  m_dwSetup[0];
 
-	return (m_dwSetup[0] == PCO_EDGE_SETUP_ROLLING_SHUTTER);
+	return;
 
 }
 //=================================================================================================
@@ -2992,3 +3016,4 @@ bool Camera::_isCapsDesc(int caps)
 	}
 
 }
+
