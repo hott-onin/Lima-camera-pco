@@ -1935,6 +1935,7 @@ char * _getUserName(char *infoBuff, DWORD  bufCharCount  )
 //====================================================================
 char * _getDllPath(const char* pzFileName, char *path, size_t strLen)
 {
+#if 0
 	errno_t err;
 
 	char drive[LEN_DRIVE+1];
@@ -1974,7 +1975,9 @@ char * _getDllPath(const char* pzFileName, char *path, size_t strLen)
 	nr = fread(ptr, 1, strLen-1, stream); 
 	ptr[nr] = 0;
     fclose( stream );
+#endif
 	return path;
+
 }
 
 //=======================================================================================================

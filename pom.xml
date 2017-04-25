@@ -59,14 +59,15 @@
                             <includePath>include</includePath>
                             <includePath>sdkPco/include</includePath>
                         </includePaths>
+
                         <defines>
                             <define>LIBLIMAPCO_EXPORTS</define>
                             <define>WIN32</define>
                             <define>NDEBUG</define>
                             <define>_WINDOWS</define>
                             <define>_USRDLL</define>
-                            <define>_WIN32_WINNT=_WIN32_WINNT_WS03</define> <!-- Windows XP SP2 -->
-                            <!--<define>_WIN32_WINNT=_WIN32_WINNT_WIN7</define> --> <!-- Windows 7 -->
+                            <!-- <define>_WIN32_WINNT=_WIN32_WINNT_WS03</define> --> <!-- Windows XP SP2 -->
+                            <define>_WIN32_WINNT=_WIN32_WINNT_WIN7</define> <!-- Windows 7 -->
                             <define>WITH_MAVEN_COMPILATION</define>
                         </defines>
                     </cpp>
