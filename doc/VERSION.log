@@ -1,4 +1,93 @@
 
+2017/04/26 17:58:14 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-26_175751]
+  to: [/t/rhoms1/install-2017-04-26_175751]
+  to: [/t/rhoms1/install-beta]
+
+- improvement HWIO signals
+- dimax / recording - fixed stop ram recording bug
+
+2017/04/26 11:26:12 ==========================================
+
+- new format for all the HWIO signals 
+
+----------------------------------------------------
+Command: d05/limapco/edge/talk  - "hwioSignalsLin"
+
+
+* number of HWIO signal descriptors[4]
+
+#=============== HWIO Signal Descriptor [0] (max[3])
+* Signal Names:
+   [Exposure Trigger]  selected[0]
+
+* OPTIONS of the HWIO signal for descriptor[0]
+   def[0x1]: [Signal can be enabled/disabled (0x1)] 
+   type[0x1]: [TTL (0x1)] 
+   pol[0xc]: [Rising edge active (0x4)] [Falling edge active (0x8)] 
+   filter[0x0]: 
+
+* STATUS of the HWIO signal for descriptor[0] selected[0] [Exposure Trigger]
+   enabled[0x1]: [Signal is active]
+   type[0x1]: [TTL (0x1)] 
+   pol[0x2]: [High Level active (0x2)] 
+   filter[0x0]: 
+
+#=============== HWIO Signal Descriptor [1] (max[3])
+* Signal Names:
+   [Acquire Enable]  selected[0]
+
+* OPTIONS of the HWIO signal for descriptor[1]
+   def[0x1]: [Signal can be enabled/disabled (0x1)] 
+   type[0x1]: [TTL (0x1)] 
+   pol[0x3]: [Low level active (0x1)] [High Level active (0x2)] 
+   filter[0x0]: 
+
+* STATUS of the HWIO signal for descriptor[1] selected[0] [Acquire Enable]
+   enabled[0x1]: [Signal is active]
+   type[0x1]: [TTL (0x1)] 
+   pol[0x1]: [Low level active (0x1)] 
+   filter[0x0]: 
+
+#=============== HWIO Signal Descriptor [2] (max[3])
+* Signal Names:
+   [Status Busy]  selected[0]
+
+* OPTIONS of the HWIO signal for descriptor[2]
+   def[0x3]: [Signal can be enabled/disabled (0x1)] [Signal is a status output (0x2)] 
+   type[0x1]: [TTL (0x1)] 
+   pol[0x3]: [Low level active (0x1)] [High Level active (0x2)] 
+   filter[0x0]: 
+
+* STATUS of the HWIO signal for descriptor[2] selected[0] [Status Busy]
+   enabled[0x1]: [Signal is active]
+   type[0x1]: [TTL (0x1)] 
+   pol[0x1]: [Low level active (0x1)] 
+   filter[0x0]: 
+
+#=============== HWIO Signal Descriptor [3] (max[3])
+* Signal Names:
+   [Status Expos]  selected[0]
+   [Status Line]  selected[1]
+
+* OPTIONS of the HWIO signal for descriptor[3]
+   def[0x3]: [Signal can be enabled/disabled (0x1)] [Signal is a status output (0x2)] 
+   type[0x1]: [TTL (0x1)] 
+   pol[0x3]: [Low level active (0x1)] [High Level active (0x2)] 
+   filter[0x0]: 
+
+* STATUS of the HWIO signal for descriptor[3] selected[0] [Status Expos]
+   enabled[0x1]: [Signal is active]
+   type[0x1]: [TTL (0x1)] 
+   pol[0x1]: [Low level active (0x1)] 
+   filter[0x0]: 
+
+
+
+
+
 2017/04/11 10:03:49 ==========================================
 scp: copied local directory to segfs and /tmp_14_days:
 from: [../../install/] and [./bat/]

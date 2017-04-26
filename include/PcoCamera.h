@@ -147,6 +147,7 @@ enum capsDesc
 	capsCDI = 1,
 	capsDoubleImage,
 	capsRollingShutter, capsGlobalShutter, capsGlobalResetShutter,
+	capsHWIO,
 
 };
 
@@ -355,7 +356,7 @@ struct stcPcoData {
 
 	long reserved[32];
 
-};
+};   // struct stcPcoData
 
 enum enumChange {
 	Invalid, Valid, Changed,
@@ -556,7 +557,7 @@ namespace lima
 		int _fixValidRoi(unsigned int &x0, unsigned int &x1, unsigned int xMax, unsigned int xSteps, unsigned int xMinSize, bool bSymX);
 
 
-		void Camera::getRoiSymetrie(bool &bSymX, bool &bSymY );
+		void getRoiSymetrie(bool &bSymX, bool &bSymY );
 		void _get_logLastFixedRoi(Roi &requested_roi, Roi &fixed_roi, time_t & dt);
 		void _set_logLastFixedRoi(const Roi &requested_roi, const Roi &fixed_roi);
 		void _set_Roi(const Roi &roi, const Roi &roiRequested, int &error);

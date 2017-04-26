@@ -1,3 +1,40 @@
+
+pco2k
+
+[2017/04/26 17:41:35.806068] lima::Pco::Camera::_traceMsg (..\..\..\..\src\PcoCameraUtils.cpp:2499):
+
+
+>>>  _pco_acq_thread_dimax> [ENTRY]
+[2017/04/26 17:41:35.872068] lima::Pco::SyncCtrlObj::setExposing (..\..\..\..\src\PcoSyncCtrlObj.cpp:537): lima::Pco::SyncCtrlObj::setExposing[exit]: m_exp
+osing=2, exposing=2
+[2017/04/26 17:41:58.367068] lima::Pco::Interface::stopAcq (..\..\..\..\src\PcoInterface.cpp:150):
+=================================================
+--- 2017/04/26 17:41:58 lima::Pco::Interface::stopAcq [ENTRY]
+
+=== _pco_acq_thread_dimax> STOP REQ (recording). lastImgRec[0]
+[2017/04/26 17:41:58.558068] lima::Pco::Camera::_pco_SetRecordingState (..\..\..\..\src\PcoCameraSdk.cpp:913): :  PCO_CancelImages() - CALLING
+[2017/04/26 17:41:59.929068] lima::Pco::Camera::_pco_SetRecordingState (..\..\..\..\src\PcoCameraSdk.cpp:924): lima::Pco::Camera::_pco_SetRecordingState: P
+CO_SetRecordingState wRecState_new=0
+[2017/04/26 17:42:00.063068] lima::Pco::SyncCtrlObj::setExposing (..\..\..\..\src\PcoSyncCtrlObj.cpp:537): lima::Pco::SyncCtrlObj::setExposing[exit]: m_exp
+osing=3, exposing=3
+[2017/04/26 17:42:00.154068] lima::Pco::BufferCtrlObj::_xferImagMult (..\..\..\..\src\PcoBufferCtrlObj.cpp:1440):
+=================================================
+--- 2017/04/26 17:42:00 lima::Pco::BufferCtrlObj::_xferImagMult [PCO_GetImageEx] [ENTRY]
+    _iPcoAllocatedBuffNr=4, _dwPcoAllocatedBuffSize=8388608
+    _wArmWidth=2048, _wArmHeight=2048
+    roiNow=<0,0>-<2048x2048>
+    _wRoiWidth=2048, _wRoiHeight=2048, _uiBytesPerPixel=2, _wBitPerPixel=14
+    dwFramesPerBuffer=1, dwFrameSize=8388608
+    requested_nb_frames=0, dwRequestedFrames=4294967295, live_mode=1
+
+
+
+
+
+
+
+
+
 =================================================
 =================================================
 

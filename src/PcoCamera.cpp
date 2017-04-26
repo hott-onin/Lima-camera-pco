@@ -1301,7 +1301,7 @@ void _pco_acq_thread_dimax(void *argin) {
 		throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
 	}
 
-	if(!nb_frames_fixed) {
+	if( (requestStop != stopRequest) && (!nb_frames_fixed)) {
 		if(m_sync->getExposing() == pcoAcqRecordStart) m_sync->setExposing(pcoAcqRecordEnd);
 
 		msg = m_cam->_PcoCheckError(__LINE__, __FILE__, 
@@ -1359,7 +1359,7 @@ void _pco_acq_thread_dimax(void *argin) {
 
 		}
 
-	} // if nb_frames_fixed
+	} // if nb_frames_fixed && no stopRequested
 	
 
 	//m_sync->setExposing(status);
@@ -1383,6 +1383,18 @@ void _pco_acq_thread_dimax(void *argin) {
 
 	// included in 34a8fb6723594919f08cf66759fe5dbd6dc4287e only for dimax (to check for others)
 	m_sync->setStarted(false);
+
+
+#if 0
+	if(requestStop == stopRequest) 
+	{
+		Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamFault, errMsg);
+		m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
+	}
+
+#endif
+
+
 
 	_endthread();
 }
@@ -1513,7 +1525,7 @@ void _pco_acq_thread_dimax_trig_single(void *argin) {
 		throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
 	}
 
-	if(!nb_frames_fixed) {
+	if( (requestStop != stopRequest) && (!nb_frames_fixed)) {
 		if(m_sync->getExposing() == pcoAcqRecordStart) m_sync->setExposing(pcoAcqRecordEnd);
 
 		msg = m_cam->_PcoCheckError(__LINE__, __FILE__, 
@@ -1559,7 +1571,7 @@ void _pco_acq_thread_dimax_trig_single(void *argin) {
 
 		}
 
-	} // if nb_frames_fixed
+	} // if nb_frames_fixed & no stopped
 	
 	
 	
@@ -1584,6 +1596,17 @@ void _pco_acq_thread_dimax_trig_single(void *argin) {
 
 	// included in 34a8fb6723594919f08cf66759fe5dbd6dc4287e only for dimax (to check for others)
 	m_sync->setStarted(false);
+
+
+
+#if 0
+	if(requestStop == stopRequest) 
+	{
+		Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamFault, errMsg);
+		m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
+	}
+
+#endif
 
 	_endthread();
 }
@@ -1923,7 +1946,7 @@ int Camera::PcoCheckError(int line, char *file, int err, char *fn) {
 	char *msg;
 	size_t lg;
 
-	sprintf_s(tmpMsg,LEN_TMP_MSG,"%s (%d)", fn, line);
+	sprintf_s(tmpMsg,LEN_TMP_MSG,"PCOfn[%s] file[%s] line[%d]", fn, file,line);
 	m_msgLog->add(tmpMsg);
 	if (err != 0) {
 		DWORD dwErr = err;
@@ -1940,7 +1963,8 @@ int Camera::PcoCheckError(int line, char *file, int err, char *fn) {
 			//DEB_ALWAYS() << fnId << ": --- WARNING - IGNORED --- " << DEB_VAR1(m_pcoData->pcoErrorMsg);
 			return 0;
 		}
-		DEB_ALWAYS() << fnId << ":\n   " << DEB_VAR1(msg);
+		DEB_ALWAYS() << fnId << ":\n   " << msg
+			<< "\n    " << tmpMsg;
 		return (err);
 	}
 	return (err);
@@ -3010,6 +3034,9 @@ bool Camera::_isCapsDesc(int caps)
 		case capsGlobalResetShutter:
 			//#define GENERALCAPS1_GLOBAL_RESET_MODE                 0x00100000 // Camera supports global reset rolling readout
 			return _isCameraType(Edge) && !!(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_GLOBAL_RESET_MODE);
+
+		case capsHWIO:
+			return !!(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_HW_IO_SIGNAL_DESCRIPTOR);
 
 		default:
 			return FALSE;

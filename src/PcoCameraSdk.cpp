@@ -675,7 +675,7 @@ void Camera::_pco_GetHWIOSignal(int &errorTot){
 
 	int i, imax;
 	
-	if(!( _isCameraType(Dimax | Edge | Pco2k | Pco4k))  ) {
+	if(! _isCapsDesc(capsHWIO) ) {
 		errorTot = -1;
 		return;
 	}
@@ -696,7 +696,6 @@ void Camera::_pco_GetHWIOSignal(int &errorTot){
 		PCO_FN3(error, msg,PCO_GetHWIOSignal, m_handle, i, &m_pcoData->stcPcoHWIOSignal[i]);
 		errorTot |= error;
 	}
-
 }
 
 
@@ -736,7 +735,7 @@ void Camera::_pco_initHWIOSignal(int mode, int &error){
 	WORD val;
 
 
-	if(!( _isCameraType(Dimax |Edge))  ) {
+	if(!_isCapsDesc(capsHWIO)  ) {
 		error = -1;
 		return;
 	}
@@ -805,7 +804,7 @@ void Camera::_pco_SetHWIOSignal(int sigNum, int &error){
 	char *msg;
 
 
-		if(!( _isCameraType(Dimax |Edge))  || 
+		if(!_isCapsDesc(capsHWIO)  || 
 			(sigNum < 0) || (sigNum >= m_pcoData->wNrPcoHWIOSignal) ) {
 			error = -1;
 			return;
@@ -1069,7 +1068,13 @@ char *Camera::_pco_GetCameraType(int &error){
 			_getCameraSubTypeStr(), 
 			_getInterfaceTypeStr(), 
 			_getCameraSerialNumber());
-		DEB_ALWAYS() <<  DEB_VAR3(_getCameraTypeStr(), _getInterfaceTypeStr(), m_pcoData->camera_name);
+		DEB_ALWAYS() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
+			<< "\n"
+			<< "\n====================== CAMERA FOUND ======================"
+			<< "\n* "  << m_pcoData->camera_name
+			<< "\n==========================================================" 
+			<< "\n"
+			;
 
 		//if(errTot) return m_pcoData->camera_name;
 
