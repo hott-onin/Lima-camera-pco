@@ -1,10 +1,12 @@
 
+2017/04/27 15:34:09 ==========================================
+
+- validation values in setHWIO signals
+- pcoGetFramesMaxInSegment fix bug for dimaxHS
+- debug info in startAcq
+- minor / clening log - tmp save 
+
 2017/04/26 17:58:14 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-26_175751]
-  to: [/t/rhoms1/install-2017-04-26_175751]
-  to: [/t/rhoms1/install-beta]
 
 - improvement HWIO signals
 - dimax / recording - fixed stop ram recording bug
@@ -96,66 +98,13 @@ from: [../../install/] and [./bat/]
   to: [/t/rhoms1/install-beta]
 
 
-2017/04/11 09:57:42 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-11_095714]
-  to: [/t/rhoms1/install-2017-04-11_095714]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/04/11 09:53:33 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-11_095230]
-  to: [/t/rhoms1/install-2017-04-11_095230]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/04/11 09:11:39 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-11_091116]
-  to: [/t/rhoms1/install-2017-04-11_091116]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/04/10 19:23:10 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-10_192247]
-  to: [/t/rhoms1/install-2017-04-10_192247]
-  to: [/t/rhoms1/install-beta]
-
-
-
-2017/04/10 19:21:48 ==========================================
-#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
-#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-04-10 19:21:20 +0200] head[5ea10ab][5ea10ab1c32c14e596336f49e144785f664980b7] ref[ (HEAD, master)] at [2017/04/10 19:21:47] $"
-#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, github/core-1.7, core-1.7)] at [2017/04/10 19:21:47] $"
-#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 19:21:47] $"
-#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 19:21:47] $"
-#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-02-06 09:35:41 +0100] head[4527bfc][4527bfc00e9d88c9e0e8b9528dec7f6b444cf93d] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 19:21:47] $"
-#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 19:21:47] $"
-
 
 
 2017/04/10 18:03:21 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-10_180258]
-  to: [/t/rhoms1/install-2017-04-10_180258]
-  to: [/t/rhoms1/install-beta]
 
 - rolling shutter: fix bug / include all modes
 
 2017/04/10 11:16:34 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-10_111611]
-  to: [/t/rhoms1/install-2017-04-10_111611]
-  to: [/t/rhoms1/install-beta]
-
 
 
 2017/04/10 10:13:55 ==========================================
@@ -168,22 +117,7 @@ from: [../../install/] and [./bat/]
 #define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/04/10 10:13:54] $"
 
 
-
 2017/04/03 12:36:30 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-04-03_123608]
-  to: [/t/rhoms1/install-2017-04-03_123608]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/03/30 18:14:10 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-03-30_181347]
-  to: [/t/rhoms1/install-2017-03-30_181347]
-  to: [/t/rhoms1/install-beta]
-
 
 
 2017/03/30 18:12:36 ==========================================
@@ -211,12 +145,6 @@ from: [../../install/] and [./bat/]
 
 
 2017/03/16 11:10:35 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-03-16_111028]
-  to: [/t/rhoms1/install-2017-03-16_111028]
-  to: [/t/rhoms1/install-beta]
-
 
 2017/02/24 18:43:52 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
@@ -232,28 +160,6 @@ from: [../../install/] and [./bat/]
 - temp patch in xMinSize (roi) up to firmware 1.19 if fixed (param xMinSize)
 
 2017/02/10 13:23:20 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-02-10_132314]
-  to: [/t/rhoms1/install-2017-02-10_132314]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/02/10 12:50:54 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-02-10_125048]
-  to: [/t/rhoms1/install-2017-02-10_125048]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/02/10 12:12:41 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-02-10_121234]
-  to: [/t/rhoms1/install-2017-02-10_121234]
-  to: [/t/rhoms1/install-beta]
-
 
 
 2017/02/10 12:10:14 ==========================================
@@ -279,18 +185,6 @@ from: [../../install/] and [./bat/]
 
  		
 2017/02/09 17:20:38 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-02-09_172032]
-  to: [/t/rhoms1/install-2017-02-09_172032]
-  to: [/t/rhoms1/install-beta]
-
-2017/02/06 18:34:56 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-02-06_183450]
-  to: [/t/rhoms1/install-2017-02-06_183450]
-  to: [/t/rhoms1/install-beta]
 
 
 
@@ -306,32 +200,12 @@ from: [../../install/] and [./bat/]
 
 
 2017/01/17 10:07:42 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-17_100736]
-  to: [/t/rhoms1/install-2017-01-17_100736]
-  to: [/t/rhoms1/install-beta]
 
 - Seb - fixed HwSavingCtrlObj.sip for windows
 - minor increase size of version
 
 
 2017/01/10 17:31:48 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-10_173142]
-  to: [/t/rhoms1/install-2017-01-10_173142]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/01/10 15:47:39 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-10_154733]
-  to: [/t/rhoms1/install-2017-01-10_154733]
-  to: [/t/rhoms1/install-beta]
-
-
 
 2017/01/10 15:46:32 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
@@ -344,16 +218,7 @@ from: [../../install/] and [./bat/]
 
 
 
-
-
 2017/01/10 14:11:57 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-10_141151]
-  to: [/t/rhoms1/install-2017-01-10_141151]
-  to: [/t/rhoms1/install-beta]
-
-
 
 
 2017/01/10 12:13:34 ==========================================
@@ -368,11 +233,6 @@ from: [../../install/] and [./bat/]
 
 
 2017/01/09 13:06:12 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-09_130606]
-  to: [/t/rhoms1/install-2017-01-09_130606]
-  to: [/t/rhoms1/install-beta]
 
 2017/01/09 13:05:02 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
@@ -384,20 +244,10 @@ from: [../../install/] and [./bat/]
 #define       SPEC_GIT_VERSION "$Id:      SPEC rev[2016-10-10 09:40:10 +0200] head[65690d3][65690d3b7d24783256b279542a796c8a8a3f795f] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/01/09 13:05:01] $"
 
 2017/01/09 12:36:07 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-01-09_123602]
-  to: [/t/rhoms1/install-2017-01-09_123602]
-  to: [/t/rhoms1/install-beta]
 
 - fix the start recording (dimax) to be compatible with edge/cameralink
 
 2016/12/09 20:48:29 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-12-09_204823]
-  to: [/t/rhoms1/install-2016-12-09_204823]
-  to: [/t/rhoms1/install-beta]
 
 
 - _pco_acq_thread_edge - hw error event timeout
@@ -416,11 +266,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/11/18 19:00:00 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-11-18_185951]
-  to: [/t/rhoms1/install-2016-11-18_185951]
-  to: [/t/rhoms1/install-beta]
 
 
 
@@ -436,12 +281,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/11/18 18:47:02 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-11-18_184653]
-  to: [/t/rhoms1/install-2016-11-18_184653]
-  to: [/t/rhoms1/install-beta]
-
 
 - working test in wid15dimax2 / pco edge 5.5 ch hs me5
 - minor / tmp save
@@ -461,22 +300,6 @@ from: [../../install/] and [./bat/]
 - minor / tmp save
 
 2016/11/17 12:49:48 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-11-17_124940]
-  to: [/t/rhoms1/install-2016-11-17_124940]
-  to: [/t/rhoms1/install-beta]
-
-
-
-
-2016/11/14 17:34:12 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-11-14_173403]
-  to: [/t/rhoms1/install-2016-11-14_173403]
-  to: [/t/rhoms1/install-beta]
-
 
 
 2016/11/14 17:33:16 ==========================================
@@ -491,10 +314,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/10/28 13:34:16 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-28_133410]
-  to: [/t/rhoms1/install-2016-10-28_133410]
   to: [/t/rhoms1/install-beta]
 
 
@@ -531,8 +350,6 @@ from: [../../install/] and [./bat/]
 =============================== merged github/gitrh
 
 
-
-
 2016/10/24 11:32:02 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
 #define        PCO_GIT_VERSION "$Id:       PCO rev[2016-10-21 17:33:10 +0200] head[0fdff6b][0fdff6be950f6ea5dc12231c9c1cdd9917b46fee] ref[ (HEAD, gitrh/master, master)] at [2016/10/24 11:32:01] $"
@@ -545,11 +362,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/10/24 10:07:04 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-24_100657]
-  to: [/t/rhoms1/install-2016-10-24_100657]
-  to: [/t/rhoms1/install-beta]
 
 - clTransferParameters / included cameralinkHS
 
@@ -565,11 +377,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/10/21 16:51:02 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-21_165055]
-  to: [/t/rhoms1/install-2016-10-21_165055]
-  to: [/t/rhoms1/install-beta]
   
 - added new pco edge subtypes
 - added CLHS dll
@@ -620,22 +427,12 @@ from: [../../install/] and [./bat/]
 
 
 2016/10/07 18:48:58 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-07_184851]
-  to: [/t/rhoms1/install-2016-10-07_184851]
-  to: [/t/rhoms1/install-beta]
 
 Camera::_isRunAfterAssign() - check for pco
 beta test / wid16napco2
 temp save
 
 2016/10/07 16:11:54 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-07_161148]
-  to: [/t/rhoms1/install-2016-10-07_161148]
-  to: [/t/rhoms1/install-beta]
 
 
     sdk functions
@@ -647,11 +444,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/10/04 12:08:32 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-10-04_120826]
-  to: [/t/rhoms1/install-2016-10-04_120826]
-  to: [/t/rhoms1/install-beta]
 
 upgrade sdk118 to sdk120
 
@@ -667,11 +459,6 @@ upgrade sdk118 to sdk120
 
 
 2016/06/07 19:17:26 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-06-07_191718]
-  to: [/t/rhoms1/install-2016-06-07_191718]
-  to: [/t/rhoms1/install-beta]
 
 - tmp save
 - sip fix getMaxWidthHeight to int
@@ -680,12 +467,6 @@ from: [../../install/] and [./bat/]
 - vc project / included sip files
 
 2016/06/07 15:28:06 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-06-07_152754]
-  to: [/t/rhoms1/install-2016-06-07_152754]
-  to: [/t/rhoms1/install-beta]
-
 
 
 2016/06/07 15:27:12 ==========================================
@@ -699,11 +480,6 @@ from: [../../install/] and [./bat/]
 
 
 2016/06/07 15:05:10 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-06-07_150503]
-  to: [/t/rhoms1/install-2016-06-07_150503]
-  to: [/t/rhoms1/install-beta]
 
 - temp save
 - added function _isRunAfterAssign() in order to manage the start record for all types
@@ -711,11 +487,6 @@ from: [../../install/] and [./bat/]
 -- long tests done with edge/usb3 OK
 
 2016/06/06 17:29:24 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-06-06_172917]
-  to: [/t/rhoms1/install-2016-06-06_172917]
-  to: [/t/rhoms1/install-beta]
 
 - temp save
 - fixed the procedure for pco edge usb / different from pco edge cameralink

@@ -1047,19 +1047,28 @@ void Camera::startAcq()
 		// Double Image -> requested images will be the total nr of images (basic + primary)
 		//      must be even and twice of the nr of images for pco
 		_pco_GetDoubleImageMode(wDoubleImage, err);
+
+		bool outOfRange = false;
+
 		if(wDoubleImage) 
 		{
-			if ( ((ulRequestedFrames % 2) != 0) || (ulRequestedFrames/2 > ulFramesMaxInSegment) )
-			{
-	            throw LIMA_HW_EXC(Error, "frames OUT OF RANGE");
-			}
+			if ( ((ulRequestedFrames % 2) != 0) || (ulRequestedFrames/2 > ulFramesMaxInSegment) ) outOfRange = true;
 		}
 		else
 		{
-			if ( ulRequestedFrames > ulFramesMaxInSegment )
+			if ( ulRequestedFrames > ulFramesMaxInSegment ) outOfRange = true;
+		}
+
+		if(outOfRange)
+		{
+
+			DEB_ALWAYS() << "\nERROR frames OUT OF RANGE " << DEB_VAR3(ulRequestedFrames, ulFramesMaxInSegment, wDoubleImage);
 			{
-	            throw LIMA_HW_EXC(Error, "frames OUT OF RANGE");
+				Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamNoMemory, "ERROR frames OUT OF RANGE");
+				_getPcoHwEventCtrlObj()->reportEvent(ev);
 			}
+				m_sync->setStarted(false);
+				return;
 		}
 	}
 
@@ -2031,7 +2040,7 @@ unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
 	//ulWidth = m_roi.x[1] - m_roi.x[0] + 1;
 	//ulHeigth = m_roi.y[1] - m_roi.y[0] + 1;
 
-	if(!_isCameraType(DimaxHS)) 
+	if(_isCameraType(DimaxHS)) 
 	{
 		// W = Width of ROI
 		// H = Height of ROI

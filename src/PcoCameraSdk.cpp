@@ -666,22 +666,22 @@ void Camera::_pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error){
 
 //=================================================================================================
 //=================================================================================================
-void Camera::_pco_GetHWIOSignal(int &errorTot){
+void Camera::_pco_GetHWIOSignal(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-	int error;
-	errorTot = 0;
 	char *msg;
 
 	int i, imax;
 	
 	if(! _isCapsDesc(capsHWIO) ) {
-		errorTot = -1;
+		error = -1;
 		return;
 	}
 
+	error = 0;
+
 	PCO_FN2(error, msg, PCO_GetHWIOSignalCount, m_handle, &m_pcoData->wNrPcoHWIOSignal0);
-	errorTot |= error;
+	if(error) return;
 
 	imax = m_pcoData->wNrPcoHWIOSignal = 
 		(m_pcoData->wNrPcoHWIOSignal0 <= SIZEARR_stcPcoHWIOSignal) ? m_pcoData->wNrPcoHWIOSignal0 : SIZEARR_stcPcoHWIOSignal;
@@ -691,11 +691,14 @@ void Camera::_pco_GetHWIOSignal(int &errorTot){
 	for(i=0; i< imax; i++) {
 		//DEB_ALWAYS()  << "---  descriptor" << DEB_VAR2(i, m_pcoData->stcPcoHWIOSignalDesc[i].wSize) ;
 		PCO_FN3(error, msg,PCO_GetHWIOSignalDescriptor, m_handle, i, &m_pcoData->stcPcoHWIOSignalDesc[i]);
-		errorTot |= error;
+		if(error) return;
+
+	
 		//DEB_ALWAYS()  << "---  signal" << DEB_VAR2(i, m_pcoData->stcPcoHWIOSignal[i].wSize) ;
 		PCO_FN3(error, msg,PCO_GetHWIOSignal, m_handle, i, &m_pcoData->stcPcoHWIOSignal[i]);
-		errorTot |= error;
+		if(error) return;
 	}
+	return;
 }
 
 
@@ -803,6 +806,7 @@ void Camera::_pco_SetHWIOSignal(int sigNum, int &error){
 	DEF_FNID;
 	char *msg;
 
+		error = 0;
 
 		if(!_isCapsDesc(capsHWIO)  || 
 			(sigNum < 0) || (sigNum >= m_pcoData->wNrPcoHWIOSignal) ) {

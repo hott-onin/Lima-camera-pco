@@ -63,7 +63,20 @@ char* _timestamp_pcocamerautils() {return ID_TIMESTAMP ;}
 // dummy comments for test 02ccc
 //=========================================================================================================
 
+//=========================================================================================================
+//=========================================================================================================
+int getNrBitsOn(WORD x) 
+{
+	int count = 0;
+	WORD mask = 1;
 
+	for(int i = 0; i <8; i++)
+	{
+		if(x & mask) count++;
+		mask = mask << 1;
+	}
+	return count;
+}
 //=========================================================================================================
 //=========================================================================================================
 char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
@@ -235,7 +248,7 @@ char *Camera::talk(char *cmd){
 	return _talk(cmd, buff, BUFF_INFO_SIZE);
 }
 
-#define NRTOK 5
+#define NRTOK 10
 #define NRCMDS 200
 char *Camera::_talk(char *_cmd, char *output, int lg){
 	DEB_MEMBER_FUNCT();
@@ -1209,25 +1222,25 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 		
 		
-/***************************************************************
-wSignalFilter: Flags showing the filter option:
-- 0x01: Filter can be switched off (t > ~65ns)
-- 0x02: Filter can be switched to medium (t > ~1us)
-- 0x04: Filter can be switched to high (t > ~100ms)
-Notes: the command will be rejected, if Recording State is [run]
-***************************************************************/
-
-		key = keys[ikey] = "hwioSignalsLin";     //----------------------------------------------------------------
-		keys_desc[ikey++] = "(R) for DIMAX/EDGE only / get hw io signals";     
+		//----------------------------------------------------------------
+//		key = keys[ikey] = "hwioSignalsLin";
+//		keys_desc[ikey++] = "(R) for DIMAX/EDGE only / get hw io signals";     
+		key = keys[ikey] = "gethwioSignals";     
+		keys_desc[ikey++] = "(R) get HWIO signals (only for some cameras (dimax, edge)";     
 		if(_stricmp(cmd, key) == 0){
 			int error, i, nrDesc, mask;
 
+			if(!_isCapsDesc(capsHWIO)) 
+			{
+				ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR - not allowed");
+				return output;
+			}
+
 			_pco_GetHWIOSignal(error);
 			if(error) {
-				ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR [%d]\n", error);
-				//return output;
+				ptr += sprintf_s(ptr, ptrMax - ptr, "SDK ERROR [%d]\n", error);
+				return output;
 			}
-			//ptr += sprintf_s(ptr, ptrMax - ptr, "signals [%d] [%d]\n", m_pcoData->wNrPcoHWIOSignal0, m_pcoData->wNrPcoHWIOSignal);
 			
 			nrDesc = m_pcoData->wNrPcoHWIOSignal;
 
@@ -1269,7 +1282,6 @@ wSignalDefinitions: Flags showing signal options:
                 if(mask = val & 0x40) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 3 has got parameter value (0x%x)] ", mask);				
                 if(mask = val & 0x80) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 4 has got parameter value (0x%x)] ", mask);				
 				ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
-					
 
 /***************************************************************
 wSignalTypes: Flags showing which signal type is available:
@@ -1285,7 +1297,6 @@ wSignalTypes: Flags showing which signal type is available:
                 if(mask = val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Contact Mode (0x%x)] ", mask);				
                 if(mask = val & 0x08) ptr += sprintf_s(ptr, ptrMax - ptr, "[RS485 differential (0x%x)] ", mask);				
 				ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
-
 
 /***************************************************************
 wSignalPolarity: Flags showing which signal polarity can be selected:
@@ -1309,7 +1320,6 @@ wSignalFilter: Flags showing the filter option:
 - 0x04: Filter can be switched to high (t > ~100ms)
 Notes: the command will be rejected, if Recording State is [run]
 ***************************************************************/
-
 				val = m_pcoData->stcPcoHWIOSignalDesc[i].wSignalFilter;
 				ptr += sprintf_s(ptr, ptrMax - ptr, "   filter[0x%x]: ", val); 
                 if(mask = val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched off (t > ~65ns) (0x%x)] ", mask);				
@@ -1317,15 +1327,8 @@ Notes: the command will be rejected, if Recording State is [run]
                 if(mask = val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to high (t > ~100ms) (0x%x)] ", mask);				
 				ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
 
-
 				WORD wSelected = m_pcoData->stcPcoHWIOSignal[i].wSelected;
-
-
-//*****                for(wSelected = 0; wSelected < 4 ; wSelected++)
-                { 
-
-//                    if(m_pcoData->stcPcoHWIOSignal[i][wSelected].wSelected <4)
-//*****                    if(m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[wSelected][0])
+				{ 
                     {
     			    ptr += sprintf_s(ptr, ptrMax - ptr,
 						"\n"
@@ -1333,33 +1336,24 @@ Notes: the command will be rejected, if Recording State is [run]
 						i, wSelected, m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[wSelected]
 						);
 
-				        //val = m_pcoData->stcPcoHWIOSignal[i][wSelected].wSelected;
-				        //val = wSelected;
-				        //ptr += sprintf_s(ptr, ptrMax - ptr, "   signalSelected[%d] [%s]\n", 
-				        //    wSelected, m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[wSelected]);				
-
-        /***************************************************************
-        Enabled Flags showing enable state of the signal
-         0x00: Signal is off
-         0x01: Signal is active
-        ***************************************************************/
-
-//++				        val = m_pcoData->stcPcoHWIOSignal[i][wSelected].wEnabled;
+/***************************************************************
+Enabled Flags showing enable state of the signal
+ 0x00: Signal is off
+ 0x01: Signal is active
+***************************************************************/
 				        val = m_pcoData->stcPcoHWIOSignal[i].wEnabled;
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "   enabled[0x%x]: ", val); 
 						ptr += sprintf_s(ptr, ptrMax - ptr, 
 							val ? "[Signal is active]" : "[Signal is off]");				
 						ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
 
-
-        /***************************************************************
-        Type Flags showing which signal type is selected
-         0x01: TTL
-         0x02: High Level TTL
-         0x04: Contact Mode
-         0x08: RS485 differential
-        ***************************************************************/
-//++				        val = m_pcoData->stcPcoHWIOSignal[i][wSelected].wType;
+/***************************************************************
+Type Flags showing which signal type is selected
+ 0x01: TTL
+ 0x02: High Level TTL
+ 0x04: Contact Mode
+ 0x08: RS485 differential
+***************************************************************/
 				        val = m_pcoData->stcPcoHWIOSignal[i].wType;
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "   type[0x%x]: ", val); 
                         if(mask = val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[TTL (0x%x)] ", mask);				
@@ -1368,16 +1362,13 @@ Notes: the command will be rejected, if Recording State is [run]
                         if(mask = val & 0x08) ptr += sprintf_s(ptr, ptrMax - ptr, "[RS485 differential (0x%x)] ", mask);				
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
 
-
-        /***************************************************************
-        Polarity Flags showing which signal polarity is selected
-         0x01: High level active
-         0x02: Low level active
-         0x04: Rising edge active
-         0x08: Falling edge active
-        ***************************************************************/
-
-//++				        val = m_pcoData->stcPcoHWIOSignal[i][wSelected].wPolarity;
+/***************************************************************
+Polarity Flags showing which signal polarity is selected
+ 0x01: High level active
+ 0x02: Low level active
+ 0x04: Rising edge active
+ 0x08: Falling edge active
+***************************************************************/
 				        val = m_pcoData->stcPcoHWIOSignal[i].wPolarity;
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "   pol[0x%x]: ", val); 
                         if(mask = val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Low level active (0x%x)] ", mask);				
@@ -1386,17 +1377,14 @@ Notes: the command will be rejected, if Recording State is [run]
                         if(mask = val & 0x08) ptr += sprintf_s(ptr, ptrMax - ptr, "[Falling edge active (0x%x)] ", mask);				
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
 
-
-        /***************************************************************
-        FilterSetting Flags showing the filter option which is selected
-         0x01: Filter can be switched off (t > ~65ns)
-         0x02: Filter can be switched to medium (t > ~1 u)
-         0x04: Filter can be switched to high (t > ~100ms)
-        Selected In case the HWIOSignaldescription shows more than one SignalNames, this parameter can be
-        used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
-        ***************************************************************/
-
-//++				        val = m_pcoData->stcPcoHWIOSignal[i][wSelected].wFilterSetting;
+/***************************************************************
+FilterSetting Flags showing the filter option which is selected
+ 0x01: Filter can be switched off (t > ~65ns)
+ 0x02: Filter can be switched to medium (t > ~1 u)
+ 0x04: Filter can be switched to high (t > ~100ms)
+Selected In case the HWIOSignaldescription shows more than one SignalNames, this parameter can be
+used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
+***************************************************************/
 				        val = m_pcoData->stcPcoHWIOSignal[i].wFilterSetting;
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "   filter[0x%x]: ", val); 
                         if(mask = val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched off (t > ~65ns) (0x%x)] ", mask);				
@@ -1404,13 +1392,10 @@ Notes: the command will be rejected, if Recording State is [run]
                         if(mask = val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to high (t > ~100ms) (0x%x)] ", mask);				
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
 
-
                     }  // if signame
 				}   // for wselec
 					//print_hex_dump_buff(&m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[0][0], 24*4);
 			} // for descr
-
-			
 			return output;
 		}
 
@@ -1457,15 +1442,35 @@ Notes: the command will be rejected, if Recording State is [run]
 		}
 
 
+
+/************************************************************************************************************************
+  WORD  wSignalNum;                    // Index for strSignal (0,1,2,3,)
+  WORD  wEnabled;                      // Flag shows enable state of the signal (0: off, 1: on)
+  WORD  wType;                         // Selected signal type (1: TTL, 2: HL TTL, 4: contact, 8: RS485, 80: TTL-A/GND-B)
+  WORD  wPolarity;                     // Selected signal polarity (1: H, 2: L, 4: rising, 8: falling)
+  WORD  wFilterSetting;                // Selected signal filter (1: off, 2: med, 4: high) // 12
+  WORD  wSelected;                     // Select signal (0: standard signal, >1 other signal)
+************************************************************************************************************************/
+  
+
 		//----------------------------------------------------------------------------------------------------------
 		key = keys[ikey] = "sethwioSignals";     
-		keys_desc[ikey++] = "(R) for DIMAX only / get hw io signals";     
+		keys_desc[ikey++] = "(W) set HWIO signals (only for some cameras (dimax, edge)";     
 		if(_stricmp(cmd, key) == 0){
-			int error, idx;
-			WORD val;
+			int error;
 
-			if(tokNr != 1){
-				ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR tokNr[%d]", tokNr);
+			if(!_isCapsDesc(capsHWIO)) 
+			{
+				ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR - not allowed");
+				return output;
+			}
+
+			if(tokNr != 6)
+			{
+				ptr += sprintf_s(ptr, ptrMax - ptr, 
+					"ERROR - invalid nr of parameters [%d]\n"
+					"Parameters: <SignalNum> <Enabled> <Type> <Polarity> <FilterSetting> <Selected> (values in decimal, -1 ignored)"
+					, tokNr);
 				return output;
 			}
 
@@ -1475,17 +1480,90 @@ Notes: the command will be rejected, if Recording State is [run]
 				return output;
 			}
 
-    		val = atoi(tok[1]);
-				
-
-			idx = 0;
-			m_pcoData->stcPcoHWIOSignal[idx].wPolarity = val;
-
-	
-			_pco_SetHWIOSignal(idx,error);
+			int iSignalNum = atoi(tok[1]);
+			int iEnabled = atoi(tok[2]);
+			int iType = atoi(tok[3]);
+			int iPolarity = atoi(tok[4]);
+			int iFilterSetting = atoi(tok[5]);
+			int iSelected = atoi(tok[6]);
+			WORD wVal, wMask;
+			int nrBits;
 			
-			ptr += sprintf_s(ptr, ptrMax - ptr, "error [%d]", error);
+			int nrDesc = m_pcoData->wNrPcoHWIOSignal;
 
+			if((iSignalNum< 0) ||(iSignalNum > nrDesc))
+			{
+				ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid SignalNum[%d] (0 - %d)", iSignalNum, nrDesc -1);
+				return output;
+			}
+			m_pcoData->stcPcoHWIOSignal[iSignalNum].wSignalNum = (WORD) iSignalNum;
+	
+			if(iEnabled >= 0)
+			{
+				m_pcoData->stcPcoHWIOSignal[iSignalNum].wEnabled = iEnabled ? 1 : 0;
+			}
+
+			if(iType >= 0)
+			{
+				wVal = (WORD) iType;
+				wMask = m_pcoData->stcPcoHWIOSignalDesc[iSignalNum].wSignalTypes;
+				if( ((nrBits = getNrBitsOn(wVal)) != 1) || ((wVal & wMask) != wVal))
+				{
+					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid Type[%d] nrBits[%d] mask[%d]", wVal, nrBits, wMask);
+					_pco_GetHWIOSignal(error);
+					return output;
+				}
+				m_pcoData->stcPcoHWIOSignal[iSignalNum].wPolarity = wVal;
+			}
+
+			if(iPolarity >= 0)
+			{
+				wVal = (WORD) iPolarity;
+				wMask = m_pcoData->stcPcoHWIOSignalDesc[iSignalNum].wSignalPolarity;
+				if( ((nrBits = getNrBitsOn(wVal)) != 1) || ((wVal & wMask) != wVal))
+				{
+					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid Polarity[%d] nrBits[%d] mask[%d]", wVal, nrBits, wMask);
+					_pco_GetHWIOSignal(error);
+					return output;
+				}
+				m_pcoData->stcPcoHWIOSignal[iSignalNum].wPolarity = wVal;
+			}
+
+			if(iFilterSetting >= 0)
+			{
+				wVal = (WORD) iFilterSetting;
+				wMask = m_pcoData->stcPcoHWIOSignalDesc[iSignalNum].wSignalFilter;
+				if( ((nrBits = getNrBitsOn(wVal)) != 1) || ((wVal & wMask) != wVal))
+				{
+					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid FilterSetting[%d] nrBits[%d] mask[%d]", wVal, nrBits, wMask);
+					_pco_GetHWIOSignal(error);
+					return output;
+				}
+				m_pcoData->stcPcoHWIOSignal[iSignalNum].wFilterSetting = wVal;
+
+			}
+
+			if(iSelected >= 0)
+			{
+				if( (iSelected > 3) || (*m_pcoData->stcPcoHWIOSignalDesc[iSignalNum].strSignalName[iSelected]==0))
+				{
+					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid Selected[%d]", iSelected);
+					_pco_GetHWIOSignal(error);
+					return output;
+				}
+				m_pcoData->stcPcoHWIOSignal[iSignalNum].wSelected = (WORD) iSelected;
+			}
+	
+			_pco_SetHWIOSignal(iSignalNum,error);
+			
+			if(error)
+			{
+				ptr += sprintf_s(ptr, ptrMax - ptr, "SDK error [%d]", error);
+			} 
+			else
+			{
+				ptr += sprintf_s(ptr, ptrMax - ptr, "OK");
+			}
 			
 			return output;
 		}
