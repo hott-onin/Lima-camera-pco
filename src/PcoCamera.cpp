@@ -2018,10 +2018,13 @@ unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
 	unsigned long ulWidth,ulHeigth;
 	unsigned long long pixPerFrame, pagesPerFrame;
 
+	
 	// if(_isCameraType(Edge)) {return LONG_MAX;}
 
+	DEB_ALWAYS() << "pcoGetFramesMaxInSegment [entry] " << DEB_VAR2(segmentPco, m_pcoData->camera_name );
 	if(!_isCameraType(Dimax | Pco2k | Pco4k)) 
 	{
+		DEB_ALWAYS() << "pcoGetFramesMaxInSegment UNKNOWN [exit] " << DEB_VAR1(segmentPco);
 		//printf("=== %s> unknown camera type [%d]\n", fnId, _getCameraType());
 		return 0;
 	}
@@ -2042,6 +2045,7 @@ unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
 
 	if(_isCameraType(DimaxHS)) 
 	{
+		DEB_ALWAYS() << "pcoGetFramesMaxInSegment DimaxHS [entry] " ;
 		// W = Width of ROI
 		// H = Height of ROI
 		// m = Number of pages for the segment, as configured using PCO_SetRamSegmentSize
@@ -2064,9 +2068,12 @@ unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
 		ulNrImages = iPagesInSegment / iC - 1;
 
 		//return m_pcoData->dwMaxImageCnt[segmentPco];
+		DEB_ALWAYS() << "pcoGetFramesMaxInSegment DimaxHS [exit] "  << DEB_VAR6(ulNrImages, ulWidth, ulHeigth, iPagesInSegment, wCdi, wDImg);
 		return ulNrImages;
 	}
 
+	
+	DEB_ALWAYS() << "pcoGetFramesMaxInSegment DIMAX NOT HS [entry] " ;
 
 	pixPerFrame = (unsigned long long)ulWidth * (unsigned long long)ulHeigth;
 
@@ -2086,6 +2093,7 @@ unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
 
 	framesMax = m_pcoData->dwMaxFramesInSegment[segmentArr] = (unsigned long)(((long long) m_pcoData->dwSegmentSize[segmentArr] ) / pagesPerFrame);
 
+	DEB_ALWAYS() << "pcoGetFramesMaxInSegment DIMAX STD [exit] " << DEB_VAR1(framesMax);
 	return framesMax;
 }
 
@@ -2732,28 +2740,37 @@ void Camera::_get_MaxImageSize(Size& max_image_size)
 
 //=================================================================================================
 //=================================================================================================
-bool Camera::_isCameraType(int tp){
+bool Camera::_isCameraType(unsigned long long tp){
 		
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
-	switch(_getCameraType()) {
+	WORD wCameraType = _getCameraType();
+	WORD wCameraSubtype = _getCameraSubType();
+
+
+	DEB_ALWAYS() << "[entry] " << DEB_VAR3(tp, wCameraType, wCameraSubtype);
+
+	switch(wCameraType) {
 		case CAMERATYPE_PCO_DIMAX_STD: 
 		case CAMERATYPE_PCO_DIMAX_TV:
 		case CAMERATYPE_PCO_DIMAX_CS:
-			if(tp & Dimax) return TRUE;
-			switch(_getCameraSubType() >> 8)
+			if(tp & Dimax) {DEB_ALWAYS() << "Dimax [exit] "; return TRUE;}
+			switch(wCameraSubtype >> 8)
 			{
 				case 0x20:
-					if((tp & DimaxHS1)) return TRUE;
+					if(tp & (DimaxHS1 | DimaxHS)) {DEB_ALWAYS() << "DimaxHS1 / HS [exit] "; return TRUE;}
+					break;
 				case 0x21:
-					if((tp & DimaxHS2)) return TRUE;
+					if(tp & (DimaxHS2 | DimaxHS)) {DEB_ALWAYS() << "DimaxHS2 / HS [exit] "; return TRUE;}
+					break;
 				case 0x23:
-					if((tp & DimaxHS4)) return TRUE;
-					if((tp & DimaxHS)) return TRUE;
+					if(tp & (DimaxHS4 | DimaxHS)) {DEB_ALWAYS() << "DimaxHS4 / HS [exit] "; return TRUE;}
+					break;
 				default:
 					break;
 			}
+			DEB_ALWAYS() << "Dimax SUBTYE NONE FALSE [exit] ";
 			return FALSE;
 
 		case CAMERATYPE_PCO_EDGE_GL:

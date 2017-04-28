@@ -482,7 +482,7 @@ namespace lima
 
 		int dumpRecordedImages(int &nrImages, int &error);
 
-		bool _isCameraType(int tp);
+		bool _isCameraType(unsigned long long tp);
 		bool _isInterfaceType(int tp);
 		bool _isConfig(){return m_config; };
 		void _pco_set_shutter_rolling_edge(int &error);
