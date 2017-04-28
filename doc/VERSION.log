@@ -1,5 +1,5 @@
 2017/04/28 ==========================================
-
+- compile option ENABLE_GETDLLPATH
 - pcoGetFramesMaxInSegment, _isCameraType / debug for dimax hs
 
 2017/04/27 15:34:09 ==========================================

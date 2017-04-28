@@ -2049,6 +2049,12 @@ char * _getDllPath(const char* pzFileName, char *path, size_t strLen)
 	FILE *stream;
 
 	*path = 0;
+	ptr = path;
+
+#ifndef ENABLE_GETDLLPATH
+	nr = sprintf_s(ptr, strLen-1,"_getDllPath DISABLED");
+	return path;
+#endif
 
 	GetModuleFileName(GetModuleHandle(pzFileName), _pathFn, MAX_PATH);
 
