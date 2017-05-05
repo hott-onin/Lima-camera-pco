@@ -64,6 +64,11 @@
 #define MSG8K	(1024 * 8)
 
 #define ID_TIMESTAMP "$Id: [" __DATE__ " " __TIME__ "] [" __TIMESTAMP__ "] [" __FILE__ "] $"
+#define ID_TIMESTAMP_M "$Id: [" __DATE__ " " __TIME__ "] [" __TIMESTAMP__ "] [" __FILE__ "] $"
+
+#ifndef __linux__
+#define strncpy_s4  strncpy_s
+#endif
 
 typedef DWORD tPvUint32;
 typedef int tPvErr;

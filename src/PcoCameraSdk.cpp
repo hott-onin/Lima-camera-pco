@@ -666,7 +666,7 @@ void Camera::_pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error){
 
 //=================================================================================================
 //=================================================================================================
-void Camera::_pco_GetHWIOSignal(int &error){
+void Camera::_pco_GetHWIOSignalAll(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	char *msg;

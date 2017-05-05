@@ -177,7 +177,7 @@ class ringLog {
    public:
         ringLog(int size);
         ~ringLog();
-        int add(char *s);
+        int add(const char *s);
         int size() {return m_size;};
         void dumpPrint(bool direction);
 		void flush(int capacity);
@@ -668,7 +668,7 @@ namespace lima
 		char *_pco_GetCOCRuntime(int &error);
 		char *_pco_SetMetaDataMode(WORD wMetaDataMode, int &error);
 
-		void _pco_GetHWIOSignal(int &error);
+		void _pco_GetHWIOSignalAll(int &error);
 		void _pco_SetHWIOSignal(int sigNum, int &error);
 		void _pco_initHWIOSignal(int mode, int &error);
 

@@ -22,12 +22,20 @@
 ###########################################################################
 **************************************************************************/
 
+#ifndef __linux__
 #include <windows.h>
 #include <tchar.h>
+#endif
+
 #include <stdio.h>
 
 #include <cstdlib>
+
+#ifndef __linux__
 #include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 #include <sys/stat.h>
 
@@ -38,15 +46,15 @@
 
 #include "lima/Exceptions.h"
 
-#include "PcoCameraUtils.h"
 #include "PcoCamera.h"
+#include "PcoCameraUtils.h"
 #include "PcoSyncCtrlObj.h"
 #include "PcoBufferCtrlObj.h"
 
 using namespace lima;
 using namespace lima::Pco;
 
-static char *timebaseUnits[] = {"ns", "us", "ms"};
+const char *timebaseUnits[] = {"ns", "us", "ms"};
 
 #define BUFF_INFO_SIZE 10000
 
@@ -56,7 +64,7 @@ int __xlat_date(char *s1, char &ptrTo, int lenTo) ;
 char *_xlat_date(char *s1, char *s2, char *s3) ;
 
 //=========================================================================================================
-char* _timestamp_pcocamerautils() {return ID_TIMESTAMP ;}
+const char* _timestamp_pcocamerautils() {return ID_TIMESTAMP_M ;}
 //=========================================================================================================
 
 //=========================================================================================================
@@ -81,10 +89,9 @@ int getNrBitsOn(WORD x)
 //=========================================================================================================
 char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
    static char timeline[128];
-   errno_t err;
-	time_t ltime;
+   time_t ltime;
 	struct tm today;
-	char *fmt;
+	const char *fmt;
 
   switch(fmtIdx) {
     case Iso: fmt = "%Y/%m/%d %H:%M:%S"; break;
@@ -99,7 +106,7 @@ char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
 		time( &ltime );
 	else
 		ltime = xtime;
-	err = localtime_s( &today, &ltime );
+	localtime_s( &today, &ltime );
 	strftime(timeline, 128, fmt, &today );
       
 	return timeline;
@@ -120,8 +127,8 @@ int __xlat_date(char *s1, char &ptrTo, int lenTo) {
 	char *tokNext = NULL;
 	int tokNr, iM, iD, iY, i;
 	char *ptr;
-	char *months = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec";
-	char *sM, *sT;
+	const char *months = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec";
+	const char *sM, *sT;
 	char buff[LEN_BUFF_DATE+1];
 
 	strcpy_s(buff, LEN_BUFF_DATE, s1);
@@ -143,7 +150,7 @@ int __xlat_date(char *s1, char &ptrTo, int lenTo) {
 		sM = "xxx"; iD = 99; iY = 9999; sT = "99:99:99"; 
 	}
 	
-	ptr = strstr(months,sM);
+	ptr = strstr((char *) months,sM);
 	iM = (ptr != NULL) ? ( int(ptr - months) / 4) + 1 : 99;
 
 
@@ -172,18 +179,20 @@ char *_split_date(char *s) {
 
 	ptr1 = strchr(s,'[');
 	ptr2 = strchr(ptr1,']');
-	strncpy_s(s1, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
+	strncpy_s4(s1, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
 
 	ptr1 = strchr(ptr2,'[');
 	ptr2 = strchr(ptr1,']');
-	strncpy_s(s2, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
+	strncpy_s4(s2, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
 
 	ptr1 = strchr(ptr2,'[');
 	ptr2 = strchr(ptr1,']');
-	strncpy_s(s3, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
+	strncpy_s4(s3, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
 
 	return _xlat_date(s1, s2, s3);
 }
+
+
 //====================================================================
 //====================================================================
 
@@ -254,27 +263,29 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 	DEB_MEMBER_FUNCT();
 		char cmdBuff[BUFF_INFO_SIZE +1];
 		char cmdBuffAux[BUFF_INFO_SIZE +1];
-		char *cmd, *key, *keys[NRCMDS], *keys_desc[NRCMDS];
+		const char  *keys[NRCMDS];
+		const char *key, *keys_desc[NRCMDS];
+		const char *cmd;
 		int ikey = 0;
-		char *tok[NRTOK];
+		const char *tok[NRTOK];
 		int tokNr;
 		char *ptr, *ptrMax;
-		int segmentPco = m_pcoData->wActiveRamSegment;
-		int segmentArr = segmentPco -1;
+		//int segmentPco = m_pcoData->wActiveRamSegment;
+		//int segmentArr = segmentPco -1;
 		
 		ptr = output; *ptr = 0;
 		ptrMax = ptr + lg;
 
-		int width = +20;
+		//int width = +20;
 
-		strncpy_s(cmdBuff, BUFF_INFO_SIZE, _cmd, BUFF_INFO_SIZE);
+		strncpy_s4(cmdBuff, BUFF_INFO_SIZE, _cmd, BUFF_INFO_SIZE);
 		cmd = str_trim(cmdBuff);
-		strncpy_s(cmdBuffAux, BUFF_INFO_SIZE, cmd, BUFF_INFO_SIZE);
+		strncpy_s4(cmdBuffAux, BUFF_INFO_SIZE, cmd, BUFF_INFO_SIZE);
 
 		if(*cmd){
 			char *tokContext;
 			for(int i=0; i < NRTOK; i++) {
-				if( (tok[i] = strtok_s(cmd, " ", &tokContext)) == NULL) break;
+				if( (tok[i] = strtok_s((char *) cmd, " ", &tokContext)) == NULL) break;
 				cmd = NULL;
 				tokNr = i;
 			}
@@ -293,17 +304,20 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		}
 
 		//----------------------------------------------------------------------------------------------------------
+
+#ifndef __linux__
 #define BUFFER_LEN 256
 		key = keys[ikey] = "getVersionDLL";     
 		keys_desc[ikey++] = "(R) get verions of loaded DLLs";     
 		if(_stricmp(cmd, key) == 0){
 			char buff[BUFFER_LEN+1];
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%s", _getPcoSdkVersion(buff, BUFFER_LEN, "sc2_cam.dll"));
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%s", _getPcoSdkVersion(buff, BUFFER_LEN, "sc2_cl_me4.dll"));
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%s", _getPcoSdkVersion(buff, BUFFER_LEN, "sc2_clhs.dll"));
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%s", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_cam.dll"));
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%s", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_cl_me4.dll"));
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%s", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_clhs.dll"));
 			return output;
 		}
+#endif
 
 		//----------------------------------------------------------------------------------------------------------
 		key = keys[ikey] = "getVersionFile";     
@@ -424,7 +438,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				m_pcoData->wXResActual,  m_pcoData->wYResActual, bytesPerPix, sizeBytes);
 			
 			ptr += sprintf_s(ptr, ptrMax - ptr, "PCO API allocated buffers:\n"
-												"    allocated=[%s] nrBuff=[%d] size=[%ld B][%g MB] imgPerBuff[%d]\n", 
+												"    allocated=[%s] nrBuff=[%d] size=[%d B][%g MB] imgPerBuff[%d]\n", 
 				m_pcoData->bAllocatedBufferDone ? "TRUE" : "FALSE", 
 				m_pcoData->iAllocatedBufferNumber, 
 				m_pcoData->dwAllocatedBufferSize, m_pcoData->dwAllocatedBufferSize/1000000.,
@@ -467,9 +481,9 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			DWORD lastImgRecorded = m_pcoData->traceAcq.nrImgRecorded;
 
 			if(!(_isCameraType(Dimax | Pco2k | Pco4k))) {
-				ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", -1);
+				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", -1);
 			} else {
-				ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", lastImgRecorded);
+				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", lastImgRecorded);
 			}
 			return output;
 		}
@@ -481,7 +495,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			DWORD lastImgAcquired = m_pcoData->traceAcq.nrImgAcquired;
 
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", lastImgAcquired);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", lastImgAcquired);
 			return output;
 		}
 
@@ -587,7 +601,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			
 
 			for(int _i = 0; _i < LEN_TRACEACQ_TRHEAD; _i++){
-				char *desc = m_pcoData->traceAcq.usTicks[_i].desc;
+				const char *desc = m_pcoData->traceAcq.usTicks[_i].desc;
 				if(desc != NULL) {
 					ptr += sprintf_s(ptr, ptrMax - ptr, 
 						"* ... usTicks[%d][%5.3f] (ms)   (%s)\n", 
@@ -759,7 +773,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		if(_stricmp(cmd, key) == 0){
 			int alignment;
 			bool syntax = false;
-			char *res;
+			const char *res;
 			
 			if( (tokNr < 0) || (tokNr > 1)) {
 				syntax = true;
@@ -809,7 +823,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		keys_desc[ikey++] = "(R) get the last checkImgNr results";
 		if(_stricmp(cmd, key) == 0){
 			//int alignment;
-			bool syntax = false;
+			//bool syntax = false;
 			//char *res;
 			
 
@@ -863,7 +877,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			
 			if(tokNr == 0) {
 				_pco_GetPixelRate(pixRate, pixRateNext, error);
-				ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", pixRateNext);
+				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", pixRateNext);
 				return output;
 			}
 
@@ -875,7 +889,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				return output;
 			}
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", m_pcoData->dwPixelRateRequested);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", m_pcoData->dwPixelRateRequested);
 			return output;
 		}
 
@@ -901,7 +915,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				dwPixRate = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
 				if(dwPixRate){
 					nr++;
-					ptr += sprintf_s(ptr, ptrMax - ptr, "%ld  ",dwPixRate);
+					ptr += sprintf_s(ptr, ptrMax - ptr, "%d  ",dwPixRate);
 				}  
 			}	
 
@@ -1113,7 +1127,8 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		key = keys[ikey] = "ADC";     
 		keys_desc[ikey++] = "(RW) ADC working ADC [<new value>]";     
 		if(_stricmp(cmd, key) == 0){
-			int error;
+			int error __attribute__((unused));
+			
 			int adc_new, adc_working, adc_max;
 
 			error = _pco_GetADCOperation(adc_working, adc_max);
@@ -1123,7 +1138,9 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			}
 
 			adc_new = atoi(tok[1]);
+			
 			error = _pco_SetADCOperation(adc_new, adc_working);
+			
 			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", adc_working);
 
 			return output;
@@ -1212,7 +1229,8 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			int error;
 			WORD wAcquEnableState;
 
-			error = PcoCheckError(__LINE__, __FILE__, PCO_GetAcqEnblSignalStatus(m_handle, &wAcquEnableState));
+//			error = PcoCheckError(__LINE__, __FILE__, PCO_GetAcqEnblSignalStatus(m_handle, &wAcquEnableState));
+			_pco_GetAcqEnblSignalStatus(&wAcquEnableState, error);
 			
 			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", wAcquEnableState);
 			
@@ -1236,7 +1254,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				return output;
 			}
 
-			_pco_GetHWIOSignal(error);
+			_pco_GetHWIOSignalAll(error);
 			if(error) {
 				ptr += sprintf_s(ptr, ptrMax - ptr, "SDK ERROR [%d]\n", error);
 				return output;
@@ -1266,7 +1284,11 @@ wSignalDefinitions: Flags showing signal options:
 				ptr += sprintf_s(ptr, ptrMax - ptr, "* Signal Names:\n");
 					for(int iSel = 0; iSel <4; iSel++)
 					{
+#ifdef __linux__
+						char * ptrName = m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[iSel];
+#else
 						char * ptrName = m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[iSel];
+#endif
 						if(*ptrName) ptr += sprintf_s(ptr, ptrMax - ptr, "   [%s]  selected[%d]\n", ptrName, iSel);
 					}
 				ptr += sprintf_s(ptr, ptrMax - ptr, "\n");
@@ -1275,13 +1297,14 @@ wSignalDefinitions: Flags showing signal options:
 
 				val = m_pcoData->stcPcoHWIOSignalDesc[i].wSignalDefinitions;
 				ptr += sprintf_s(ptr, ptrMax - ptr, "   def[0x%x]: ", val); 
-                if(mask = val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal can be enabled/disabled (0x%x)] ", mask);				
-                if(mask = val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal is a status output (0x%x)] ", mask);				
-                if(mask = val & 0x10) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 1 has got parameter value (0x%x)] ", mask);				
-                if(mask = val & 0x20) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 2 has got parameter value (0x%x)] ", mask);				
-                if(mask = val & 0x40) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 3 has got parameter value (0x%x)] ", mask);				
-                if(mask = val & 0x80) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 4 has got parameter value (0x%x)] ", mask);				
+                if((mask = (val & 0x01))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal can be enabled/disabled (0x%x)] ", mask);				
+                if((mask = (val & 0x02))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal is a status output (0x%x)] ", mask);				
+                if((mask = (val & 0x10))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 1 has got parameter value (0x%x)] ", mask);				
+                if((mask = (val & 0x20))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 2 has got parameter value (0x%x)] ", mask);				
+                if((mask = (val & 0x40))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 3 has got parameter value (0x%x)] ", mask);				
+                if((mask = (val & 0x80))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Signal function 4 has got parameter value (0x%x)] ", mask);				
 				ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
+					
 
 /***************************************************************
 wSignalTypes: Flags showing which signal type is available:
@@ -1292,11 +1315,12 @@ wSignalTypes: Flags showing which signal type is available:
 ***************************************************************/
 				val = m_pcoData->stcPcoHWIOSignalDesc[i].wSignalTypes;
 				ptr += sprintf_s(ptr, ptrMax - ptr, "   type[0x%x]: ", val); 
-                if(mask = val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[TTL (0x%x)] ", mask);				
-                if(mask = val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level TTL (0x%x)] ", mask);				
-                if(mask = val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Contact Mode (0x%x)] ", mask);				
-                if(mask = val & 0x08) ptr += sprintf_s(ptr, ptrMax - ptr, "[RS485 differential (0x%x)] ", mask);				
+                if((mask = (val & 0x01))) ptr += sprintf_s(ptr, ptrMax - ptr, "[TTL (0x%x)] ", mask);				
+                if((mask = (val & 0x02))) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level TTL (0x%x)] ", mask);				
+                if((mask = (val & 0x04))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Contact Mode (0x%x)] ", mask);				
+                if((mask = (val & 0x08))) ptr += sprintf_s(ptr, ptrMax - ptr, "[RS485 differential (0x%x)] ", mask);				
 				ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
+
 
 /***************************************************************
 wSignalPolarity: Flags showing which signal polarity can be selected:
@@ -1307,10 +1331,10 @@ wSignalPolarity: Flags showing which signal polarity can be selected:
 ***************************************************************/
 				val = m_pcoData->stcPcoHWIOSignalDesc[i].wSignalPolarity;
 				ptr += sprintf_s(ptr, ptrMax - ptr, "   pol[0x%x]: ", val); 
-                if(mask = val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Low level active (0x%x)] ", mask);				
-                if(mask = val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level active (0x%x)] ", mask);				
-                if(mask = val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Rising edge active (0x%x)] ", mask);				
-                if(mask = val & 0x08) ptr += sprintf_s(ptr, ptrMax - ptr, "[Falling edge active (0x%x)] ", mask);				
+                if((mask = (val & 0x01))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Low level active (0x%x)] ", mask);				
+                if((mask = (val & 0x02))) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level active (0x%x)] ", mask);				
+                if((mask = (val & 0x04))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Rising edge active (0x%x)] ", mask);				
+                if((mask = (val & 0x08))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Falling edge active (0x%x)] ", mask);				
 				ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
 
 /***************************************************************
@@ -1320,12 +1344,14 @@ wSignalFilter: Flags showing the filter option:
 - 0x04: Filter can be switched to high (t > ~100ms)
 Notes: the command will be rejected, if Recording State is [run]
 ***************************************************************/
+
 				val = m_pcoData->stcPcoHWIOSignalDesc[i].wSignalFilter;
 				ptr += sprintf_s(ptr, ptrMax - ptr, "   filter[0x%x]: ", val); 
-                if(mask = val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched off (t > ~65ns) (0x%x)] ", mask);				
-                if(mask = val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to medium (t > ~1us) (0x%x)] ", mask);				
-                if(mask = val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to high (t > ~100ms) (0x%x)] ", mask);				
+                if((mask = (val & 0x01))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched off (t > ~65ns) (0x%x)] ", mask);				
+                if((mask = (val & 0x02))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to medium (t > ~1us) (0x%x)] ", mask);				
+                if((mask = (val & 0x04))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to high (t > ~100ms) (0x%x)] ", mask);				
 				ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
+
 
 				WORD wSelected = m_pcoData->stcPcoHWIOSignal[i].wSelected;
 				{ 
@@ -1333,7 +1359,13 @@ Notes: the command will be rejected, if Recording State is [run]
     			    ptr += sprintf_s(ptr, ptrMax - ptr,
 						"\n"
 						"* STATUS of the HWIO signal for descriptor[%d] selected[%d] [%s]\n",
-						i, wSelected, m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[wSelected]
+						i, wSelected, 
+#ifndef __linux__
+						m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[wSelected]
+#else
+						m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[wSelected]
+#endif
+
 						);
 
 /***************************************************************
@@ -1356,10 +1388,10 @@ Type Flags showing which signal type is selected
 ***************************************************************/
 				        val = m_pcoData->stcPcoHWIOSignal[i].wType;
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "   type[0x%x]: ", val); 
-                        if(mask = val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[TTL (0x%x)] ", mask);				
-                        if(mask = val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level TTL (0x%x)] ", mask);				
-                        if(mask = val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Contact Mode (0x%x)] ", mask);				
-                        if(mask = val & 0x08) ptr += sprintf_s(ptr, ptrMax - ptr, "[RS485 differential (0x%x)] ", mask);				
+                        if((mask = (val & 0x01))) ptr += sprintf_s(ptr, ptrMax - ptr, "[TTL (0x%x)] ", mask);				
+                        if((mask = (val & 0x02))) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level TTL (0x%x)] ", mask);				
+                        if((mask = (val & 0x04))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Contact Mode (0x%x)] ", mask);				
+                        if((mask = (val & 0x08))) ptr += sprintf_s(ptr, ptrMax - ptr, "[RS485 differential (0x%x)] ", mask);				
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
 
 /***************************************************************
@@ -1371,10 +1403,10 @@ Polarity Flags showing which signal polarity is selected
 ***************************************************************/
 				        val = m_pcoData->stcPcoHWIOSignal[i].wPolarity;
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "   pol[0x%x]: ", val); 
-                        if(mask = val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Low level active (0x%x)] ", mask);				
-                        if(mask = val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level active (0x%x)] ", mask);				
-                        if(mask = val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Rising edge active (0x%x)] ", mask);				
-                        if(mask = val & 0x08) ptr += sprintf_s(ptr, ptrMax - ptr, "[Falling edge active (0x%x)] ", mask);				
+                        if((mask = (val & 0x01))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Low level active (0x%x)] ", mask);				
+                        if((mask = (val & 0x02))) ptr += sprintf_s(ptr, ptrMax - ptr, "[High Level active (0x%x)] ", mask);				
+                        if((mask = (val & 0x04))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Rising edge active (0x%x)] ", mask);				
+                        if((mask = (val & 0x08))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Falling edge active (0x%x)] ", mask);				
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
 
 /***************************************************************
@@ -1383,19 +1415,22 @@ FilterSetting Flags showing the filter option which is selected
  0x02: Filter can be switched to medium (t > ~1 u)
  0x04: Filter can be switched to high (t > ~100ms)
 Selected In case the HWIOSignaldescription shows more than one SignalNames, this parameter can be
-used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
+used to select a different signal, e.g. Status Busy or Status Exposure.
 ***************************************************************/
 				        val = m_pcoData->stcPcoHWIOSignal[i].wFilterSetting;
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "   filter[0x%x]: ", val); 
-                        if(mask = val & 0x01) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched off (t > ~65ns) (0x%x)] ", mask);				
-                        if(mask = val & 0x02) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to medium (t > ~1us) (0x%x)] ", mask);				
-                        if(mask = val & 0x04) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to high (t > ~100ms) (0x%x)] ", mask);				
+                        if((mask = (val & 0x01))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched off (t > ~65ns) (0x%x)] ", mask);				
+                        if((mask = (val & 0x02))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to medium (t > ~1us) (0x%x)] ", mask);				
+                        if((mask = (val & 0x04))) ptr += sprintf_s(ptr, ptrMax - ptr, "[Filter can be switched to high (t > ~100ms) (0x%x)] ", mask);				
 				        ptr += sprintf_s(ptr, ptrMax - ptr, "\n"); 
+
 
                     }  // if signame
 				}   // for wselec
 					//print_hex_dump_buff(&m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[0][0], 24*4);
 			} // for descr
+
+			
 			return output;
 		}
 
@@ -1405,7 +1440,7 @@ used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
 		if(_stricmp(cmd, key) == 0){
 			int error, i;
 
-			_pco_GetHWIOSignal(error);
+			_pco_GetHWIOSignalAll(error);
 			if(error) {
 				ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR [%d]", error);
 				return output;
@@ -1417,10 +1452,21 @@ used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
 					"name[%s] [%s] [%s] [%s] idx[%d] num[%d] \n"
 					"-def:     def[0x%x] type[0x%x] pol[0x%x] filt[0x%x]\n"
 					"-sig:    enab[0x%x] type[0x%x] pol[0x%x] filt[0x%x] sel[0x%x]\n\n", 
+					
+#ifndef __linux__					
 					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[0],
 					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[1],
 					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[2],
 					m_pcoData->stcPcoHWIOSignalDesc[i].strSignalName[3],
+#else
+					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[0],
+					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[1],
+					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[2],
+					m_pcoData->stcPcoHWIOSignalDesc[i].szSignalName[3],
+#endif
+
+
+
 					i, 
 					m_pcoData->stcPcoHWIOSignal[i].wSignalNum,
 
@@ -1474,7 +1520,7 @@ used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
 				return output;
 			}
 
-			_pco_GetHWIOSignal(error);
+			_pco_GetHWIOSignalAll(error);
 			if(error) {
 				ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR [%d]", error);
 				return output;
@@ -1510,7 +1556,7 @@ used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
 				if( ((nrBits = getNrBitsOn(wVal)) != 1) || ((wVal & wMask) != wVal))
 				{
 					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid Type[%d] nrBits[%d] mask[%d]", wVal, nrBits, wMask);
-					_pco_GetHWIOSignal(error);
+					_pco_GetHWIOSignalAll(error);
 					return output;
 				}
 				m_pcoData->stcPcoHWIOSignal[iSignalNum].wPolarity = wVal;
@@ -1523,7 +1569,7 @@ used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
 				if( ((nrBits = getNrBitsOn(wVal)) != 1) || ((wVal & wMask) != wVal))
 				{
 					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid Polarity[%d] nrBits[%d] mask[%d]", wVal, nrBits, wMask);
-					_pco_GetHWIOSignal(error);
+					_pco_GetHWIOSignalAll(error);
 					return output;
 				}
 				m_pcoData->stcPcoHWIOSignal[iSignalNum].wPolarity = wVal;
@@ -1536,7 +1582,7 @@ used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
 				if( ((nrBits = getNrBitsOn(wVal)) != 1) || ((wVal & wMask) != wVal))
 				{
 					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid FilterSetting[%d] nrBits[%d] mask[%d]", wVal, nrBits, wMask);
-					_pco_GetHWIOSignal(error);
+					_pco_GetHWIOSignalAll(error);
 					return output;
 				}
 				m_pcoData->stcPcoHWIOSignal[iSignalNum].wFilterSetting = wVal;
@@ -1545,10 +1591,18 @@ used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
 
 			if(iSelected >= 0)
 			{
-				if( (iSelected > 3) || (*m_pcoData->stcPcoHWIOSignalDesc[iSignalNum].strSignalName[iSelected]==0))
+                char cName;
+                
+#ifndef __linux__
+                cName = *m_pcoData->stcPcoHWIOSignalDesc[iSignalNum].strSignalName[iSelected];
+#else
+                cName = *m_pcoData->stcPcoHWIOSignalDesc[iSignalNum].szSignalName[iSelected];
+#endif                
+                
+				if( (iSelected > 3) || (cName==0))
 				{
 					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid Selected[%d]", iSelected);
-					_pco_GetHWIOSignal(error);
+					_pco_GetHWIOSignalAll(error);
 					return output;
 				}
 				m_pcoData->stcPcoHWIOSignal[iSignalNum].wSelected = (WORD) iSelected;
@@ -1583,6 +1637,7 @@ used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
 
 
 		//----------------------------------------------------------------------------------------------------------
+#ifndef __linux__
 		key = keys[ikey] = "winMem";     
 		keys_desc[ikey++] = "(R) read win memory";     
 		if(_stricmp(cmd, key) == 0){
@@ -1607,7 +1662,7 @@ used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
 
 			return output;
 		}
-
+#endif
 
 		//----------------------------------------------------------------------------------------------------------
 		key = keys[ikey] = "comment";     
@@ -1630,7 +1685,7 @@ used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
 		keys_desc[ikey++] = "(R) this help / list of the talk cmds";     
 		if(_stricmp(cmd, key) == 0){
 			int i, j, ikeyMax;
-			char *ptri, *ptrj;
+			const char *ptri, *ptrj;
 			size_t len = 0;
 
 			ikeyMax = ikey;
@@ -1649,7 +1704,7 @@ used to select a different signal, e.g. ’Status Busy’ or ’Status Exposure’.
 						keys_desc[j] = ptri;
 					}
 				}
-				len = max(len, (strlen(keys[i])));
+				if(len < strlen(keys[i])) len = strlen(keys[i]);
 			}
 
 			for(i = 0; i < ikeyMax; i++) 
@@ -1823,7 +1878,7 @@ void print_hex_dump_buff(void *ptr_buff, size_t len) {
 	BYTE * ptr = (BYTE *) ptr_buff;
 	;
 	
-	printf("dump buff / len: %d\n", len);
+	printf("dump buff / len: %ld\n", len);
 	
 	while(len > 0) {
 		printf("%s\n", hex_dump_line(ptr, len, &nr, &offset));
@@ -1855,7 +1910,7 @@ ringLog::~ringLog() {
         delete buffer;
 }
 
-int ringLog::add(char *s) {
+int ringLog::add(const char *s) {
 
         struct data *ptr;
         int offset;
@@ -1884,9 +1939,8 @@ void ringLog::dumpPrint(bool direction) {
         int offset;
         time_t ltime;
         struct tm today;
-        char *fmt = "%Y/%m/%d %H:%M:%S";
+        const char *fmt = "%Y/%m/%d %H:%M:%S";
         int i;
-        errno_t err;
         
         for(i=0; i< m_size; i++) {
         
@@ -1895,7 +1949,7 @@ void ringLog::dumpPrint(bool direction) {
                 ptr = buffer + (m_head + offset) % m_capacity;
                 ltime = ptr->timestamp;
 
-				err = localtime_s( &today, &ltime );
+				localtime_s( &today, &ltime );
 
                 strftime(timeline, 128, fmt, &today);
                 
@@ -1906,16 +1960,15 @@ void ringLog::dumpPrint(bool direction) {
 
 int ringLog::dump(char *s, int lgMax, bool direction) {
 
-        static char timeline[128];
+        //static char timeline[128];
         struct data *ptr;
         int offset;
         time_t ltime;
         struct tm today;
-        char *fmt = "%Y/%m/%d %H:%M:%S";
+        const char *fmt = "%Y/%m/%d %H:%M:%S";
 		int linMax = 25 + RING_LOG_BUFFER_SIZE;
         int i;
 		char *ptrOut;
-        errno_t err;
         int lg = 0;
 		ptrOut = s;
 
@@ -1926,7 +1979,7 @@ int ringLog::dump(char *s, int lgMax, bool direction) {
                 ptr = buffer + (m_head + offset) % m_capacity;
                 ltime = ptr->timestamp;
 
-				err = localtime_s( &today, &ltime );
+				localtime_s( &today, &ltime );
 
                 lg += (int) strftime(s + lg, lgMax - lg, fmt, &today);
                 lg += sprintf_s(s + lg, lgMax - lg, "> %s\n", ptr->str);
@@ -1946,7 +1999,7 @@ unsigned long long Camera::_getDebug(unsigned long long mask = ULLONG_MAX){
 //=========================================================================================================
 //=========================================================================================================
 
-char *Camera::_checkLogFiles(bool firstCall) {
+const char *Camera::_checkLogFiles(bool firstCall) {
 	const char *logFiles[] = {
 		"C:\\ProgramData\\pco\\SC2_Cam.log", 
 		"C:\\ProgramData\\pco\\PCO_CDlg.log", 
@@ -1954,7 +2007,7 @@ char *Camera::_checkLogFiles(bool firstCall) {
         "C:\\ProgramData\\pco\\me4_memlog_end.log",
 		NULL};
 	const char **ptr = logFiles;
-	char *logOn = "\n\n"		
+	const char *logOn = "\n\n"		
 		"###############################################################################\n"
 		"###############################################################################\n"
 		"###############################################################################\n"
@@ -1978,7 +2031,7 @@ char *Camera::_checkLogFiles(bool firstCall) {
 		"###############################################################################\n"
 		"###############################################################################\n\n\n";
 
-	char *logOff = "";
+	const char *logOff = "";
 	struct stat fileStat;
 	int error;
 	bool found = false;
@@ -2006,9 +2059,13 @@ char *Camera::_checkLogFiles(bool firstCall) {
 char * _getComputerName(char *infoBuff, DWORD  bufCharCount  )
 {
 
+#ifndef __linux__
   // Get and display the name of the computer. 
   if( !GetComputerName( infoBuff, &bufCharCount ) )
 	  sprintf_s(infoBuff, bufCharCount, "ERROR: GetComputerName" ); 
+#else
+	  sprintf_s(infoBuff, bufCharCount, "TODO - GetComputerName LINUX" ); 
+#endif
 
   return infoBuff ;
 }
@@ -2016,12 +2073,26 @@ char * _getComputerName(char *infoBuff, DWORD  bufCharCount  )
 char * _getUserName(char *infoBuff, DWORD  bufCharCount  )
 {
  
+#ifndef __linux__
   // Get and display the user name. 
   if( !GetUserName( infoBuff, &bufCharCount ) )
 	  sprintf_s(infoBuff, bufCharCount, "ERROR: GetUserName" ); 
+#else
+	  sprintf_s(infoBuff, bufCharCount, "TODO - GetUserName LINUX" ); 
+#endif
+
   return infoBuff ;
 }
 
+#ifdef __linux__
+char * _getDllPath(const char* pzFileName, char *path, size_t strLen)
+{
+    *path = 0;
+    return path;
+}
+
+
+#else
 //====================================================================
 //====================================================================
 #define PCOSDK_FILENAME "sc2_cam.dll"
@@ -2135,14 +2206,18 @@ int GetFileVerStructA(TCHAR* pzFileName, int* ima, int* imi, int* imb)
   return -1;
 }
 
+#endif
 //=======================================================================================================
 //=======================================================================================================
 
 char * _getPcoSdkVersion(char *infoBuff, int strLen, char *lib)
 {
+	char *ptr = infoBuff;
+
+#ifndef __linux__
+
 	int ima, imi, imb;
 	int nr;
-	char *ptr = infoBuff;
 
 	*ptr = 0;
 
@@ -2150,7 +2225,10 @@ char * _getPcoSdkVersion(char *infoBuff, int strLen, char *lib)
 	{
 		nr = sprintf_s(ptr, strLen, "file[%s] ver[%d.%d.%d]\n", lib, ima, imi, imb);
 	}
+#else
+		sprintf_s(ptr, strLen, "TODO SDK LINUX VERSON\n");
 
+#endif
 	return infoBuff ;
 }
 
@@ -2215,7 +2293,7 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 	//--------------- firmware
 	if(flag & CAMINFO_FIRMWARE) {
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* firmware \n");
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... firmware dwHWVersion[%lx]  dwFWVersion[%lx] <- not used\n", 
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... firmware dwHWVersion[%x]  dwFWVersion[%x] <- not used\n", 
 			m_pcoData->stcPcoCamType.dwHWVersion, 
 			m_pcoData->stcPcoCamType.dwFWVersion);
 		
@@ -2255,7 +2333,8 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		PCO_FW_Vers strFirmwareVersion;
 		WORD wblock = 0;
 		int iCnt, err;
-		err =  PCO_GetFirmwareInfo(m_handle, wblock++, &strFirmwareVersion);
+//		err =  PCO_GetFirmwareInfo(m_handle, wblock++, &strFirmwareVersion);
+		_pco_GetFirmwareInfo(wblock++, &strFirmwareVersion, err);
 		nrDev = (err == PCO_NOERROR) ? strFirmwareVersion.DeviceNum : 0;
 
 		if(nrDev > 0){
@@ -2267,7 +2346,7 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 				PCO_SC2_Firmware_DESC *ptrfw;
 				if(iCnt >= 10) {
 					iCnt = 0;
-					err =  PCO_GetFirmwareInfo(m_handle, wblock++, &strFirmwareVersion);
+					_pco_GetFirmwareInfo(wblock++, &strFirmwareVersion, err);
 					if (err != PCO_NOERROR) break;
 				} // iCnt
 				
@@ -2294,14 +2373,14 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		_pco_GetPixelRate(dwPixRate, dwPixRateNext, error);
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* pixelRate\n");
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... pixelRate[%ld](%g MHz)\n", dwPixRate, dwPixRate/1000000.);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    pixelRateRequested[%ld](%g MHz) \n", 	dwPixRateNext, dwPixRateNext/1000000.);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... pixelRate[%d](%g MHz)\n", dwPixRate, dwPixRate/1000000.);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    pixelRateRequested[%d](%g MHz) \n", 	dwPixRateNext, dwPixRateNext/1000000.);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    valid pixelRates "); 
 		for(i=0; i<4; i++) {
 			dwPixRate = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
-			if(dwPixRate){ptr += sprintf_s(ptr, ptrMax - ptr, " [%ld]",dwPixRate);}  
+			if(dwPixRate){ptr += sprintf_s(ptr, ptrMax - ptr, " [%d]",dwPixRate);}  
 		}	
-		ptr += sprintf_s(ptr, ptrMax - ptr, "\n",dwPixRate);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "\n");
 	}
 
 
@@ -2393,7 +2472,7 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		int segmentArr = segmentPco -1;
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "*** DIMAX - 2k - 4k info \n");
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* pagesInRam[%ld] pixPerPage[%d] bitsPerPix[%d] ramGB[%.3g] bytesPerPix[%d] imgGB[%.3g]\n",  
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* pagesInRam[%d] pixPerPage[%d] bitsPerPix[%d] ramGB[%.3g] bytesPerPix[%d] imgGB[%.3g]\n",  
 			m_pcoData->dwRamSize, 
 			m_pcoData->wPixPerPage, 
 			bitsPerPix,
@@ -2404,8 +2483,8 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* PcoActiveSegment=[%d]\n", segmentArr+1);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwMaxFramesInSegment[%d]=[%d frames]\n", segmentArr, m_pcoData->dwMaxFramesInSegment[segmentArr]);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwSegmentSize[%d]=[%d pages]\n", segmentArr, m_pcoData->dwSegmentSize[segmentArr]);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwValidImageCnt[%d]=[%ld]\n", segmentArr, m_pcoData->dwValidImageCnt[segmentArr]);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwMaxImageCnt[%d]=[%ld]\n", segmentArr, m_pcoData->dwMaxImageCnt[segmentArr]);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwValidImageCnt[%d]=[%d]\n", segmentArr, m_pcoData->dwValidImageCnt[segmentArr]);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwMaxImageCnt[%d]=[%d]\n", segmentArr, m_pcoData->dwMaxImageCnt[segmentArr]);
 
 
 		int err;
@@ -2421,7 +2500,7 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 				_stc->wXRes, _stc->wYRes,
 				_stc->wRoiX0, _stc->wRoiX1, 
 				_stc->wRoiY0, _stc->wRoiY1);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "*    validImgCount[%ld] maxImgCount[%ld]\n",
+			ptr += sprintf_s(ptr, ptrMax - ptr, "*    validImgCount[%d] maxImgCount[%d]\n",
 				_stc->dwValidImageCnt,_stc->dwMaxImageCnt);
 		}
 
@@ -2463,13 +2542,13 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 			m_pcoData->wLUT_Identifier, m_pcoData->wLUT_Parameter);
 
 		int alignment;
-		char *res;
+		const char *res;
 		_pco_GetBitAlignment(alignment);
 		res = alignment == 0 ? "[0][MSB]" : "[1][LSB]";
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* data bit alignment%s\n", res);
 
 		WORD wTimeStampMode;
-		char *mode;
+		const char *mode;
 		int error;
 		_pco_GetTimestampMode(wTimeStampMode, error);
 		if(error) wTimeStampMode = 100;
@@ -3058,7 +3137,7 @@ void Camera::getTraceAcq(std::string &o_sn)
 	
 
 	for(int _i = 0; _i < LEN_TRACEACQ_TRHEAD; _i++){
-		char *desc = m_pcoData->traceAcq.usTicks[_i].desc;
+		const char *desc = m_pcoData->traceAcq.usTicks[_i].desc;
 		if(desc != NULL) {
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"* ... usTicks[%d][%5.3f] (ms)   (%s)\n", 
@@ -3117,7 +3196,7 @@ void Camera::getPixelRateValidValues(std::string &o_sn)
 		dwPixRate = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
 		if(dwPixRate){
 			nr++;
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld  ",dwPixRate);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d  ",dwPixRate);
 		}  
 	}	
 
