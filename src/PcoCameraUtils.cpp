@@ -1127,11 +1127,11 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		key = keys[ikey] = "ADC";     
 		keys_desc[ikey++] = "(RW) ADC working ADC [<new value>]";     
 		if(_stricmp(cmd, key) == 0){
-			int error __attribute__((unused));
 			
 			int adc_new, adc_working, adc_max;
 
-			error = _pco_GetADCOperation(adc_working, adc_max);
+			//error = _pco_GetADCOperation(adc_working, adc_max);
+			pco_GetADCOperation(adc_working, adc_max);
 			if((tokNr <1)){
 				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", adc_working);
 				return output;
@@ -1139,7 +1139,8 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 
 			adc_new = atoi(tok[1]);
 			
-			error = _pco_SetADCOperation(adc_new, adc_working);
+			//error = _pco_SetADCOperation(adc_new, adc_working);
+			_pco_SetADCOperation(adc_new, adc_working);
 			
 			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", adc_working);
 
