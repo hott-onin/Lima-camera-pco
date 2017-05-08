@@ -1021,7 +1021,8 @@ void Camera::startAcq()
 	msg = _pco_SetImageParameters(error); PCO_THROW_OR_TRACE(error, msg) ;
 
 	//--------------------------- PREPARE / cocruntime (valid after PCO_SetDelayExposureTime and ARM)
-	msg = _pco_GetCOCRuntime(error); PCO_THROW_OR_TRACE(error, msg) ;
+	//msg = _pco_GetCOCRuntime(error); PCO_THROW_OR_TRACE(error, msg) ;
+	_pco_GetCOCRuntime(error); PCO_THROW_OR_TRACE(error, "_pco_GetCOCRuntime") ;
 
 
     //------------------------------------------------- checking nr of frames for cams with memory
@@ -1212,7 +1213,7 @@ void _pco_acq_thread_dimax(void *argin) {
 	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
 	m_pcoData->traceAcq.fnId = fnId;
 
-	char *msg;
+	const char *msg;
 	struct __timeb64 tStart, tStart0;
 	msElapsedTimeSet(tStart);
 	tStart0 = tStart;
@@ -1430,7 +1431,7 @@ void _pco_acq_thread_dimax_trig_single(void *argin) {
 	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
 	m_pcoData->traceAcq.fnId = fnId;
 
-	char *msg;
+	const char *msg;
 	struct __timeb64 tStart, tStart0;
 	msElapsedTimeSet(tStart);
 	tStart0 = tStart;
@@ -1708,7 +1709,7 @@ void _pco_acq_thread_edge(void *argin) {
 
 	m_sync->setExposing(status);
 	//m_sync->stopAcq();
-	char *msg = m_cam->_pco_SetRecordingState(0, error);
+	const char *msg = m_cam->_pco_SetRecordingState(0, error);
 	if(error) {
 		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
 		//throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
@@ -1783,7 +1784,7 @@ void _pco_acq_thread_dimax_live(void *argin) {
 	pcoAcqStatus status = (pcoAcqStatus) m_buffer->_xferImag();
 	m_sync->setExposing(status);
 	//m_sync->stopAcq();
-	char *msg = m_cam->_pco_SetRecordingState(0, error);
+	const char *msg = m_cam->_pco_SetRecordingState(0, error);
 	if(error) {
 		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
 		//throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
@@ -1872,7 +1873,7 @@ void _pco_acq_thread_ringBuffer(void *argin) {
 	m_pcoData->traceAcq.usTicks[3].desc = "sync->stopAcq execTime";
 	usElapsedTimeSet(usStart);
 
-	char *msg = m_cam->_pco_SetRecordingState(0, error);
+	const char *msg = m_cam->_pco_SetRecordingState(0, error);
 	m_pcoData->traceAcq.usTicks[4].value = usElapsedTime(usStart);
 	m_pcoData->traceAcq.usTicks[4].desc = "_pco_SetRecordingState execTime";
 	usElapsedTimeSet(usStart);

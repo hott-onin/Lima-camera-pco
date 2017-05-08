@@ -468,8 +468,8 @@ namespace lima
         unsigned long pcoGetFramesMaxInSegment(int segmentPco);
 
 		unsigned long	pcoGetFramesPerBuffer() { return m_pcoData->frames_per_buffer; }
-		double pcoGetCocRunTime() { return m_pcoData->cocRunTime; }
-		double pcoGetFrameRate() { return m_pcoData->frameRate; }
+		double pcoGetCocRunTime();
+		double pcoGetFrameRate();
 
 
 		PcoHwEventCtrlObj *_getPcoHwEventCtrlObj() {return m_HwEventCtrlObj;}
@@ -653,7 +653,7 @@ namespace lima
 	public:		//----------- pco sdk functions
 		WORD _pco_GetActiveRamSegment(); // {return m_pcoData->wActiveRamSegment;}
 
-		char *_pco_SetRecordingState(int state, int &error);
+		const char *_pco_SetRecordingState(int state, int &error);
 
 		char *_pco_SetTriggerMode_SetAcquireMode(int &error);
 		char *_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode, int &error);
@@ -667,7 +667,7 @@ namespace lima
 
 		char *_pco_SetTransferParameter_SetActiveLookupTable(int &error);
 		char *_pco_SetPixelRate(int &error);
-		char *_pco_GetCOCRuntime(int &error);
+		void _pco_GetCOCRuntime(int &error);
 		char *_pco_SetMetaDataMode(WORD wMetaDataMode, int &error);
 
 		void _pco_GetHWIOSignalAll(int &error);
@@ -696,6 +696,8 @@ namespace lima
 
 		void _pco_FillStructures(int &err);
 		void _pco_CloseCamera(int &err);
+
+		WORD _pco_GetRecordingState(int &err);
 
     };
   }

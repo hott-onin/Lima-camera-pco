@@ -106,96 +106,7 @@ WORD Camera::_pco_GetActiveRamSegment()
 	return act_segment;
 }
 
-//=================================================================================================
-//=================================================================================================
 
-// wBitAlignment:
-// - 0x0000 = [MSB aligned]; all raw image data will be aligned to the MSB. This is thedefault setting.
-// - 0x0001 = [LSB aligned]; all raw image data will be aligned to the LSB.
-
-int Camera::_pco_SetBitAlignment(int alignment){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	int error = 0;
-	int alignment1;
-	char *msg;
-	WORD wBitAlignment;
-
-	if((alignment <0) ||(alignment >1)){
-		DEB_ALWAYS() << "ERROR - invalid value " << DEB_VAR1(alignment);
-		return -1;
-	}
-
-	wBitAlignment = int(alignment);
-
-	PCO_FN2(error, msg,PCO_SetBitAlignment, m_handle, wBitAlignment);
-	PCO_THROW_OR_TRACE(error, msg) ;
-
-	
-	return _pco_GetBitAlignment(alignment1);
-
-}
-
-//=================================================================================================
-//=================================================================================================
-	//-------------------------------------------------------------------------------------------------
-	// PCO_SetADCOperation
-    // Set analog-digital-converter (ADC) operation for reading the image sensor data. Pixel data can be
-    // read out using one ADC (better linearity) or in parallel using two ADCs (faster). This option is
-    // only available for some camera models. If the user sets 2ADCs he must center and adapt the ROI
-    // to symmetrical values, e.g. pco.1600: x1,y1,x2,y2=701,1,900,500 (100,1,200,500 is not possible).
-    //
-	// DIMAX -> 1 adc
-	//-------------------------------------------------------------------------------------------------
-int Camera::_pco_GetADCOperation(int &adc_working, int &adc_max)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	char *msg;
-
-	int error;
-	WORD wADCOperation;
-
-	adc_max = m_pcoData->stcPcoDescription.wNumADCsDESC; // nr of ADC in the system
-
-	if(adc_max == 2) {
-		PCO_FN2(error, msg,PCO_GetADCOperation, m_handle, &wADCOperation);
-		if(error) wADCOperation = (WORD) 1;
-	} else {
-		adc_max = 1;
-		wADCOperation = (WORD) 1;
-	}
-
-	adc_working = wADCOperation;
-	m_pcoData->wNowADC= wADCOperation;
-
-	return error;
-}
-
-//=================================================================================================
-//=================================================================================================
-
-int Camera::_pco_SetADCOperation(int adc_new, int &adc_working)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	char *msg;
-
-	int error, adc_max;
-
-	error = _pco_GetADCOperation(adc_working, adc_max);
-
-	DEB_ALWAYS() << fnId << ": " DEB_VAR2(adc_max, adc_working);
-
-	if(error) return error;
-
-	if((adc_new >=1) && (adc_new <= adc_max) && (adc_new != adc_working) ){
-		PCO_FN2(error, msg,PCO_SetADCOperation, m_handle, (WORD) adc_new);
-		_pco_GetADCOperation(adc_working, adc_max);
-	}
-	m_pcoData->wNowADC = adc_working;
-	return error;
-}
 
 
 //=================================================================================================
@@ -262,23 +173,7 @@ char *Camera::_pco_SetPixelRate(int &error){
 	}
 return fnId;
 }
-//=================================================================================================
-//=================================================================================================
-int Camera::_pco_GetBitAlignment(int &alignment){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	int error = 0;
-	char *msg;
-	WORD wBitAlignment;
 
-	PCO_FN2(error, msg,PCO_GetBitAlignment, m_handle, &wBitAlignment);
-	PCO_THROW_OR_TRACE(error, msg) ;
-
-	
-	alignment = m_pcoData->wBitAlignment = wBitAlignment;
-
-	return error;
-}
 //=================================================================================================
 //=================================================================================================
 
@@ -864,96 +759,6 @@ char *Camera::_pco_GetTemperatureInfo(int &error){
 
 //=================================================================================================
 //=================================================================================================
-
-/**************************************************************************************************
-	If a set recording status = [stop] command is sent and the current status is already
-	[stop]’ped, nothing will happen (only warning, error message). 
-	
-	If the camera is in
-	[run]’ing state, it will last some time (system delay + last image readout), until the
-	camera is stopped. The system delay depends on the PC and the image readout
-	depends on the image size transferred. The SetRecordingState = [stop] checks for a
-	stable stop state by calling GetRecordingState.  --- 165 ms 
-	
-	Please call PCO_CancelImages to remove pending buffers from the driver.   --- 1.5 s
-**************************************************************************************************/
-
-char * Camera::_pco_SetRecordingState(int state, int &error){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	char *msg;
-	LARGE_INTEGER usStart;
-
-
-	WORD wRecState_new, wRecState_actual;
-
-	wRecState_new = state ? 0x0001 : 0x0000 ; // 0x0001 => START acquisition
-
-	usElapsedTimeSet(usStart);
-
-	PCO_FN2(error, msg,PCO_GetRecordingState, m_handle, &wRecState_actual);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
-
-	_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
-
-	m_pcoData->traceAcq.usTicks[8].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[8].desc = "PCO_GetRecordingState execTime";
-	usElapsedTimeSet(usStart);
-
-	//if(wRecState_new == wRecState_actual) {error = 0; return fnId; }
-
-
-	// ------------------------------------------ cancel images 
-	if(wRecState_new == 0) {
-		int count = 1;
-
-		_setCameraState(CAMSTATE_RECORD_STATE, false);
-
-#if 0
-		PCO_FN2(error, msg,PCO_GetPendingBuffer, m_handle, &count);
-		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
-#endif
-		if(count) {
-			DEB_ALWAYS() << ":  PCO_CancelImages() - CALLING";
-			PCO_FN1(error, msg,PCO_CancelImages, m_handle);
-			PCO_PRINT_ERR(error, msg); 	if(error) return msg;
-		} else {
-			DEB_ALWAYS() << ":  PCO_CancelImages() - BYPASSED";
-		}
-	}
-
-
-	if(wRecState_new != wRecState_actual) 
-	{
-		DEB_ALWAYS() << fnId << ": PCO_SetRecordingState " << DEB_VAR1(wRecState_new);
-		PCO_FN2(error, msg,PCO_SetRecordingState, m_handle, wRecState_new);
-		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
-	}
-
-	if(wRecState_new) 
-		m_sync->setExposing(pcoAcqRecordStart);
-
-	PCO_FN2(error, msg,PCO_GetRecordingState, m_handle, &wRecState_actual);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
-
-	_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
-
-	m_pcoData->traceAcq.usTicks[9].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[9].desc = "PCO_SetRecordingState execTime";
-	usElapsedTimeSet(usStart);
-
-	_armRequired(true);
-
-	m_pcoData->traceAcq.usTicks[10].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[10].desc = "PCO_CancelImages execTime";
-	usElapsedTimeSet(usStart);
-
-	//DEB_ALWAYS() << fnId << ": " << DEB_VAR4(error, state, wRecState_actual, wRecState_new);
-	return fnId;
-
-}
-//=================================================================================================
-//=================================================================================================
 char *Camera::_pco_SetMetaDataMode(WORD wMetaDataMode, int &error){
 		
 	DEB_MEMBER_FUNCT();
@@ -983,37 +788,6 @@ char *Camera::_pco_SetMetaDataMode(WORD wMetaDataMode, int &error){
 	m_pcoData->wMetaDataMode = wMetaDataMode;
 	
 	return fnId;
-}
-//=================================================================================================
-//=================================================================================================
-char *Camera::_pco_GetCOCRuntime(int &error){
-		
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	char *msg;
-
-	//====================================== get the coc runtime 
-    //---- only valid if it was used PCO_SetDelayExposureTime
-	//---- and AFTER armed the cam
-
-	// Get and split the 'camera operation code' runtime into two DWORD. One will hold the longer
-	// part, in seconds, and the other will hold the shorter part, in nanoseconds. This function can be
-	// used to calculate the FPS. The sum of dwTime_s and dwTime_ns covers the delay, exposure and
-	// readout time. If external exposure is active, it returns only the readout time.
-
-	DWORD dwTime_s, dwTime_ns;
-    double runTime;
-
-    PCO_FN3(error, msg,PCO_GetCOCRuntime, m_handle, &dwTime_s, &dwTime_ns);
-    PCO_PRINT_ERR(error, msg); 	if(error) return msg;
-
-    m_pcoData->cocRunTime = runTime = ((double) dwTime_ns * NANO) + (double) dwTime_s;
-    m_pcoData->frameRate = (dwTime_ns | dwTime_s) ? 1.0 / runTime : 0.0;
-
-    DEB_TRACE() << DEB_VAR2(m_pcoData->frameRate, m_pcoData->cocRunTime);
-
-	return fnId;
-
 }
 //=================================================================================================
 //=================================================================================================
@@ -1129,76 +903,6 @@ char *Camera::_pco_GetCameraType(int &error){
 
 
 	return fnId;
-}
-//=================================================================================================
-//=================================================================================================
-void Camera::_pco_SetTimestampMode(WORD mode, int &err)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	char *msg;
-	int error;
-	err = error = 0;
-
-    WORD modeNew, modeOld, modeMax;
-    
-	DWORD capsDesc1; 
-	_pco_GetGeneralCapsDESC(capsDesc1, error);
-
-	if(capsDesc1 & BIT8)
-	{
-	    DEB_ALWAYS() << "\n   timestampmode not allowed" ;
-		err = -1;
-		return;
-	}
-	modeMax = (capsDesc1 & BIT3) ? 3 : 2;
-	if(mode > modeMax)
-	{
-	    DEB_ALWAYS() << "\n  invalid value" << DEB_VAR2(mode, modeMax);
-		err = -1;
-		return;
-	}
-
-	_pco_GetTimestampMode(modeOld, err);
-	if(err) return;
-
-	if(mode == modeOld)
-	{
-	    DEB_ALWAYS()<< "\n   no change " << DEB_VAR2(mode, modeOld); 
-		return;
-	}
-
-	PCO_FN2(error, msg,PCO_SetTimestampMode,m_handle, mode);
-	PCO_PRINT_ERR(error, msg); 	
-	err |= error;
-	if(err) return;
-
-	_pco_GetTimestampMode(modeNew, err);
-	if(err) return;
-
-    DEB_ALWAYS() << "\n   " << DEB_VAR3(mode, modeOld, modeNew) 
-        ;
-
-    return;
-}
-
-void Camera::_pco_GetTimestampMode(WORD &mode, int &err)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-
-	char *msg;
-	int error;
-	err = error = 0;
-    
-	PCO_FN2(error, msg,PCO_GetTimestampMode,m_handle, &mode);
-	PCO_PRINT_ERR(error, msg); 	
-	err |= error;
-	if(err) return;
-
-    DEB_ALWAYS() << "\n   " << DEB_VAR1(mode);
-
-    return;
 }
 
 //=================================================================================================
@@ -1590,6 +1294,70 @@ void Camera::_pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &error)
 
 //=================================================================================================
 //=================================================================================================
+
+double Camera::pcoGetCocRunTime()
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+    return m_pcoData->cocRunTime;
+}
+
+double Camera::pcoGetFrameRate()
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	
+	return m_pcoData->frameRate;
+
+}
+
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetCOCRuntime(int &error){
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	const char *msg;
+
+	//====================================== get the coc runtime 
+    //---- only valid if it was used PCO_SetDelayExposureTime
+	//---- and AFTER armed the cam
+
+	// Get and split the 'camera operation code' runtime into two DWORD. One will hold the longer
+	// part, in seconds, and the other will hold the shorter part, in nanoseconds. This function can be
+	// used to calculate the FPS. The sum of dwTime_s and dwTime_ns covers the delay, exposure and
+	// readout time. If external exposure is active, it returns only the readout time.
+
+	DWORD dwTime_s, dwTime_ns;
+    double runTime;
+
+#ifndef __linux__
+	PCO_FN3(error, msg,PCO_GetCOCRuntime, m_handle, &dwTime_s, &dwTime_ns);
+    PCO_PRINT_ERR(error, msg); 	if(error) return;
+#else
+
+    error=camera->PCO_GetCOCRuntime(&dwTime_s, &dwTime_ns);
+    msg = "PCO_GetCOCRuntime" ; PCO_CHECK_ERROR(error, msg);
+    if(error) return;
+#endif
+
+
+    m_pcoData->cocRunTime = runTime = ((double) dwTime_ns * NANO) + (double) dwTime_s;
+    m_pcoData->frameRate = (dwTime_ns | dwTime_s) ? 1.0 / runTime : 0.0;
+
+	
+	
+	DEB_TRACE() << DEB_VAR2(m_pcoData->frameRate, m_pcoData->cocRunTime);
+
+	return;
+
+}
+
+
+
+//=================================================================================================
+//=================================================================================================
 void Camera::_pco_GetFirmwareInfo(WORD wDeviceBlock, PCO_FW_Vers* pstrFirmWareVersion, int &error)
 {
 #ifndef __linux__
@@ -1599,3 +1367,398 @@ void Camera::_pco_GetFirmwareInfo(WORD wDeviceBlock, PCO_FW_Vers* pstrFirmWareVe
 #endif
 }
 
+
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_SetTimestampMode(WORD mode, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+    WORD modeNew, modeOld, modeMax;
+
+
+#ifndef __linux__
+	char *msg;
+	int error;
+	err = error = 0;
+
+    
+	DWORD capsDesc1; 
+	_pco_GetGeneralCapsDESC(capsDesc1, error);
+
+	if(capsDesc1 & BIT8)
+	{
+	    DEB_ALWAYS() << "\n   timestampmode not allowed" ;
+		err = -1;
+		return;
+	}
+	modeMax = (capsDesc1 & BIT3) ? 3 : 2;
+	if(mode > modeMax)
+	{
+	    DEB_ALWAYS() << "\n  invalid value" << DEB_VAR2(mode, modeMax);
+		err = -1;
+		return;
+	}
+
+	_pco_GetTimestampMode(modeOld, err);
+	if(err) return;
+
+	if(mode == modeOld)
+	{
+	    DEB_ALWAYS()<< "\n   no change " << DEB_VAR2(mode, modeOld); 
+		return;
+	}
+
+	PCO_FN2(error, msg,PCO_SetTimestampMode,m_handle, mode);
+	PCO_PRINT_ERR(error, msg); 	
+	err |= error;
+	if(err) return;
+
+	_pco_GetTimestampMode(modeNew, err);
+	if(err) return;
+
+#else
+
+    err=camera->PCO_GetTimestampMode(&modeOld);
+    PCO_CHECK_ERROR(err, "PCO_GetTimestampMode"); 
+
+    err=camera->PCO_SetTimestampMode(mode);
+    PCO_CHECK_ERROR(err, "PCO_SetTimestampMode"); 
+
+    err=camera->PCO_GetTimestampMode(&modeNew);
+    PCO_CHECK_ERROR(err, "PCO_GetTimestampMode"); 
+
+#endif
+
+	DEB_ALWAYS() 
+        << "\n   " << DEB_VAR3(mode, modeOld, modeNew) 
+        ;
+
+    return;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetTimestampMode(WORD &mode, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+#ifndef __linux__
+	char *msg;
+	int error;
+	err = error = 0;
+    
+	PCO_FN2(error, msg,PCO_GetTimestampMode,m_handle, &mode);
+	PCO_PRINT_ERR(error, msg); 	
+	err |= error;
+	if(err) return;
+#else
+
+    err=camera->PCO_GetTimestampMode(&mode);
+    PCO_CHECK_ERROR(err, "PCO_GetTimestampMode"); 
+
+#endif
+
+	DEB_ALWAYS() 
+        << "\n   " << DEB_VAR1(mode) 
+        ;
+    return;
+}
+//=================================================================================================
+//=================================================================================================
+WORD Camera::_pco_GetRecordingState(int &err){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+    WORD wRecState_actual;
+    
+
+#ifndef __linux__	
+	char *msg;
+	int error;
+	msg = _PcoCheckError(__LINE__, __FILE__, 
+		PCO_GetRecordingState(m_handle, &wRecState_actual), error);
+	
+	err = error;
+
+	if(error) {
+		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
+		throw LIMA_HW_EXC(Error, "PCO_GetRecordingState");
+	}
+#else
+	err=camera->PCO_GetRecordingState(&wRecState_actual);
+    PCO_CHECK_ERROR(err, "PCO_GetRecordingState");
+#endif
+
+
+	return wRecState_actual;
+
+}
+//=================================================================================================
+//=================================================================================================
+
+/**************************************************************************************************
+	If a set recording status = [stop] command is sent and the current status is already
+	[stop]’ped, nothing will happen (only warning, error message). 
+	
+	If the camera is in
+	[run]’ing state, it will last some time (system delay + last image readout), until the
+	camera is stopped. The system delay depends on the PC and the image readout
+	depends on the image size transferred. The SetRecordingState = [stop] checks for a
+	stable stop state by calling GetRecordingState.  --- 165 ms 
+	
+	Please call PCO_CancelImages to remove pending buffers from the driver.   --- 1.5 s
+**************************************************************************************************/
+
+const char * Camera::_pco_SetRecordingState(int state, int &err){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	char *msg;
+	LARGE_INTEGER usStart;
+
+
+	WORD wRecState_new, wRecState_actual;
+
+	wRecState_new = state ? 0x0001 : 0x0000 ; // 0x0001 => START acquisition
+
+	usElapsedTimeSet(usStart);
+
+    wRecState_actual = _pco_GetRecordingState(err);
+
+#ifndef __linux__
+	_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
+
+	m_pcoData->traceAcq.usTicks[8].value = usElapsedTime(usStart);
+	m_pcoData->traceAcq.usTicks[8].desc = "PCO_GetRecordingState execTime";
+	usElapsedTimeSet(usStart);
+#else
+	//_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
+
+	traceAcq.usTicks[traceAcq_GetRecordingState].value = usElapsedTime(usStart);
+	traceAcq.usTicks[traceAcq_GetRecordingState].desc = "PCO_GetRecordingState execTime";
+	usElapsedTimeSet(usStart);
+#endif
+
+	//if(wRecState_new == wRecState_actual) {error = 0; return fnId; }
+
+	// ------------------------------------------ cancel images 
+	if(wRecState_new == 0) {
+		int count = 1;
+
+		_setCameraState(CAMSTATE_RECORD_STATE, false);
+
+
+#if 0
+		PCO_FN2(error, msg,PCO_GetPendingBuffer, m_handle, &count);
+		PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+#endif
+
+#ifndef __linux__
+		if(count) {
+			DEB_ALWAYS() << ":  PCO_CancelImages() - CALLING";
+			PCO_FN1(err, msg,PCO_CancelImages, m_handle);
+			PCO_PRINT_ERR(err, msg); 	if(err) return msg;
+		} else {
+			DEB_ALWAYS() << ":  PCO_CancelImages() - BYPASSED";
+		}
+	}
+
+	if(wRecState_new != wRecState_actual) 
+	{
+		DEB_ALWAYS() << fnId << ": PCO_SetRecordingState " << DEB_VAR1(wRecState_new);
+		PCO_FN2(err, msg,PCO_SetRecordingState, m_handle, wRecState_new);
+		PCO_PRINT_ERR(err, msg); 	if(err) return msg;
+	}
+
+	if(wRecState_new) 
+		m_sync->setExposing(pcoAcqRecordStart);
+
+#else
+if(count && !_isCameraType(Edge)) 
+		{
+			DEB_ALWAYS() << fnId << ": PCO_CancelImages";
+
+            err=camera->PCO_CancelImage();
+            PCO_CHECK_ERROR(err, "PCO_CancelImage");
+
+            err=camera->PCO_CancelImageTransfer();
+            PCO_CHECK_ERROR(err, "PCO_CancelImageTransfer");
+		}
+	}
+
+    err=camera->PCO_SetRecordingState(wRecState_new);
+    PCO_CHECK_ERROR(err, "PCO_SetRecordingState");
+#endif
+
+    wRecState_actual = _pco_GetRecordingState(err);
+	_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
+
+#ifndef __linux__
+	m_pcoData->traceAcq.usTicks[9].value = usElapsedTime(usStart);
+	m_pcoData->traceAcq.usTicks[9].desc = "PCO_SetRecordingState execTime";
+	usElapsedTimeSet(usStart);
+#else
+	traceAcq.usTicks[traceAcq_SetRecordingState].value = usElapsedTime(usStart);
+	traceAcq.usTicks[traceAcq_SetRecordingState].desc = "PCO_SetRecordingState execTime";
+	usElapsedTimeSet(usStart);
+#endif
+
+	_armRequired(true);
+
+#ifndef __linux__
+	m_pcoData->traceAcq.usTicks[10].value = usElapsedTime(usStart);
+	m_pcoData->traceAcq.usTicks[10].desc = "PCO_CancelImages execTime";
+	usElapsedTimeSet(usStart);
+#else
+	traceAcq.usTicks[traceAcq_CancelImages].value = usElapsedTime(usStart);
+	traceAcq.usTicks[traceAcq_CancelImages].desc = "PCO_CancelImages execTime";
+	usElapsedTimeSet(usStart);
+#endif
+
+
+
+	//DEB_ALWAYS() << fnId << ": " << DEB_VAR4(error, state, wRecState_actual, wRecState_new);
+	return fnId;
+
+}
+//=================================================================================================
+//=================================================================================================
+
+//=================================================================================================
+//=================================================================================================
+int Camera::_pco_GetBitAlignment(int &alignment){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	int error = 0;
+	WORD wBitAlignment;
+
+#ifndef __linux__
+	char *msg;
+	PCO_FN2(error, msg,PCO_GetBitAlignment, m_handle, &wBitAlignment);
+	PCO_THROW_OR_TRACE(error, msg) ;
+#else
+    error=camera->PCO_GetBitAlignment(&wBitAlignment);
+    PCO_CHECK_ERROR(error, "PCO_GetBitAlignment");
+    PCO_THROW_OR_TRACE(error, "PCO_GetBitAlignment") ;
+#endif
+	
+	alignment = m_pcoData->wBitAlignment = wBitAlignment;
+
+	return error;
+}
+
+//=================================================================================================
+//=================================================================================================
+
+// wBitAlignment:
+// - 0x0000 = [MSB aligned]; all raw image data will be aligned to the MSB. This is thedefault setting.
+// - 0x0001 = [LSB aligned]; all raw image data will be aligned to the LSB.
+
+
+int Camera::_pco_SetBitAlignment(int alignment){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	int error = 0;
+	int alignment1;
+	const char *msg;
+	WORD wBitAlignment;
+
+	if((alignment <0) ||(alignment >1)){
+		DEB_ALWAYS() << "ERROR - invalid value " << DEB_VAR1(alignment);
+		return -1;
+	}
+
+	wBitAlignment = int(alignment);
+
+#ifndef __linux__
+	PCO_FN2(error, msg,PCO_SetBitAlignment, m_handle, wBitAlignment);
+	PCO_THROW_OR_TRACE(error, msg) ;
+#else
+    error=camera->PCO_SetBitAlignment(wBitAlignment);
+    msg = "PCO_SetBitAlignment" ; PCO_CHECK_ERROR(error, msg);
+    PCO_THROW_OR_TRACE(error, msg) ;
+#endif
+
+	return _pco_GetBitAlignment(alignment1);
+
+}
+
+
+
+
+
+//=================================================================================================
+//=================================================================================================
+	//-------------------------------------------------------------------------------------------------
+	// PCO_SetADCOperation
+    // Set analog-digital-converter (ADC) operation for reading the image sensor data. Pixel data can be
+    // read out using one ADC (better linearity) or in parallel using two ADCs (faster). This option is
+    // only available for some camera models. If the user sets 2ADCs he must center and adapt the ROI
+    // to symmetrical values, e.g. pco.1600: x1,y1,x2,y2=701,1,900,500 (100,1,200,500 is not possible).
+    //
+	// DIMAX -> 1 adc
+	//-------------------------------------------------------------------------------------------------
+int Camera::_pco_GetADCOperation(int &adc_working, int &adc_max)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	int error;
+	WORD wADCOperation;
+
+	adc_max = m_pcoData->stcPcoDescription.wNumADCsDESC; // nr of ADC in the system
+
+	if(adc_max == 2) {
+
+#ifndef __linux__
+		const char *msg;
+		PCO_FN2(error, msg,PCO_GetADCOperation, m_handle, &wADCOperation);
+#else
+		error=camera->PCO_GetADCOperation(&wADCOperation);
+		PCO_CHECK_ERROR(error, "PCO_GetADCOperation");
+#endif
+
+		if(error) wADCOperation = (WORD) 1;
+	} else {
+		adc_max = 1;
+		wADCOperation = (WORD) 1;
+	}
+
+	adc_working = wADCOperation;
+	m_pcoData->wNowADC= wADCOperation;
+
+	return error;
+}
+
+//=================================================================================================
+//=================================================================================================
+
+int Camera::_pco_SetADCOperation(int adc_new, int &adc_working)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	int error, adc_max;
+
+	error = _pco_GetADCOperation(adc_working, adc_max);
+
+	DEB_ALWAYS() << fnId << ": " DEB_VAR2(adc_max, adc_working);
+
+	if(error) return error;
+
+	if((adc_new >=1) && (adc_new <= adc_max) && (adc_new != adc_working) ){
+
+#ifndef __linux__
+		const char *msg;
+		PCO_FN2(error, msg,PCO_SetADCOperation, m_handle, (WORD) adc_new);
+#else
+        error=camera->PCO_SetADCOperation((WORD) adc_new);
+        PCO_CHECK_ERROR(error, "PCO_SetADCOperation");
+#endif
+		_pco_GetADCOperation(adc_working, adc_max);
+	}
+	m_pcoData->wNowADC = adc_working;
+	return error;
+}
