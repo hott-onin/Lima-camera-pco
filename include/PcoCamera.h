@@ -576,7 +576,7 @@ namespace lima
 
 		ringLog *m_msgLog;
 		ringLog *m_tmpLog;
-		char *_checkLogFiles(bool firstCall = false);
+		const char *_checkLogFiles(bool firstCall = false);
 		char *_camInfo(char *ptr, char *ptrMax, long long int flag);
 
 		WORD _getInterfaceType();
@@ -599,6 +599,8 @@ namespace lima
 		bool _isRunAfterAssign();
 
 		bool _isCapsDesc(int caps);
+        void _pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &err);
+		void _pco_GetFirmwareInfo(WORD wDeviceBlock, PCO_FW_Vers* pstrFirmWareVersion, int &error);
 
 	 
 	public:		//----------- attributes

@@ -743,7 +743,7 @@ void Camera::_pco_initHWIOSignal(int mode, int &error){
 		return;
 	}
 
-	_pco_GetHWIOSignal(_err); error |= _err;
+	_pco_GetHWIOSignalAll(_err); error |= _err;
 
 	//	name[Acquire Enable] idx[0] num[0]
 	idx = 0; val = 2;
@@ -1563,3 +1563,39 @@ void Camera::_pco_CloseCamera(int &err)
 
 	return;
 }
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &error)
+{
+
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	WORD _wAcquEnableState;
+
+
+
+#ifdef __linux__
+    error = camera->PCO_GetAcqEnblSignalStatus(&_wAcquEnableState);   
+    PCO_CHECK_ERROR(error, "PCO_GetAcqEnblSignalStatus");
+
+#else
+	error = PcoCheckError(__LINE__, __FILE__, PCO_GetAcqEnblSignalStatus(m_handle, &_wAcquEnableState));
+
+#endif
+
+    if(error) return;
+    
+    wAcquEnableState = _wAcquEnableState;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetFirmwareInfo(WORD wDeviceBlock, PCO_FW_Vers* pstrFirmWareVersion, int &error)
+{
+#ifndef __linux__
+		error =  PCO_GetFirmwareInfo(m_handle, wDeviceBlock, pstrFirmWareVersion);
+#else
+        error = -1;
+#endif
+}
+

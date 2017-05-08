@@ -61,13 +61,14 @@ void _pco_acq_thread_ringBuffer(void *argin);
 void _pco_acq_thread_edge(void *argin);
 void _pco_shutter_thread_edge(void *argin);
 
-char * _timestamp_pcosyncctrlobj();
-char * _timestamp_pcointerface();
-char * _timestamp_pcobufferctrlobj();
-char * _timestamp_pcodetinfoctrlobj();
-char * _timestamp_pcocamerautils();
-char * _timestamp_pcoroictrlobj();
-char *_split_date(char *s);
+const char * _timestamp_pcosyncctrlobj();
+const char * _timestamp_pcointerface();
+const char * _timestamp_pcobufferctrlobj();
+const char * _timestamp_pcodetinfoctrlobj();
+const char * _timestamp_pcocamerautils();
+const char * _timestamp_pcoroictrlobj();
+
+char *_split_date(const char *s);
 
 char *str_trim_left(char *s);
 char *str_trim_right(char *s);

@@ -36,7 +36,7 @@ using namespace lima::Pco;
 
 
 //=========================================================================================================
-char* _timestamp_pcointerface() {return ID_TIMESTAMP ;}
+const char* _timestamp_pcointerface() {return ID_TIMESTAMP ;}
 //=========================================================================================================
 
 

@@ -171,11 +171,11 @@ char *_xlat_date(char *s1, char *s2, char *s3) {
 	
 }
 
-char *_split_date(char *s) {
+char *_split_date(const char *s) {
 	static char s1[LEN_BUFF_DATE+1];
 	static char s2[LEN_BUFF_DATE+1];
 	static char s3[LEN_BUFF_DATE+1];
-	char *ptr1, *ptr2;
+	const char *ptr1, *ptr2;
 
 	ptr1 = strchr(s,'[');
 	ptr2 = strchr(ptr1,']');
@@ -1131,7 +1131,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			int adc_new, adc_working, adc_max;
 
 			//error = _pco_GetADCOperation(adc_working, adc_max);
-			pco_GetADCOperation(adc_working, adc_max);
+			_pco_GetADCOperation(adc_working, adc_max);
 			if((tokNr <1)){
 				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", adc_working);
 				return output;
@@ -1228,12 +1228,12 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 		keys_desc[ikey++] = "(R) acq enable signal status (BNC acq enbl in)";     
 		if(_stricmp(cmd, key) == 0){
 			int error;
-			WORD wAcquEnableState;
+			WORD wAcqEnableState;
 
 //			error = PcoCheckError(__LINE__, __FILE__, PCO_GetAcqEnblSignalStatus(m_handle, &wAcquEnableState));
-			_pco_GetAcqEnblSignalStatus(&wAcquEnableState, error);
+			_pco_GetAcqEnblSignalStatus(wAcqEnableState, error);
 			
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", wAcquEnableState);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", wAcqEnableState);
 			
 			return output;
 		}
