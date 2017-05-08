@@ -1969,9 +1969,9 @@ int ringLog::dump(char *s, int lgMax, bool direction) {
         const char *fmt = "%Y/%m/%d %H:%M:%S";
 		int linMax = 25 + RING_LOG_BUFFER_SIZE;
         int i;
-		char *ptrOut;
+		
         int lg = 0;
-		ptrOut = s;
+		//char *ptrOut = s;
 
         for(i=0; (i< m_size) && ((lgMax - lg) > linMax); i++) {
         
@@ -2360,11 +2360,11 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 
 	//--------------- adc, pixelrate, 
 	if(flag & CAMINFO_ADC) {
-		int err;
 		ptr += sprintf_s(ptr, ptrMax - ptr, "*** adc\n");
 		int adc_working, adc_max;
 
-		err = _pco_GetADCOperation(adc_working, adc_max);
+		//int err = _pco_GetADCOperation(adc_working, adc_max);
+		_pco_GetADCOperation(adc_working, adc_max);
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ADC working[%d] max[%d]\n", 
 				adc_working, adc_max);
 	}
@@ -2917,26 +2917,28 @@ void Camera::setAcqTimeoutRetry(int val)
 //====================================================================
 void Camera::getAdc(int &adc)
 {
-	int adc_working, adc_max, error;
+	int adc_working, adc_max;
 
-	error = _pco_GetADCOperation(adc_working, adc_max);
+	//int error = _pco_GetADCOperation(adc_working, adc_max);
+	_pco_GetADCOperation(adc_working, adc_max);
 	adc = adc_working;
 }
 
 void Camera::setAdc(int adc_new)
 {
-	int error;
 	int adc_working;
 
-	error = _pco_SetADCOperation(adc_new, adc_working);
+	//int error = _pco_SetADCOperation(adc_new, adc_working);
+	_pco_SetADCOperation(adc_new, adc_working);
 }
 
 void Camera::getAdcMax(int &adc)
 {
-	int error;
+	
 	int adc_working, adc_max;
 
-	error = _pco_GetADCOperation(adc_working, adc_max);
+	//int error = _pco_GetADCOperation(adc_working, adc_max);
+	_pco_GetADCOperation(adc_working, adc_max);
 
 	adc = adc_max;
 }

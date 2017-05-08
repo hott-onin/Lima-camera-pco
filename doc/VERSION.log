@@ -1,3 +1,6 @@
+2017/05/08 ==========================================
+- sync PcoCameraUtils.cpp / linux-win
+
 2017/04/28 ==========================================
 - compile option ENABLE_GETDLLPATH
 - pcoGetFramesMaxInSegment, _isCameraType / debug for dimax hs
