@@ -227,12 +227,16 @@ int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast,
  	myBufferLen = m_ImageBufferSize;
     
     DWORD dwMaxWidth, dwMaxHeight;
-    WORD wArmWidth, wArmHeight, wBitPerPixel;
+	unsigned int uiMaxWidth, uiMaxHeight;
+	WORD wArmWidth, wArmHeight, wBitPerPixel;
 
     unsigned int bytesPerPixel;
 
     m_cam->getArmWidthHeight(wArmWidth, wArmHeight);
-    m_cam->getMaxWidthHeight(dwMaxWidth, dwMaxHeight);
+    m_cam->getMaxWidthHeight(uiMaxWidth, uiMaxHeight);
+	dwMaxWidth = uiMaxWidth;
+	dwMaxHeight = uiMaxHeight;
+
     m_cam->getBytesPerPixel(bytesPerPixel);
     m_cam->getBitsPerPixel(wBitPerPixel);
 
@@ -1647,6 +1651,7 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
     int error = 0;
     char *sErr;
 	DWORD _dwMaxWidth, _dwMaxHeight;
+	unsigned int _uiMaxWidth, _uiMaxHeight;
 	WORD _wArmWidth, _wArmHeight;
     WORD _wBitPerPixel, _wPixPerPage;
     unsigned int _bytesPerPixel;
@@ -1656,7 +1661,10 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 		m_cam->getBitsPerPixel(_wBitPerPixel);
 		_wPixPerPage = m_cam->m_pcoData->wPixPerPage;
 
-		m_cam->getMaxWidthHeight(_dwMaxWidth, _dwMaxHeight); // max
+		m_cam->getMaxWidthHeight(_uiMaxWidth, _uiMaxHeight); // max
+		_dwMaxWidth = _uiMaxWidth; 
+		_dwMaxHeight = _uiMaxHeight;
+
 		m_cam->getArmWidthHeight(_wArmWidth, _wArmHeight);  // actual
 
 		DWORD _dwAllocatedBufferSizeMax = _dwMaxWidth * _dwMaxHeight * (DWORD) _bytesPerPixel ;

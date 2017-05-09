@@ -447,7 +447,7 @@ namespace lima
 
 		HANDLE& getHandle() {return m_handle;}
 
-		void getMaxWidthHeight(DWORD &xMax, DWORD &yMax);
+		//void getMaxWidthHeight(DWORD &xMax, DWORD &yMax);
 		void getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax);
 		
 		void getXYsteps(unsigned int &xSteps, unsigned int &ySteps);
@@ -699,7 +699,7 @@ namespace lima
 
 		WORD _pco_GetRecordingState(int &err);
 
-    };
+	};
   }
 }
 

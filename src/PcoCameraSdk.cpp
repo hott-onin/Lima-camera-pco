@@ -789,131 +789,7 @@ char *Camera::_pco_SetMetaDataMode(WORD wMetaDataMode, int &error){
 	
 	return fnId;
 }
-//=================================================================================================
-//=================================================================================================
-char *Camera::_pco_GetCameraType(int &error){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	char *msg;
 
-	int errTot = 0;
-	bool errTotPcoSdk = false;
-
-	m_pcoData->frames_per_buffer = 1; // for PCO DIMAX
-
-	// --- Get camera type
-	{
-		
-		char *ptr;
-
-		//m_pcoData->stcPcoCamType.wSize= sizeof(m_pcoData->stcPcoCamType);
-
-		// OBSOLETE function after sdk 120
-		//error = PCO_GetGigEIPAddress(m_handle, &m_pcoData->ipField[0], &m_pcoData->ipField[1], &m_pcoData->ipField[2], &m_pcoData->ipField[3]);
-		//if(error) {m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;}
-		m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;
-
-
-		_pco_FillStructures(errTot);
-
-		// PCO_GETGENERAL(hCam, &strGeneral)
-			// -- Get General
-		// PCO_GETCAMERATYPE(hCam, &strCamType)
-		// PCO_GETSENSORSTRUCT(hCam, &strSensor)
-			// -- Get Sensor struct
-		// PCO_GETCAMERADESCRIPTION(hCam, &strDescription)
-			// -- Get camera description
-		// PCO_GETTIMINGSTRUCT(hCam, &strTiming)
-			// -- Get timing struct
-		// PCO_GETRECORDINGSTRUCT(hCam, &strRecording)
-			// -- Get recording struct
-			// -- Get storage struct
-
-		ptr = _xlatPcoCode2Str(_getCameraType(), ModelType, error);
-		errTot |= error;
-		strcpy_s(m_pcoData->model, MODEL_TYPE_SIZE, ptr);
-
-		ptr = _xlatPcoCode2Str(_getCameraSubType(), ModelSubType, error);
-		strcpy_s(m_pcoData->modelSubType, MODEL_SUBTYPE_SIZE, ptr);
-		errTot |= error;
-
-		ptr = _xlatPcoCode2Str(_getInterfaceType(), InterfaceType, error);
-		strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
-		errTot |= error;
-
-		sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s (%s) (I/F %s) (SN %d)", 
-			_getCameraTypeStr(), 
-			_getCameraSubTypeStr(), 
-			_getInterfaceTypeStr(), 
-			_getCameraSerialNumber());
-		DEB_ALWAYS() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
-			<< "\n"
-			<< "\n====================== CAMERA FOUND ======================"
-			<< "\n* "  << m_pcoData->camera_name
-			<< "\n==========================================================" 
-			<< "\n"
-			;
-
-		//if(errTot) return m_pcoData->camera_name;
-
-	}
-
-	// -- Reset to default settings
-
-	PCO_FN2(error, msg,PCO_SetRecordingState, m_handle, 0);
-	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
-
-
-	PCO_FN1(error, msg,PCO_ResetSettingsToDefault, m_handle);
-	PCO_PRINT_ERR(error, msg); 	
-	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
-	
-
-	// callback to update in lima the valid_ranges from the last stcPcoDescription read
-	if(m_sync) {
-		HwSyncCtrlObj::ValidRangesType valid_ranges;
-		m_sync->getValidRanges(valid_ranges);		// from stcPcoDescription
-		m_sync->validRangesChanged(valid_ranges);	// callback
-		DEB_ALWAYS() << fnId << ": callback - new valid_ranges: " << DEB_VAR1(valid_ranges);
-	}
-	
-    // get the max CAMERA pixel rate (Hz) from the description structure
-	m_pcoData->dwPixelRateMax = 0;
-	for(int i=0; i<4; i++) {
-		if(m_pcoData->dwPixelRateMax < m_pcoData->stcPcoDescription.dwPixelRateDESC[i])
-					m_pcoData->dwPixelRateMax = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
-	}	
-
-	DWORD capsDesc1;
-	_pco_GetGeneralCapsDESC(capsDesc1, error);
-
-	m_pcoData->bMetaDataAllowed = !!(capsDesc1 & GENERALCAPS1_METADATA) ;
-
-
-
-	if(errTotPcoSdk)
-	{
-		DEB_ALWAYS() <<  "ERRORs in SDK functions!!!";
-	}
-	
-	if(errTot)
-	{
-		DEB_ALWAYS() <<  "ERRORs in types!!!";
-	}
-
-
-	return fnId;
-}
-
-//=================================================================================================
-//=================================================================================================
-
-void Camera::_pco_GetGeneralCapsDESC(DWORD &capsDesc1, int &err)
-{
-	err = 0;
-	capsDesc1 = m_pcoData->stcPcoDescription.dwGeneralCapsDESC1;
-	return;
-}
 
 	
 //=================================================================================================
@@ -930,91 +806,6 @@ void Camera::_pco_GetTransferParameter(void* buffer, int ilen, int &err)
 	return;
 }
 
-//=================================================================================================
-//=================================================================================================
-
-//SC2_SDK_FUNC int WINAPI PCO_GetSegmentImageSettings(HANDLE ph, WORD wSegment,
-//                                                    WORD* wXRes,
-//                                                    WORD* wYRes,
-//                                                    WORD* wBinHorz,
-//                                                    WORD* wBinVert,
-//                                                    WORD* wRoiX0,
-//                                                    WORD* wRoiY0,
-//                                                    WORD* wRoiX1,
-//                                                    WORD* wRoiY1);
-// Gets the sizes information for one segment. X0, Y0 start at 1. X1, Y1 end with max. sensor size.
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     WORD *wXRes -> Pointer to a WORD variable to receive the x resolution of the image in segment
-//     WORD *wYRes -> Pointer to a WORD variable to receive the y resolution of the image in segment
-//     WORD *wBinHorz -> Pointer to a WORD variable to receive the horizontal binning of the image in segment
-//     WORD *wBinVert -> Pointer to a WORD variable to receive the vertical binning of the image in segment
-//     WORD *wRoiX0 -> Pointer to a WORD variable to receive the left x offset of the image in segment
-//     WORD *wRoiY0 -> Pointer to a WORD variable to receive the upper y offset of the image in segment
-//     WORD *wRoiX1 -> Pointer to a WORD variable to receive the right x offset of the image in segment
-//     WORD *wRoiY1 -> Pointer to a WORD variable to receive the lower y offset of the image in segment
-//      x0,y0----------|
-//      |     ROI      |
-//      ---------------x1,y1
-// Out: int -> Error message.
-//SC2_SDK_FUNC int WINAPI PCO_GetNumberOfImagesInSegment(HANDLE ph, 
-//                                             WORD wSegment,
-//                                             DWORD* dwValidImageCnt,
-//                                             DWORD* dwMaxImageCnt);
-// Gets the number of images in the addressed segment.
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     DWORD *dwValidImageCnt -> Pointer to a DWORD varibale to receive the valid image count.
-//     DWORD *dwMaxImageCnt -> Pointer to a DWORD varibale to receive the max image count.
-// Out: int -> Error message.
-
-
-void Camera::_pco_GetSegmentInfo(int &err)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	//char *pcoFn;
-	int pcoErr;
-	err = 0;
-	struct stcSegmentInfo *_stc;
-
-	err = 0;
-	if(!_isCameraType(Dimax | Pco2k | Pco4k))
-	{
-		err = 1;
-		return;
-	}
-
-	for(int iseg = 0; iseg <  PCO_MAXSEGMENTS; iseg++)
-	{
-
-		_stc = &m_pcoData->m_stcSegmentInfo[iseg];
-		
-		_stc->iSegId = iseg+1;
-		_stc->wXRes = _stc->wYRes = 
-			_stc->wBinHorz = _stc->wBinVert = 
-			_stc->wRoiX0 = _stc->wRoiY0  = 
-			_stc->wRoiX1 = _stc->wRoiY1 = 0;
-			_stc->dwValidImageCnt = _stc->dwMaxImageCnt = 0;
-			_stc->iErr = 0;
-
-		pcoErr = PCO_GetSegmentImageSettings(m_handle, iseg,
-			&_stc->wXRes, &_stc->wYRes,
-			&_stc->wBinHorz, &_stc->wBinVert,
-			&_stc->wRoiX0, &_stc->wRoiY0,
-			&_stc->wRoiX1, &_stc->wRoiY1);
-
-			_stc->iErr |= pcoErr;
-			err |= pcoErr;
-
-		pcoErr = PCO_GetNumberOfImagesInSegment(m_handle, iseg,
-			&_stc->dwValidImageCnt, &_stc->dwMaxImageCnt);
-	
-			_stc->iErr |= pcoErr;
-			err |= pcoErr;
-
-	}
-
-	return;
-}
 
 //=================================================================================================
 //=================================================================================================
@@ -1044,135 +835,7 @@ void Camera::_pco_GetNumberOfImagesInSegment(WORD wSegment, DWORD& dwValidImageC
 }
 
 
-//=================================================================================================
-//=================================================================================================
-//SC2_SDK_FUNC int WINAPI PCO_GetCDIMode(HANDLE ph, WORD *wCDIMode); 
-// Gets the correlated double image mode of the camera, if available.
-// Only available with a dimax
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     WORD *wCDIMode -> Pointer to a WORD variable to receive the correlated double image mode.
-// Out: int -> Error message.
 
-//SC2_SDK_FUNC int WINAPI PCO_SetCDIMode(HANDLE ph,  WORD wCDIMode); 
-// Sets the correlated double image mode of the camera, if available.
-// Only available with a dimax
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     WORD wCDIMode -> WORD variable to set the correlated double image mode.
-// Out: int -> Error message.
-// CDI mode is available if in the camera descriptor the flag
-
-//Mode parameter is simple: 0 is off (default), 1 is on.
-// CDI mode is available if in the camera descriptor the flag
-// #define GENERALCAPS1_CDI_MODE                          0x00010000 // Camera has Correlated Double Image Mode
-// in GENERALCAPS1 is set.
-
-
-void Camera::_pco_GetCDIMode(WORD &wCDIMode, int &err)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	//char *pcoFn;
-	int pcoErr;
-	err = 0;
-
-	if(!_isCapsDesc(capsCDI))
-	{
-		wCDIMode = 0;
-		err = 1;
-		return;
-	}
-	
-	err = 0;
-	pcoErr = PCO_GetCDIMode(m_handle, &wCDIMode);
-	
-	err |= pcoErr;
-
-	return;
-}
-
-//=================================================================================================
-//=================================================================================================
-void Camera::_pco_SetCDIMode(WORD wCDIMode, int &err)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	//char *pcoFn;
-	int pcoErr;
-	err = 0;
-
-	if(!_isCapsDesc(capsCDI))
-	{
-		err = 1;
-		return;
-	}
-	
-	if(wCDIMode) 
-	{
-		wCDIMode = 1;
-		_pco_SetDoubleImageMode(0, err); 		// cdi and double image are exclusive
-	}
-
-	err = 0;
-	pcoErr = PCO_SetCDIMode(m_handle, wCDIMode);
-	
-	err |= pcoErr;
-
-	return;
-}
-
-//=================================================================================================
-//=================================================================================================
-void Camera::_pco_GetDoubleImageMode(WORD &wDoubleImage, int &err)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	//char *pcoFn;
-	int pcoErr;
-	err = 0;
-
-	if(!_isCapsDesc(capsDoubleImage))
-	{
-		wDoubleImage = 0;
-		err = 1;
-		return;
-	}
-	
-	err = 0;
-	pcoErr = PCO_GetDoubleImageMode(m_handle, &wDoubleImage);
-	
-	err |= pcoErr;
-
-	return;
-}
-
-//=================================================================================================
-//=================================================================================================
-void Camera::_pco_SetDoubleImageMode(WORD wDoubleImage, int &err)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	//char *pcoFn;
-	int pcoErr;
-	err = 0;
-
-	if(!_isCapsDesc(capsDoubleImage))
-	{
-		err = 1;
-		return;
-	}
-	
-	if(wDoubleImage) 
-	{
-		wDoubleImage = 1;
-		_pco_SetCDIMode(0, err);		// cdi and double image are exclusive
-	}
-
-	err = 0;
-	pcoErr = PCO_SetDoubleImageMode(m_handle, wDoubleImage);
-	err |= pcoErr;
-
-	return;
-}
 
 
 
@@ -1376,7 +1039,7 @@ void Camera::_pco_SetTimestampMode(WORD mode, int &err)
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
-    WORD modeNew, modeOld, modeMax;
+    WORD modeNew, modeOld;
 
 
 #ifndef __linux__
@@ -1384,6 +1047,7 @@ void Camera::_pco_SetTimestampMode(WORD mode, int &err)
 	int error;
 	err = error = 0;
 
+    WORD modeMax;
     
 	DWORD capsDesc1; 
 	_pco_GetGeneralCapsDESC(capsDesc1, error);
@@ -1515,7 +1179,6 @@ WORD Camera::_pco_GetRecordingState(int &err){
 const char * Camera::_pco_SetRecordingState(int state, int &err){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-	char *msg;
 	LARGE_INTEGER usStart;
 
 
@@ -1528,6 +1191,7 @@ const char * Camera::_pco_SetRecordingState(int state, int &err){
     wRecState_actual = _pco_GetRecordingState(err);
 
 #ifndef __linux__
+	char *msg;
 	_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
 
 	m_pcoData->traceAcq.usTicks[8].value = usElapsedTime(usStart);
@@ -1761,4 +1425,425 @@ int Camera::_pco_SetADCOperation(int adc_new, int &adc_working)
 	}
 	m_pcoData->wNowADC = adc_working;
 	return error;
+}
+//=================================================================================================
+//=================================================================================================
+
+bool Camera::_isCapsDesc(int caps)
+{
+
+#ifndef __linux__
+	DWORD _dwCaps1 = m_pcoData->stcPcoDescription.dwGeneralCapsDESC1;
+#else
+	DWORD _dwCaps1 = m_pcoData->stcPcoDescription.dwGeneralCaps1;
+#endif
+
+
+	switch(caps)
+	{
+		case capsCDI:
+			return !!(_dwCaps1 & GENERALCAPS1_CDI_MODE);
+
+		case capsDoubleImage:
+			return !!(m_pcoData->stcPcoDescription.wDoubleImageDESC);
+	
+		case capsRollingShutter:
+			return _isCameraType(Edge);
+
+		case capsGlobalShutter:
+			//#define GENERALCAPS1_NO_GLOBAL_SHUTTER                 0x00080000 // Camera does not support global shutter
+			return _isCameraType(Edge) && !(_dwCaps1 & GENERALCAPS1_NO_GLOBAL_SHUTTER);
+
+		case capsGlobalResetShutter:
+			//#define GENERALCAPS1_GLOBAL_RESET_MODE                 0x00100000 // Camera supports global reset rolling readout
+			return _isCameraType(Edge) && !!(_dwCaps1 & GENERALCAPS1_GLOBAL_RESET_MODE);
+
+		case capsHWIO:
+			return !!(_dwCaps1 & GENERALCAPS1_HW_IO_SIGNAL_DESCRIPTOR);
+
+		default:
+			return FALSE;
+	}
+
+}
+
+
+//=================================================================================================
+//=================================================================================================
+//SC2_SDK_FUNC int WINAPI PCO_GetCDIMode(HANDLE ph, WORD *wCDIMode); 
+// Gets the correlated double image mode of the camera, if available.
+// Only available with a dimax
+// In: HANDLE ph -> Handle to a previously opened camera.
+//     WORD *wCDIMode -> Pointer to a WORD variable to receive the correlated double image mode.
+// Out: int -> Error message.
+
+//SC2_SDK_FUNC int WINAPI PCO_SetCDIMode(HANDLE ph,  WORD wCDIMode); 
+// Sets the correlated double image mode of the camera, if available.
+// Only available with a dimax
+// In: HANDLE ph -> Handle to a previously opened camera.
+//     WORD wCDIMode -> WORD variable to set the correlated double image mode.
+// Out: int -> Error message.
+// CDI mode is available if in the camera descriptor the flag
+
+//Mode parameter is simple: 0 is off (default), 1 is on.
+// CDI mode is available if in the camera descriptor the flag
+// #define GENERALCAPS1_CDI_MODE                          0x00010000 // Camera has Correlated Double Image Mode
+// in GENERALCAPS1 is set.
+
+
+void Camera::_pco_GetCDIMode(WORD &wCDIMode, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	//char *pcoFn;
+	int pcoErr;
+	err = 0;
+
+	if(!_isCapsDesc(capsCDI))
+	{
+		wCDIMode = 0;
+		err = 1;
+		return;
+	}
+	
+	err = 0;
+
+#ifndef __linux__
+	pcoErr = PCO_GetCDIMode(m_handle, &wCDIMode);
+#else
+	wCDIMode = 0;
+	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+    pcoErr = -1;
+#endif
+
+	err |= pcoErr;
+
+	return;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_SetCDIMode(WORD wCDIMode, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	//char *pcoFn;
+	int pcoErr;
+	err = 0;
+
+	if(!_isCapsDesc(capsCDI))
+	{
+		err = 1;
+		return;
+	}
+	
+	if(wCDIMode) 
+	{
+		wCDIMode = 1;
+		_pco_SetDoubleImageMode(0, err); 		// cdi and double image are exclusive
+	}
+
+	err = 0;
+
+#ifndef __linux__
+	pcoErr = PCO_SetCDIMode(m_handle, wCDIMode);
+#else
+	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+    pcoErr = -1;
+#endif
+	
+	err |= pcoErr;
+
+	return;
+}
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetDoubleImageMode(WORD &wDoubleImage, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	//char *pcoFn;
+	int pcoErr;
+	err = 0;
+
+	if(!_isCapsDesc(capsDoubleImage))
+	{
+		wDoubleImage = 0;
+		err = 1;
+		return;
+	}
+	
+	err = 0;
+
+#ifndef __linux__
+	pcoErr = PCO_GetDoubleImageMode(m_handle, &wDoubleImage);
+#else
+	wDoubleImage = 0;
+	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+    pcoErr = -1;
+#endif
+
+	err |= pcoErr;
+
+	return;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_SetDoubleImageMode(WORD wDoubleImage, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	//char *pcoFn;
+	int pcoErr;
+	err = 0;
+
+	if(!_isCapsDesc(capsDoubleImage))
+	{
+		err = 1;
+		return;
+	}
+	
+	if(wDoubleImage) 
+	{
+		wDoubleImage = 1;
+		_pco_SetCDIMode(0, err);		// cdi and double image are exclusive
+	}
+
+	err = 0;
+
+#ifndef __linux__
+	pcoErr = PCO_SetDoubleImageMode(m_handle, wDoubleImage);
+#else
+	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+    pcoErr = -1;
+#endif
+
+
+	err |= pcoErr;
+
+	return;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetGeneralCapsDESC(DWORD &capsDesc1, int &err)
+{
+	err = 0;
+#ifndef __linux__
+	capsDesc1 = m_pcoData->stcPcoDescription.dwGeneralCapsDESC1;
+#else
+	capsDesc1 = m_pcoData->stcPcoDescription.dwGeneralCaps1;
+#endif
+	
+	
+	return;
+}
+
+
+//=================================================================================================
+//=================================================================================================
+
+//SC2_SDK_FUNC int WINAPI PCO_GetSegmentImageSettings(HANDLE ph, WORD wSegment,
+//                                                    WORD* wXRes,
+//                                                    WORD* wYRes,
+//                                                    WORD* wBinHorz,
+//                                                    WORD* wBinVert,
+//                                                    WORD* wRoiX0,
+//                                                    WORD* wRoiY0,
+//                                                    WORD* wRoiX1,
+//                                                    WORD* wRoiY1);
+// Gets the sizes information for one segment. X0, Y0 start at 1. X1, Y1 end with max. sensor size.
+// In: HANDLE ph -> Handle to a previously opened camera.
+//     WORD *wXRes -> Pointer to a WORD variable to receive the x resolution of the image in segment
+//     WORD *wYRes -> Pointer to a WORD variable to receive the y resolution of the image in segment
+//     WORD *wBinHorz -> Pointer to a WORD variable to receive the horizontal binning of the image in segment
+//     WORD *wBinVert -> Pointer to a WORD variable to receive the vertical binning of the image in segment
+//     WORD *wRoiX0 -> Pointer to a WORD variable to receive the left x offset of the image in segment
+//     WORD *wRoiY0 -> Pointer to a WORD variable to receive the upper y offset of the image in segment
+//     WORD *wRoiX1 -> Pointer to a WORD variable to receive the right x offset of the image in segment
+//     WORD *wRoiY1 -> Pointer to a WORD variable to receive the lower y offset of the image in segment
+//      x0,y0----------|
+//      |     ROI      |
+//      ---------------x1,y1
+// Out: int -> Error message.
+//SC2_SDK_FUNC int WINAPI PCO_GetNumberOfImagesInSegment(HANDLE ph, 
+//                                             WORD wSegment,
+//                                             DWORD* dwValidImageCnt,
+//                                             DWORD* dwMaxImageCnt);
+// Gets the number of images in the addressed segment.
+// In: HANDLE ph -> Handle to a previously opened camera.
+//     DWORD *dwValidImageCnt -> Pointer to a DWORD varibale to receive the valid image count.
+//     DWORD *dwMaxImageCnt -> Pointer to a DWORD varibale to receive the max image count.
+// Out: int -> Error message.
+
+
+void Camera::_pco_GetSegmentInfo(int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	//char *pcoFn;
+	int pcoErr;
+	err = 0;
+
+	err = 0;
+	if(!_isCameraType(Dimax | Pco2k | Pco4k))
+	{
+		err = 1;
+		return;
+	}
+
+#ifndef __linux__
+	struct stcSegmentInfo *_stc;
+
+	for(int iseg = 0; iseg <  PCO_MAXSEGMENTS; iseg++)
+	{
+
+		_stc = &m_pcoData->m_stcSegmentInfo[iseg];
+		
+		_stc->iSegId = iseg+1;
+		_stc->wXRes = _stc->wYRes = 
+			_stc->wBinHorz = _stc->wBinVert = 
+			_stc->wRoiX0 = _stc->wRoiY0  = 
+			_stc->wRoiX1 = _stc->wRoiY1 = 0;
+			_stc->dwValidImageCnt = _stc->dwMaxImageCnt = 0;
+			_stc->iErr = 0;
+
+		pcoErr = PCO_GetSegmentImageSettings(m_handle, iseg,
+			&_stc->wXRes, &_stc->wYRes,
+			&_stc->wBinHorz, &_stc->wBinVert,
+			&_stc->wRoiX0, &_stc->wRoiY0,
+			&_stc->wRoiX1, &_stc->wRoiY1);
+
+			_stc->iErr |= pcoErr;
+			err |= pcoErr;
+
+		pcoErr = PCO_GetNumberOfImagesInSegment(m_handle, iseg,
+			&_stc->dwValidImageCnt, &_stc->dwMaxImageCnt);
+	
+			_stc->iErr |= pcoErr;
+			err |= pcoErr;
+
+	}
+#else
+	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+    pcoErr = -1;
+	err |= pcoErr;
+#endif
+	return;
+}
+//=================================================================================================
+//=================================================================================================
+char *Camera::_pco_GetCameraType(int &error){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	char *msg;
+
+	int errTot = 0;
+	bool errTotPcoSdk = false;
+
+	m_pcoData->frames_per_buffer = 1; // for PCO DIMAX
+
+	// --- Get camera type
+	{
+		
+		char *ptr;
+
+		//m_pcoData->stcPcoCamType.wSize= sizeof(m_pcoData->stcPcoCamType);
+
+		// OBSOLETE function after sdk 120
+		//error = PCO_GetGigEIPAddress(m_handle, &m_pcoData->ipField[0], &m_pcoData->ipField[1], &m_pcoData->ipField[2], &m_pcoData->ipField[3]);
+		//if(error) {m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;}
+		m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;
+
+
+		_pco_FillStructures(errTot);
+
+		// PCO_GETGENERAL(hCam, &strGeneral)
+			// -- Get General
+		// PCO_GETCAMERATYPE(hCam, &strCamType)
+		// PCO_GETSENSORSTRUCT(hCam, &strSensor)
+			// -- Get Sensor struct
+		// PCO_GETCAMERADESCRIPTION(hCam, &strDescription)
+			// -- Get camera description
+		// PCO_GETTIMINGSTRUCT(hCam, &strTiming)
+			// -- Get timing struct
+		// PCO_GETRECORDINGSTRUCT(hCam, &strRecording)
+			// -- Get recording struct
+			// -- Get storage struct
+
+		ptr = _xlatPcoCode2Str(_getCameraType(), ModelType, error);
+		errTot |= error;
+		strcpy_s(m_pcoData->model, MODEL_TYPE_SIZE, ptr);
+
+		ptr = _xlatPcoCode2Str(_getCameraSubType(), ModelSubType, error);
+		strcpy_s(m_pcoData->modelSubType, MODEL_SUBTYPE_SIZE, ptr);
+		errTot |= error;
+
+		ptr = _xlatPcoCode2Str(_getInterfaceType(), InterfaceType, error);
+		strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
+		errTot |= error;
+
+		sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s (%s) (I/F %s) (SN %d)", 
+			_getCameraTypeStr(), 
+			_getCameraSubTypeStr(), 
+			_getInterfaceTypeStr(), 
+			_getCameraSerialNumber());
+		DEB_ALWAYS() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
+			<< "\n"
+			<< "\n====================== CAMERA FOUND ======================"
+			<< "\n* "  << m_pcoData->camera_name
+			<< "\n==========================================================" 
+			<< "\n"
+			;
+
+		//if(errTot) return m_pcoData->camera_name;
+
+	}
+
+	// -- Reset to default settings
+
+	PCO_FN2(error, msg,PCO_SetRecordingState, m_handle, 0);
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
+
+
+	PCO_FN1(error, msg,PCO_ResetSettingsToDefault, m_handle);
+	PCO_PRINT_ERR(error, msg); 	
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
+	
+
+	// callback to update in lima the valid_ranges from the last stcPcoDescription read
+	if(m_sync) {
+		HwSyncCtrlObj::ValidRangesType valid_ranges;
+		m_sync->getValidRanges(valid_ranges);		// from stcPcoDescription
+		m_sync->validRangesChanged(valid_ranges);	// callback
+		DEB_ALWAYS() << fnId << ": callback - new valid_ranges: " << DEB_VAR1(valid_ranges);
+	}
+	
+    // get the max CAMERA pixel rate (Hz) from the description structure
+	m_pcoData->dwPixelRateMax = 0;
+	for(int i=0; i<4; i++) {
+		if(m_pcoData->dwPixelRateMax < m_pcoData->stcPcoDescription.dwPixelRateDESC[i])
+					m_pcoData->dwPixelRateMax = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
+	}	
+
+	DWORD capsDesc1;
+	_pco_GetGeneralCapsDESC(capsDesc1, error);
+
+	m_pcoData->bMetaDataAllowed = !!(capsDesc1 & GENERALCAPS1_METADATA) ;
+
+
+
+	if(errTotPcoSdk)
+	{
+		DEB_ALWAYS() <<  "ERRORs in SDK functions!!!";
+	}
+	
+	if(errTot)
+	{
+		DEB_ALWAYS() <<  "ERRORs in types!!!";
+	}
+
+
+	return fnId;
 }

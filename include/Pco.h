@@ -137,7 +137,7 @@ typedef int tPvErr;
 #define PCO_FN5(er,mg, fn, x1, x2, x3, x4, x5) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5) ), #fn ) ; }
 #define PCO_FN6(er,mg, fn, x1, x2, x3, x4, x5, x6) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5),(x6) ), #fn ) ; }
 
-char * _sprintComment(char *comment, char *comment1 ="" , char *comment2 ="" );
+const char * _sprintComment(const char *comment, const char *comment1 ="" , const char *comment2 ="" );
 int _get_imageNr_from_imageTimestamp(void *buf,int shift);
 int _get_time_from_imageTimestamp(void *buf,int shift,SYSTEMTIME *st);
 #endif

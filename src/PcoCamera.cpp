@@ -2360,82 +2360,6 @@ bool Camera::_isValid_pixelRate(DWORD dwPixelRate){
 }
 
 
-//=================================================================================================
-//=================================================================================================
-
-void Camera::getRoiSymetrie(bool &bSymX, bool &bSymY ){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-
-	bSymY = bSymX = false;
-	if(_isCameraType(Dimax)){ bSymX = bSymY = true; }
-	if(_isCameraType(Edge)) { bSymY = true; }
-
-	int adc_working, adc_max;
-	_pco_GetADCOperation(adc_working, adc_max);
-	if(adc_working != 1) { bSymX = true; }
-}
-//=================================================================================================
-//=================================================================================================
-
-void Camera::getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsigned int &xMax, unsigned int &yMax, unsigned int &xMinSize, unsigned int &yMinSize ){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	unsigned int xMinSize0;
-
-	
-	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
-	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
-
-	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
-	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
-
-	xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wMinSizeHorzDESC;
-	yMinSize = m_pcoData->stcPcoDescription.wMinSizeVertDESC;
-
-
-	{ // patch meanwhile firmware 1.19 is fixed
-		if(m_pcoData->params_xMinSize) {
-			xMinSize += xSteps;
-			DEB_ALWAYS() << "PATCH APPLIED: " << DEB_VAR2(xMinSize0, xMinSize);
-		
-		}
-	}
-
-}
-
-void Camera::getXYsteps(unsigned int &xSteps, unsigned int &ySteps){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	
-	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
-	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
-}
-
-void Camera::getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
-	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
-}
-	
-void Camera::getMaxWidthHeight(DWORD &xMax, DWORD &yMax){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
-	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
-}
-
-
-
-
-void Camera::getBytesPerPixel(unsigned int& pixbytes){
-	pixbytes = (m_pcoData->stcPcoDescription.wDynResDESC <= 8)?1:2;
-}
-
-void Camera::getBitsPerPixel(WORD& pixbits){
-	pixbits = m_pcoData->stcPcoDescription.wDynResDESC;
-}
 
 
 /****************************************************************************************
@@ -2732,11 +2656,11 @@ void Camera::_get_DetectorType(std::string& det_type)
 void Camera::_get_MaxImageSize(Size& max_image_size)
 {
 
-  // ---- DONE
-  DWORD width,height;
+  //DWORD width,height;
+  unsigned  width,height;
 
   getMaxWidthHeight(width,height);
-  max_image_size = Size(int(width),int(height));
+  max_image_size = Size(width,height);
 
 }
 
@@ -3038,37 +2962,4 @@ void Camera::_setActionTimestamp(int action)
 }
 
 
-
-//=================================================================================================
-//=================================================================================================
-
-bool Camera::_isCapsDesc(int caps)
-{
-	switch(caps)
-	{
-		case capsCDI:
-			return !!(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_CDI_MODE);
-
-		case capsDoubleImage:
-			return !!(m_pcoData->stcPcoDescription.wDoubleImageDESC);
-	
-		case capsRollingShutter:
-			return _isCameraType(Edge);
-
-		case capsGlobalShutter:
-			//#define GENERALCAPS1_NO_GLOBAL_SHUTTER                 0x00080000 // Camera does not support global shutter
-			return _isCameraType(Edge) && !(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_NO_GLOBAL_SHUTTER);
-
-		case capsGlobalResetShutter:
-			//#define GENERALCAPS1_GLOBAL_RESET_MODE                 0x00100000 // Camera supports global reset rolling readout
-			return _isCameraType(Edge) && !!(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_GLOBAL_RESET_MODE);
-
-		case capsHWIO:
-			return !!(m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & GENERALCAPS1_HW_IO_SIGNAL_DESCRIPTOR);
-
-		default:
-			return FALSE;
-	}
-
-}
 

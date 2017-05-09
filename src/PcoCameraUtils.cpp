@@ -2667,7 +2667,7 @@ void Camera::_traceMsg(char *msg)
 //====================================================================
 //====================================================================
 #define LEN_COMMENT 511
-char * _sprintComment(char *comment, char *comment1, char *comment2)
+const char * _sprintComment(const char *comment, const char *comment1, const char *comment2)
 {
 	static char buff[LEN_COMMENT+1];
 
@@ -2677,7 +2677,6 @@ char * _sprintComment(char *comment, char *comment1, char *comment2)
 
 	return buff ;
 }
-				
 
 //====================================================================
 //====================================================================
@@ -3289,4 +3288,152 @@ void Camera::setCDIMode(int cdi)
 
 	_pco_SetCDIMode(wCdi, error);
 
+}
+//=================================================================================================
+//=================================================================================================
+#if 0
+
+void Camera::getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsigned int &xMax, unsigned int &yMax, unsigned int &xMinSize, unsigned int &yMinSize ){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	unsigned int xMinSize0;
+
+	
+	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
+	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
+
+	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+
+	xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wMinSizeHorzDESC;
+	yMinSize = m_pcoData->stcPcoDescription.wMinSizeVertDESC;
+
+
+	{ // patch meanwhile firmware 1.19 is fixed
+		if(m_pcoData->params_xMinSize) {
+			xMinSize += xSteps;
+			DEB_ALWAYS() << "PATCH APPLIED: " << DEB_VAR2(xMinSize0, xMinSize);
+		
+		}
+	}
+
+}
+
+void Camera::getXYsteps(unsigned int &xSteps, unsigned int &ySteps){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	
+	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
+	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
+}
+
+void Camera::getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+}
+	
+#if 0
+void Camera::getMaxWidthHeight(DWORD &xMax, DWORD &yMax){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+}
+#endif
+
+
+
+void Camera::getBytesPerPixel(unsigned int& pixbytes){
+	pixbytes = (m_pcoData->stcPcoDescription.wDynResDESC <= 8)?1:2;
+}
+
+void Camera::getBitsPerPixel(WORD& pixbits){
+	pixbits = m_pcoData->stcPcoDescription.wDynResDESC;
+}
+
+
+#endif
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsigned int &xMax, unsigned int &yMax, unsigned int &xMinSize, unsigned int &yMinSize ){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	unsigned int xMinSize0;
+
+	
+	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
+	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
+
+	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+
+#ifndef __linux__
+	xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wMinSizeHorzDESC;
+	yMinSize = m_pcoData->stcPcoDescription.wMinSizeVertDESC;
+#else
+	xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
+	yMinSize = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
+#endif
+	{ // patch meanwhile firmware 1.19 is fixed
+		if(m_pcoData->params_xMinSize) {
+			xMinSize += xSteps;
+			DEB_ALWAYS() << "PATCH APPLIED: " << DEB_VAR2(xMinSize0, xMinSize);
+		
+		}
+	}
+
+}
+
+void Camera::getXYsteps(unsigned int &xSteps, unsigned int &ySteps){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	
+	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
+	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
+}
+
+void Camera::getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+}
+	
+#if 0
+void Camera::getMaxWidthHeight(DWORD &xMax, DWORD &yMax){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+}
+#endif
+
+
+
+void Camera::getBytesPerPixel(unsigned int& pixbytes){
+	pixbytes = (m_pcoData->stcPcoDescription.wDynResDESC <= 8)?1:2;
+}
+
+void Camera::getBitsPerPixel(WORD& pixbits){
+	pixbits = m_pcoData->stcPcoDescription.wDynResDESC;
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::getRoiSymetrie(bool &bSymX, bool &bSymY ){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	bSymY = bSymX = false;
+	if(_isCameraType(Dimax)){ bSymX = bSymY = true; }
+	if(_isCameraType(Edge)) { bSymY = true; }
+
+	int adc_working, adc_max;
+	_pco_GetADCOperation(adc_working, adc_max);
+	if(adc_working != 1) { bSymX = true; }
 }
