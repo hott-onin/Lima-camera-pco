@@ -911,25 +911,7 @@ void Camera::_pco_FillStructures(int &err)
 
 }
 
-//=================================================================================================
-//=================================================================================================
-void Camera::_pco_CloseCamera(int &err)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	//char *pcoFn;
-	int pcoErr;
-	
-	//PCO_PRINT_ERR(error, msg); 
 
-	err = 0;
-	pcoErr = PCO_CloseCamera(m_handle);
-	err |= PCO_CHECK_ERROR(pcoErr, "PCO_CloseCamera");
-
-	m_handle = NULL;
-
-	return;
-}
 //=================================================================================================
 //=================================================================================================
 void Camera::_pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &error)
@@ -1192,6 +1174,8 @@ const char * Camera::_pco_SetRecordingState(int state, int &err){
 
 #ifndef __linux__
 	char *msg;
+	
+
 	_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
 
 	m_pcoData->traceAcq.usTicks[8].value = usElapsedTime(usStart);
@@ -1200,8 +1184,8 @@ const char * Camera::_pco_SetRecordingState(int state, int &err){
 #else
 	//_setCameraState(CAMSTATE_RECORD_STATE, !!(wRecState_actual));
 
-	traceAcq.usTicks[traceAcq_GetRecordingState].value = usElapsedTime(usStart);
-	traceAcq.usTicks[traceAcq_GetRecordingState].desc = "PCO_GetRecordingState execTime";
+	m_pcoData->traceAcq.usTicks[traceAcq_GetRecordingState].value = usElapsedTime(usStart);
+	m_pcoData->traceAcq.usTicks[traceAcq_GetRecordingState].desc = "PCO_GetRecordingState execTime";
 	usElapsedTimeSet(usStart);
 #endif
 
@@ -1264,8 +1248,8 @@ if(count && !_isCameraType(Edge))
 	m_pcoData->traceAcq.usTicks[9].desc = "PCO_SetRecordingState execTime";
 	usElapsedTimeSet(usStart);
 #else
-	traceAcq.usTicks[traceAcq_SetRecordingState].value = usElapsedTime(usStart);
-	traceAcq.usTicks[traceAcq_SetRecordingState].desc = "PCO_SetRecordingState execTime";
+	m_pcoData->traceAcq.usTicks[traceAcq_SetRecordingState].value = usElapsedTime(usStart);
+	m_pcoData->traceAcq.usTicks[traceAcq_SetRecordingState].desc = "PCO_SetRecordingState execTime";
 	usElapsedTimeSet(usStart);
 #endif
 
@@ -1276,8 +1260,8 @@ if(count && !_isCameraType(Edge))
 	m_pcoData->traceAcq.usTicks[10].desc = "PCO_CancelImages execTime";
 	usElapsedTimeSet(usStart);
 #else
-	traceAcq.usTicks[traceAcq_CancelImages].value = usElapsedTime(usStart);
-	traceAcq.usTicks[traceAcq_CancelImages].desc = "PCO_CancelImages execTime";
+	m_pcoData->traceAcq.usTicks[traceAcq_CancelImages].value = usElapsedTime(usStart);
+	m_pcoData->traceAcq.usTicks[traceAcq_CancelImages].desc = "PCO_CancelImages execTime";
 	usElapsedTimeSet(usStart);
 #endif
 
@@ -1846,4 +1830,42 @@ char *Camera::_pco_GetCameraType(int &error){
 
 
 	return fnId;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_CloseCamera(int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	
+#ifndef __linux__
+	int pcoErr;
+	
+	//PCO_PRINT_ERR(error, msg); 
+
+	err = 0;
+	pcoErr = PCO_CloseCamera(m_handle);
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_CloseCamera");
+
+	m_handle = NULL;
+#else
+    error = 0;
+    
+    if(grabber)
+    {
+        delete grabber;
+        grabber = NULL;
+    }
+
+    if(camera)
+    {
+        error = camera->Close_Cam();
+        PCO_CHECK_ERROR(error, "Close_Cam");
+
+        delete camera;
+        camera = NULL;
+    }
+#endif
+	return;
 }

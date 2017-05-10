@@ -674,6 +674,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 			
 			
 			//--- test of close
+#ifndef __linux__
 			if((tokNr >= 1) &&  (_stricmp(tok[1], "close")==0)){
 				int error;
 				//char *msg;
@@ -687,7 +688,7 @@ char *Camera::_talk(char *_cmd, char *output, int lg){
 				ptr += sprintf_s(ptr, ptrMax - ptr, "%s> closed cam\n", tok[1]);
 				return output;
 			}
-
+#endif
 			
 			//--- test of callback   "testCmd cb"
 			if((tokNr >= 1) &&  (_stricmp(tok[1], "cb")==0)){
