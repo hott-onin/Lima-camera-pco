@@ -1160,28 +1160,6 @@ void msElapsedTimeSet(struct __timeb64 &t0) {
 }
 
 
-void usElapsedTimeSet(LARGE_INTEGER &tick0) {
-
-	QueryPerformanceCounter(&tick0);
-
-}
-
-long long usElapsedTime(LARGE_INTEGER &tick0) {
-	LARGE_INTEGER ticksPerSecond;
-	LARGE_INTEGER tick;   // A point in time
-	long long uS, uS0;
-
-	QueryPerformanceFrequency(&ticksPerSecond); 
-	QueryPerformanceCounter(&tick);
-
-	double ticsPerUSecond = ticksPerSecond.QuadPart/1.0e6;
-	uS = (long long) (tick.QuadPart/ticsPerUSecond);
-	uS0 = (long long) (tick0.QuadPart/ticsPerUSecond);
-
-	return uS - uS0;
-
-}
-
 double usElapsedTimeTicsPerSec() {
 	LARGE_INTEGER ticksPerSecond;
 

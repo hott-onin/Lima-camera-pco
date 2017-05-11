@@ -967,3 +967,4 @@ int PCO_CamLinkSetImageParameters(HANDLE ph, WORD wxres, WORD wyres);
 
 
 #endif
+

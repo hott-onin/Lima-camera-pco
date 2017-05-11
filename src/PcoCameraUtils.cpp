@@ -3290,72 +3290,6 @@ void Camera::setCDIMode(int cdi)
 	_pco_SetCDIMode(wCdi, error);
 
 }
-//=================================================================================================
-//=================================================================================================
-#if 0
-
-void Camera::getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsigned int &xMax, unsigned int &yMax, unsigned int &xMinSize, unsigned int &yMinSize ){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	unsigned int xMinSize0;
-
-	
-	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
-	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
-
-	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
-	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
-
-	xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wMinSizeHorzDESC;
-	yMinSize = m_pcoData->stcPcoDescription.wMinSizeVertDESC;
-
-
-	{ // patch meanwhile firmware 1.19 is fixed
-		if(m_pcoData->params_xMinSize) {
-			xMinSize += xSteps;
-			DEB_ALWAYS() << "PATCH APPLIED: " << DEB_VAR2(xMinSize0, xMinSize);
-		
-		}
-	}
-
-}
-
-void Camera::getXYsteps(unsigned int &xSteps, unsigned int &ySteps){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	
-	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
-	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
-}
-
-void Camera::getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
-	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
-}
-	
-#if 0
-void Camera::getMaxWidthHeight(DWORD &xMax, DWORD &yMax){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
-	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
-}
-#endif
-
-
-
-void Camera::getBytesPerPixel(unsigned int& pixbytes){
-	pixbytes = (m_pcoData->stcPcoDescription.wDynResDESC <= 8)?1:2;
-}
-
-void Camera::getBitsPerPixel(WORD& pixbits){
-	pixbits = m_pcoData->stcPcoDescription.wDynResDESC;
-}
-
-
-#endif
 
 //=================================================================================================
 //=================================================================================================
@@ -3437,4 +3371,36 @@ void Camera::getRoiSymetrie(bool &bSymX, bool &bSymY ){
 	int adc_working, adc_max;
 	_pco_GetADCOperation(adc_working, adc_max);
 	if(adc_working != 1) { bSymX = true; }
+}
+//=================================================================================================
+//=================================================================================================
+
+void usElapsedTimeSet(LARGE_INTEGER &tick0) {
+
+#ifndef __linux__
+	QueryPerformanceCounter(&tick0);
+#else
+	tick0 = 0;
+#endif
+
+}
+
+long long usElapsedTime(LARGE_INTEGER &tick0) {
+
+#ifndef __linux__
+	LARGE_INTEGER ticksPerSecond;
+	LARGE_INTEGER tick;   // A point in time
+	long long uS, uS0;
+
+	QueryPerformanceFrequency(&ticksPerSecond); 
+	QueryPerformanceCounter(&tick);
+
+	double ticsPerUSecond = ticksPerSecond.QuadPart/1.0e6;
+	uS = (long long) (tick.QuadPart/ticsPerUSecond);
+	uS0 = (long long) (tick0.QuadPart/ticsPerUSecond);
+
+	return uS - uS0;
+#else
+	return 0;
+#endif	
 }
