@@ -111,7 +111,7 @@ WORD Camera::_pco_GetActiveRamSegment()
 
 //=================================================================================================
 //=================================================================================================
-char *Camera::_pco_SetPixelRate(int &error){
+void Camera::_pco_SetPixelRate(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	error = 0;
@@ -141,7 +141,7 @@ char *Camera::_pco_SetPixelRate(int &error){
 			_armRequired(true);
 		}
 		m_pcoData->dwPixelRateRequested = 0;
-		return fnId;
+		return;
 	}
 
 	if(_isCameraType(Pco2k | Pco4k)) {
@@ -169,9 +169,9 @@ char *Camera::_pco_SetPixelRate(int &error){
 
 			_armRequired(true);
 		}
-		return fnId;
+		return;
 	}
-return fnId;
+return;
 }
 
 //=================================================================================================
@@ -275,7 +275,7 @@ char *Camera::_pco_SetImageParameters(int &error){
 
 //=================================================================================================
 //=================================================================================================
-char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
+void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	struct stcPcoData _pcoData;
@@ -399,11 +399,11 @@ char *Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 
 
 
-	return fnId;
+	return;
 }
 //=================================================================================================
 //=================================================================================================
-char * Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
+const char *Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 	DEB_MEMBER_FUNCT();
 	char *msg;
 	
@@ -474,7 +474,7 @@ char * Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 //    PCO_SetStorageMode
 //    PCO_SetRecorderSubmode
 //=================================================================================================
-char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode mode, int &error){
+const char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode mode, int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	char *msg, *sMode;
@@ -714,7 +714,7 @@ void Camera::_pco_SetHWIOSignal(int sigNum, int &error){
 }
 //=================================================================================================
 //=================================================================================================
-char *Camera::_pco_GetTemperatureInfo(int &error){
+void Camera::_pco_GetTemperatureInfo(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	char msg[MSG_SIZE + 1];
@@ -724,7 +724,7 @@ char *Camera::_pco_GetTemperatureInfo(int &error){
 
 	// -- Print out current temperatures
 	PCO_FN4(error, pcoFn,PCO_GetTemperature, m_handle, &m_pcoData->temperature.wCcd, &m_pcoData->temperature.wCam, &m_pcoData->temperature.wPower);
-	if(error) return pcoFn;
+	if(error) return;
 	//PCO_THROW_OR_TRACE(error, "PCO_GetTemperature") ;
 
 	sprintf_s(msg, MSG_SIZE, "* temperature: CCD[%.1f]  CAM[%d]  PS[%d]\n", m_pcoData->temperature.wCcd/10., m_pcoData->temperature.wCam, m_pcoData->temperature.wPower);
@@ -745,7 +745,7 @@ char *Camera::_pco_GetTemperatureInfo(int &error){
 		if (m_pcoData->temperature.wSetpoint > m_pcoData->temperature.wMaxCoolSet)	m_pcoData->temperature.wSetpoint= m_pcoData->temperature.wMaxCoolSet;
 	} else {
 		PCO_FN2(error, pcoFn,PCO_GetCoolingSetpointTemperature, m_handle, &m_pcoData->temperature.wSetpoint);
-		if(error) return pcoFn;
+		if(error) return;
 		//PCO_THROW_OR_TRACE(error, "PCO_GetCoolingSetpointTemperature") ;
 	}
 	sprintf_s(msg, MSG_SIZE, "* Cooling Setpoint = %d\n", m_pcoData->temperature.wSetpoint);
@@ -753,25 +753,27 @@ char *Camera::_pco_GetTemperatureInfo(int &error){
 	m_log.append(msg);
 
 
-	return fnId;
+	return;
 }
 
 
 //=================================================================================================
 //=================================================================================================
-char *Camera::_pco_SetMetaDataMode(WORD wMetaDataMode, int &error){
+void Camera::_pco_SetMetaDataMode(WORD wMetaDataMode, int &error){
 		
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	char *msg;
 	WORD _wMetaDataMode, _wMetaDataSize, _wMetaDataVersion ;
 
+	error = 0;
+
 	m_pcoData->wMetaDataSize = m_pcoData->wMetaDataVersion = m_pcoData->wMetaDataMode = 0;
 
-	if(!m_pcoData->bMetaDataAllowed) return fnId;
+	if(!m_pcoData->bMetaDataAllowed) {error = -1; return;}
 
 	PCO_FN4(error, msg, PCO_GetMetaDataMode, m_handle, &_wMetaDataMode, &_wMetaDataSize, &_wMetaDataVersion);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	PCO_PRINT_ERR(error, msg); 	if(error) return;
 
 	m_pcoData->wMetaDataSize =  _wMetaDataSize;
 	m_pcoData->wMetaDataVersion = _wMetaDataVersion;
@@ -781,13 +783,13 @@ char *Camera::_pco_SetMetaDataMode(WORD wMetaDataMode, int &error){
 	//if(_isCameraType(Dimax)) {
 
 	PCO_FN4(error, msg,PCO_SetMetaDataMode, m_handle, wMetaDataMode, &_wMetaDataSize, &_wMetaDataVersion);
-	PCO_PRINT_ERR(error, msg); 	if(error) return msg;
+	PCO_PRINT_ERR(error, msg); 	if(error) return;
 
 	m_pcoData->wMetaDataSize =  _wMetaDataSize;
 	m_pcoData->wMetaDataVersion = _wMetaDataVersion;
 	m_pcoData->wMetaDataMode = wMetaDataMode;
 	
-	return fnId;
+	return;
 }
 
 
@@ -1718,7 +1720,7 @@ void Camera::_pco_GetSegmentInfo(int &err)
 }
 //=================================================================================================
 //=================================================================================================
-char *Camera::_pco_GetCameraType(int &error){
+void Camera::_pco_GetCameraType(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	char *msg;
@@ -1731,7 +1733,7 @@ char *Camera::_pco_GetCameraType(int &error){
 	// --- Get camera type
 	{
 		
-		char *ptr;
+		const char *ptr;
 
 		//m_pcoData->stcPcoCamType.wSize= sizeof(m_pcoData->stcPcoCamType);
 
@@ -1829,7 +1831,7 @@ char *Camera::_pco_GetCameraType(int &error){
 	}
 
 
-	return fnId;
+	return;
 }
 
 //=================================================================================================

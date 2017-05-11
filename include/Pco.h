@@ -32,10 +32,82 @@
 	#define _x86
 #endif
 
+#ifdef __linux__
+
+#include <defs.h>
+
+#include <stdint.h>
+typedef uint32_t       DWORD;
+//typedef unsigned long       DWORD;
+typedef unsigned char       BYTE;
+typedef unsigned short      WORD;
+typedef bool                BOOL;
+
+//typedef void *HANDLE;
+typedef  int HANDLE;
+
+typedef short SHORT;
+//typedef long LONG;
+
+typedef uint64_t UINT64;
+
+#ifndef ULLONG_MAX
+#define LONG_MAX      2147483647L
+#define ULONG_MAX     0xffffffffUL
+#define ULLONG_MAX    0xffffffffffffffffULL      /* maximum unsigned long long int value */
+#endif
+
+#define KBYTEF  (1024.)        
+#define MBYTEF  (KBYTEF * KBYTEF)     
+#define GBYTEF  (KBYTEF * KBYTEF * KBYTEF)     
+
+#define far
+
+#define DECLARE_HANDLE(n) typedef struct n##__{int i;}*n
+
+DECLARE_HANDLE(HWND);
+
+#ifndef __TIMESTAMP__
+#define __TIMESTAMP__
+#endif
+
+
+
+//#define sprintf_s(buffer, buffer_size, stringbuffer, ...) (snprintf(buffer, buffer_size, stringbuffer, __VA_ARGS__))
+
+#define sprintf_s snprintf
+
+#define _stricmp strcasecmp
+#define strcpy_s(d, l, s) strncpy( (d), (s), (l) )
+
+#define strncpy_s(d, s, l) strncpy( (d), (s), (l) )
+#define strncpy_s4(d, l , s , n) strncpy( (d), (s), (l) )
+
+#define VS_PLATFORM "osLinux"
+#define VS_CONFIGURATION x64
+
+#define localtime_s(stc, tm )  (localtime_r( (tm) , (stc) ))
+
+#define  sscanf_s sscanf
+#define  strtok_s strtok_r
+typedef struct timeval TIME_USEC;
+#define  TIME_UTICKS struct timespec
+#define UNUSED __attribute__((unused))
+
+#else
+#define UNUSED
+
+typedef struct __timeb64 TIME_USEC;
+#define  TIME_UTICKS LARGE_INTEGER 
+
+#endif
+
+
+#ifndef __linux__
 
 #include "processlib/Compatibility.h"
 #include "PCO_Structures.h"
-#include "PCO_ConvStructures.h"
+#include "Pco_ConvStructures.h"
 #include "Pco_ConvDlgExport.h"
 #include "sc2_SDKStructures.h"
 #include "sc2_common.h"
@@ -43,6 +115,16 @@
 #include "sc2_defs.h"
 #include "SC2_SDKAddendum.h"
 #include "PCO_errt.h"
+
+#else
+
+#include "processlib/Compatibility.h"
+#include "sc2_common.h"
+#include "sc2_defs.h"
+#include "SC2_SDKAddendum.h"
+#include "PCO_errt.h"
+
+#endif
 
 
 #include <math.h>
@@ -63,8 +145,7 @@
 #define MSG4K	(1024 * 4)
 #define MSG8K	(1024 * 8)
 
-#define ID_TIMESTAMP "$Id: [" __DATE__ " " __TIME__ "] [" __TIMESTAMP__ "] [" __FILE__ "] $"
-#define ID_TIMESTAMP_M "$Id: [" __DATE__ " " __TIME__ "] [" __TIMESTAMP__ "] [" __FILE__ "] $"
+#define ID_FILE_TIMESTAMP "$Id: [" __DATE__ " " __TIME__ "] [" __TIMESTAMP__ "] [" __FILE__ "] $"
 
 #ifndef __linux__
 #define strncpy_s4  strncpy_s
@@ -123,11 +204,36 @@ typedef int tPvErr;
 		} \
 }
 
-#define PCO_CHECK_ERROR(er, fn)   (PcoCheckError(__LINE__, __FILE__, ( er ) , ( fn ) ))
-
+#ifndef __linux__
 #define DEF_FNID 	static char *fnId =__FUNCTION__;
 
+#define PCO_CHECK_ERROR(er, fn)   (PcoCheckError(__LINE__, __FILE__, ( er ) , ( fn ) ))
+
+#else
+#define DEF_FNID 	const char *fnId  __attribute__((unused)) =__FUNCTION__ ;
+
+#define PCO_CHECK_ERROR(__err__ , __comments__)  \
+{ \
+		if(__err__) \
+		{ \
+			__err__ = PcoCheckError(__LINE__, __FILE__, __err__, fnId , __comments__); \
+		} \
+}
+
+#define PCO_CHECK_ERROR1(__err__ , __comments__)  \
+{ \
+		if(__err__) \
+		{ \
+			__err__ = m_cam.PcoCheckError(__LINE__, __FILE__, __err__, fnId , __comments__); \
+		} \
+}
+
+#endif
+
+
 #define PRINTLINES { for(int i = 0; i<50;i++) printf("=====  %s [%d]/[%d]\n", __FILE__, __LINE__,i); }
+
+#ifndef __linux
 
 #define PCO_FN0(er,mg, fn) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( ), #fn ); }
 #define PCO_FN1(er,mg, fn, x1) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1) ), #fn ); }
@@ -137,7 +243,110 @@ typedef int tPvErr;
 #define PCO_FN5(er,mg, fn, x1, x2, x3, x4, x5) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5) ), #fn ) ; }
 #define PCO_FN6(er,mg, fn, x1, x2, x3, x4, x5, x6) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5),(x6) ), #fn ) ; }
 
+#else
+// ----- PCO FUNCTIONS
+#define PCO_FN0(er,mg, fn) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, __##fn ( ), #fn ); }
+#define PCO_FN1(er,mg, fn, x1) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, __##fn ( (x1) ), #fn ); }
+#define PCO_FN2(er,mg, fn, x1, x2) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, __##fn ( (x1),(x2) ), #fn ) ; }
+#define PCO_FN3(er,mg, fn, x1, x2, x3) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, __##fn ( (x1),(x2),(x3) ), #fn ) ; }
+#define PCO_FN4(er,mg, fn, x1, x2, x3, x4) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, __##fn ( (x1),(x2),(x3),(x4) ), #fn ) ; }
+#define PCO_FN5(er,mg, fn, x1, x2, x3, x4, x5) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, __##fn ( (x1),(x2),(x3),(x4),(x5) ), #fn ) ; }
+
+
+// ----- PCO sdk 
+#define __PCO_ResetLib() ( PCO_ResetLib()    )
+DWORD PCO_ResetLib();
+
+#define __PCO_RebootCamera(y1) ( PCO_RebootCamera( (y1)  ) )
+
+#define __PCO_ResetSettingsToDefault(y1) ( PCO_ResetSettingsToDefault( (y1)  ) )
+
+#define __PCO_OpenCamera(y1, y2) ( PCO_OpenCamera( (y1) , (y2) ) )
+
+#define __PCO_GetPendingBuffer(y1, y2) ( PCO_GetPendingBuffer( (y1) , (y2) ) )
+
+
+#define __PCO_GetStorageStruct(y1, y2) ( PCO_GetStorageStruct( (y1) , (y2) ) )
+#define __PCO_GetRecordingStruct(y1, y2) ( PCO_GetRecordingStruct( (y1) , (y2) ) )
+#define __PCO_GetTimingStruct(y1, y2) ( PCO_GetTimingStruct( (y1) , (y2) ) )
+#define __PCO_GetSensorStruct(y1, y2) ( PCO_GetSensorStruct( (y1) , (y2) ) )
+
+#define __PCO_GetCameraType(y1, y2) ( PCO_GetCameraType( (y1) , (y2) ) )
+
+#define __PCO_GetCameraDescription(y1, y2) ( PCO_GetCameraDescription( (y1) , (y2) ) )
+#define __PCO_GetGeneral(y1, y2) ( PCO_GetGeneral( (y1) , (y2) ) )
+#define __PCO_GetImageTiming(y1, y2) ( PCO_GetImageTiming( (y1) , (y2) ) )
+
+
+#define __PCO_SetAcquireMode(y1, y2) ( PCO_SetAcquireMode( (y1) , (y2) ) )
+#define __PCO_SetTriggerMode(y1, y2) ( PCO_SetTriggerMode( (y1) , (y2) ) )
+
+
+
+#define __PCO_SetHWIOSignal(y1, y2, y3) ( PCO_SetHWIOSignal( (y1) , (y2) , (y3) ) )
+#define __PCO_GetHWIOSignal(y1, y2, y3) ( PCO_GetHWIOSignal( (y1) , (y2) , (y3) ) )
+#define __PCO_GetHWIOSignalDescriptor(y1, y2, y3) ( PCO_GetHWIOSignalDescriptor( (y1) , (y2) , (y3) ) )
+#define __PCO_SetTimeouts(y1, y2, y3) ( PCO_SetTimeouts( (y1) , (y2) , (y3) ) )
+
+
+#define __PCO_GetActiveLookupTable(y1, y2, y3) ( PCO_GetActiveLookupTable( (y1) , (y2) , (y3) ) )
+#define __PCO_SetActiveLookupTable(y1, y2, y3) ( PCO_SetActiveLookupTable( (y1) , (y2) , (y3) ) )
+#define __PCO_SetTransferParameter(y1, y2, y3) ( PCO_SetTransferParameter( (y1) , (y2) , (y3) ) )
+#define __PCO_GetTransferParameter(y1, y2, y3) ( PCO_GetTransferParameter( (y1) , (y2) , (y3) ) )
+#define __PCO_CamLinkSetImageParameters(y1, y2, y3) ( PCO_CamLinkSetImageParameters( (y1) , (y2) , (y3) ) )
+
+
+
+#define __PCO_CancelImages(y1) ( PCO_CancelImages( y1  ) )
+
+#define __PCO_SetDelayExposureTime(y1, y2, y3, y4, y5) ( camera->PCO_SetDelayExposureTime(  (y2) , (y3) , (y4) , (y5) ) )
+#define __PCO_GetNumberOfImagesInSegment(y1, y2, y3, y4) ( camera->PCO_GetNumberOfImagesInSegment(  (y2) , (y3) , (y4) ) )
+#define __PCO_SetCameraRamSegmentSize(y1, y2) ( camera->PCO_SetCameraRamSegmentSize(  (y2) ) )
+#define __PCO_GetCameraRamSegmentSize(y1, y2) ( camera->PCO_GetCameraRamSegmentSize(  (y2) ) )
+#define __PCO_GetActiveRamSegment(y1, y2) ( camera->PCO_GetActiveRamSegment(  (y2) ) )
+#define __PCO_GetCameraRamSize(y1, y2, y3) ( camera->PCO_GetCameraRamSize(  (y2) , (y3) ) )
+#define __PCO_GetRecorderSubmode(y1, y2) ( camera->PCO_GetRecorderSubmode( (y2) ) )
+#define __PCO_SetRecorderSubmode(y1, y2) ( camera->PCO_SetRecorderSubmode(  (y2) ) )
+#define __PCO_GetStorageMode(y1, y2) ( camera->PCO_GetStorageMode( (y2) ) )
+#define __PCO_SetStorageMode(y1, y2) ( camera->PCO_SetStorageMode( (y2) ) )
+#define __PCO_CloseCamera(y1) ( camera->Close_Cam(   ) )
+#define __PCO_ArmCamera(y1) ( camera -> PCO_ArmCamera(  ) )
+#define __PCO_GetPixelRate(y1, y2) ( camera->PCO_GetPixelRate( (y2) ) )
+#define __PCO_SetPixelRate(y1, y2) ( camera->PCO_SetPixelRate( (y2)  ) )
+#define __PCO_SetADCOperation(y1, y2) ( camera->PCO_SetADCOperation(  (y2) ) )
+#define __PCO_GetADCOperation(y1, y2) ( camera->PCO_GetADCOperation( (y2) ) )
+#define __PCO_GetHWIOSignalCount(y1, y2) ( camera->PCO_GetHWIOSignalCount(  (y2) ) )
+#define __PCO_SetRecordingState(y1, y2) ( camera->PCO_SetRecordingState(  (y2) ) )
+#define __PCO_GetRecordingState(y1, y2) ( camera->PCO_GetRecordingState(  (y2) ) )
+#define __PCO_GetCoolingSetpointTemperature(y1, y2) ( camera->PCO_GetCoolingSetpointTemperature(  (y2) ) )
+#define __PCO_GetBinning(y1, y2, y3) ( camera->PCO_GetBinning( (y2) , (y3) ) )
+#define __PCO_SetBinning(y1, y2, y3) ( camera->PCO_SetBinning(  (y2) , (y3) ) )
+#define __PCO_GetCOCRuntime(y1, y2, y3) ( camera->PCO_GetCOCRuntime(  (y2) , (y3) ) )
+#define __PCO_GetCameraSetup(y1, y2, y3, y4) ( camera->PCO_GetCameraSetup(  (y2) , (y3) , (y4) ) )
+#define __PCO_SetCameraSetup(y1, y2, y3, y4) ( camera->PCO_SetCameraSetup(  (y2) , (y3) , (y4) ) )
+#define __PCO_SetMetaDataMode(y1, y2, y3, y4) ( camera->PCO_SetMetadataMode( (y2) , (y3) , (y4) ) )
+#define __PCO_GetTemperature(y1, y2, y3, y4) ( camera->PCO_GetTemperature(  (y2) , (y3) , (y4) ) )
+#define __PCO_GetSizes(y1, y2, y3, y4, y5) ( camera->PCO_GetActualSize( (y2) , (y3)  ) )
+#define __PCO_GetROI(y1, y2, y3, y4, y5) ( camera->PCO_GetROI(  (y2) , (y3) , (y4) , (y5) ) )
+#define __PCO_SetROI(y1, y2, y3, y4, y5) ( camera->PCO_SetROI(  (y2) , (y3) , (y4) , (y5) ) )
+
+#define __PCO_GetBitAlignment(y1, y2) ( camera->PCO_GetBitAlignment(  (y2) ) )
+#define __PCO_SetBitAlignment(y1, y2) ( camera->PCO_SetBitAlignment(  (y2) ) )
+
+unsigned int * _beginthread( void (*) (void *), unsigned int, void*);
+void _endthread(void);
+HANDLE CreateEvent(void*, bool,bool, void*);
+DWORD WaitForMultipleObjects(DWORD, HANDLE *, bool, DWORD); 
+#define WAIT_OBJECT_0 0
+#define WAIT_TIMEOUT 5
+
+#endif
+
 const char * _sprintComment(const char *comment, const char *comment1 ="" , const char *comment2 ="" );
+
+#ifndef __linux__
 int _get_imageNr_from_imageTimestamp(void *buf,int shift);
 int _get_time_from_imageTimestamp(void *buf,int shift,SYSTEMTIME *st);
+#endif
+
 #endif

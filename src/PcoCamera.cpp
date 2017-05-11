@@ -79,7 +79,7 @@ char *str_toupper(char *s);
 
 
 //=========================================================================================================
-char* _timestamp_pcocamera() {return ID_TIMESTAMP ;}
+char* _timestamp_pcocamera() {return ID_FILE_TIMESTAMP ;}
 
 
 #ifdef WITH_GIT_VERSION
@@ -104,9 +104,9 @@ char * _timestamp_gitversion(char *buffVersion, int len)
 
 //=========================================================================================================
 //=========================================================================================================
-char *xlatCode2Str(int code, struct stcXlatCode2Str *stc) {
+const char *Camera::xlatCode2Str(int code, struct stcXlatCode2Str *stc) {
 
-	char *type;
+	const char *type;
 
 	while( (type = stc->str) != NULL) {
 		if(stc->code == code) return type;
@@ -121,7 +121,7 @@ char *xlatCode2Str(int code, struct stcXlatCode2Str *stc) {
 //=========================================================================================================
 
 
-char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
+const char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 	DEB_CONSTRUCTOR();
 	struct stcXlatCode2Str modelType[] = {
 		{CAMERATYPE_PCO1200HS, "PCO 1200 HS"},
@@ -184,7 +184,7 @@ char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err) {
 	};
 
   struct stcXlatCode2Str *stc;
-	char *ptr;
+	const char *ptr;
 	static char buff[BUFF_XLAT_SIZE+1];
 	char *errTable ;
 
@@ -489,7 +489,6 @@ void Camera::_init(){
 	char msg[MSG4K + 1];
 	//char *pMsg;
 	int error=0;
-	char *errMsg;
 	char *pcoFn;
 
 	_armRequired(true);
@@ -532,8 +531,8 @@ void Camera::_init(){
 		
 	PCO_THROW_OR_TRACE(error, "_init(): PCO_OpenCamera") ;
 	
-	errMsg = _pco_GetCameraType(error);
-	PCO_THROW_OR_TRACE(error, errMsg) ;
+	_pco_GetCameraType(error);
+	PCO_THROW_OR_TRACE(error, "_pco_GetCameraType") ;
 
 	DEB_ALWAYS() << fnId << " [camera opened] " << DEB_VAR1(m_handle);
 
@@ -577,8 +576,8 @@ void Camera::_init(){
 	DEB_TRACE() <<   msg;
 	m_log.append(msg);
 
-	errMsg = _pco_GetTemperatureInfo(error);
-	PCO_THROW_OR_TRACE(error, errMsg) ;
+	_pco_GetTemperatureInfo(error);
+	PCO_THROW_OR_TRACE(error, "_pco_GetTemperatureInfo") ;
 
 	_pco_SetRecordingState(0, error);
 	
@@ -825,6 +824,7 @@ void Camera::startAcq()
 	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]") << _checkLogFiles();
 
 	int error;
+	const char *ccMsg;
 	char *msg;
 
     int iRequestedFrames;
@@ -922,7 +922,7 @@ void Camera::startAcq()
 
 	//------------------------------------------------- triggering mode 
     //------------------------------------- acquire mode : ignore or not ext. signal
-	msg = _pco_SetTriggerMode_SetAcquireMode(error);
+	ccMsg = _pco_SetTriggerMode_SetAcquireMode(error);
     PCO_THROW_OR_TRACE(error, msg) ;
 
     // ----------------------------------------- storage mode (recorder + sequence)
@@ -940,7 +940,7 @@ void Camera::startAcq()
 
                DEB_ALWAYS() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
 
-		msg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
+		ccMsg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
 		PCO_THROW_OR_TRACE(error, msg) ;
 	}
 
@@ -997,13 +997,13 @@ void Camera::startAcq()
 //		PCO_ArmCamera(hCam)
 //-----------------------------------------------------------------------------------------------
 	
-	msg = _pco_SetMetaDataMode(0, error); PCO_THROW_OR_TRACE(error, msg) ;
+	_pco_SetMetaDataMode(0, error); PCO_THROW_OR_TRACE(error, "_pco_SetMetaDataMode") ;
  
 	//--------------------------- PREPARE / pixel rate - ARM required 
-	msg = _pco_SetPixelRate(error); PCO_THROW_OR_TRACE(error, msg) ;
+	_pco_SetPixelRate(error); PCO_THROW_OR_TRACE(error, "_pco_SetPixelRate") ;
 		
 	//--------------------------- PREPARE / clXferParam, LUT - ARM required 
-	msg = _pco_SetTransferParameter_SetActiveLookupTable(error); PCO_THROW_OR_TRACE(error, msg) ;
+	_pco_SetTransferParameter_SetActiveLookupTable_win(error); PCO_THROW_OR_TRACE(error, "_pco_SetTransferParameter_SetActiveLookupTable_win") ;
 
 	//--------------------------- PREPARE / ARM  
 	DEB_ALWAYS() << "\n   ARM the camera / PCO_ArmCamera (1)";
@@ -1947,7 +1947,8 @@ void Camera::reset(int reset_level)
 //=========================================================================================================
 //=========================================================================================================
 #define LEN_TMP_MSG 256
-int Camera::PcoCheckError(int line, char *file, int err, char *fn) {
+int Camera::PcoCheckError(int line, const char *file, int err, const char *fn, const char *comments) 
+{
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
@@ -1984,7 +1985,7 @@ int Camera::PcoCheckError(int line, char *file, int err, char *fn) {
 
 //=========================================================================================================
 //=========================================================================================================
-char* Camera::_PcoCheckError(int line, char *file, int err, int &error, char *fn) {
+char* Camera::_PcoCheckError(int line, const char *file, int err, int &error, const char *fn) {
 	static char lastErrorMsg[ERR_SIZE];
 	static char tmpMsg[LEN_TMP_MSG+1];
 	char *msg;
@@ -2808,7 +2809,7 @@ void Camera::_presetPixelRate(DWORD &pixRate, int &error){
 
 //=================================================================================================
 //=================================================================================================
-void Camera::msgLog(char *s) {
+void Camera::msgLog(const char *s) {
 	m_msgLog->add(s); 
 }
 

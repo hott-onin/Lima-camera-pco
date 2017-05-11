@@ -64,7 +64,7 @@ int __xlat_date(char *s1, char &ptrTo, int lenTo) ;
 char *_xlat_date(char *s1, char *s2, char *s3) ;
 
 //=========================================================================================================
-const char* _timestamp_pcocamerautils() {return ID_TIMESTAMP_M ;}
+const char* _timestamp_pcocamerautils() {return ID_FILE_TIMESTAMP ;}
 //=========================================================================================================
 
 //=========================================================================================================
@@ -247,7 +247,7 @@ void stcPcoData::traceMsg(char *s){
 }
 
 static char buff[BUFF_INFO_SIZE +16];
-char *Camera::talk(char *cmd){
+const char *Camera::talk(const char *cmd){
 	DEB_MEMBER_FUNCT();
 
 	static char buff[BUFF_INFO_SIZE +16];
@@ -259,7 +259,7 @@ char *Camera::talk(char *cmd){
 
 #define NRTOK 10
 #define NRCMDS 200
-char *Camera::_talk(char *_cmd, char *output, int lg){
+const char *Camera::_talk(const char *_cmd, char *output, int lg){
 	DEB_MEMBER_FUNCT();
 		char cmdBuff[BUFF_INFO_SIZE +1];
 		char cmdBuffAux[BUFF_INFO_SIZE +1];
