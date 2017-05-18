@@ -86,10 +86,7 @@ WORD Camera::_pco_GetActiveRamSegment()
 	WORD act_segment;
 	int err;
 	char errstr[LEN_ERRSTR+1];
-	DWORD capsDesc1;
-
-	_pco_GetGeneralCapsDESC(capsDesc1, err);
-	if((capsDesc1 & GENERALCAPS1_NO_RECORDER)==0)
+	if( _isCapsDesc(capsCamRam))
 	{
 		err=PCO_GetActiveRamSegment(m_handle,&act_segment);
 		if(err!=PCO_NOERROR)
@@ -735,23 +732,68 @@ void Camera::_pco_GetTemperatureInfo(int &error){
 	m_pcoData->temperature.wMinCoolSet = m_pcoData->stcPcoDescription.sMinCoolSetDESC;
 	m_pcoData->temperature.wMaxCoolSet = m_pcoData->stcPcoDescription.sMaxCoolSetDESC;
 
-	sprintf_s(msg, MSG_SIZE, "* cooling temperature: MIN [%d]  Max [%d]\n",  m_pcoData->temperature.wMinCoolSet, m_pcoData->temperature.wMaxCoolSet);
-	//DEB_TRACE() <<   msg;
-	m_log.append(msg);
+	// SC2_SDK_FUNC int WINAPI PCO_GetCoolingSetpointTemperature(HANDLE ph, SHORT* sCoolSet)
 
-	// -- Set/Get cooling temperature
-	if (m_pcoData->temperature.wSetpoint != -1) {
-		if (m_pcoData->temperature.wSetpoint < m_pcoData->temperature.wMinCoolSet)	m_pcoData->temperature.wSetpoint = m_pcoData->temperature.wMinCoolSet;
-		if (m_pcoData->temperature.wSetpoint > m_pcoData->temperature.wMaxCoolSet)	m_pcoData->temperature.wSetpoint= m_pcoData->temperature.wMaxCoolSet;
-	} else {
-		PCO_FN2(error, pcoFn,PCO_GetCoolingSetpointTemperature, m_handle, &m_pcoData->temperature.wSetpoint);
-		if(error) return;
-		//PCO_THROW_OR_TRACE(error, "PCO_GetCoolingSetpointTemperature") ;
+	if ((m_pcoData->temperature.wMinCoolSet == 0) && (m_pcoData->temperature.wMaxCoolSet == 0)) // no cooled camera
+	{
+		m_pcoData->temperature.wSetpoint = 0;
+		sprintf_s(msg, MSG_SIZE, "*     cooling: NO cooled camera");
+		m_log.append(msg);
+		return;
 	}
-	sprintf_s(msg, MSG_SIZE, "* Cooling Setpoint = %d\n", m_pcoData->temperature.wSetpoint);
-	//DEB_TRACE() <<   msg;
+
+	PCO_FN2(error, pcoFn,PCO_GetCoolingSetpointTemperature, m_handle, &m_pcoData->temperature.wSetpoint);
+
+
+	sprintf_s(msg, MSG_SIZE, "*     cooling: min[%d]  max[%d]  setpoint[%d]\n",  
+				m_pcoData->temperature.wMinCoolSet, m_pcoData->temperature.wMaxCoolSet, m_pcoData->temperature.wSetpoint);
 	m_log.append(msg);
 
+
+	return;
+}
+
+
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetTemperatureInfo(char *ptr, char *ptrMax, int &error)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	char *pcoFn;
+
+
+
+	// -- Print out current temperatures
+	PCO_FN4(error, pcoFn,PCO_GetTemperature, m_handle, &m_pcoData->temperature.wCcd, &m_pcoData->temperature.wCam, &m_pcoData->temperature.wPower);
+	if(error) {
+		ptr += sprintf_s(ptr, ptrMax - ptr, "[SDK error - getTemperature]"); 
+		return;
+	}
+	ptr += sprintf_s(ptr, ptrMax - ptr, "CCD[%.1f] CAM[%d] PS[%d]", 
+		m_pcoData->temperature.wCcd/10., m_pcoData->temperature.wCam, m_pcoData->temperature.wPower);
+
+	m_pcoData->temperature.wMinCoolSet = m_pcoData->stcPcoDescription.sMinCoolSetDESC;
+	m_pcoData->temperature.wMaxCoolSet = m_pcoData->stcPcoDescription.sMaxCoolSetDESC;
+
+	// SC2_SDK_FUNC int WINAPI PCO_GetCoolingSetpointTemperature(HANDLE ph, SHORT* sCoolSet)
+
+	if ((m_pcoData->temperature.wMinCoolSet == 0) && (m_pcoData->temperature.wMaxCoolSet == 0)) // no cooled camera
+	{
+		m_pcoData->temperature.wSetpoint = 0;
+		ptr += sprintf_s(ptr, ptrMax - ptr, " cooling: [NO cooled camera]");
+		return;
+	}
+
+	PCO_FN2(error, pcoFn,PCO_GetCoolingSetpointTemperature, m_handle, &m_pcoData->temperature.wSetpoint);
+	if(error) {
+		ptr += sprintf_s(ptr, ptrMax - ptr, " [SDK error - getSetpoint]"); 
+		return;
+	}
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, " cooling: min[%d] max[%d] setpoint[%d]",  
+				m_pcoData->temperature.wMinCoolSet, m_pcoData->temperature.wMaxCoolSet, m_pcoData->temperature.wSetpoint);
 
 	return;
 }
@@ -1417,9 +1459,19 @@ int Camera::_pco_SetADCOperation(int adc_new, int &adc_working)
 
 bool Camera::_isCapsDesc(int caps)
 {
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	DWORD _dwCaps1;
+	int error;
 
 #ifndef __linux__
-	DWORD _dwCaps1 = m_pcoData->stcPcoDescription.dwGeneralCapsDESC1;
+	_pco_GetGeneralCapsDESC(_dwCaps1, error);
+	if(error)
+	{
+		DEB_ALWAYS() << "ERROR - _pco_GetGeneralCapsDESC";
+		return FALSE;
+	}
 #else
 	DWORD _dwCaps1 = m_pcoData->stcPcoDescription.dwGeneralCaps1;
 #endif
@@ -1446,6 +1498,25 @@ bool Camera::_isCapsDesc(int caps)
 
 		case capsHWIO:
 			return !!(_dwCaps1 & GENERALCAPS1_HW_IO_SIGNAL_DESCRIPTOR);
+
+		case capsCamRam:
+			return ( (_dwCaps1 & GENERALCAPS1_NO_RECORDER) == 0) ;
+
+		case capsMetadata:
+			return !!(_dwCaps1 & GENERALCAPS1_METADATA);
+
+
+		//----------------------------------------------------------------------------------------------------------
+		// dwGeneralCapsDESC1;      // General capabilities:
+        //		Bit 3: Timestamp ASCII only available (Timestamp mode 3 enabled)
+		//		Bit 8: Timestamp not available
+		// m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & BIT3 / BIT8
+
+		case capsTimestamp3:
+			return (!(_dwCaps1 & BIT8)) && (_dwCaps1 & BIT3);
+
+		case capsTimestamp:
+			return !(_dwCaps1 & BIT8);
 
 		default:
 			return FALSE;
@@ -1813,11 +1884,7 @@ void Camera::_pco_GetCameraType(int &error){
 					m_pcoData->dwPixelRateMax = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
 	}	
 
-	DWORD capsDesc1;
-	_pco_GetGeneralCapsDESC(capsDesc1, error);
-
-	m_pcoData->bMetaDataAllowed = !!(capsDesc1 & GENERALCAPS1_METADATA) ;
-
+	m_pcoData->bMetaDataAllowed = _isCapsDesc(capsMetadata);
 
 
 	if(errTotPcoSdk)
@@ -1870,4 +1937,67 @@ void Camera::_pco_CloseCamera(int &err)
     }
 #endif
 	return;
+}
+//=================================================================================================
+//=================================================================================================
+
+bool Camera::_isCooledCamera()
+{
+
+	return !((m_pcoData->stcPcoDescription.sMinCoolSetDESC == 0) && (m_pcoData->stcPcoDescription.sMaxCoolSetDESC == 0));
+
+
+}
+
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetCoolingSetpointTemperature(int &val, int &error)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	char *pcoFn;
+	SHORT _sSetpoint;
+
+	if(!_isCooledCamera())
+	{
+		error = -1;
+		val = 0;
+		return;
+	}
+
+	PCO_FN2(error, pcoFn,PCO_GetCoolingSetpointTemperature, m_handle, &_sSetpoint);
+	if(error)
+	{
+		val = 0;
+		return;
+	}
+
+	val = _sSetpoint;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_SetCoolingSetpointTemperature(int val, int &error)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	char *pcoFn;
+	WORD _wSetpoint = (WORD) val;
+
+	if(
+		!_isCooledCamera() ||
+		(_wSetpoint < m_pcoData->stcPcoDescription.sMinCoolSetDESC) ||
+		(_wSetpoint > m_pcoData->stcPcoDescription.sMaxCoolSetDESC)
+		)
+	{
+		error = -1;
+		return;
+	}
+
+	PCO_FN2(error, pcoFn,PCO_SetCoolingSetpointTemperature, m_handle, _wSetpoint);
+	if(error)
+	{
+		return;
+	}
 }

@@ -15,7 +15,8 @@ namespace Pco
         void 	startAcq();
         void	reset(int);
 
-        char *talk(char *cmd);       
+        const char *talk(const char *cmd);
+        //char *talk(char *cmd);       
 
         int getNbAcquiredFrames();
 
@@ -78,6 +79,9 @@ namespace Pco
 		void getCDIMode(int & val /Out/);     // cdiMode
 		void setCDIMode(int val);
 
+		void getTemperatureInfo(std::string &o_sn /Out/);
+		void getCoolingTemperature(int & val /Out/);
+		void setCoolingTemperature(int val);
 
 
   };

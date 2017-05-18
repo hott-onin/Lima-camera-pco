@@ -191,6 +191,10 @@ enum capsDesc
 	capsDoubleImage,
 	capsRollingShutter, capsGlobalShutter, capsGlobalResetShutter,
 	capsHWIO,
+	capsCamRam, 
+	capsMetadata,
+	capsTimestamp, capsTimestamp3,
+
 
 };
 
@@ -859,8 +863,6 @@ namespace lima
 		void getCocRunTime(double &coc);
 		void getFrameRate(double &framerate);
 		
-
-
 		void getLastImgRecorded(unsigned long & img);
 		void getLastImgAcquired(unsigned long & img);
 
@@ -880,6 +882,9 @@ namespace lima
 		void getCDIMode(int & val);
 		void setCDIMode(int val);
 
+		void getTemperatureInfo(std::string &o_sn);
+		void getCoolingTemperature(int &val);
+		void setCoolingTemperature(int val);
 	
 	public:		//----------- pco sdk functions
 		WORD _pco_GetActiveRamSegment(); // {return m_pcoData->wActiveRamSegment;}
@@ -892,9 +897,16 @@ namespace lima
 		
 		char *_pco_SetDelayExposureTime(int &error);
 		char *_pco_SetImageParameters(int &error);
+
 		void _pco_GetCameraType(int &error);
 		//char *_pco_GetTemperatureInfo(int &error);
 		void _pco_GetTemperatureInfo(int &error);
+		void _pco_GetTemperatureInfo(char *ptr, char *ptrMax, int &error);
+		void _pco_GetCoolingSetpointTemperature(int &val, int &error);
+		void _pco_SetCoolingSetpointTemperature(int val, int &error);
+		
+		bool _isCooledCamera();
+
 		void _pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error);
 		//char *_pco_SetCameraSetup(DWORD dwSetup, int &error);
 

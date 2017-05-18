@@ -1027,29 +1027,21 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 
 		}
 
-		//----------------------------------------------------------------------------------------------------------
-		// dwGeneralCapsDESC1;      // General capabilities:
-        //		Bit 3: Timestamp ASCII only available (Timestamp mode 3 enabled)
-		//		Bit 8: Timestamp not available
-		// m_pcoData->stcPcoDescription.dwGeneralCapsDESC1 & BIT3 / BIT8
-
-		
+	
 		key = keys[ikey] = "timestampMode"; 
 		keys_desc[ikey++] = "(RW) pco timestampMode [<new value (0, 1, 2, 3)>]"; 
 		if(_stricmp(cmd, key) == 0){
 			int error, val;
 			WORD wTimeStampMode;
-			DWORD capsDesc1; 
-			_pco_GetGeneralCapsDESC(capsDesc1, error);
 
 			int valMax;
 
-			if(capsDesc1 & BIT8)
+			if(!_isCapsDesc(capsTimestamp))
 			{
 				ptr += sprintf_s(ptr, ptrMax - ptr, "timestampmode not allowed\n");
 				return output;
 			}
-			valMax = (capsDesc1 & BIT3) ? 3 : 2;
+			valMax = _isCapsDesc(capsTimestamp3) ? 3 : 2;
 
 			_pco_GetTimestampMode(wTimeStampMode, error);
 			if(error) 
@@ -2883,6 +2875,7 @@ void Camera::getRollingShutterInfo(std::string &o_sn)
 
 
 //====================================================================
+// SIP - attributes
 //====================================================================
 
 
@@ -2980,8 +2973,9 @@ void Camera::getPcoLogsEnabled(int & enabled)
 	enabled =  m_pcoData->pcoLogActive;
 }
 
-//=================================================================================================
-//=================================================================================================
+//====================================================================
+// SIP - attrib
+//====================================================================
 void Camera::getCamType(std::string &o_sn) 
 {
 	char *ptr = buff;
@@ -3035,6 +3029,7 @@ void Camera::getLastError(std::string &o_sn)
 }
 
 //====================================================================
+// SIP - attrib
 //====================================================================
 void Camera::getTraceAcq(std::string &o_sn) 
 {
@@ -3269,6 +3264,7 @@ void Camera::getLastFixedRoi(std::string &o_sn)
 }
 
 //====================================================================
+// SIP - attrib
 //====================================================================
 void Camera::getCDIMode(int &cdi)
 {
@@ -3290,6 +3286,9 @@ void Camera::setCDIMode(int cdi)
 	_pco_SetCDIMode(wCdi, error);
 
 }
+
+
+
 
 //=================================================================================================
 //=================================================================================================
@@ -3404,3 +3403,37 @@ long long usElapsedTime(LARGE_INTEGER &tick0) {
 	return 0;
 #endif	
 }
+
+
+//====================================================================
+// SIP - attrib
+//====================================================================
+void Camera::getTemperatureInfo(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+	int error;
+
+	_pco_GetTemperatureInfo(ptr, ptrMax, error);
+	
+	o_sn = buff;
+}
+
+//====================================================================
+// SIP - attributes
+//====================================================================
+
+
+void Camera::getCoolingTemperature(int &val)
+{
+	int error;
+	_pco_GetCoolingSetpointTemperature(val, error);
+
+}
+
+void Camera::setCoolingTemperature(int val)
+{
+	int error;
+	_pco_SetCoolingSetpointTemperature(val, error);
+}
+

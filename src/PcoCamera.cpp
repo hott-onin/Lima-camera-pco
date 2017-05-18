@@ -2675,7 +2675,7 @@ bool Camera::_isCameraType(unsigned long long tp){
 				default:
 					break;
 			}
-			DEB_ALWAYS() << "Dimax SUBTYE NONE FALSE [exit] ";
+			DEB_ALWAYS() << "Dimax SUBTYPE NONE FALSE [exit] ";
 			return FALSE;
 
 		case CAMERATYPE_PCO_EDGE_GL:
