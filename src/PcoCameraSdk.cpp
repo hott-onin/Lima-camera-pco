@@ -1846,7 +1846,7 @@ void Camera::_pco_GetCameraType(int &error){
 			_getCameraSubTypeStr(), 
 			_getInterfaceTypeStr(), 
 			_getCameraSerialNumber());
-		DEB_TRACE() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
+		DEB_ALWAYS() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
 			<< "\n"
 			<< "\n====================== CAMERA FOUND ======================"
 			<< "\n* "  << m_pcoData->camera_name
@@ -2000,4 +2000,43 @@ void Camera::_pco_SetCoolingSetpointTemperature(int val, int &error)
 	{
 		return;
 	}
+}
+
+
+//=================================================================================================
+//=================================================================================================
+//SC2_SDK_FUNC int WINAPI PCO_GetInfoString(HANDLE ph, DWORD dwinfotype, char *buf_in, WORD size_in);
+// Gets the name of the camera.
+// In: HANDLE ph -> Handle to a previously opened camera.
+//     DWORD dwinfotype -> 0: Camera and interface name
+//                         1: Camera name only
+//                         2: Sensor name
+//     char *buf_in -> Pointer to a string, to receive the info string.
+//     WORD size_in -> WORD variable which holds the maximum length of the string.
+// Out: int -> Error message.
+
+void Camera::_pco_GetInfoString(int infotype, char *buf_in, int size_in, int &error)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+#ifndef __linux__
+	DWORD dwinfotype = (DWORD) infotype;
+	WORD wsize_in = (WORD) size_in;
+
+	error = PCO_GetInfoString(m_handle, dwinfotype, buf_in, wsize_in);
+	PCO_CHECK_ERROR(error, "PCO_GetInfoString");
+	if(error)
+	{
+		*buf_in = 0;
+	}
+
+#else
+	error = -1;
+	*buf_in = 0;
+	DEB_ALWAYS() << "ERROR - NOT IMPLEMENTED!" ;
+
+#endif
+
+
 }

@@ -958,6 +958,11 @@ namespace lima
 
 		void dummySip();
 
+		//----
+		void _pco_GetInfoString(int infotype, char *buf_in, int size_in, int &error);
+
+
+
 	}; // class camera
   } // namespace pco
 } // namespace lima

@@ -466,7 +466,7 @@ Camera::Camera(const char *params) :
 	m_pcoData->params_ignoreMaxImages = !!paramsGet(key, value);
 
 
-	DEB_TRACE()
+	DEB_ALWAYS()
 		<< ALWAYS_NL << DEB_VAR1(m_pcoData->version) 
 		<< ALWAYS_NL << _checkLogFiles(true);
 
@@ -821,7 +821,7 @@ void Camera::startAcq()
     WORD state;
     HANDLE hEvent= NULL;
 
-	DEB_TRACE() << _sprintComment(fnId, "[ENTRY]") << _checkLogFiles();
+	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]") << _checkLogFiles();
 
 	int error;
 	const char *ccMsg;

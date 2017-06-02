@@ -426,7 +426,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\..\..\..\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\common\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\hardware\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\third-party\Processlib\core\include\WindowSpecific&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\third-party\Processlib\core\include&quot;;&quot;$(ProjectDir)..\..\..\..\sdkPco\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\..\..\..\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\common\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\hardware\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\third-party\Processlib\core\include\WindowSpecific&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\third-party\Processlib\core\include&quot;;&quot;$(ProjectDir)..\..\..\..\sdkPco\include&quot;;&quot;$(ProjectDir)..\..\..\..\sdkPco&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBLIMAPCO_EXPORTS;LIMA_PROCESSCORE_DLL;VS_PLATFORM=$(PlatformName);VS_CONFIGURATION=$(ConfigurationName);LIMA_PROCESSCORE_BUILD;WITH_GIT_VERSION"
 				GeneratePreprocessedFile="0"
 				RuntimeLibrary="2"
@@ -592,6 +592,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\..\sdkPco\include\PCO_Structures.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\..\sdkPco\PcoSdkVersion.h"
 					>
 				</File>
 				<File

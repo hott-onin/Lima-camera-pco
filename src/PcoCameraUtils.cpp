@@ -25,6 +25,7 @@
 #ifndef __linux__
 #include <windows.h>
 #include <tchar.h>
+#include "PcoSdkVersion.h"
 #endif
 
 #include <stdio.h>
@@ -1670,6 +1671,38 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 			return output;
 		}
 
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "nameInfo";     
+		keys_desc[ikey++] = "(R) get name info";     
+		if(_stricmp(cmd, key) == 0){
+			int error;
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "[" );
+			_pco_GetInfoString(0, ptr, (int) (ptrMax - ptr), error);
+			ptr += strlen(ptr);
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "] [" );
+			_pco_GetInfoString(1, ptr, (int) (ptrMax - ptr), error);
+			ptr += strlen(ptr);
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "] [" );
+			_pco_GetInfoString(2, ptr, (int) (ptrMax - ptr), error);
+			ptr += strlen(ptr);
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, "]" );
+
+			return output;
+		}
+
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "sdkRelease";     
+		keys_desc[ikey++] = "(R) sdk release";     
+		if(_stricmp(cmd, key) == 0){
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, PCO_SDK_RELEASE );
+
+			return output;
+		}
 
 		//----------------------------------------------------------------------------------------------------------
 		// this must be the last cmd
