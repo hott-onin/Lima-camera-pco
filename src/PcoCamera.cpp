@@ -329,13 +329,13 @@ bool Camera::paramsGet(const char *key, char *&value) {
 		if(_stricmp(key, m_pcoData->params.ptrKey[i]) == 0) {
 			ret = true;
 			value = m_pcoData->params.ptrValue[i];
-			DEB_ALWAYS() << DEB_VAR3(key, ret, value);
+			DEB_TRACE() << DEB_VAR3(key, ret, value);
 			return ret;
 		}
 	}
 	ret = false;
 	value = ""; 
-	DEB_ALWAYS() << DEB_VAR3(key, ret, value);
+	DEB_TRACE() << DEB_VAR3(key, ret, value);
 	return ret;
 
 }
@@ -346,7 +346,7 @@ void Camera::paramsInit(const char *str)
 	DEF_FNID;
 	DEB_CONSTRUCTOR();
 
-	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]")
+	DEB_TRACE() << _sprintComment(fnId, "[ENTRY]")
 		<< DEB_VAR1(str);
 
 	int i;
@@ -399,9 +399,9 @@ void Camera::paramsInit(const char *str)
 		char *key, *value;
 		key = m_pcoData->params.ptrKey[j];
 		value = m_pcoData->params.ptrValue[j];
-		DEB_ALWAYS() << DEB_VAR2(key, value);
+		DEB_TRACE() << DEB_VAR2(key, value);
 	}
-	DEB_ALWAYS() << _sprintComment(fnId, "[EXIT]");
+	DEB_TRACE() << _sprintComment(fnId, "[EXIT]");
 };
 
 //=========================================================================================================
@@ -466,7 +466,7 @@ Camera::Camera(const char *params) :
 	m_pcoData->params_ignoreMaxImages = !!paramsGet(key, value);
 
 
-	DEB_ALWAYS()
+	DEB_TRACE()
 		<< ALWAYS_NL << DEB_VAR1(m_pcoData->version) 
 		<< ALWAYS_NL << _checkLogFiles(true);
 
@@ -484,7 +484,7 @@ void Camera::_init(){
 	DEB_CONSTRUCTOR();
 	DEF_FNID;
 
-	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]");
+	DEB_TRACE() << _sprintComment(fnId, "[ENTRY]");
 
 	char msg[MSG4K + 1];
 	//char *pMsg;
@@ -497,14 +497,14 @@ void Camera::_init(){
 	sprintf_s(msg, sizeof(msg), "*** Pco log %s\n", getTimestamp(Iso));
 	m_log.append(msg);
 
-	DEB_ALWAYS() <<_getDllPath(FILE_PCO_DLL, msg, sizeof(msg));
+	DEB_TRACE() <<_getDllPath(FILE_PCO_DLL, msg, sizeof(msg));
 
 	//PCO_FN0(error, pMsg,PCO_ResetLib);
 
 		// --- Open Camera - close before if it is open
 	if(m_handle) {
 		char *pcoFn;
-		DEB_ALWAYS() << fnId << " [closing opened camera]";
+		DEB_TRACE() << fnId << " [closing opened camera]";
 		PCO_FN1(error, pcoFn,PCO_CloseCamera, m_handle);
 		PCO_THROW_OR_TRACE(error, "_init(): PCO_CloseCamera - closing opened cam") ;
 		m_handle = NULL;
@@ -534,7 +534,7 @@ void Camera::_init(){
 	_pco_GetCameraType(error);
 	PCO_THROW_OR_TRACE(error, "_pco_GetCameraType") ;
 
-	DEB_ALWAYS() << fnId << " [camera opened] " << DEB_VAR1(m_handle);
+	DEB_TRACE() << fnId << " [camera opened] " << DEB_VAR1(m_handle);
 
 	// -- Initialise ADC
 	//-------------------------------------------------------------------------------------------------
@@ -621,14 +621,14 @@ void Camera::_init(){
 
 		error = PcoCheckError(__LINE__, __FILE__, 
 			PCO_SetDateTime(m_handle, ucDay, ucMonth, wYear, wHour, ucMin, ucSec));
-		DEB_ALWAYS() << DEB_VAR6(day, mon, year, hour, min, sec);
+		DEB_TRACE() << DEB_VAR6(day, mon, year, hour, min, sec);
 	}
 
 
 
 	DEB_TRACE() << m_log;
 	DEB_TRACE() << "END OF CAMERA";
-	DEB_ALWAYS() << _sprintComment(fnId, "[EXIT]");
+	DEB_TRACE() << _sprintComment(fnId, "[EXIT]");
 
 }
 
@@ -780,7 +780,7 @@ void Camera::_init_edge() {
 Camera::~Camera()
 {
 	DEB_DESTRUCTOR();
-	DEB_ALWAYS() << "DESTRUCTOR ...................." ;
+	DEB_TRACE() << "DESTRUCTOR ...................." ;
 
 	m_cam_connected = false;
 
@@ -821,7 +821,7 @@ void Camera::startAcq()
     WORD state;
     HANDLE hEvent= NULL;
 
-	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]") << _checkLogFiles();
+	DEB_TRACE() << _sprintComment(fnId, "[ENTRY]") << _checkLogFiles();
 
 	int error;
 	const char *ccMsg;
@@ -882,7 +882,7 @@ void Camera::startAcq()
 
 	bool test;
 	test = ((wRoiX0Now != wRoiX0) ||	(wRoiX1Now != wRoiX1) || (wRoiY0Now != wRoiY0) || (wRoiY1Now != wRoiY1));
-	DEB_ALWAYS() 
+	DEB_TRACE() 
 		<< "\n> " << DEB_VAR1(test)
 		<< "\n   _get_Roi> " << DEB_VAR4(x0, x1, y0, y1)
 		<< "\n   _get_Roi> " << DEB_VAR4(wRoiX0, wRoiX1, wRoiY0, wRoiY1)
@@ -890,7 +890,7 @@ void Camera::startAcq()
 	test = true;
 	if(test) {
 		
-		DEB_ALWAYS() 
+		DEB_TRACE() 
 			<< "\n   PCO_SetROI> " << DEB_VAR5(m_RoiLima, wRoiX0, wRoiY0, wRoiX1, wRoiY1);
 
 		PCO_FN5(error, msg,PCO_SetROI, m_handle, wRoiX0, wRoiY0, wRoiX1, wRoiY1);
@@ -900,7 +900,7 @@ void Camera::startAcq()
 
 		PCO_FN5(error, msg,PCO_GetROI, m_handle, &wRoiX0Now, &wRoiY0Now, &wRoiX1Now, &wRoiY1Now);
 		PCO_THROW_OR_TRACE(error, msg) ;
-		DEB_ALWAYS() 
+		DEB_TRACE() 
 			<< "\n   PCO_GetROI> " << DEB_VAR4(wRoiX0Now, wRoiY0Now, wRoiX1Now, wRoiY1Now)
 			<< "\n   PCO_GetROI> " << DEB_VAR4(m_pcoData->wRoiX0Now, m_pcoData->wRoiY0Now, m_pcoData->wRoiX1Now, m_pcoData->wRoiY1Now);
 
@@ -938,7 +938,7 @@ void Camera::startAcq()
                        mode = (iRequestedFrames > 0) ? RecSeq : Fifo;
                }
 
-               DEB_ALWAYS() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
+               DEB_TRACE() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
 
 		ccMsg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
 		PCO_THROW_OR_TRACE(error, msg) ;
@@ -948,7 +948,7 @@ void Camera::startAcq()
 	if(_isCameraType(Pco4k | Pco2k)) {
 			// live video requested frames = 0
 		enumPcoStorageMode mode = Fifo;
-		DEB_ALWAYS() << "PcoStorageMode mode - PCO2K / 4K: " << DEB_VAR1(mode);
+		DEB_TRACE() << "PcoStorageMode mode - PCO2K / 4K: " << DEB_VAR1(mode);
 
 		msg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
 		PCO_THROW_OR_TRACE(error, msg) ;
@@ -981,7 +981,7 @@ void Camera::startAcq()
 		if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) {
 			wRecordStopEventMode = 0x0002;    // record stop by edge at the <acq. enbl.>
 			dwRecordStopDelayImages = iRequestedFrames;
-			DEB_ALWAYS() << "..... PCO_SetRecordStopEvent";
+			DEB_TRACE() << "..... PCO_SetRecordStopEvent";
 			error = PcoCheckError(__LINE__, __FILE__, PCO_SetRecordStopEvent(m_handle, wRecordStopEventMode, dwRecordStopDelayImages));
 			PCO_THROW_OR_TRACE(error, "PCO_SetRecordStopEvent") ;
 		}
@@ -1006,7 +1006,7 @@ void Camera::startAcq()
 	_pco_SetTransferParameter_SetActiveLookupTable_win(error); PCO_THROW_OR_TRACE(error, "_pco_SetTransferParameter_SetActiveLookupTable_win") ;
 
 	//--------------------------- PREPARE / ARM  
-	DEB_ALWAYS() << "\n   ARM the camera / PCO_ArmCamera (1)";
+	DEB_TRACE() << "\n   ARM the camera / PCO_ArmCamera (1)";
 	PCO_FN1(error, msg,PCO_ArmCamera, m_handle); 
 	PCO_THROW_OR_TRACE(error, msg) ;
 	
@@ -1089,7 +1089,7 @@ void Camera::startAcq()
 
 	if(!_isRunAfterAssign())
 	{
-		DEB_ALWAYS() << "========================= recordingState 1 - BEFORE ASSIGN (startAcq)";
+		DEB_TRACE() << "========================= recordingState 1 - BEFORE ASSIGN (startAcq)";
 		_pco_SetRecordingState(1, error);
 	}
 
@@ -1106,10 +1106,10 @@ void Camera::startAcq()
 
 		while( ((val =  m_sync->getExposing()) != val0) && retry--)
 		{
-			DEB_ALWAYS() << "+++ getExposing / pcoAcqRecordStart - WAIT - " << DEB_VAR3(val, val0, retry);
+			DEB_TRACE() << "+++ getExposing / pcoAcqRecordStart - WAIT - " << DEB_VAR3(val, val0, retry);
 			resWait = m_cond.wait(2.);
 		}
-		DEB_ALWAYS() << "+++ getExposing / pcoAcqRecordStart - EXIT - " << DEB_VAR3(val, val0, retry);
+		DEB_TRACE() << "+++ getExposing / pcoAcqRecordStart - EXIT - " << DEB_VAR3(val, val0, retry);
 		lock.unlock();
 #endif
 
@@ -1902,7 +1902,7 @@ void Camera::reset(int reset_level)
 	switch(reset_level) 
 	{
 	case RESET_CLOSE_INTERFACE: 
-		DEB_ALWAYS() << "\n... RESET - freeBuff, closeCam, resetLib  " << DEB_VAR1(reset_level) ;
+		DEB_TRACE() << "\n... RESET - freeBuff, closeCam, resetLib  " << DEB_VAR1(reset_level) ;
 
 		m_buffer->_pcoAllocBuffersFree();
 
@@ -1915,7 +1915,7 @@ void Camera::reset(int reset_level)
 		break;
 
 	default:
-		DEB_ALWAYS() << "\n... RESET -  " << DEB_VAR1(reset_level);
+		DEB_TRACE() << "\n... RESET -  " << DEB_VAR1(reset_level);
 		//_init();
 		break;
 	}
@@ -1950,10 +1950,10 @@ int Camera::PcoCheckError(int line, const char *file, int err, const char *fn, c
 
 		if(err & PCO_ERROR_IS_WARNING) {
 			DEB_WARNING() << fnId << ": --- WARNING - IGNORED --- " << DEB_VAR1(m_pcoData->pcoErrorMsg);
-			//DEB_ALWAYS() << fnId << ": --- WARNING - IGNORED --- " << DEB_VAR1(m_pcoData->pcoErrorMsg);
+			//DEB_TRACE() << fnId << ": --- WARNING - IGNORED --- " << DEB_VAR1(m_pcoData->pcoErrorMsg);
 			return 0;
 		}
-		DEB_ALWAYS() << fnId << ":\n   " << msg
+		DEB_TRACE() << fnId << ":\n   " << msg
 			<< "\n    " << tmpMsg;
 		return (err);
 	}
@@ -2002,10 +2002,10 @@ unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
 	
 	// if(_isCameraType(Edge)) {return LONG_MAX;}
 
-	DEB_ALWAYS() << "pcoGetFramesMaxInSegment [entry] " << DEB_VAR2(segmentPco, m_pcoData->camera_name );
+	DEB_TRACE() << "pcoGetFramesMaxInSegment [entry] " << DEB_VAR2(segmentPco, m_pcoData->camera_name );
 	if(!_isCameraType(Dimax | Pco2k | Pco4k)) 
 	{
-		DEB_ALWAYS() << "pcoGetFramesMaxInSegment UNKNOWN [exit] " << DEB_VAR1(segmentPco);
+		DEB_TRACE() << "pcoGetFramesMaxInSegment UNKNOWN [exit] " << DEB_VAR1(segmentPco);
 		//printf("=== %s> unknown camera type [%d]\n", fnId, _getCameraType());
 		return 0;
 	}
@@ -2026,7 +2026,7 @@ unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
 
 	if(_isCameraType(DimaxHS)) 
 	{
-		DEB_ALWAYS() << "pcoGetFramesMaxInSegment DimaxHS [entry] " ;
+		DEB_TRACE() << "pcoGetFramesMaxInSegment DimaxHS [entry] " ;
 		// W = Width of ROI
 		// H = Height of ROI
 		// m = Number of pages for the segment, as configured using PCO_SetRamSegmentSize
@@ -2049,12 +2049,12 @@ unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
 		ulNrImages = iPagesInSegment / iC - 1;
 
 		//return m_pcoData->dwMaxImageCnt[segmentPco];
-		DEB_ALWAYS() << "pcoGetFramesMaxInSegment DimaxHS [exit] "  << DEB_VAR6(ulNrImages, ulWidth, ulHeigth, iPagesInSegment, wCdi, wDImg);
+		DEB_TRACE() << "pcoGetFramesMaxInSegment DimaxHS [exit] "  << DEB_VAR6(ulNrImages, ulWidth, ulHeigth, iPagesInSegment, wCdi, wDImg);
 		return ulNrImages;
 	}
 
 	
-	DEB_ALWAYS() << "pcoGetFramesMaxInSegment DIMAX NOT HS [entry] " ;
+	DEB_TRACE() << "pcoGetFramesMaxInSegment DIMAX NOT HS [entry] " ;
 
 	pixPerFrame = (unsigned long long)ulWidth * (unsigned long long)ulHeigth;
 
@@ -2074,7 +2074,7 @@ unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
 
 	framesMax = m_pcoData->dwMaxFramesInSegment[segmentArr] = (unsigned long)(((long long) m_pcoData->dwSegmentSize[segmentArr] ) / pagesPerFrame);
 
-	DEB_ALWAYS() << "pcoGetFramesMaxInSegment DIMAX STD [exit] " << DEB_VAR1(framesMax);
+	DEB_TRACE() << "pcoGetFramesMaxInSegment DIMAX STD [exit] " << DEB_VAR1(framesMax);
 	return framesMax;
 }
 
@@ -2177,7 +2177,7 @@ void Camera::_set_shutter_rolling_edge(DWORD dwRolling, int &error)
 
 	m_pcoData->dwRollingShutter = dwRolling;
 
-	DEB_ALWAYS() << "requested Rolling Shutter OK " << DEB_VAR1(dwRolling);
+	DEB_TRACE() << "requested Rolling Shutter OK " << DEB_VAR1(dwRolling);
 
 	_beginthread( _pco_shutter_thread_edge, 0, (void*) this);
 
@@ -2207,7 +2207,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 		return ;
 	}
 
-	DEB_ALWAYS() << fnId << " [entry - edge] ";
+	DEB_TRACE() << fnId << " [entry - edge] ";
 
 	m_config = TRUE;
 
@@ -2245,7 +2245,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 
 	
 	if(m_dwSetup[0] == dwRollingShRequested) { 
-		DEB_ALWAYS() << "exit NO Change in ROLLING SHUTTER " << DEB_VAR2(dwRollingShNow, dwRollingShRequested);
+		DEB_TRACE() << "exit NO Change in ROLLING SHUTTER " << DEB_VAR2(dwRollingShNow, dwRollingShRequested);
 		m_config = FALSE;
 		return;
 	}
@@ -2254,7 +2254,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	sprintf_s(msg, MSG_SIZE, "[Change ROLLING SHUTTER from [%d] to [%d]]", 
 		m_dwSetup[0]==PCO_EDGE_SETUP_ROLLING_SHUTTER, dwRollingShRequested==PCO_EDGE_SETUP_ROLLING_SHUTTER);
 
-	DEB_ALWAYS() << "Change in ROLLING SHUTTER " << DEB_VAR2(dwRollingShNow, dwRollingShRequested);
+	DEB_TRACE() << "Change in ROLLING SHUTTER " << DEB_VAR2(dwRollingShNow, dwRollingShRequested);
 
 	m_dwSetup[0] = dwRollingShRequested;
 
@@ -2262,7 +2262,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
     PCO_PRINT_ERR(error, msg); 	if(error) return;
 
 	msg = "[PCO_SetCameraSetup]";
-	DEB_ALWAYS() << fnId << " " << msg;
+	DEB_TRACE() << fnId << " " << msg;
     PCO_FN4(error, msg,PCO_SetCameraSetup, m_handle, m_wType, &m_dwSetup[0], m_wLen);
     PCO_PRINT_ERR(error, msg); 	
 	if(error)
@@ -2273,7 +2273,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	}
 
 	msg = "[PCO_RebootCamera]";
-	DEB_ALWAYS() << fnId << " " << msg;
+	DEB_TRACE() << fnId << " " << msg;
     PCO_FN1(error, msg,PCO_RebootCamera, m_handle);
     PCO_PRINT_ERR(error, msg); 	if(error) return;
 
@@ -2281,19 +2281,19 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	m_buffer->_pcoAllocBuffersFree();
 
 	msg = "[PCO_CloseCamera]";
-	DEB_ALWAYS() << fnId << " " << msg;
+	DEB_TRACE() << fnId << " " << msg;
     PCO_FN1(error, msg,PCO_CloseCamera, m_handle);
     PCO_PRINT_ERR(error, msg); 	if(error) return;
 	m_handle = NULL;
 	
 	msg = msgBuff;
 	sprintf_s(msg, MSG_SIZE, "[Sleep %d ms]", sleepMs);
-	DEB_ALWAYS() << fnId << " " << msg;
+	DEB_TRACE() << fnId << " " << msg;
 	::Sleep(sleepMs);
 
 	_init();
 
-	DEB_ALWAYS() << fnId << " [exit] ";
+	DEB_TRACE() << fnId << " [exit] ";
 
 	m_config = FALSE;
 	return;
@@ -2654,28 +2654,28 @@ bool Camera::_isCameraType(unsigned long long tp){
 	WORD wCameraSubtype = _getCameraSubType();
 
 
-	DEB_ALWAYS() << "[entry] " << DEB_VAR3(tp, wCameraType, wCameraSubtype);
+	DEB_TRACE() << "[entry] " << DEB_VAR3(tp, wCameraType, wCameraSubtype);
 
 	switch(wCameraType) {
 		case CAMERATYPE_PCO_DIMAX_STD: 
 		case CAMERATYPE_PCO_DIMAX_TV:
 		case CAMERATYPE_PCO_DIMAX_CS:
-			if(tp & Dimax) {DEB_ALWAYS() << "Dimax [exit] "; return TRUE;}
+			if(tp & Dimax) {DEB_TRACE() << "Dimax [exit] "; return TRUE;}
 			switch(wCameraSubtype >> 8)
 			{
 				case 0x20:
-					if(tp & (DimaxHS1 | DimaxHS)) {DEB_ALWAYS() << "DimaxHS1 / HS [exit] "; return TRUE;}
+					if(tp & (DimaxHS1 | DimaxHS)) {DEB_TRACE() << "DimaxHS1 / HS [exit] "; return TRUE;}
 					break;
 				case 0x21:
-					if(tp & (DimaxHS2 | DimaxHS)) {DEB_ALWAYS() << "DimaxHS2 / HS [exit] "; return TRUE;}
+					if(tp & (DimaxHS2 | DimaxHS)) {DEB_TRACE() << "DimaxHS2 / HS [exit] "; return TRUE;}
 					break;
 				case 0x23:
-					if(tp & (DimaxHS4 | DimaxHS)) {DEB_ALWAYS() << "DimaxHS4 / HS [exit] "; return TRUE;}
+					if(tp & (DimaxHS4 | DimaxHS)) {DEB_TRACE() << "DimaxHS4 / HS [exit] "; return TRUE;}
 					break;
 				default:
 					break;
 			}
-			DEB_ALWAYS() << "Dimax SUBTYPE NONE FALSE [exit] ";
+			DEB_TRACE() << "Dimax SUBTYPE NONE FALSE [exit] ";
 			return FALSE;
 
 		case CAMERATYPE_PCO_EDGE_GL:
@@ -2767,7 +2767,7 @@ void Camera::_presetPixelRate(DWORD &pixRate, int &error){
 	DEF_FNID;
 
 	if(! (_isCameraType(Edge) || _isCameraType(Pco2k) || _isCameraType(Pco4k)) ) {
-		DEB_ALWAYS() << "WARNING - this camera doesn't allows setPixelRate"  ;
+		DEB_TRACE() << "WARNING - this camera doesn't allows setPixelRate"  ;
 		pixRate = 0;
 		error = -1;
 		return;

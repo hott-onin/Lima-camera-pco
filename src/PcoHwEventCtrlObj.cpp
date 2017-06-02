@@ -64,11 +64,11 @@ void PcoHwEventCtrlObj::registerEventCallback(EventCallback& cb)
 
 
   DEB_MEMBER_FUNCT();
-  DEB_ALWAYS() << " FUNCTION entry";
+  DEB_TRACE() << " FUNCTION entry";
 
   EventCallbackGen::registerEventCallback(cb);
 
-  DEB_ALWAYS() << " FUNCTION exit";
+  DEB_TRACE() << " FUNCTION exit";
 }
 
 //=========================================================================================================
@@ -76,7 +76,7 @@ void PcoHwEventCtrlObj::registerEventCallback(EventCallback& cb)
 void PcoHwEventCtrlObj::unregisterEventCallback(EventCallback& cb)
 {	
   DEB_MEMBER_FUNCT();
-  DEB_ALWAYS() << "--- FUNCTION ---";
+  DEB_TRACE() << "--- FUNCTION ---";
 }
 
 //=========================================================================================================
@@ -84,9 +84,9 @@ void PcoHwEventCtrlObj::unregisterEventCallback(EventCallback& cb)
 bool PcoHwEventCtrlObj::hasRegisteredCallback()
 {
   DEB_MEMBER_FUNCT();
-  DEB_ALWAYS() << " FUNCTION entry";
+  DEB_TRACE() << " FUNCTION entry";
   return EventCallbackGen::hasRegisteredCallback();
-  DEB_ALWAYS() << " FUNCTION exit";
+  DEB_TRACE() << " FUNCTION exit";
 }
 
 
@@ -95,9 +95,9 @@ bool PcoHwEventCtrlObj::hasRegisteredCallback()
 void PcoHwEventCtrlObj::reportEvent(Event *event)
 {	
   DEB_MEMBER_FUNCT();
-  DEB_ALWAYS() << " FUNCTION entry";
+  DEB_TRACE() << " FUNCTION entry";
   EventCallbackGen::reportEvent(event);
-  DEB_ALWAYS() << " FUNCTION exit";
+  DEB_TRACE() << " FUNCTION exit";
 }
 
 #endif

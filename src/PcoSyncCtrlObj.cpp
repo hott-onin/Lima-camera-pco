@@ -107,7 +107,7 @@ bool SyncCtrlObj::checkTrigMode(TrigMode trig_mode)
 			break;
 	}
 
-	//DEB_ALWAYS() << "<Trig mode not allowed>  " << DEB_VAR1(trig_mode);
+	//DEB_TRACE() << "<Trig mode not allowed>  " << DEB_VAR1(trig_mode);
 	return false;
 }
 
@@ -230,7 +230,7 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoAcqMode()
 	m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
 	m_pcoData->traceAcq.sPcoAcqMode = sPcoAcqMode;
 
-	DEB_ALWAYS() << fnId << ": " << DEB_VAR2(pcoAcqMode, m_trig_mode);
+	DEB_TRACE() << fnId << ": " << DEB_VAR2(pcoAcqMode, m_trig_mode);
 	return pcoAcqMode;
 
 }
@@ -317,7 +317,7 @@ WORD SyncCtrlObj::xlatLimaTrigMode2PcoTrigMode(bool &ext_trig){
 	m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
 	m_pcoData->traceAcq.sPcoTriggerMode = sPcoTriggerMode;
 
-	DEB_ALWAYS() << fnId <<": " << DEB_VAR3(pcoTrigMode, m_trig_mode, ext_trig);
+	DEB_TRACE() << fnId <<": " << DEB_VAR3(pcoTrigMode, m_trig_mode, ext_trig);
 
 	return pcoTrigMode;
 }
@@ -337,16 +337,16 @@ void SyncCtrlObj::setExpTime(double exp_time)
   char buff[LEN_DUMP];
 
   _hex_dump_bytes(&exp_time, sizeof(exp_time), buff, LEN_DUMP);
-	DEB_ALWAYS() << DEB_VAR2(exp_time, buff);
+	DEB_TRACE() << DEB_VAR2(exp_time, buff);
 
 	_hex_dump_bytes(&valid_ranges.min_exp_time, sizeof(valid_ranges.min_exp_time), buff, LEN_DUMP);
-	DEB_ALWAYS() << DEB_VAR2(valid_ranges.min_exp_time, buff);
+	DEB_TRACE() << DEB_VAR2(valid_ranges.min_exp_time, buff);
 
 	_hex_dump_bytes(&m_pcoData->min_exp_time, sizeof(m_pcoData->min_exp_time), buff, LEN_DUMP);
-	DEB_ALWAYS() << DEB_VAR2(m_pcoData->min_exp_time, buff);
+	DEB_TRACE() << DEB_VAR2(m_pcoData->min_exp_time, buff);
 
 	_hex_dump_bytes(&m_pcoData->min_exp_time_err, sizeof(m_pcoData->min_exp_time_err), buff, LEN_DUMP);
-	DEB_ALWAYS() << DEB_VAR2(m_pcoData->min_exp_time_err, buff);
+	DEB_TRACE() << DEB_VAR2(m_pcoData->min_exp_time_err, buff);
 
 #endif
 
@@ -372,12 +372,12 @@ void SyncCtrlObj::setExpTime(double exp_time)
 
 	if (exp_time < m_pcoData->min_exp_time){
 		m_exp_time = m_pcoData->min_exp_time;
-		DEB_ALWAYS() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
+		DEB_TRACE() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
 		return;
 	}
 
 	m_exp_time = m_pcoData->max_exp_time;
-	DEB_ALWAYS() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
+	DEB_TRACE() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
 	return;
 }
 
@@ -489,7 +489,7 @@ void SyncCtrlObj::startAcq()
 
   m_cam->msgLog("startAcq");
 
-  DEB_ALWAYS() << ": SyncCtrlObj::startAcq() " << DEB_VAR1(_started);
+  DEB_TRACE() << ": SyncCtrlObj::startAcq() " << DEB_VAR1(_started);
 
   if(!_started)
     {
@@ -510,10 +510,10 @@ void SyncCtrlObj::startAcq()
 
 		while( ((val =  getExposing()) == val0) && retry--)
 		{
-			DEB_ALWAYS() << "+++ getExposing - WAIT for != pcoAcqStart - " << DEB_VAR3(val, val0, retry);
+			DEB_TRACE() << "+++ getExposing - WAIT for != pcoAcqStart - " << DEB_VAR3(val, val0, retry);
 			resWait = m_cond.wait(2.);
 		}
-		DEB_ALWAYS() << "+++ getExposing - EXIT - " << DEB_VAR3(val, val0, retry);
+		DEB_TRACE() << "+++ getExposing - EXIT - " << DEB_VAR3(val, val0, retry);
 		lock.unlock();
 
 
@@ -534,7 +534,7 @@ void SyncCtrlObj::setExposing(pcoAcqStatus exposing) {
 	m_exposing = exposing;
 	m_cond.broadcast();
 
-	DEB_ALWAYS() << fnId << "[exit]" << ": " << DEB_VAR2(m_exposing, exposing);
+	DEB_TRACE() << fnId << "[exit]" << ": " << DEB_VAR2(m_exposing, exposing);
 }
 
 
@@ -550,7 +550,7 @@ void SyncCtrlObj::setStarted(bool started) {
 	m_started = started;
 	m_cond.broadcast();
 
-	DEB_ALWAYS() << fnId << "[exit]" << ": " << DEB_VAR2(m_started, started);
+	DEB_TRACE() << fnId << "[exit]" << ": " << DEB_VAR2(m_started, started);
 }
 
 //=========================================================================================================
@@ -578,7 +578,7 @@ void SyncCtrlObj::stopAcq(bool clearQueue)
 	lock.unlock();
 	_stopRequestOut = _getRequestStop(_nrStop);
 
-	DEB_ALWAYS() << fnId << " [exit]" << ": " << DEB_VAR5(_started, _stopRequestIn, _stopRequestOut, _nrStop, resWait);
+	DEB_TRACE() << fnId << " [exit]" << ": " << DEB_VAR5(_started, _stopRequestIn, _stopRequestOut, _nrStop, resWait);
 }
 //=========================================================================================================
 //=========================================================================================================
@@ -662,7 +662,7 @@ void SyncCtrlObj::_setRequestStop(int requestStop)
 				break;
 
 	}
-	//DEB_ALWAYS() <<  fnId << " [exit]: "  << DEB_VAR4(m_requestStop0, m_requestStop, m_requestStopRetry, requestStop);
+	//DEB_TRACE() <<  fnId << " [exit]: "  << DEB_VAR4(m_requestStop0, m_requestStop, m_requestStopRetry, requestStop);
 
 }
 //=========================================================================================================

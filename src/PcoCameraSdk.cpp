@@ -122,7 +122,7 @@ void Camera::_pco_SetPixelRate(int &error){
 
 		_dwPixelRateOld = m_pcoData->dwPixelRate;
 		_dwPixelRateReq = m_pcoData->dwPixelRateRequested;
-		DEB_ALWAYS() << "PIXEL rate (actual/req): " << DEB_VAR2(_dwPixelRateOld, _dwPixelRateReq) ;
+		DEB_TRACE() << "PIXEL rate (actual/req): " << DEB_VAR2(_dwPixelRateOld, _dwPixelRateReq) ;
 
 		if(_isValid_pixelRate(_dwPixelRateReq) && (_dwPixelRateOld != _dwPixelRateReq)) {
 
@@ -133,7 +133,7 @@ void Camera::_pco_SetPixelRate(int &error){
 			PCO_THROW_OR_TRACE(error, msg) ;
 
 			_dwPixelRate = m_pcoData->dwPixelRate;
-			DEB_ALWAYS() << "PIXEL rate SET (old/new): "  << DEB_VAR2(_dwPixelRateOld, _dwPixelRate) ;
+			DEB_TRACE() << "PIXEL rate SET (old/new): "  << DEB_VAR2(_dwPixelRateOld, _dwPixelRate) ;
 
 			_armRequired(true);
 		}
@@ -150,7 +150,7 @@ void Camera::_pco_SetPixelRate(int &error){
 		_dwPixelRateMax = m_pcoData->dwPixelRateMax;
 		_dwPixelRateReq = m_pcoData->dwPixelRateRequested;
 
-		DEB_ALWAYS() << "PIXEL rate (requested/actual/max): " << DEB_VAR3(_dwPixelRateReq, _dwPixelRateOld, _dwPixelRateMax) ;
+		DEB_TRACE() << "PIXEL rate (requested/actual/max): " << DEB_VAR3(_dwPixelRateReq, _dwPixelRateOld, _dwPixelRateMax) ;
 
 		if(_isValid_pixelRate(_dwPixelRateReq) && (_dwPixelRateOld != _dwPixelRateReq)) {
 		//if(_dwPixelRateMax > _dwPixelRateOld) {
@@ -162,7 +162,7 @@ void Camera::_pco_SetPixelRate(int &error){
 			PCO_THROW_OR_TRACE(error, msg) ;
 			
 			_dwPixelRate = m_pcoData->dwPixelRate;
-			DEB_ALWAYS() << "PIXEL rate SET (old/new): "  << DEB_VAR2(_dwPixelRateOld, _dwPixelRate) ;
+			DEB_TRACE() << "PIXEL rate SET (old/new): "  << DEB_VAR2(_dwPixelRateOld, _dwPixelRate) ;
 
 			_armRequired(true);
 		}
@@ -253,7 +253,7 @@ char *Camera::_pco_SetImageParameters(int &error){
     wXres= m_pcoData->wXResActual;
     wYres= m_pcoData->wYResActual;
 	
-	DEB_ALWAYS() << "PCO_SetImageParameters: " << DEB_VAR3(wXres, wYres, dwFlags);
+	DEB_TRACE() << "PCO_SetImageParameters: " << DEB_VAR3(wXres, wYres, dwFlags);
 
 	//error = PCO_SetImageParameters(m_handle, wXres, wYres, dwFlags, param, iLenParam);
 
@@ -353,7 +353,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 			(_pcoData.clTransferParam.DataFormat != m_pcoData->clTransferParam.DataFormat) ||
 			(_pcoData.clTransferParam.Transmit != m_pcoData->clTransferParam.Transmit)	)
 		{
-			DEB_ALWAYS() << "PCO_SetTransferParameter (clTransferParam) " << info ;
+			DEB_TRACE() << "PCO_SetTransferParameter (clTransferParam) " << info ;
 			PCO_FN3(error, pcoFn,PCO_SetTransferParameter,m_handle, &m_pcoData->clTransferParam, sizeof(m_pcoData->clTransferParam));
 			if(error){
 				sprintf_s(msg,ERRMSG_SIZE, "PCO_SetTransferParameter - baudrate[%d][%d] dataFormat[x%08x][x%08x] trasmit[%d][%d]",
@@ -366,7 +366,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 		} 
 		else 
 		{
-			DEB_ALWAYS() << "PCO_SetTransferParameter (clTransferParam) NOT DONE@" << info ;
+			DEB_TRACE() << "PCO_SetTransferParameter (clTransferParam) NOT DONE@" << info ;
 			
 		}
 
@@ -484,7 +484,7 @@ const char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode m
 		default: 
 			throw LIMA_HW_EXC(Error,"FATAL - invalid storage mode!" );
 	}
-    DEB_ALWAYS() << "\n>>> storage/recorder mode: " << DEB_VAR2(sMode, mode) ;
+    DEB_TRACE() << "\n>>> storage/recorder mode: " << DEB_VAR2(sMode, mode) ;
 
 	m_pcoData->traceAcq.sPcoStorageRecorderMode = sMode;
 	m_pcoData->traceAcq.iPcoStorageMode = m_pcoData->storage_mode;
@@ -578,15 +578,15 @@ void Camera::_pco_GetHWIOSignalAll(int &error){
 	imax = m_pcoData->wNrPcoHWIOSignal = 
 		(m_pcoData->wNrPcoHWIOSignal0 <= SIZEARR_stcPcoHWIOSignal) ? m_pcoData->wNrPcoHWIOSignal0 : SIZEARR_stcPcoHWIOSignal;
 
-	//DEB_ALWAYS()  << "--- size" << DEB_VAR3(imax, m_pcoData->wNrPcoHWIOSignal0 , m_pcoData->wNrPcoHWIOSignal ) ;
+	//DEB_TRACE()  << "--- size" << DEB_VAR3(imax, m_pcoData->wNrPcoHWIOSignal0 , m_pcoData->wNrPcoHWIOSignal ) ;
 
 	for(i=0; i< imax; i++) {
-		//DEB_ALWAYS()  << "---  descriptor" << DEB_VAR2(i, m_pcoData->stcPcoHWIOSignalDesc[i].wSize) ;
+		//DEB_TRACE()  << "---  descriptor" << DEB_VAR2(i, m_pcoData->stcPcoHWIOSignalDesc[i].wSize) ;
 		PCO_FN3(error, msg,PCO_GetHWIOSignalDescriptor, m_handle, i, &m_pcoData->stcPcoHWIOSignalDesc[i]);
 		if(error) return;
 
 	
-		//DEB_ALWAYS()  << "---  signal" << DEB_VAR2(i, m_pcoData->stcPcoHWIOSignal[i].wSize) ;
+		//DEB_TRACE()  << "---  signal" << DEB_VAR2(i, m_pcoData->stcPcoHWIOSignal[i].wSize) ;
 		PCO_FN3(error, msg,PCO_GetHWIOSignal, m_handle, i, &m_pcoData->stcPcoHWIOSignal[i]);
 		if(error) return;
 	}
@@ -644,7 +644,7 @@ void Camera::_pco_initHWIOSignal(int mode, int &error){
 
 	_pco_SetHWIOSignal(idx, _err); error |= _err;
 
-	DEB_ALWAYS() << "set PcoHWIOSignal polarity "  << DEB_VAR3(name, idx, val) ;
+	DEB_TRACE() << "set PcoHWIOSignal polarity "  << DEB_VAR3(name, idx, val) ;
 
 
 }
@@ -1097,7 +1097,7 @@ void Camera::_pco_SetTimestampMode(WORD mode, int &err)
 
 	if(mode == modeOld)
 	{
-	    DEB_ALWAYS()<< "\n   no change " << DEB_VAR2(mode, modeOld); 
+	    DEB_TRACE()<< "\n   no change " << DEB_VAR2(mode, modeOld); 
 		return;
 	}
 
@@ -1122,7 +1122,7 @@ void Camera::_pco_SetTimestampMode(WORD mode, int &err)
 
 #endif
 
-	DEB_ALWAYS() 
+	DEB_TRACE() 
         << "\n   " << DEB_VAR3(mode, modeOld, modeNew) 
         ;
 
@@ -1152,7 +1152,7 @@ void Camera::_pco_GetTimestampMode(WORD &mode, int &err)
 
 #endif
 
-	DEB_ALWAYS() 
+	DEB_TRACE() 
         << "\n   " << DEB_VAR1(mode) 
         ;
     return;
@@ -1249,17 +1249,17 @@ const char * Camera::_pco_SetRecordingState(int state, int &err){
 
 #ifndef __linux__
 		if(count) {
-			DEB_ALWAYS() << ":  PCO_CancelImages() - CALLING";
+			DEB_TRACE() << ":  PCO_CancelImages() - CALLING";
 			PCO_FN1(err, msg,PCO_CancelImages, m_handle);
 			PCO_PRINT_ERR(err, msg); 	if(err) return msg;
 		} else {
-			DEB_ALWAYS() << ":  PCO_CancelImages() - BYPASSED";
+			DEB_TRACE() << ":  PCO_CancelImages() - BYPASSED";
 		}
 	}
 
 	if(wRecState_new != wRecState_actual) 
 	{
-		DEB_ALWAYS() << fnId << ": PCO_SetRecordingState " << DEB_VAR1(wRecState_new);
+		DEB_TRACE() << fnId << ": PCO_SetRecordingState " << DEB_VAR1(wRecState_new);
 		PCO_FN2(err, msg,PCO_SetRecordingState, m_handle, wRecState_new);
 		PCO_PRINT_ERR(err, msg); 	if(err) return msg;
 	}
@@ -1270,7 +1270,7 @@ const char * Camera::_pco_SetRecordingState(int state, int &err){
 #else
 if(count && !_isCameraType(Edge)) 
 		{
-			DEB_ALWAYS() << fnId << ": PCO_CancelImages";
+			DEB_TRACE() << fnId << ": PCO_CancelImages";
 
             err=camera->PCO_CancelImage();
             PCO_CHECK_ERROR(err, "PCO_CancelImage");
@@ -1311,7 +1311,7 @@ if(count && !_isCameraType(Edge))
 
 
 
-	//DEB_ALWAYS() << fnId << ": " << DEB_VAR4(error, state, wRecState_actual, wRecState_new);
+	//DEB_TRACE() << fnId << ": " << DEB_VAR4(error, state, wRecState_actual, wRecState_new);
 	return fnId;
 
 }
@@ -1436,7 +1436,7 @@ int Camera::_pco_SetADCOperation(int adc_new, int &adc_working)
 
 	error = _pco_GetADCOperation(adc_working, adc_max);
 
-	DEB_ALWAYS() << fnId << ": " DEB_VAR2(adc_max, adc_working);
+	DEB_TRACE() << fnId << ": " DEB_VAR2(adc_max, adc_working);
 
 	if(error) return error;
 
@@ -1846,7 +1846,7 @@ void Camera::_pco_GetCameraType(int &error){
 			_getCameraSubTypeStr(), 
 			_getInterfaceTypeStr(), 
 			_getCameraSerialNumber());
-		DEB_ALWAYS() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
+		DEB_TRACE() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
 			<< "\n"
 			<< "\n====================== CAMERA FOUND ======================"
 			<< "\n* "  << m_pcoData->camera_name
@@ -1874,7 +1874,7 @@ void Camera::_pco_GetCameraType(int &error){
 		HwSyncCtrlObj::ValidRangesType valid_ranges;
 		m_sync->getValidRanges(valid_ranges);		// from stcPcoDescription
 		m_sync->validRangesChanged(valid_ranges);	// callback
-		DEB_ALWAYS() << fnId << ": callback - new valid_ranges: " << DEB_VAR1(valid_ranges);
+		DEB_TRACE() << fnId << ": callback - new valid_ranges: " << DEB_VAR1(valid_ranges);
 	}
 	
     // get the max CAMERA pixel rate (Hz) from the description structure

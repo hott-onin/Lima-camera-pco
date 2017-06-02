@@ -1091,7 +1091,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 					ptr += sprintf_s(ptr, ptrMax - ptr, "   %s>  ",  (nr == 1) ? "changed OK": "NOT changed");
 					ptr += sprintf_s(ptr, ptrMax - ptr, "0x%llx",  m_pcoData->debugLevel);
 			
-					DEB_ALWAYS() << output ;
+					DEB_TRACE() << output ;
 			}
 			
 #define _PRINT_DBG( x )	ptr += sprintf_s(ptr, ptrMax - ptr, "%15s  0x%08x\n", #x, x ) 	
@@ -1666,7 +1666,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, _sprintComment(comment) );
 
-			DEB_ALWAYS() << output ;
+			DEB_TRACE() << output ;
 			return output;
 		}
 
@@ -2653,7 +2653,7 @@ char * _getVSconfiguration(char *infoBuff, DWORD  bufCharCount  )
 void Camera::_traceMsg(char *msg)
 {
 	DEB_MEMBER_FUNCT();
-	DEB_ALWAYS() << "\n>>>  " << msg ;		
+	DEB_TRACE() << "\n>>>  " << msg ;		
 
 }
 
@@ -3315,7 +3315,7 @@ void Camera::getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsign
 	{ // patch meanwhile firmware 1.19 is fixed
 		if(m_pcoData->params_xMinSize) {
 			xMinSize += xSteps;
-			DEB_ALWAYS() << "PATCH APPLIED: " << DEB_VAR2(xMinSize0, xMinSize);
+			DEB_TRACE() << "PATCH APPLIED: " << DEB_VAR2(xMinSize0, xMinSize);
 		
 		}
 	}

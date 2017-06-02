@@ -101,7 +101,7 @@ void Interface::reset(ResetLevel reset_level)
 
   m_cam->_setActionTimestamp(tsReset);
 
-  DEB_ALWAYS() << fnId << ": " DEB_VAR2(reset_level, intLevel);
+  DEB_TRACE() << fnId << ": " DEB_VAR2(reset_level, intLevel);
 
   m_sync->stopAcq();
   m_cam->reset(intLevel);
@@ -116,7 +116,7 @@ void Interface::prepareAcq()
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
-	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]");
+	DEB_TRACE() << _sprintComment(fnId, "[ENTRY]");
 
 	m_cam->_setActionTimestamp(tsPrepareAcq);
 
@@ -131,7 +131,7 @@ void Interface::startAcq()
   DEB_MEMBER_FUNCT();
   DEF_FNID;
 
-	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]");
+	DEB_TRACE() << _sprintComment(fnId, "[ENTRY]");
 
 	m_cam->_setActionTimestamp(tsStartAcq);
 
@@ -147,7 +147,7 @@ void Interface::stopAcq()
   DEB_MEMBER_FUNCT();
   DEF_FNID;
 
-	DEB_ALWAYS() << _sprintComment(fnId, "[ENTRY]");
+	DEB_TRACE() << _sprintComment(fnId, "[ENTRY]");
 	m_cam->_setActionTimestamp(tsStopAcq);
 	m_sync->stopAcq();
 }
