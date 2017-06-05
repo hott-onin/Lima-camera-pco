@@ -82,6 +82,11 @@ namespace Pco
 		void getTemperatureInfo(std::string &o_sn /Out/);
 		void getCoolingTemperature(int & val /Out/);
 		void setCoolingTemperature(int val);
+		
+		void getSdkRelease(std::string &o_sn /Out/) ;
+		void getCameraName(std::string &o_sn /Out/);
+		void getCameraNameBase(std::string &o_sn /Out/);
+		void getCameraNameEx(std::string &o_sn /Out/) ;
 
 
   };

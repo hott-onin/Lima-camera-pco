@@ -3470,3 +3470,58 @@ void Camera::setCoolingTemperature(int val)
 	_pco_SetCoolingSetpointTemperature(val, error);
 }
 
+//====================================================================
+// SIP - attributes
+//====================================================================
+
+void Camera::getSdkRelease(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, PCO_SDK_RELEASE );
+	
+	o_sn = buff;
+}
+
+//=================================================================================================
+// SIP - attributes
+//=================================================================================================
+void Camera::getCameraName(std::string &o_sn)
+{
+  DEB_MEMBER_FUNCT();
+  DEB_RETURN() << DEB_VAR1(m_pcoData->camera_name);
+
+  o_sn = m_pcoData->camera_name;
+}
+
+void Camera::getCameraNameBase(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+	int error;
+
+	_pco_GetInfoString(1, ptr, (int) (ptrMax - ptr), error);
+
+	o_sn = buff;
+}
+
+void Camera::getCameraNameEx(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+	int error;
+
+	_pco_GetInfoString(0, ptr, (int) (ptrMax - ptr), error);
+	ptr += strlen(ptr);
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "\nCamera name: " );
+	_pco_GetInfoString(1, ptr, (int) (ptrMax - ptr), error);
+	ptr += strlen(ptr);
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "\nSensor: " );
+	_pco_GetInfoString(2, ptr, (int) (ptrMax - ptr), error);
+	ptr += strlen(ptr);
+
+	o_sn = buff;
+}

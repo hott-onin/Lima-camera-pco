@@ -960,7 +960,9 @@ namespace lima
 
 		//----
 		void _pco_GetInfoString(int infotype, char *buf_in, int size_in, int &error);
-
+		void getSdkRelease(std::string &o_sn) ;
+		void getCameraNameEx(std::string &o_sn) ;
+		void getCameraNameBase(std::string &o_sn) ;
 
 
 	}; // class camera

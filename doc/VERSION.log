@@ -1,28 +1,9 @@
 
-2017/06/02 18:01:01 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-02_180054]
-  to: [/t/rhoms1/install-2017-06-02_180054]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/06/02 17:36:28 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-02_173621]
-  to: [/t/rhoms1/install-2017-06-02_173621]
-  to: [/t/rhoms1/install-beta]
-
-
-2017/06/02 17:07:23 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-02_170715]
-  to: [/t/rhoms1/install-2017-06-02_170715]
-  to: [/t/rhoms1/install-beta]
-
-
+2017/06/05 16:48:03 ==========================================
+- attributes: getSdkRelease, getCameraName, getCameraNameBase, getCameraNameEx 
+- change DEB_ALWAYS by DEB_TRACE
+- added capsCamRam, capsMetadata, capsTimestamp
+- attributes: get temp info, get/set cooling setpoint
 
 2017/06/02 17:05:58 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
