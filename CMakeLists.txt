@@ -1,26 +1,30 @@
 #CMakeLists.txt for pco camera
 
+IF(WIN32)
 SET(PCO_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPco" CACHE PATH "location of pco sdk")
 
 #Sources
 SET(pco_srcs src/PcoCamera.cpp src/PcoInterface.cpp src/PcoDetInfoCtrlObj.cpp
-                src/PcoSyncCtrlObj.cpp src/PcoRoiCtrlObj.cpp
-                src/PcoBufferCtrlObj.cpp src/PcoHwEventCtrlObj.cpp
-		src/PcoCameraUtils.cpp)
+	                src/PcoSyncCtrlObj.cpp src/PcoRoiCtrlObj.cpp
+	                src/PcoBufferCtrlObj.cpp src/PcoHwEventCtrlObj.cpp
+			src/PcoCameraUtils.cpp src/PcoCameraSdk.cpp)
 
 FILE(STRINGS "VERSION" pco_ver)
-ADD_LIBRARY(limapco SHARED
-    ${pco_srcs}
-)
+ADD_LIBRARY(limapco SHARED ${pco_srcs})
+
 TARGET_INCLUDE_DIRECTORIES(limapco PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 TARGET_INCLUDE_DIRECTORIES(limapco PUBLIC "${PCO_SDK_DIR}/include")
-
+TARGET_INCLUDE_DIRECTORIES(limapco PUBLIC "${PCO_SDK_DIR}")
 
 #LIBRARY
 FIND_LIBRARY(PCO_LIB_CAM SC2_Cam ${PCO_SDK_DIR}/lib64)
 
+
 TARGET_LINK_LIBRARIES(limapco limacore)
 TARGET_LINK_LIBRARIES(limapco ${PCO_LIB_CAM})
+
+SET_TARGET_PROPERTIES(limapco PROPERTIES VERSION ${pco_ver} SOVERSION "1")
+SET_TARGET_PROPERTIES(limapco PROPERTIES PREFIX "lib")
 
 INSTALL(TARGETS limapco DESTINATION lib)
 
@@ -57,4 +61,5 @@ IF(COMPILE_SIP)
     TARGET_LINK_LIBRARIES(python_module_limapco limapco)
 
     INSTALL(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco")
+ENDIF()
 ENDIF()
