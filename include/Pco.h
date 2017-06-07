@@ -52,11 +52,16 @@
 
 #define ERR_SIZE	256
 #define ERRMSG_SIZE	(256+128)
-#define MODEL_TYPE_SIZE	32
-#define INTERFACE_TYPE_SIZE	32
+#define MODEL_TYPE_SIZE	64
+#define MODEL_SUBTYPE_SIZE	64
+#define INTERFACE_TYPE_SIZE	64
 #define CAMERA_NAME_SIZE	128
 #define MSG_SIZE	512
 #define BUFF_XLAT_SIZE 128
+#define MSG1K	(1024 * 1)
+#define MSG2K	(1024 * 2)
+#define MSG4K	(1024 * 4)
+#define MSG8K	(1024 * 8)
 
 #define ID_TIMESTAMP "$Id: [" __DATE__ " " __TIME__ "] [" __TIMESTAMP__ "] [" __FILE__ "] $"
 
@@ -123,6 +128,9 @@ typedef int tPvErr;
 #define PCO_FN3(er,mg, fn, x1, x2, x3) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3) ), #fn ) ; }
 #define PCO_FN4(er,mg, fn, x1, x2, x3, x4) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4) ), #fn ) ; }
 #define PCO_FN5(er,mg, fn, x1, x2, x3, x4, x5) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5) ), #fn ) ; }
+#define PCO_FN6(er,mg, fn, x1, x2, x3, x4, x5, x6) {mg = #fn; er = PcoCheckError(__LINE__, __FILE__, fn ( (x1),(x2),(x3),(x4),(x5),(x6) ), #fn ) ; }
 
-
+char * _sprintComment(char *comment, char *comment1 ="" , char *comment2 ="" );
+int _get_imageNr_from_imageTimestamp(void *buf,int shift);
+int _get_time_from_imageTimestamp(void *buf,int shift,SYSTEMTIME *st);
 #endif

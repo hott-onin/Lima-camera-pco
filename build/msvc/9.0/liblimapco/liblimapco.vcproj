@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="liblimapco"
 	ProjectGUID="{D821F68F-28BF-4A97-BF3C-83DCA6405475}"
 	RootNamespace="liblimapco"
@@ -498,6 +498,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\src\PcoCameraSdk.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\src\PcoCameraUtils.cpp"
 				>
 			</File>
@@ -626,6 +630,10 @@
 			Name="doc"
 			>
 			<File
+				RelativePath="..\..\..\..\cpInstall"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\doc\index.rst"
 				>
 			</File>
@@ -653,6 +661,10 @@
 				RelativePath="..\..\..\..\doc\VERSION.log"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\windowsInstall.py"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="tango"
@@ -675,6 +687,18 @@
 			>
 			<File
 				RelativePath="..\..\..\..\..\..\applications\spec\limapco.mac"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="sip"
+			>
+			<File
+				RelativePath="..\..\..\..\sip\PcoCamera.sip"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\sip\PcoInterface.sip"
 				>
 			</File>
 		</Filter>
