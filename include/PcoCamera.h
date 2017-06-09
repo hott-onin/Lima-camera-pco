@@ -629,7 +629,7 @@ namespace lima
         const char *_talk(const char *cmd, char *output, int lg);
 
 
-        unsigned long pcoGetFramesMaxInSegment(int segmentPco);
+        unsigned long _pco_GetNumberOfImagesInSegment_MaxCalc(int segmentPco);
 
 		unsigned long	pcoGetFramesPerBuffer() { return m_pcoData->frames_per_buffer; }
 
@@ -809,9 +809,14 @@ namespace lima
 
 		void _pco_GetGeneralCapsDESC(DWORD &capsDesc1, int &err);
 
+
+//----
+		void _pco_SetCameraToCurrentTime(int &error);
+ 		void _pco_SetBinning(int &err);
+		const char *_pco_SetCamLinkSetImageParameters(int &error);
+
 #ifdef __linux__
  		void _setStatus(Camera::Status status,bool force);
- 		void _pco_SetBinning(int &err);
  		void _pco_SetROI(int &error);
 		void _pco_SetDelayExposureTime(int &error, int ph);
 		void _pco_GetLut(int &err);
@@ -819,14 +824,12 @@ namespace lima
  		void _pco_Open_Grab(int &err);
 		void _pco_GetCameraInfo(int &error);
  		void _pco_ResetSettingsToDefault(int &err);
-		void _pco_SetCameraToCurrentTime(int &error);
 		void _pco_GetTransferParameter(int &error);
        		void _pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error); 
  		size_t _pco_GetHardwareVersion_Firmware(char *ptrOut, size_t lgMax, int &error);
  		size_t _pco_roi_info(char *ptrOut, size_t lgMax, int &error);
 
 
-		const char *_pco_SetCamLinkSetImageParameters(int &error);
 
 
 #else
@@ -968,6 +971,10 @@ namespace lima
 	}; // class camera
   } // namespace pco
 } // namespace lima
+
+void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase);
+
+
 
 //--------------------- dummies for linux
 #ifdef __linux__

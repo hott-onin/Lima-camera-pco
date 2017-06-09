@@ -1,4 +1,24 @@
 
+2017/06/05 21:59:23 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-05_215916]
+  to: [/t/rhoms1/install-2017-06-05_215916]
+  to: [/t/rhoms1/install-beta]
+
+
+
+2017/06/05 18:32:39 ==========================================
+#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
+#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-06-05 16:57:09 +0200] head[b8230ca][b8230cae72b392ff2802f6a0e7951e1e6adf1709] ref[ (HEAD, gitrh/pco-win64-1.703-dev, gitlab/pco-win64-1.703-dev, github/pco-win64-1.703-dev, pco-win64-1.703-dev)] at [2017/06/05 18:32:39] $"
+#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-03-07 10:56:35 +0100] head[56f36b3][56f36b3b31cbf5ca89f3812406092a7a6885d259] ref[ (HEAD, tag: core-1.7.3, core-1.7)] at [2017/06/05 18:32:39] $"
+#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD, master)] at [2017/06/05 18:32:39] $"
+#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/06/05 18:32:39] $"
+#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-04-13 20:38:53 +0200] head[bdd9338][bdd93380f4e832ac81429d6602ad7b1e92092dcf] ref[ (HEAD, master)] at [2017/06/05 18:32:39] $"
+#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, master)] at [2017/06/05 18:32:39] $"
+
+
+
 2017/06/05 16:48:03 ==========================================
 - attributes: getSdkRelease, getCameraName, getCameraNameBase, getCameraNameEx 
 - change DEB_ALWAYS by DEB_TRACE
@@ -20,12 +40,12 @@
 
 2017/04/28 ==========================================
 - compile option ENABLE_GETDLLPATH
-- pcoGetFramesMaxInSegment, _isCameraType / debug for dimax hs
+- _pco_GetNumberOfImagesInSegment_MaxCalc, _isCameraType / debug for dimax hs
 
 2017/04/27 15:34:09 ==========================================
 
 - validation values in setHWIO signals
-- pcoGetFramesMaxInSegment fix bug for dimaxHS
+- _pco_GetNumberOfImagesInSegment_MaxCalc fix bug for dimaxHS
 - debug info in startAcq
 - minor / clening log - tmp save 
 

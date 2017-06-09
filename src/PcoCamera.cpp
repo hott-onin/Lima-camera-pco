@@ -1021,7 +1021,7 @@ void Camera::startAcq()
 #if 0
 	if(_isCameraType(Dimax)){
         unsigned long framesMax;
-        framesMax = pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment);
+        framesMax = _pco_GetNumberOfImagesInSegment_MaxCalc(m_pcoData->wActiveRamSegment);
 
         if ((((unsigned long) iRequestedFrames) > framesMax)) {
             throw LIMA_HW_EXC(Error, "frames OUT OF RANGE");
@@ -1029,7 +1029,7 @@ void Camera::startAcq()
     } 
 #endif
 
-	unsigned long ulFramesMaxInSegment = pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment);
+	unsigned long ulFramesMaxInSegment = _pco_GetNumberOfImagesInSegment_MaxCalc(m_pcoData->wActiveRamSegment);
 	unsigned long ulRequestedFrames = (unsigned long) iRequestedFrames;
 
 	if(ulFramesMaxInSegment > 0)
@@ -1976,97 +1976,6 @@ char* Camera::_PcoCheckError(int line, const char *file, int err, int &error, co
 		return lastErrorMsg;
 	}
 	return NULL;
-}
-
-//=========================================================================================================
-//=========================================================================================================
-unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-
-	int segmentArr = segmentPco-1;
-	unsigned long framesMax;
-	unsigned long ulWidth,ulHeigth;
-	unsigned long long pixPerFrame, pagesPerFrame;
-
-	
-	// if(_isCameraType(Edge)) {return LONG_MAX;}
-
-	DEB_TRACE() << "pcoGetFramesMaxInSegment [entry] " << DEB_VAR2(segmentPco, m_pcoData->camera_name );
-	if(!_isCameraType(Dimax | Pco2k | Pco4k)) 
-	{
-		DEB_TRACE() << "pcoGetFramesMaxInSegment UNKNOWN [exit] " << DEB_VAR1(segmentPco);
-		//printf("=== %s> unknown camera type [%d]\n", fnId, _getCameraType());
-		return 0;
-	}
-		
-	// based in the calculation for std dimax WITHOUT COMPRESSION!!!!
-	// in dimax HS there is comprenssion and this value es invalid!!!
-
-	if((segmentPco <1) ||(segmentPco > PCO_MAXSEGMENTS)) 
-	{
-		DEB_ALWAYS() << "ERROR segmentPco " << DEB_VAR1(segmentPco);
-		return 0;
-	}
-
-	ulWidth = m_RoiLima.getSize().getWidth();
-	ulHeigth = m_RoiLima.getSize().getHeight();
-	//ulWidth = m_roi.x[1] - m_roi.x[0] + 1;
-	//ulHeigth = m_roi.y[1] - m_roi.y[0] + 1;
-
-	if(_isCameraType(DimaxHS)) 
-	{
-		DEB_TRACE() << "pcoGetFramesMaxInSegment DimaxHS [entry] " ;
-		// W = Width of ROI
-		// H = Height of ROI
-		// m = Number of pages for the segment, as configured using PCO_SetRamSegmentSize
-		// n = Number of Images within segment [-0, +1] (tolerance due to sync of read/write operation)
-		WORD wCdi, wDImg;
-		int err, iA, iB, iC, iPagesInSegment;
-		unsigned long ulNrImages;
-
-		iPagesInSegment = m_pcoData->dwSegmentSize[segmentArr]; 
-		_pco_GetCDIMode(wCdi, err);
-		_pco_GetDoubleImageMode(wDImg, err);
-
-		iA = (int) ceil((ulWidth + 2.) / 96.);  // round up to the nearest integer
-		iB = (int) ceil((ulHeigth + 2.) / 4.);
-
-		iC = (wCdi || wDImg) ?
-			2 * iA * iB + 1  //for CDI or Double Image mode
-			: iA * iB + 1;   //    otherwise
-
-		ulNrImages = iPagesInSegment / iC - 1;
-
-		//return m_pcoData->dwMaxImageCnt[segmentPco];
-		DEB_TRACE() << "pcoGetFramesMaxInSegment DimaxHS [exit] "  << DEB_VAR6(ulNrImages, ulWidth, ulHeigth, iPagesInSegment, wCdi, wDImg);
-		return ulNrImages;
-	}
-
-	
-	DEB_TRACE() << "pcoGetFramesMaxInSegment DIMAX NOT HS [entry] " ;
-
-	pixPerFrame = (unsigned long long)ulWidth * (unsigned long long)ulHeigth;
-
-	if(pixPerFrame <0) 
-	{
-		DEB_ALWAYS() << "ERROR pixPerFrame " << DEB_VAR1(pixPerFrame);
-		return 0;
-	}
-
-	if(m_pcoData->wPixPerPage < 1) 
-	{
-		DEB_ALWAYS() << "ERROR m_pcoData->wPixPerPage " << DEB_VAR1(m_pcoData->wPixPerPage);
-		return 0;
-	}
-	pagesPerFrame = (pixPerFrame / m_pcoData->wPixPerPage) + 1;
-	if(pixPerFrame % m_pcoData->wPixPerPage) pagesPerFrame++;
-
-	framesMax = m_pcoData->dwMaxFramesInSegment[segmentArr] = (unsigned long)(((long long) m_pcoData->dwSegmentSize[segmentArr] ) / pagesPerFrame);
-
-	DEB_TRACE() << "pcoGetFramesMaxInSegment DIMAX STD [exit] " << DEB_VAR1(framesMax);
-	return framesMax;
 }
 
 
