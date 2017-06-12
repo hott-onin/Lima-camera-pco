@@ -1538,3 +1538,524 @@ void Camera::_pco_GetTemperatureInfo(char *ptr, char *ptrMax, int &error)
 
 
 }
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetCameraType(int &error){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+
+#ifndef __linux__
+	char *msg;
+
+	int errTot = 0;
+	bool errTotPcoSdk = false;
+
+	m_pcoData->frames_per_buffer = 1; // for PCO DIMAX
+
+	// --- Get camera type
+	{
+		
+		const char *ptr;
+
+		//m_pcoData->stcPcoCamType.wSize= sizeof(m_pcoData->stcPcoCamType);
+
+		// OBSOLETE function after sdk 120
+		//error = PCO_GetGigEIPAddress(m_handle, &m_pcoData->ipField[0], &m_pcoData->ipField[1], &m_pcoData->ipField[2], &m_pcoData->ipField[3]);
+		//if(error) {m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;}
+		m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;
+
+
+		_pco_FillStructures(errTot);
+
+		// PCO_GETGENERAL(hCam, &strGeneral)
+			// -- Get General
+		// PCO_GETCAMERATYPE(hCam, &strCamType)
+		// PCO_GETSENSORSTRUCT(hCam, &strSensor)
+			// -- Get Sensor struct
+		// PCO_GETCAMERADESCRIPTION(hCam, &strDescription)
+			// -- Get camera description
+		// PCO_GETTIMINGSTRUCT(hCam, &strTiming)
+			// -- Get timing struct
+		// PCO_GETRECORDINGSTRUCT(hCam, &strRecording)
+			// -- Get recording struct
+			// -- Get storage struct
+
+		ptr = _xlatPcoCode2Str(_getCameraType(), ModelType, error);
+		errTot |= error;
+		strcpy_s(m_pcoData->model, MODEL_TYPE_SIZE, ptr);
+
+		ptr = _xlatPcoCode2Str(_getCameraSubType(), ModelSubType, error);
+		strcpy_s(m_pcoData->modelSubType, MODEL_SUBTYPE_SIZE, ptr);
+		errTot |= error;
+
+		ptr = _xlatPcoCode2Str(_getInterfaceType(), InterfaceType, error);
+		strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
+		errTot |= error;
+
+		sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s (%s) (I/F %s) (SN %d)", 
+			_getCameraTypeStr(), 
+			_getCameraSubTypeStr(), 
+			_getInterfaceTypeStr(), 
+			_getCameraSerialNumber());
+		DEB_ALWAYS() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
+			<< "\n"
+			<< "\n====================== CAMERA FOUND ======================"
+			<< "\n* "  << m_pcoData->camera_name
+			<< "\n==========================================================" 
+			<< "\n"
+			;
+
+		//if(errTot) return m_pcoData->camera_name;
+
+	}
+
+	// -- Reset to default settings
+
+	PCO_FN2(error, msg,PCO_SetRecordingState, m_handle, 0);
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
+
+
+	PCO_FN1(error, msg,PCO_ResetSettingsToDefault, m_handle);
+	PCO_PRINT_ERR(error, msg); 	
+	errTotPcoSdk = errTotPcoSdk || error; //if(error) return msg;
+	
+
+	// callback to update in lima the valid_ranges from the last stcPcoDescription read
+	if(m_sync) {
+		HwSyncCtrlObj::ValidRangesType valid_ranges;
+		m_sync->getValidRanges(valid_ranges);		// from stcPcoDescription
+		m_sync->validRangesChanged(valid_ranges);	// callback
+		DEB_TRACE() << fnId << ": callback - new valid_ranges: " << DEB_VAR1(valid_ranges);
+	}
+	
+    // get the max CAMERA pixel rate (Hz) from the description structure
+	m_pcoData->dwPixelRateMax = 0;
+	for(int i=0; i<4; i++) {
+		if(m_pcoData->dwPixelRateMax < m_pcoData->stcPcoDescription.dwPixelRateDESC[i])
+					m_pcoData->dwPixelRateMax = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
+	}	
+
+	m_pcoData->bMetaDataAllowed = _isCapsDesc(capsMetadata);
+
+
+	if(errTotPcoSdk)
+	{
+		DEB_ALWAYS() <<  "ERRORs in SDK functions!!!";
+	}
+	
+	if(errTot)
+	{
+		DEB_ALWAYS() <<  "ERRORs in types!!!";
+	}
+
+
+	return;
+
+
+#else
+	const char *ptr;
+    int errTot = 0;
+    
+    //------------------ GigE
+    //------------------ PCO_GetCameraType ---> camtype, serialnumber, iftype
+    //------------------ PCO_GetInfo idem
+    
+    WORD camtype;
+    WORD iftype = 0;
+    DWORD serialnumber;
+
+	m_pcoData->frames_per_buffer = 1; // for PCO DIMAX
+
+    DEB_ALWAYS()  << fnId ;
+
+
+    if(1) 
+    {
+        m_pcoData->ipField[0] = m_pcoData->ipField[1] = m_pcoData->ipField[2] =m_pcoData->ipField[3]= 0;
+    }
+
+
+    error = camera->PCO_GetCameraType(&camtype, &serialnumber, &iftype);
+    PCO_CHECK_ERROR(error, "PCO_GetCameraType"); 
+    if(error) return;
+  
+
+	m_pcoData->stcPcoCamType.wCamType = m_pcoData->wCamType = camtype;
+    m_pcoData->stcPcoCamType.wCamSubType = 0;        
+	m_pcoData->stcPcoCamType.dwSerialNumber = m_pcoData->dwSerialNumber = serialnumber;
+	m_pcoData->stcPcoCamType.wInterfaceType = m_pcoData->wIfType = iftype;
+
+	ptr = _xlatPcoCode2Str(camtype, ModelType, error);
+	strcpy_s(m_pcoData->model, MODEL_TYPE_SIZE, ptr);
+	errTot |= error;
+
+	ptr = _xlatPcoCode2Str(iftype, InterfaceType, error);
+	strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
+	errTot |= error;
+
+	sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s (IF %s) (SN %u)", 
+			m_pcoData->model, m_pcoData->iface, m_pcoData->dwSerialNumber);
+	DEB_ALWAYS() 
+		<< "\n   " <<  DEB_VAR1(m_pcoData->model)
+		<< "\n   " <<  DEB_VAR1(m_pcoData->iface)
+		<< "\n   " <<  DEB_VAR1(m_pcoData->camera_name);
+
+
+
+
+	error=camera->PCO_GetInfo(0,&m_pcoData->nameCamIf, sizeof(m_pcoData->nameCamIf) -1);
+	error=camera->PCO_GetInfo(1,&m_pcoData->nameCam, sizeof(m_pcoData->nameCam) -1);
+	error=camera->PCO_GetInfo(2,&m_pcoData->nameSensor, sizeof(m_pcoData->nameSensor) -1);
+
+	DEB_ALWAYS() 
+			<< "\n   " <<  DEB_VAR1(m_pcoData->nameCamIf)
+			<< "\n   " <<  DEB_VAR1(m_pcoData->nameCam)
+			<< "\n   " <<  DEB_VAR1(m_pcoData->nameSensor);
+
+
+#endif
+
+
+	return;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_SetMetaDataMode(WORD wMetaDataMode, int &error){
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+#ifndef __linux__
+	char *msg;
+	WORD _wMetaDataMode, _wMetaDataSize, _wMetaDataVersion ;
+
+	error = 0;
+
+	m_pcoData->wMetaDataSize = m_pcoData->wMetaDataVersion = m_pcoData->wMetaDataMode = 0;
+
+	if(!m_pcoData->bMetaDataAllowed) {error = -1; return;}
+
+	PCO_FN4(error, msg, PCO_GetMetaDataMode, m_handle, &_wMetaDataMode, &_wMetaDataSize, &_wMetaDataVersion);
+	PCO_PRINT_ERR(error, msg); 	if(error) return;
+
+	m_pcoData->wMetaDataSize =  _wMetaDataSize;
+	m_pcoData->wMetaDataVersion = _wMetaDataVersion;
+	m_pcoData->wMetaDataMode = _wMetaDataMode;
+	
+	// now pco edge also allows metatada (not only dimax)
+	//if(_isCameraType(Dimax)) {
+
+	PCO_FN4(error, msg,PCO_SetMetaDataMode, m_handle, wMetaDataMode, &_wMetaDataSize, &_wMetaDataVersion);
+	PCO_PRINT_ERR(error, msg); 	if(error) return;
+
+	m_pcoData->wMetaDataSize =  _wMetaDataSize;
+	m_pcoData->wMetaDataVersion = _wMetaDataVersion;
+	m_pcoData->wMetaDataMode = wMetaDataMode;
+	
+
+#else	
+    const char *msg;
+
+	m_pcoData->wMetaDataSize = m_pcoData->wMetaDataVersion = 0;
+	if(_isCameraType(Dimax)) {
+		m_pcoData->wMetaDataMode = wMetaDataMode;
+
+        error=camera->PCO_SetMetadataMode(wMetaDataMode, &m_pcoData->wMetaDataSize, &m_pcoData->wMetaDataVersion);
+        msg = "PCO_SetMetadataMode" ; PCO_CHECK_ERROR(error, msg);
+    	if(error) return;
+	}
+
+#endif
+	return;
+
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_SetPixelRate(int &error){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	error = 0;
+	const char *msg;
+	DWORD _dwPixelRate, _dwPixelRateOld, _dwPixelRateReq;
+	DWORD _dwPixelRateMax;
+	
+#ifndef __linux__
+
+	if(_isCameraType(Edge)) {
+
+		PCO_FN2(error, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
+		PCO_THROW_OR_TRACE(error, msg) ;
+
+		_dwPixelRateOld = m_pcoData->dwPixelRate;
+		_dwPixelRateReq = m_pcoData->dwPixelRateRequested;
+		DEB_TRACE() << "PIXEL rate (actual/req): " << DEB_VAR2(_dwPixelRateOld, _dwPixelRateReq) ;
+
+		if(_isValid_pixelRate(_dwPixelRateReq) && (_dwPixelRateOld != _dwPixelRateReq)) {
+
+			PCO_FN2(error, msg,PCO_SetPixelRate, m_handle, _dwPixelRateReq);
+			PCO_THROW_OR_TRACE(error, msg) ;
+
+			PCO_FN2(error, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
+			PCO_THROW_OR_TRACE(error, msg) ;
+
+			_dwPixelRate = m_pcoData->dwPixelRate;
+			DEB_TRACE() << "PIXEL rate SET (old/new): "  << DEB_VAR2(_dwPixelRateOld, _dwPixelRate) ;
+
+			_armRequired(true);
+		}
+		m_pcoData->dwPixelRateRequested = 0;
+		return;
+	}
+
+	if(_isCameraType(Pco2k | Pco4k)) {
+
+		PCO_FN2(error, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
+		PCO_THROW_OR_TRACE(error, msg) ;
+
+		_dwPixelRateOld = m_pcoData->dwPixelRate;
+		_dwPixelRateMax = m_pcoData->dwPixelRateMax;
+		_dwPixelRateReq = m_pcoData->dwPixelRateRequested;
+
+		DEB_TRACE() << "PIXEL rate (requested/actual/max): " << DEB_VAR3(_dwPixelRateReq, _dwPixelRateOld, _dwPixelRateMax) ;
+
+		if(_isValid_pixelRate(_dwPixelRateReq) && (_dwPixelRateOld != _dwPixelRateReq)) {
+		//if(_dwPixelRateMax > _dwPixelRateOld) {
+
+			PCO_FN2(error, msg,PCO_SetPixelRate, m_handle, _dwPixelRateReq);
+			PCO_THROW_OR_TRACE(error, msg) ;
+
+			PCO_FN2(error, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
+			PCO_THROW_OR_TRACE(error, msg) ;
+			
+			_dwPixelRate = m_pcoData->dwPixelRate;
+			DEB_TRACE() << "PIXEL rate SET (old/new): "  << DEB_VAR2(_dwPixelRateOld, _dwPixelRate) ;
+
+			_armRequired(true);
+		}
+		return;
+	}
+#else
+	DWORD _dwPixelRateNext;
+	
+	if(_isCameraType(Edge)) {
+
+        _pco_GetPixelRate(m_pcoData->dwPixelRate, _dwPixelRateNext, error);
+		PCO_THROW_OR_TRACE(error, "_pco_GetPixelRate") ;
+
+		_dwPixelRateOld = m_pcoData->dwPixelRate;
+		_dwPixelRateReq = m_pcoData->dwPixelRateRequested;
+		//DEB_ALWAYS() << "PIXEL rate (actual/req): " << DEB_VAR2(_dwPixelRateOld, _dwPixelRateReq) ;
+
+		if(_isValid_pixelRate(_dwPixelRateReq) && (_dwPixelRateOld != _dwPixelRateReq)) {
+
+            error=camera->PCO_SetPixelRate(_dwPixelRateReq);
+            msg = "PCO_SetPixelRate" ; PCO_CHECK_ERROR(error, msg);
+			PCO_THROW_OR_TRACE(error, msg) ;
+
+            _pco_GetPixelRate(m_pcoData->dwPixelRate, _dwPixelRateNext, error);
+    		PCO_THROW_OR_TRACE(error, "_pco_GetPixelRate") ;
+
+			_dwPixelRate = m_pcoData->dwPixelRate;
+			//DEB_ALWAYS() << "PIXEL rate SET (old/new): "  << DEB_VAR2(_dwPixelRateOld, _dwPixelRate) ;
+
+			_armRequired(true);
+		}
+		m_pcoData->dwPixelRateRequested = 0;
+		return;
+	}
+
+	if(_isCameraType(Pco2k | Pco4k)) {
+
+        _pco_GetPixelRate(m_pcoData->dwPixelRate, _dwPixelRateNext, error);
+		PCO_THROW_OR_TRACE(error, "_pco_GetPixelRate") ;
+
+
+		_dwPixelRateOld = m_pcoData->dwPixelRate;
+		_dwPixelRateMax = m_pcoData->dwPixelRateMax;
+		_dwPixelRateReq = m_pcoData->dwPixelRateRequested;
+
+		DEB_TRACE() << "PIXEL rate (requested/actual/max): " << DEB_VAR3(_dwPixelRateReq, _dwPixelRateOld, _dwPixelRateMax) ;
+
+		if(_isValid_pixelRate(_dwPixelRateReq) && (_dwPixelRateOld != _dwPixelRateReq)) {
+		
+            error=camera->PCO_SetPixelRate(_dwPixelRateReq);
+            msg = "PCO_SetPixelRate" ; PCO_CHECK_ERROR(error, msg);
+			PCO_THROW_OR_TRACE(error, msg) ;
+
+            _pco_GetPixelRate(m_pcoData->dwPixelRate, _dwPixelRateNext, error);
+			PCO_THROW_OR_TRACE(error, "_pco_GetPixelRate") ;
+			
+			_dwPixelRate = m_pcoData->dwPixelRate;
+			DEB_TRACE() << "PIXEL rate SET (old/new): "  << DEB_VAR2(_dwPixelRateOld, _dwPixelRate) ;
+
+			_armRequired(true);
+		}
+		return;
+	}
+#endif
+return;
+}
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetPixelRate(DWORD &pixRateActual, DWORD &pixRateNext, int &err){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+    const char *msg;
+
+#ifndef __linux__
+
+		PCO_FN2(err, msg,PCO_GetPixelRate, m_handle, &m_pcoData->dwPixelRate);
+		PCO_THROW_OR_TRACE(err, msg) ;
+
+		pixRateActual = m_pcoData->dwPixelRate;
+
+		pixRateNext = ((m_pcoData->dwPixelRateRequested != 0) && (pixRateActual != m_pcoData->dwPixelRateRequested)) ?
+			m_pcoData->dwPixelRateRequested : pixRateActual;
+
+#else
+	DWORD _dwPixRate;
+
+    err=camera->PCO_GetPixelRate(&_dwPixRate);
+    msg = "PCO_GetPixelRate" ; PCO_CHECK_ERROR(err, msg);
+    if(err) _dwPixRate = 0;
+
+    m_pcoData->dwPixelRate = pixRateActual = _dwPixRate;
+
+
+	pixRateNext = ((m_pcoData->dwPixelRateRequested != 0) && (pixRateActual != m_pcoData->dwPixelRateRequested)) ?
+			m_pcoData->dwPixelRateRequested : pixRateActual;
+
+
+        DEB_ALWAYS() 
+            << "\n   " << DEB_VAR1(pixRateActual) 
+            << "\n   " << DEB_VAR1(pixRateNext) 
+            ;
+
+#endif
+}
+//=================================================================================================
+// ----------------------------------------- storage mode (recorder + sequence)
+// current storage mode
+//
+// case RecSeq
+// case RecRing
+// - 0x0000 = [recorder] mode
+//		. images are recorded and stored within the internal camera memory (camRAM)
+//      . Live View transfers the most recent image to the PC (for viewing / monitoring)
+//      . indexed or total image readout after the recording has been stopped
+//
+// case Fifo
+// - 0x0001 = [FIFO buffer] mode
+//      . all images taken are transferred to the PC in chronological order
+//      . camera memory (camRAM) is used as huge FIFO buffer to bypass short bottlenecks in data transmission
+//      . if buffer overflows, the oldest images are overwritten
+//      . if Set Recorder = [stop] is sent, recording is stopped and the transfer of the current image to the PC is finished.
+//      . Images not read are stored within the segment and can be read with the Read Image From Segment command.
+//
+// current recorder submode:
+//
+// case RecSeq
+// - 0x0000 = [sequence]
+//      . recording is stopped when the allocated buffer is full
+//
+// case RecRing
+// - 0x0001 = [ring buffer].
+//      . camera records continuously into ring buffer
+//      . if the allocated buffer overflows, the oldest images are overwritten
+//      . recording is stopped by software or disabling acquire signal (<acq enbl>)
+//
+// for the case of ExtTrigSingle (dimax) we use RecRing
+//    case RecRing
+//       StorageMode 0 - record mode
+//       RecorderSubmode 1 - ring buffer
+//  Triggermode 0 - auto
+//  Acquiremode 0 - auto / ignored
+//=================================================================================================
+//=================================================================================================
+// sets storage mode and subrecord mode
+//    PCO_SetStorageMode
+//    PCO_SetRecorderSubmode
+//=================================================================================================
+const char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode mode, int &error){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	const char *msg, *sMode;
+
+	sMode = "invalid";
+	switch(mode) {
+		case RecSeq:  m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 0; sMode = "RecSeq" ; break;
+		case RecRing: m_pcoData->storage_mode = 0; m_pcoData->recorder_submode = 1; sMode = "RecRing" ;  break;
+		case Fifo:    m_pcoData->storage_mode = 1; m_pcoData->recorder_submode = 0;  sMode = "Fifo" ; break;
+		default: 
+			throw LIMA_HW_EXC(Error,"FATAL - invalid storage mode!" );
+	}
+    DEB_TRACE() << "\n>>> storage/recorder mode: " << DEB_VAR2(sMode, mode) ;
+
+	m_pcoData->traceAcq.sPcoStorageRecorderMode = sMode;
+	m_pcoData->traceAcq.iPcoStorageMode = m_pcoData->storage_mode;
+	m_pcoData->traceAcq.iPcoRecorderSubmode = m_pcoData->recorder_submode;
+
+#ifndef __linux__
+	PCO_FN2(error, msg,PCO_SetStorageMode, m_handle, m_pcoData->storage_mode);
+	if(error) return msg;
+    //PCO_THROW_OR_TRACE(error, msg) ;
+
+    PCO_FN2(error, msg,PCO_SetRecorderSubmode, m_handle, m_pcoData->recorder_submode);
+	if(error) return msg;
+    //PCO_THROW_OR_TRACE(error, msg) ;
+#else
+    error=camera->PCO_SetStorageMode(m_pcoData->storage_mode);
+    msg = "PCO_SetStorageMode" ; PCO_CHECK_ERROR(error, msg);
+    //PCO_THROW_OR_TRACE(error, msg) ;
+
+    error=camera->PCO_SetRecorderSubmode(m_pcoData->recorder_submode);
+    msg = "PCO_SetRecorderSubmode" ; PCO_CHECK_ERROR(error, msg);
+    //PCO_THROW_OR_TRACE(error, msg) ;
+#endif
+	return fnId;
+}
+
+//=================================================================================================
+//=================================================================================================
+int Camera::_pco_GetStorageMode_GetRecorderSubmode(){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	const char *msg;
+
+	WORD wStorageMode, wRecSubmode;
+	int error;
+
+#ifndef __linux__
+	PCO_FN2(error, msg,PCO_GetStorageMode, m_handle, &wStorageMode);
+	if(error){ 
+		    PCO_THROW_OR_TRACE(error, msg) ;
+	}
+    PCO_FN2(error, msg,PCO_GetRecorderSubmode, m_handle, &wRecSubmode);
+	if(error) {
+		    PCO_THROW_OR_TRACE(error, msg) ;
+	}
+#else
+    error=camera->PCO_GetStorageMode(&wStorageMode);
+    msg = "PCO_GetStorageMode" ; PCO_CHECK_ERROR(error, msg);
+	if(error){ 
+		    PCO_THROW_OR_TRACE(error, msg) ;
+	}
+    error=camera->PCO_GetRecorderSubmode(&wRecSubmode);
+    msg = "PCO_getRecorderSubmode" ; PCO_CHECK_ERROR(error, msg);
+    if(error) {
+		    PCO_THROW_OR_TRACE(error, msg) ;
+	}
+#endif
+	m_pcoData->storage_mode = wStorageMode;
+	m_pcoData->recorder_submode = wRecSubmode;
+
+	if((wStorageMode == 0) && (wRecSubmode == 0)) { m_pcoData->storage_str= "RecSeq"; return RecSeq; }
+	if((wStorageMode == 0) && (wRecSubmode == 1)) { m_pcoData->storage_str= "RecRing"; return RecRing; }
+	if((wStorageMode == 1) && (wRecSubmode == 0)) { m_pcoData->storage_str= "Fifo"; return Fifo; }
+
+	m_pcoData->storage_str= "INVALID"; 
+	return RecInvalid;
+}
