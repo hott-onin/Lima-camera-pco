@@ -890,7 +890,7 @@ namespace lima
 		void setCoolingTemperature(int val);
 	
 	public:		//----------- pco sdk functions
-		WORD _pco_GetActiveRamSegment(); // {return m_pcoData->wActiveRamSegment;}
+		void _pco_GetActiveRamSegment(WORD &, int &); // {return m_pcoData->wActiveRamSegment;}
 
 		const char *_pco_SetRecordingState(int state, int &error);
 
@@ -919,11 +919,10 @@ namespace lima
 		void _pco_GetHWIOSignalAll(int &error);
 		void _pco_SetHWIOSignal(int sigNum, int &error);
 
-#ifndef __linux
-		void _pco_initHWIOSignal(int mode, int &error);
-#else		
-		void getStatus(Camera::Status& status);
 		void _pco_initHWIOSignal(int mode, WORD wVar, int &error);   // TODO sync
+
+#ifdef __linux
+		void getStatus(Camera::Status& status);
 #endif		
 
 	public:

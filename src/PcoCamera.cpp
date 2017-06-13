@@ -600,7 +600,7 @@ void Camera::_init(){
 	if(!m_cam_connected)
 		throw LIMA_HW_EXC(Error, "Camera not found!");
 
-	_pco_initHWIOSignal(0, error);
+	_pco_initHWIOSignal(0, 0x4, error);
 
 	
 	{
@@ -750,7 +750,7 @@ void  Camera::_init_dimax() {
 
 	// -- Get Active RAM segment 
 
-		_pco_GetActiveRamSegment();
+		WORD wActSeg; _pco_GetActiveRamSegment(wActSeg, error);
 
 		PCO_FN4(error, pcoFn,PCO_GetNumberOfImagesInSegment, m_handle, m_pcoData->wActiveRamSegment, &_dwValidImageCnt, &_dwMaxImageCnt);
 		PCO_THROW_OR_TRACE(error, pcoFn) ;
@@ -1193,7 +1193,7 @@ void _pco_acq_thread_dimax(void *argin) {
 
 	HANDLE m_handle = m_cam->getHandle();
 
-	WORD wSegment = m_cam->_pco_GetActiveRamSegment(); 
+	WORD wSegment; m_cam->_pco_GetActiveRamSegment(wSegment, error ); 
 	double msPerFrame = (m_cam->pcoGetCocRunTime() * 1000.);
 	m_pcoData->traceAcq.msImgCoc = msPerFrame;
 
@@ -1411,7 +1411,7 @@ void _pco_acq_thread_dimax_trig_single(void *argin) {
 
 	HANDLE m_handle = m_cam->getHandle();
 
-	WORD wSegment = m_cam->_pco_GetActiveRamSegment(); 
+	WORD wSegment;  m_cam->_pco_GetActiveRamSegment(wSegment, error); 
 	double msPerFrame = (m_cam->pcoGetCocRunTime() * 1000.);
 	m_pcoData->traceAcq.msImgCoc = msPerFrame;
 
@@ -2009,7 +2009,7 @@ int Camera::dumpRecordedImages(int &nrImages, int &error){
 	char *msg;
 
 	HANDLE m_handle = getHandle();
-	WORD wSegment = _pco_GetActiveRamSegment(); 
+	WORD wSegment; _pco_GetActiveRamSegment(wSegment, error); 
 	DWORD _dwValidImageCnt, _dwMaxImageCnt;
 
 
