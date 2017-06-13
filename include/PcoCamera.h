@@ -582,6 +582,7 @@ namespace lima
 	  friend class DetInfoCtrlObj;
       friend class SyncCtrlObj;
 	  friend class RoiCtrlObj;
+	  friend class BinCtrlObj;
 	  friend class BufferCtrlObj;
 
       DEB_CLASS_NAMESPC(DebModCamera,"Camera","Pco");
@@ -589,10 +590,7 @@ namespace lima
         Camera(const char *camPar);
         ~Camera();
 
-    enum Status {Fault,Ready,Exposure,Readout,Latency,Config};
-
-
-
+		enum Status {Fault,Ready,Exposure,Readout,Latency,Config};
 
         void 	startAcq();
 		void	reset(int reset_level);
@@ -606,6 +604,13 @@ namespace lima
         void    stopAcq();
         void    _stopAcq(bool waitForThread);
 #endif
+
+		// ----- BIN
+		void setBin(const Bin& aBin);
+		void getBin(Bin& aBin);
+		void checkBin(Bin& aBin);
+		// -----
+
 
 		HANDLE& getHandle() {return m_handle;}
 

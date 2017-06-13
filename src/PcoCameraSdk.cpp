@@ -42,9 +42,6 @@ using namespace lima::Pco;
 
 
 
-
-
-
 //=================================================================================================
 //=================================================================================================
 //SC2_SDK_FUNC int WINAPI PCO_SetImageParameters(HANDLE ph, WORD wxres, WORD wyres, DWORD dwflags, void* param, int ilen);
@@ -96,6 +93,8 @@ char *Camera::_pco_SetImageParameters(int &error){
 
 	return fnId;
 }
+
+
 
 
 

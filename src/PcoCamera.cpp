@@ -2842,3 +2842,20 @@ void Camera::_setActionTimestamp(int action)
 
 
 
+//=================================================================================================
+// ----- BIN
+//=================================================================================================
+void Camera::setBin(const Bin& aBin)
+{
+	DEB_MEMBER_FUNCT();
+}
+void Camera::getBin(Bin& aBin)
+{
+	DEB_MEMBER_FUNCT();
+	aBin = Bin(1,1);
+}
+void Camera::checkBin(Bin& aBin)
+{
+	DEB_MEMBER_FUNCT();
+	aBin = Bin(1,1);
+}

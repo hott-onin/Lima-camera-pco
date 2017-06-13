@@ -29,6 +29,7 @@
 #include "PcoBufferCtrlObj.h"
 #include "PcoSyncCtrlObj.h"
 #include "PcoRoiCtrlObj.h"
+#include "PcoBinCtrlObj.h"
 #include "PcoHwEventCtrlObj.h"
 
 using namespace lima;
@@ -50,6 +51,7 @@ Interface::Interface(Camera *cam) :
   //cam->m_HwEventCtrlObj = m_HwEventCtrlObj = new PcoHwEventCtrlObj(cam);
   cam->m_HwEventCtrlObj = m_HwEventCtrlObj = new PcoHwEventCtrlObj();
   
+  m_BinCtrlObj = new BinCtrlObj(*cam);
   m_RoiCtrlObj = new RoiCtrlObj(cam);
   m_det_info = new DetInfoCtrlObj(cam);
 
