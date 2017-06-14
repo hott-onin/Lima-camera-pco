@@ -1714,6 +1714,14 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 		}
 
 		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "roiInfo";     
+		keys_desc[ikey++] = "(R) roi info";     
+		if(_stricmp(cmd, key) == 0){
+			int err;
+			_pco_GetRoiInfo(ptr, (int) (ptrMax - ptr), err);
+			return output;
+		}
+		//----------------------------------------------------------------------------------------------------------
 		// this must be the last cmd TALK / END
 		//----------------------------------------------------------------------------------------------------------
 

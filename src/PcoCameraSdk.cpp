@@ -365,3 +365,94 @@ void Camera::_pco_GetBinningInfo(char *buf_in, int size_in, int &err)
 			binModeY ? "lin" : "bin");
 
 }
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_GetROI(Roi &roi, int &err)
+{
+	DEB_MEMBER_FUNCT();
+
+	WORD wX0, wY0, wX1, wY1;
+
+#ifndef __linux__
+	err = PCO_GetROI(m_handle, &wX0, &wY0, &wX1, &wY1);
+
+	if(PCO_CHECK_ERROR(err, "PCO_GetROI"))
+	{
+		DEB_ALWAYS() << "ERROR - PCO_GetROI";
+	}
+
+#else
+
+#endif
+
+	_xlatRoi_pco2lima(roi, wX0, wX1, wY0, wY1 );
+}
+
+void Camera::_pco_SetROI(Roi roi, int &err)
+{
+	DEB_MEMBER_FUNCT();
+
+	unsigned int  uiX0, uiY0, uiX1, uiY1;
+
+	_xlatRoi_lima2pco(roi, uiX0, uiX1, uiY0, uiY1 );
+
+#ifndef __linux__
+
+	err = PCO_SetROI(m_handle, uiX0, uiY0, uiX1, uiY1);
+
+	if(PCO_CHECK_ERROR(err, "PCO_SetROI"))
+	{
+		DEB_ALWAYS() << "ERROR - PCO_SetROI";
+	}
+
+#else
+
+#endif
+
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetRoiInfo(char *buf_in, int size_in, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	char *ptr = buf_in;
+	char *ptrMax = ptr + size_in;
+
+	Roi roi;
+	
+	unsigned int x0, x1, y0, y1;
+	_pco_GetROI(roi, err);
+
+	_xlatRoi_lima2pco(roi, x0, x1, y0, y1);
+
+
+#ifndef __linux__
+	//
+#else
+	error = -1;
+	*buf_in = 0;
+	DEB_ALWAYS() << "ERROR - NOT IMPLEMENTED!" ;
+#endif
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, 
+			"pco[x<%d,%d> y<%d,%d>] lima[<%d,%d>-<%dx%d>]",
+			x0, x1, 
+			y0, y1,
+			roi.getTopLeft().x,roi.getTopLeft().y,
+			roi.getSize().getWidth(), roi.getSize().getHeight());
+
+}
+
+
+
+
+
+
+
+
+

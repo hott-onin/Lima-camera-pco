@@ -845,7 +845,8 @@ void Camera::startAcq()
 	DEB_TRACE() << DEB_VAR4(wBinHorz, wBinVert, wBinHorzNow, wBinVertNow);
 
     //------------------------------------------------- set roi if needed
-    WORD &wRoiX0Now = m_pcoData->wRoiX0Now;
+#if 0
+	WORD &wRoiX0Now = m_pcoData->wRoiX0Now;
 	WORD &wRoiY0Now = m_pcoData->wRoiY0Now;
     WORD &wRoiX1Now = m_pcoData->wRoiX1Now;
 	WORD &wRoiY1Now = m_pcoData->wRoiY1Now;
@@ -891,8 +892,28 @@ void Camera::startAcq()
 	m_pcoData->traceAcq.iPcoRoiX1 = m_pcoData->wRoiX1Now;
 	m_pcoData->traceAcq.iPcoRoiY0 = m_pcoData->wRoiY0Now;
 	m_pcoData->traceAcq.iPcoRoiY1 = m_pcoData->wRoiY1Now;
+#endif
 
-    //------------------------------------------------- set CDI if needed
+	unsigned int x0, x1, y0, y1;\
+	Roi roiNow;
+
+	_pco_GetROI(roiNow, error);
+	
+	_xlatRoi_lima2pco(roiNow, x0, x1, y0, y1);
+
+	m_pcoData->traceAcq.iPcoRoiX0 = m_pcoData->wRoiX0Now = x0;
+	m_pcoData->traceAcq.iPcoRoiX1 = m_pcoData->wRoiX1Now = x1;
+	m_pcoData->traceAcq.iPcoRoiY0 = m_pcoData->wRoiY0Now = y0;
+	m_pcoData->traceAcq.iPcoRoiY1 = m_pcoData->wRoiY1Now = y1;
+
+	DEB_TRACE() 
+			<< "\n   PCO_GetROI> " << DEB_VAR5(x0, x1, y0, y1, roiNow);
+
+	_armRequired(true);
+
+	
+	
+	//------------------------------------------------- set CDI if needed
 	{
 		WORD cdi;
 		int err;
@@ -904,7 +925,7 @@ void Camera::startAcq()
 	//------------------------------------------------- triggering mode 
     //------------------------------------- acquire mode : ignore or not ext. signal
 	ccMsg = _pco_SetTriggerMode_SetAcquireMode(error);
-    PCO_THROW_OR_TRACE(error, msg) ;
+    PCO_THROW_OR_TRACE(error, "_pco_SetTriggerMode_SetAcquireMode") ;
 
     // ----------------------------------------- storage mode (recorder + sequence)
 //    if(_isCameraType(Dimax)) {
@@ -922,7 +943,7 @@ void Camera::startAcq()
                DEB_TRACE() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
 
 		ccMsg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
-		PCO_THROW_OR_TRACE(error, msg) ;
+		PCO_THROW_OR_TRACE(error, "_pco_SetStorageMode_SetRecorderSubmode") ;
 	}
 
 #if 0
@@ -2463,12 +2484,21 @@ void Camera::_get_MaxRoi(Roi &roi){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
-	unsigned int xMax, yMax;
+	unsigned int xMax, yMax, x0, x1, y0,y1;
+	int err;
+	Bin bin;
 
 	getMaxWidthHeight(xMax, yMax);
 
-	roi.setTopLeft(Point(0, 0));
-	roi.setSize(Size(xMax, yMax));
+	_pco_GetBinning(bin, err);
+
+
+	x0 = 1;
+	x1 = xMax / bin.getX();
+	y0 = 1;
+	y1 = yMax / bin.getY();
+
+	_xlatRoi_pco2lima(roi, x0, x1, y0,y1);
 }
 
 
@@ -2910,4 +2940,35 @@ void Camera::checkBin(Bin& aBin)
 	DEB_TRACE() << DEB_VAR4(binY0, binY, binMax, binMode);
 
 	aBin = Bin(binX,binY);
+}
+
+//=================================================================================================
+// ----- ROI
+//=================================================================================================
+void Camera::_xlatRoi_lima2pco(Roi roiLima, unsigned int &x0, unsigned int &x1, unsigned int &y0, unsigned int &y1)
+{
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	Point top_left = roiLima.getTopLeft();
+	Point bot_right = roiLima.getBottomRight();
+	Size size = roiLima.getSize();
+
+	x0 = top_left.x + 1;
+	y0 = top_left.y + 1;
+	x1 = bot_right.x + 1; 
+	y1 = bot_right.y + 1;
+
+}
+
+void Camera::_xlatRoi_pco2lima(Roi &roiLima, unsigned int x0, unsigned int x1, unsigned int y0, unsigned int y1)
+{
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	roiLima.setTopLeft(Point(x0-1 , y0-1 ));
+	roiLima.setSize(Size(x1-x0+1, y1-y0+1));
+
 }

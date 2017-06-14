@@ -978,6 +978,11 @@ namespace lima
 		int _binning_fit(int binRequested, int binMax, int binMode);
 		void _pco_GetBinningInfo(char *buf_in, int size_in, int &err);
 
+		void _pco_SetROI(Roi roi, int &err);
+		void _pco_GetROI(Roi &roi, int &err);
+		void _xlatRoi_lima2pco(Roi roiLima, unsigned int &x0, unsigned int &x1, unsigned int &y0, unsigned int &y1);
+		void _xlatRoi_pco2lima(Roi &roiLima, unsigned int x0, unsigned int x1, unsigned int y0, unsigned int y1);
+		void _pco_GetRoiInfo(char *buf_in, int size_in, int &err);
 
 
 	}; // class camera
