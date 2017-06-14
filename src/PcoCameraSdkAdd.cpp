@@ -1722,11 +1722,17 @@ void Camera::_pco_GetCameraType(int &error){
 
 //=================================================================================================
 //=================================================================================================
-void Camera::_pco_SetMetaDataMode(WORD wMetaDataMode, int &error){
+void Camera::_pco_SetMetaDataMode(WORD wMetaDataMode, int &error)
+{
 		
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
+	if(!_isCameraType(Dimax))
+	{
+		error = 0;
+		return;
+	}
 #ifndef __linux__
 	char *msg;
 	WORD _wMetaDataMode, _wMetaDataSize, _wMetaDataVersion ;
@@ -2483,7 +2489,7 @@ void Camera::_pco_initHWIOSignal(int mode, WORD wVal, int &error){
 
 	if(!_isCapsDesc(capsHWIO)  ) 
 	{
-	    DEB_ALWAYS() << "ERROR - camera does not suport HWIO signals!" ;
+	    DEB_WARNING() << "WARNING - camera does not supoort HWIO signals - IGNORED" ;
 		error = -1;
 		return;
 	}

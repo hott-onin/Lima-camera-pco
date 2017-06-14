@@ -187,7 +187,7 @@ typedef int tPvErr;
 { \
 		if(__err__){ \
 			char ___buff___[ERRMSG_SIZE+1]; \
-			sprintf_s(___buff___, ERRMSG_SIZE, "LIMA_HW_EXC ===> %s PcoError[x%08x][%s]", __msg__, m_pcoData->pcoError,  m_pcoData->pcoErrorMsg); \
+			sprintf_s(___buff___, ERRMSG_SIZE, "LIMA_HW_EXC ===> %s PcoError[0x%08x][%s] error[0x%08x]", __msg__, m_pcoData->pcoError,  m_pcoData->pcoErrorMsg, __err__); \
 			DEB_ALWAYS() << ___buff___; \
 			throw LIMA_HW_EXC(Error, ___buff___); \
 		} \

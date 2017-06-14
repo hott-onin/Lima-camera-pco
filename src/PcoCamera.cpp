@@ -470,7 +470,7 @@ Camera::Camera(const char *params) :
 		<< ALWAYS_NL << DEB_VAR1(m_pcoData->version) 
 		<< ALWAYS_NL << _checkLogFiles(true);
 
-	m_bin.changed = Invalid;
+	//m_bin.changed = Invalid;
 	
 	_init();
 	m_config = FALSE;
@@ -830,29 +830,19 @@ void Camera::startAcq()
 
 	//SetBinning, SetROI, ARM, GetSizes, AllocateBuffer.
     //------------------------------------------------- set binning if needed
-    WORD wBinHorz, wBinVert, wBinHorzNow, wBinVertNow;
-    if (m_bin.changed == Changed) {
-		wBinHorz = (WORD)m_bin.x;
-		wBinVert = (WORD)m_bin.y;
+	WORD wBinHorz, wBinVert, wBinHorzNow, wBinVertNow;
+	Bin binActual;
 
-		PCO_FN3(error, msg,PCO_GetBinning, m_handle, &wBinHorzNow, &wBinVertNow);
-		PCO_THROW_OR_TRACE(error, msg) ;
-		
-		if((wBinHorz != wBinHorzNow) || (wBinVert != wBinVertNow)) {
-			PCO_FN3(error, msg,PCO_SetBinning, m_handle, wBinHorz, wBinVert);
-			PCO_THROW_OR_TRACE(error, msg) ;
-			_armRequired(true);
+	wBinHorz = (WORD)m_bin.getX();
+	wBinVert = (WORD)m_bin.getY();
 
-			PCO_FN3(error, msg,PCO_GetBinning,m_handle, &wBinHorzNow, &wBinVertNow);
-			PCO_THROW_OR_TRACE(error, msg) ;
-		}
-		m_bin.changed= Valid;
-		m_pcoData->traceAcq.iPcoBinHorz = wBinHorzNow;
-		m_pcoData->traceAcq.iPcoBinHorz = wBinVertNow;
-
-		DEB_TRACE() << DEB_VAR4(wBinHorz, wBinVert, wBinHorzNow, wBinVertNow);
-    }
-
+	//_pco_SetBinning(m_bin, binActual, error);
+	_pco_GetBinning(binActual, error);
+	
+	m_pcoData->traceAcq.iPcoBinHorz = wBinHorzNow = binActual.getX();
+	m_pcoData->traceAcq.iPcoBinVert = wBinVertNow = binActual.getY();
+	
+	DEB_TRACE() << DEB_VAR4(wBinHorz, wBinVert, wBinHorzNow, wBinVertNow);
 
     //------------------------------------------------- set roi if needed
     WORD &wRoiX0Now = m_pcoData->wRoiX0Now;
@@ -2254,12 +2244,39 @@ int Camera::_checkValidRoi(const Roi &roi_new, Roi &roi_fixed){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
+	int err;
+
 	int iInvalid;
 	unsigned int x0, x1, y0, y1;
 	unsigned int x0org, x1org, y0org, y1org;
 
 	unsigned int xMax, yMax, xSteps, ySteps, xMinSize, yMinSize;
 	getXYdescription(xSteps, ySteps, xMax, yMax, xMinSize, yMinSize); 
+
+    // if steps is zero, only the max size is allowed
+	bool xStepsNull = (xSteps == 0);
+	bool yStepsNull = (ySteps == 0);
+
+	Bin binNow;
+	int binX, binY;
+	_pco_GetBinning(binNow, err);
+
+	binX = binNow.getX();
+	binY = binNow.getY();
+
+	xMax /= binX;
+	yMax /= binY;
+
+	xSteps /= binX;
+	ySteps /= binY;
+	if(xSteps < 1) xSteps = 1;
+	if(ySteps < 1) ySteps = 1;
+
+	xMinSize /= binX;
+	yMinSize /= binY;
+	if(xMinSize < 1) xMinSize = 1;
+	if(yMinSize < 1) yMinSize = 1;
+
 
 	bool bSymX = false, bSymY = false;
 	if(_isCameraType(Dimax)){ bSymX = bSymY = true; }
@@ -2278,6 +2295,8 @@ int Camera::_checkValidRoi(const Roi &roi_new, Roi &roi_fixed){
 	y1org = y1 = roi_new.getBottomRight().y+1;
 
 
+	if(xStepsNull) xMinSize = xMax;
+	if(yStepsNull) yMinSize = yMax;
 
 	iInvalid = _fixValidRoi(x0, x1, xMax, xSteps, xMinSize, bSymX) |
 				_fixValidRoi(y0, y1, yMax, ySteps, yMinSize, bSymY) ;
@@ -2845,17 +2864,50 @@ void Camera::_setActionTimestamp(int action)
 //=================================================================================================
 // ----- BIN
 //=================================================================================================
-void Camera::setBin(const Bin& aBin)
+void Camera::setBin(const Bin& requestedBin)
 {
 	DEB_MEMBER_FUNCT();
+	int err;
+
+	Bin actualBin;
+
+	_pco_SetBinning(requestedBin, actualBin, err);
+	if(err)
+	{
+		DEB_ALWAYS() << "ERROR - setBin " << DEB_VAR2(requestedBin, actualBin) ;
+	}
+
+
 }
 void Camera::getBin(Bin& aBin)
 {
 	DEB_MEMBER_FUNCT();
-	aBin = Bin(1,1);
+	int err;
+
+	_pco_GetBinning(aBin, err);
+	if(err)
+	{
+		DEB_ALWAYS() << "ERROR - getBin" ;
+	}
 }
 void Camera::checkBin(Bin& aBin)
 {
 	DEB_MEMBER_FUNCT();
-	aBin = Bin(1,1);
+
+	int binX0, binY0, binX, binY, binMax, binMode;
+
+	binX0 = aBin.getX();
+	binMax = m_pcoData->stcPcoDescription.wMaxBinHorzDESC;
+	binMode = m_pcoData->stcPcoDescription.wBinHorzSteppingDESC;
+	binX = _binning_fit(binX0, binMax, binMode);
+	DEB_TRACE() << DEB_VAR4(binX0, binX, binMax, binMode);
+
+	binY0 = aBin.getY();
+	binMax = m_pcoData->stcPcoDescription.wMaxBinVertDESC;
+	binMode = m_pcoData->stcPcoDescription.wBinVertSteppingDESC;
+	binY = _binning_fit(binY0, binMax, binMode);
+
+	DEB_TRACE() << DEB_VAR4(binY0, binY, binMax, binMode);
+
+	aBin = Bin(binX,binY);
 }

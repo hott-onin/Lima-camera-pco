@@ -1705,7 +1705,16 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 		}
 
 		//----------------------------------------------------------------------------------------------------------
-		// this must be the last cmd
+		key = keys[ikey] = "binInfo";     
+		keys_desc[ikey++] = "(R) binning info";     
+		if(_stricmp(cmd, key) == 0){
+			int err;
+			_pco_GetBinningInfo(ptr, (int) (ptrMax - ptr), err);
+			return output;
+		}
+
+		//----------------------------------------------------------------------------------------------------------
+		// this must be the last cmd TALK / END
 		//----------------------------------------------------------------------------------------------------------
 
 		key = keys[ikey] = "?";     

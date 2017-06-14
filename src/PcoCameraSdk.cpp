@@ -237,4 +237,131 @@ void Camera::_pco_FillStructures(int &err)
 
 
 
+//=================================================================================================
+//=================================================================================================
+//SC2_SDK_FUNC int WINAPI PCO_GetBinning(HANDLE ph, WORD* wBinHorz, WORD* wBinVert)
 
+void Camera::_pco_GetBinning(Bin &bin, int &err)
+{
+	DEB_MEMBER_FUNCT();
+
+	WORD wBinHorz, wBinVert;
+
+#ifndef __linux__
+	err = PCO_GetBinning(m_handle, &wBinHorz, &wBinVert);
+
+	if(PCO_CHECK_ERROR(err, "PCO_GetBinning"))
+	{
+		wBinHorz, wBinVert = 1;
+		DEB_ALWAYS() << "ERROR - PCO_GetBinning";
+	}
+
+#else
+
+#endif
+
+	bin = Bin(wBinHorz, wBinVert);
+
+}
+
+
+//=================================================================================================
+//=================================================================================================
+int Camera::_binning_fit(int binRequested, int binMax, int binMode)
+{
+	int binLast, bin;
+
+	if(binRequested < 1) return 1;
+	if(binRequested >= binMax) return binMax;
+
+	binLast = bin = 1;
+
+	while(true)
+	{
+		if(bin == binRequested) return bin;
+		if(bin > binRequested) return binLast;
+		binLast = bin;
+		bin = binMode ? bin+1 : bin*2;
+		if(bin > binMax) return binLast;
+	}
+}
+
+
+
+//=================================================================================================
+//=================================================================================================
+//SC2_SDK_FUNC int WINAPI PCO_SetBinning(HANDLE ph, WORD wBinHorz, WORD wBinVert)
+
+void Camera::_pco_SetBinning(Bin binNew, Bin &binActual, int &err)
+{
+	DEB_MEMBER_FUNCT();
+
+	WORD wBinHorz, wBinVert;
+	Bin binOld;
+	int err0;
+
+	_pco_GetBinning(binOld, err);
+
+	if(binOld == binNew)
+	{
+		binActual = binOld;
+		err = 0;
+		return;
+	}
+	wBinHorz = binNew.getX();
+	wBinVert = binNew.getY();
+
+#ifndef __linux__
+	err = PCO_SetBinning(m_handle, wBinHorz, wBinVert);
+
+	if(PCO_CHECK_ERROR(err, "PCO_SetBinning"))
+	{
+		DEB_ALWAYS() << "ERROR - PCO_SetBinning";
+	}
+
+#else
+
+#endif
+
+	_pco_GetBinning(binActual, err0);
+
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetBinningInfo(char *buf_in, int size_in, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	char *ptr = buf_in;
+	char *ptrMax = ptr + size_in;
+
+	Bin aBin;
+	
+	int binX, binY, binMaxX, binModeX, binMaxY, binModeY;
+	_pco_GetBinning(aBin, err);
+
+	binX = aBin.getX();
+	binY = aBin.getY();
+
+#ifndef __linux__
+	binMaxX = m_pcoData->stcPcoDescription.wMaxBinHorzDESC;
+	binModeX = m_pcoData->stcPcoDescription.wBinHorzSteppingDESC;
+
+	binMaxY = m_pcoData->stcPcoDescription.wMaxBinVertDESC;
+	binModeY = m_pcoData->stcPcoDescription.wBinVertSteppingDESC;
+#else
+	error = -1;
+	*buf_in = 0;
+	DEB_ALWAYS() << "ERROR - NOT IMPLEMENTED!" ;
+#endif
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, 
+			"bin[%d,%d] binMax[%d,%d] binStepMode[%d,%d][%s,%s]",
+			binX, binY, binMaxX, binMaxY,
+			binModeX, binModeY, 
+			binModeX ? "lin" : "bin",
+			binModeY ? "lin" : "bin");
+
+}

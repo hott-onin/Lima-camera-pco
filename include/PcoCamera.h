@@ -544,12 +544,14 @@ enum enumTblXlatCode2Str
 	ModelType, InterfaceType, ModelSubType
 };
 
+#if 0
 struct stcBinning 
 {
 	enumChange	changed;		/* have values been changed ? */
 	unsigned int x;			/* amount to bin/group x data.                 */
 	unsigned int y;			/* amount to bin/group y data.                 */
 };
+#endif
 
 enum enumTraceAcqId 
 {
@@ -694,7 +696,7 @@ namespace lima
 	
 		int m_pcoError;
 
-        struct stcBinning m_bin;
+        Bin m_bin;
 		Roi m_RoiLima, m_RoiLimaRequested ;
 
 		Roi m_Roi_lastFixed_hw;
@@ -970,6 +972,12 @@ namespace lima
 		void getSdkRelease(std::string &o_sn) ;
 		void getCameraNameEx(std::string &o_sn) ;
 		void getCameraNameBase(std::string &o_sn) ;
+
+		void _pco_GetBinning(Bin &bin, int &err);
+		void _pco_SetBinning(Bin binNew, Bin &binActual, int &err);
+		int _binning_fit(int binRequested, int binMax, int binMode);
+		void _pco_GetBinningInfo(char *buf_in, int size_in, int &err);
+
 
 
 	}; // class camera
