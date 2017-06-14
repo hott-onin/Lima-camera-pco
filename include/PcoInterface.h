@@ -43,6 +43,7 @@ namespace lima
     class BufferCtrlObj;
     class SyncCtrlObj;
     class RoiCtrlObj;
+    class BinCtrlObj;
     class PcoHwEventCtrlObj;
 
     class  DLL_EXPORT Interface : public HwInterface
@@ -79,7 +80,6 @@ namespace lima
       RoiCtrlObj*       m_RoiCtrlObj;
       BinCtrlObj*       m_BinCtrlObj;
       PcoHwEventCtrlObj*       m_HwEventCtrlObj;
-      static RoiCtrlObj*       m_RoiCtrlObjXXX;
     };
 
   } // namespace Pco
