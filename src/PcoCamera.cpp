@@ -988,7 +988,7 @@ void Camera::startAcq()
 //		PCO_ArmCamera(hCam)
 //-----------------------------------------------------------------------------------------------
 	
-	_pco_SetMetaDataMode(0, error); PCO_THROW_OR_TRACE(error, "_pco_SetMetaDataMode") ;
+	_pco_SetMetaDataMode(0, error); //PCO_THROW_OR_TRACE(error, "_pco_SetMetaDataMode") ;
  
 	//--------------------------- PREPARE / pixel rate - ARM required 
 	_pco_SetPixelRate(error); PCO_THROW_OR_TRACE(error, "_pco_SetPixelRate") ;
