@@ -410,7 +410,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 				return output;
 			}
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment));
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%ld", _pco_GetNumberOfImagesInSegment_MaxCalc(m_pcoData->wActiveRamSegment));
 			return output;
 		}
 
@@ -1705,7 +1705,24 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 		}
 
 		//----------------------------------------------------------------------------------------------------------
-		// this must be the last cmd
+		key = keys[ikey] = "binInfo";     
+		keys_desc[ikey++] = "(R) binning info";     
+		if(_stricmp(cmd, key) == 0){
+			int err;
+			_pco_GetBinningInfo(ptr, (int) (ptrMax - ptr), err);
+			return output;
+		}
+
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "roiInfo";     
+		keys_desc[ikey++] = "(R) roi info";     
+		if(_stricmp(cmd, key) == 0){
+			int err;
+			_pco_GetRoiInfo(ptr, (int) (ptrMax - ptr), err);
+			return output;
+		}
+		//----------------------------------------------------------------------------------------------------------
+		// this must be the last cmd TALK / END
 		//----------------------------------------------------------------------------------------------------------
 
 		key = keys[ikey] = "?";     
@@ -2998,7 +3015,7 @@ void Camera::getLastImgAcquired(unsigned long & img)
 //====================================================================
 void Camera::getMaxNbImages(unsigned long & nr)
 {
-	nr = (!_isCameraType(Dimax | Pco2k | Pco4k )) ?  -1 : pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment);
+	nr = (!_isCameraType(Dimax | Pco2k | Pco4k )) ?  -1 : _pco_GetNumberOfImagesInSegment_MaxCalc(m_pcoData->wActiveRamSegment);
 }
 
 void Camera::getPcoLogsEnabled(int & enabled)

@@ -292,7 +292,7 @@ int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast,
 
 
 #ifndef USING_PCO_ALLOCATED_BUFFERS 
-	  WORD wActSeg = m_cam->_pco_GetActiveRamSegment();
+	  WORD wActSeg; m_cam->_pco_GetActiveRamSegment(wActSeg, error);
     	sErr = m_cam->_PcoCheckError(__LINE__, __FILE__, PCO_GetActiveRamSegment(m_handle, &wActSeg), error);
         //_PCO_TRACE("PCO_GetActiveRamSegment", sErr) ;
 
@@ -933,7 +933,7 @@ int BufferCtrlObj::_xferImag_getImage()
 
 	_pcoAllocBuffers(true); // allocate 2 pco buff at max size
 
-	wSegment = m_cam->_pco_GetActiveRamSegment();
+	m_cam->_pco_GetActiveRamSegment(wSegment, error);
 	
 //------------------- nr of frames per buffer
 	m_cam->getBitsPerPixel(_wBitPerPixel);
@@ -1155,7 +1155,7 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 
 	DEB_TRACE() << _sprintComment(fnId, "[PCO_GetImageEx]", "[ENTRY]");
 
-	wSegment = m_cam->_pco_GetActiveRamSegment(); // = 1 / pco edge doesn't have mem
+	m_cam->_pco_GetActiveRamSegment(wSegment, error); // = 1 / pco edge doesn't have mem
 
 	
 //------------------- nr of frames per buffer
@@ -1406,7 +1406,7 @@ int BufferCtrlObj::_xferImagMult()
 
 	//_pcoAllocBuffers(true); // allocate 2 pco buff at max size
 
-	wSegment = m_cam->_pco_GetActiveRamSegment();
+	m_cam->_pco_GetActiveRamSegment(wSegment, error);
 	
 //------------------- nr of frames per buffer
 	m_cam->getBitsPerPixel(_wBitPerPixel);

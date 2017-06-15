@@ -544,12 +544,14 @@ enum enumTblXlatCode2Str
 	ModelType, InterfaceType, ModelSubType
 };
 
+#if 0
 struct stcBinning 
 {
 	enumChange	changed;		/* have values been changed ? */
 	unsigned int x;			/* amount to bin/group x data.                 */
 	unsigned int y;			/* amount to bin/group y data.                 */
 };
+#endif
 
 enum enumTraceAcqId 
 {
@@ -582,6 +584,7 @@ namespace lima
 	  friend class DetInfoCtrlObj;
       friend class SyncCtrlObj;
 	  friend class RoiCtrlObj;
+	  friend class BinCtrlObj;
 	  friend class BufferCtrlObj;
 
       DEB_CLASS_NAMESPC(DebModCamera,"Camera","Pco");
@@ -589,10 +592,7 @@ namespace lima
         Camera(const char *camPar);
         ~Camera();
 
-    enum Status {Fault,Ready,Exposure,Readout,Latency,Config};
-
-
-
+		enum Status {Fault,Ready,Exposure,Readout,Latency,Config};
 
         void 	startAcq();
 		void	reset(int reset_level);
@@ -606,6 +606,13 @@ namespace lima
         void    stopAcq();
         void    _stopAcq(bool waitForThread);
 #endif
+
+		// ----- BIN
+		void setBin(const Bin& aBin);
+		void getBin(Bin& aBin);
+		void checkBin(Bin& aBin);
+		// -----
+
 
 		HANDLE& getHandle() {return m_handle;}
 
@@ -629,7 +636,7 @@ namespace lima
         const char *_talk(const char *cmd, char *output, int lg);
 
 
-        unsigned long pcoGetFramesMaxInSegment(int segmentPco);
+        unsigned long _pco_GetNumberOfImagesInSegment_MaxCalc(int segmentPco);
 
 		unsigned long	pcoGetFramesPerBuffer() { return m_pcoData->frames_per_buffer; }
 
@@ -689,7 +696,7 @@ namespace lima
 	
 		int m_pcoError;
 
-        struct stcBinning m_bin;
+        Bin m_bin;
 		Roi m_RoiLima, m_RoiLimaRequested ;
 
 		Roi m_Roi_lastFixed_hw;
@@ -809,9 +816,14 @@ namespace lima
 
 		void _pco_GetGeneralCapsDESC(DWORD &capsDesc1, int &err);
 
+
+//----
+		void _pco_SetCameraToCurrentTime(int &error);
+ 		void _pco_SetBinning(int &err);
+		const char *_pco_SetCamLinkSetImageParameters(int &error);
+
 #ifdef __linux__
  		void _setStatus(Camera::Status status,bool force);
- 		void _pco_SetBinning(int &err);
  		void _pco_SetROI(int &error);
 		void _pco_SetDelayExposureTime(int &error, int ph);
 		void _pco_GetLut(int &err);
@@ -819,14 +831,12 @@ namespace lima
  		void _pco_Open_Grab(int &err);
 		void _pco_GetCameraInfo(int &error);
  		void _pco_ResetSettingsToDefault(int &err);
-		void _pco_SetCameraToCurrentTime(int &error);
 		void _pco_GetTransferParameter(int &error);
        		void _pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error); 
  		size_t _pco_GetHardwareVersion_Firmware(char *ptrOut, size_t lgMax, int &error);
  		size_t _pco_roi_info(char *ptrOut, size_t lgMax, int &error);
 
 
-		const char *_pco_SetCamLinkSetImageParameters(int &error);
 
 
 #else
@@ -887,7 +897,7 @@ namespace lima
 		void setCoolingTemperature(int val);
 	
 	public:		//----------- pco sdk functions
-		WORD _pco_GetActiveRamSegment(); // {return m_pcoData->wActiveRamSegment;}
+		void _pco_GetActiveRamSegment(WORD &, int &); // {return m_pcoData->wActiveRamSegment;}
 
 		const char *_pco_SetRecordingState(int state, int &error);
 
@@ -916,11 +926,10 @@ namespace lima
 		void _pco_GetHWIOSignalAll(int &error);
 		void _pco_SetHWIOSignal(int sigNum, int &error);
 
-#ifndef __linux
-		void _pco_initHWIOSignal(int mode, int &error);
-#else		
-		void getStatus(Camera::Status& status);
 		void _pco_initHWIOSignal(int mode, WORD wVar, int &error);   // TODO sync
+
+#ifdef __linux
+		void getStatus(Camera::Status& status);
 #endif		
 
 	public:
@@ -964,10 +973,25 @@ namespace lima
 		void getCameraNameEx(std::string &o_sn) ;
 		void getCameraNameBase(std::string &o_sn) ;
 
+		void _pco_GetBinning(Bin &bin, int &err);
+		void _pco_SetBinning(Bin binNew, Bin &binActual, int &err);
+		int _binning_fit(int binRequested, int binMax, int binMode);
+		void _pco_GetBinningInfo(char *buf_in, int size_in, int &err);
+
+		void _pco_SetROI(Roi roi, int &err);
+		void _pco_GetROI(Roi &roi, int &err);
+		void _xlatRoi_lima2pco(Roi roiLima, unsigned int &x0, unsigned int &x1, unsigned int &y0, unsigned int &y1);
+		void _xlatRoi_pco2lima(Roi &roiLima, unsigned int x0, unsigned int x1, unsigned int y0, unsigned int y1);
+		void _pco_GetRoiInfo(char *buf_in, int size_in, int &err);
+
 
 	}; // class camera
   } // namespace pco
 } // namespace lima
+
+void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase);
+
+
 
 //--------------------- dummies for linux
 #ifdef __linux__

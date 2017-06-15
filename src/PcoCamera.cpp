@@ -470,7 +470,7 @@ Camera::Camera(const char *params) :
 		<< ALWAYS_NL << DEB_VAR1(m_pcoData->version) 
 		<< ALWAYS_NL << _checkLogFiles(true);
 
-	m_bin.changed = Invalid;
+	//m_bin.changed = Invalid;
 	
 	_init();
 	m_config = FALSE;
@@ -600,7 +600,7 @@ void Camera::_init(){
 	if(!m_cam_connected)
 		throw LIMA_HW_EXC(Error, "Camera not found!");
 
-	_pco_initHWIOSignal(0, error);
+	_pco_initHWIOSignal(0, 0x4, error);
 
 	
 	{
@@ -750,7 +750,7 @@ void  Camera::_init_dimax() {
 
 	// -- Get Active RAM segment 
 
-		_pco_GetActiveRamSegment();
+		WORD wActSeg; _pco_GetActiveRamSegment(wActSeg, error);
 
 		PCO_FN4(error, pcoFn,PCO_GetNumberOfImagesInSegment, m_handle, m_pcoData->wActiveRamSegment, &_dwValidImageCnt, &_dwMaxImageCnt);
 		PCO_THROW_OR_TRACE(error, pcoFn) ;
@@ -830,32 +830,23 @@ void Camera::startAcq()
 
 	//SetBinning, SetROI, ARM, GetSizes, AllocateBuffer.
     //------------------------------------------------- set binning if needed
-    WORD wBinHorz, wBinVert, wBinHorzNow, wBinVertNow;
-    if (m_bin.changed == Changed) {
-		wBinHorz = (WORD)m_bin.x;
-		wBinVert = (WORD)m_bin.y;
+	WORD wBinHorz, wBinVert, wBinHorzNow, wBinVertNow;
+	Bin binActual;
 
-		PCO_FN3(error, msg,PCO_GetBinning, m_handle, &wBinHorzNow, &wBinVertNow);
-		PCO_THROW_OR_TRACE(error, msg) ;
-		
-		if((wBinHorz != wBinHorzNow) || (wBinVert != wBinVertNow)) {
-			PCO_FN3(error, msg,PCO_SetBinning, m_handle, wBinHorz, wBinVert);
-			PCO_THROW_OR_TRACE(error, msg) ;
-			_armRequired(true);
+	wBinHorz = (WORD)m_bin.getX();
+	wBinVert = (WORD)m_bin.getY();
 
-			PCO_FN3(error, msg,PCO_GetBinning,m_handle, &wBinHorzNow, &wBinVertNow);
-			PCO_THROW_OR_TRACE(error, msg) ;
-		}
-		m_bin.changed= Valid;
-		m_pcoData->traceAcq.iPcoBinHorz = wBinHorzNow;
-		m_pcoData->traceAcq.iPcoBinHorz = wBinVertNow;
-
-		DEB_TRACE() << DEB_VAR4(wBinHorz, wBinVert, wBinHorzNow, wBinVertNow);
-    }
-
+	//_pco_SetBinning(m_bin, binActual, error);
+	_pco_GetBinning(binActual, error);
+	
+	m_pcoData->traceAcq.iPcoBinHorz = wBinHorzNow = binActual.getX();
+	m_pcoData->traceAcq.iPcoBinVert = wBinVertNow = binActual.getY();
+	
+	DEB_TRACE() << DEB_VAR4(wBinHorz, wBinVert, wBinHorzNow, wBinVertNow);
 
     //------------------------------------------------- set roi if needed
-    WORD &wRoiX0Now = m_pcoData->wRoiX0Now;
+#if 0
+	WORD &wRoiX0Now = m_pcoData->wRoiX0Now;
 	WORD &wRoiY0Now = m_pcoData->wRoiY0Now;
     WORD &wRoiX1Now = m_pcoData->wRoiX1Now;
 	WORD &wRoiY1Now = m_pcoData->wRoiY1Now;
@@ -901,8 +892,28 @@ void Camera::startAcq()
 	m_pcoData->traceAcq.iPcoRoiX1 = m_pcoData->wRoiX1Now;
 	m_pcoData->traceAcq.iPcoRoiY0 = m_pcoData->wRoiY0Now;
 	m_pcoData->traceAcq.iPcoRoiY1 = m_pcoData->wRoiY1Now;
+#endif
 
-    //------------------------------------------------- set CDI if needed
+	unsigned int x0, x1, y0, y1;\
+	Roi roiNow;
+
+	_pco_GetROI(roiNow, error);
+	
+	_xlatRoi_lima2pco(roiNow, x0, x1, y0, y1);
+
+	m_pcoData->traceAcq.iPcoRoiX0 = m_pcoData->wRoiX0Now = x0;
+	m_pcoData->traceAcq.iPcoRoiX1 = m_pcoData->wRoiX1Now = x1;
+	m_pcoData->traceAcq.iPcoRoiY0 = m_pcoData->wRoiY0Now = y0;
+	m_pcoData->traceAcq.iPcoRoiY1 = m_pcoData->wRoiY1Now = y1;
+
+	DEB_TRACE() 
+			<< "\n   PCO_GetROI> " << DEB_VAR5(x0, x1, y0, y1, roiNow);
+
+	_armRequired(true);
+
+	
+	
+	//------------------------------------------------- set CDI if needed
 	{
 		WORD cdi;
 		int err;
@@ -914,7 +925,7 @@ void Camera::startAcq()
 	//------------------------------------------------- triggering mode 
     //------------------------------------- acquire mode : ignore or not ext. signal
 	ccMsg = _pco_SetTriggerMode_SetAcquireMode(error);
-    PCO_THROW_OR_TRACE(error, msg) ;
+    PCO_THROW_OR_TRACE(error, "_pco_SetTriggerMode_SetAcquireMode") ;
 
     // ----------------------------------------- storage mode (recorder + sequence)
 //    if(_isCameraType(Dimax)) {
@@ -932,7 +943,7 @@ void Camera::startAcq()
                DEB_TRACE() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
 
 		ccMsg = _pco_SetStorageMode_SetRecorderSubmode(mode, error);
-		PCO_THROW_OR_TRACE(error, msg) ;
+		PCO_THROW_OR_TRACE(error, "_pco_SetStorageMode_SetRecorderSubmode") ;
 	}
 
 #if 0
@@ -1021,7 +1032,7 @@ void Camera::startAcq()
 #if 0
 	if(_isCameraType(Dimax)){
         unsigned long framesMax;
-        framesMax = pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment);
+        framesMax = _pco_GetNumberOfImagesInSegment_MaxCalc(m_pcoData->wActiveRamSegment);
 
         if ((((unsigned long) iRequestedFrames) > framesMax)) {
             throw LIMA_HW_EXC(Error, "frames OUT OF RANGE");
@@ -1029,7 +1040,7 @@ void Camera::startAcq()
     } 
 #endif
 
-	unsigned long ulFramesMaxInSegment = pcoGetFramesMaxInSegment(m_pcoData->wActiveRamSegment);
+	unsigned long ulFramesMaxInSegment = _pco_GetNumberOfImagesInSegment_MaxCalc(m_pcoData->wActiveRamSegment);
 	unsigned long ulRequestedFrames = (unsigned long) iRequestedFrames;
 
 	if(ulFramesMaxInSegment > 0)
@@ -1193,7 +1204,7 @@ void _pco_acq_thread_dimax(void *argin) {
 
 	HANDLE m_handle = m_cam->getHandle();
 
-	WORD wSegment = m_cam->_pco_GetActiveRamSegment(); 
+	WORD wSegment; m_cam->_pco_GetActiveRamSegment(wSegment, error ); 
 	double msPerFrame = (m_cam->pcoGetCocRunTime() * 1000.);
 	m_pcoData->traceAcq.msImgCoc = msPerFrame;
 
@@ -1411,7 +1422,7 @@ void _pco_acq_thread_dimax_trig_single(void *argin) {
 
 	HANDLE m_handle = m_cam->getHandle();
 
-	WORD wSegment = m_cam->_pco_GetActiveRamSegment(); 
+	WORD wSegment;  m_cam->_pco_GetActiveRamSegment(wSegment, error); 
 	double msPerFrame = (m_cam->pcoGetCocRunTime() * 1000.);
 	m_pcoData->traceAcq.msImgCoc = msPerFrame;
 
@@ -1978,97 +1989,6 @@ char* Camera::_PcoCheckError(int line, const char *file, int err, int &error, co
 	return NULL;
 }
 
-//=========================================================================================================
-//=========================================================================================================
-unsigned long Camera::pcoGetFramesMaxInSegment(int segmentPco)
-{
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-
-	int segmentArr = segmentPco-1;
-	unsigned long framesMax;
-	unsigned long ulWidth,ulHeigth;
-	unsigned long long pixPerFrame, pagesPerFrame;
-
-	
-	// if(_isCameraType(Edge)) {return LONG_MAX;}
-
-	DEB_TRACE() << "pcoGetFramesMaxInSegment [entry] " << DEB_VAR2(segmentPco, m_pcoData->camera_name );
-	if(!_isCameraType(Dimax | Pco2k | Pco4k)) 
-	{
-		DEB_TRACE() << "pcoGetFramesMaxInSegment UNKNOWN [exit] " << DEB_VAR1(segmentPco);
-		//printf("=== %s> unknown camera type [%d]\n", fnId, _getCameraType());
-		return 0;
-	}
-		
-	// based in the calculation for std dimax WITHOUT COMPRESSION!!!!
-	// in dimax HS there is comprenssion and this value es invalid!!!
-
-	if((segmentPco <1) ||(segmentPco > PCO_MAXSEGMENTS)) 
-	{
-		DEB_ALWAYS() << "ERROR segmentPco " << DEB_VAR1(segmentPco);
-		return 0;
-	}
-
-	ulWidth = m_RoiLima.getSize().getWidth();
-	ulHeigth = m_RoiLima.getSize().getHeight();
-	//ulWidth = m_roi.x[1] - m_roi.x[0] + 1;
-	//ulHeigth = m_roi.y[1] - m_roi.y[0] + 1;
-
-	if(_isCameraType(DimaxHS)) 
-	{
-		DEB_TRACE() << "pcoGetFramesMaxInSegment DimaxHS [entry] " ;
-		// W = Width of ROI
-		// H = Height of ROI
-		// m = Number of pages for the segment, as configured using PCO_SetRamSegmentSize
-		// n = Number of Images within segment [-0, +1] (tolerance due to sync of read/write operation)
-		WORD wCdi, wDImg;
-		int err, iA, iB, iC, iPagesInSegment;
-		unsigned long ulNrImages;
-
-		iPagesInSegment = m_pcoData->dwSegmentSize[segmentArr]; 
-		_pco_GetCDIMode(wCdi, err);
-		_pco_GetDoubleImageMode(wDImg, err);
-
-		iA = (int) ceil((ulWidth + 2.) / 96.);  // round up to the nearest integer
-		iB = (int) ceil((ulHeigth + 2.) / 4.);
-
-		iC = (wCdi || wDImg) ?
-			2 * iA * iB + 1  //for CDI or Double Image mode
-			: iA * iB + 1;   //    otherwise
-
-		ulNrImages = iPagesInSegment / iC - 1;
-
-		//return m_pcoData->dwMaxImageCnt[segmentPco];
-		DEB_TRACE() << "pcoGetFramesMaxInSegment DimaxHS [exit] "  << DEB_VAR6(ulNrImages, ulWidth, ulHeigth, iPagesInSegment, wCdi, wDImg);
-		return ulNrImages;
-	}
-
-	
-	DEB_TRACE() << "pcoGetFramesMaxInSegment DIMAX NOT HS [entry] " ;
-
-	pixPerFrame = (unsigned long long)ulWidth * (unsigned long long)ulHeigth;
-
-	if(pixPerFrame <0) 
-	{
-		DEB_ALWAYS() << "ERROR pixPerFrame " << DEB_VAR1(pixPerFrame);
-		return 0;
-	}
-
-	if(m_pcoData->wPixPerPage < 1) 
-	{
-		DEB_ALWAYS() << "ERROR m_pcoData->wPixPerPage " << DEB_VAR1(m_pcoData->wPixPerPage);
-		return 0;
-	}
-	pagesPerFrame = (pixPerFrame / m_pcoData->wPixPerPage) + 1;
-	if(pixPerFrame % m_pcoData->wPixPerPage) pagesPerFrame++;
-
-	framesMax = m_pcoData->dwMaxFramesInSegment[segmentArr] = (unsigned long)(((long long) m_pcoData->dwSegmentSize[segmentArr] ) / pagesPerFrame);
-
-	DEB_TRACE() << "pcoGetFramesMaxInSegment DIMAX STD [exit] " << DEB_VAR1(framesMax);
-	return framesMax;
-}
-
 
 
 
@@ -2100,7 +2020,7 @@ int Camera::dumpRecordedImages(int &nrImages, int &error){
 	char *msg;
 
 	HANDLE m_handle = getHandle();
-	WORD wSegment = _pco_GetActiveRamSegment(); 
+	WORD wSegment; _pco_GetActiveRamSegment(wSegment, error); 
 	DWORD _dwValidImageCnt, _dwMaxImageCnt;
 
 
@@ -2345,12 +2265,39 @@ int Camera::_checkValidRoi(const Roi &roi_new, Roi &roi_fixed){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
+	int err;
+
 	int iInvalid;
 	unsigned int x0, x1, y0, y1;
 	unsigned int x0org, x1org, y0org, y1org;
 
 	unsigned int xMax, yMax, xSteps, ySteps, xMinSize, yMinSize;
 	getXYdescription(xSteps, ySteps, xMax, yMax, xMinSize, yMinSize); 
+
+    // if steps is zero, only the max size is allowed
+	bool xStepsNull = (xSteps == 0);
+	bool yStepsNull = (ySteps == 0);
+
+	Bin binNow;
+	int binX, binY;
+	_pco_GetBinning(binNow, err);
+
+	binX = binNow.getX();
+	binY = binNow.getY();
+
+	xMax /= binX;
+	yMax /= binY;
+
+	xSteps /= binX;
+	ySteps /= binY;
+	if(xSteps < 1) xSteps = 1;
+	if(ySteps < 1) ySteps = 1;
+
+	xMinSize /= binX;
+	yMinSize /= binY;
+	if(xMinSize < 1) xMinSize = 1;
+	if(yMinSize < 1) yMinSize = 1;
+
 
 	bool bSymX = false, bSymY = false;
 	if(_isCameraType(Dimax)){ bSymX = bSymY = true; }
@@ -2369,6 +2316,8 @@ int Camera::_checkValidRoi(const Roi &roi_new, Roi &roi_fixed){
 	y1org = y1 = roi_new.getBottomRight().y+1;
 
 
+	if(xStepsNull) xMinSize = xMax;
+	if(yStepsNull) yMinSize = yMax;
 
 	iInvalid = _fixValidRoi(x0, x1, xMax, xSteps, xMinSize, bSymX) |
 				_fixValidRoi(y0, y1, yMax, ySteps, yMinSize, bSymY) ;
@@ -2535,12 +2484,21 @@ void Camera::_get_MaxRoi(Roi &roi){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
-	unsigned int xMax, yMax;
+	unsigned int xMax, yMax, x0, x1, y0,y1;
+	int err;
+	Bin bin;
 
 	getMaxWidthHeight(xMax, yMax);
 
-	roi.setTopLeft(Point(0, 0));
-	roi.setSize(Size(xMax, yMax));
+	_pco_GetBinning(bin, err);
+
+
+	x0 = 1;
+	x1 = xMax / bin.getX();
+	y0 = 1;
+	y1 = yMax / bin.getY();
+
+	_xlatRoi_pco2lima(roi, x0, x1, y0,y1);
 }
 
 
@@ -2933,3 +2891,84 @@ void Camera::_setActionTimestamp(int action)
 
 
 
+//=================================================================================================
+// ----- BIN
+//=================================================================================================
+void Camera::setBin(const Bin& requestedBin)
+{
+	DEB_MEMBER_FUNCT();
+	int err;
+
+	Bin actualBin;
+
+	_pco_SetBinning(requestedBin, actualBin, err);
+	if(err)
+	{
+		DEB_ALWAYS() << "ERROR - setBin " << DEB_VAR2(requestedBin, actualBin) ;
+	}
+
+
+}
+void Camera::getBin(Bin& aBin)
+{
+	DEB_MEMBER_FUNCT();
+	int err;
+
+	_pco_GetBinning(aBin, err);
+	if(err)
+	{
+		DEB_ALWAYS() << "ERROR - getBin" ;
+	}
+}
+void Camera::checkBin(Bin& aBin)
+{
+	DEB_MEMBER_FUNCT();
+
+	int binX0, binY0, binX, binY, binMax, binMode;
+
+	binX0 = aBin.getX();
+	binMax = m_pcoData->stcPcoDescription.wMaxBinHorzDESC;
+	binMode = m_pcoData->stcPcoDescription.wBinHorzSteppingDESC;
+	binX = _binning_fit(binX0, binMax, binMode);
+	DEB_TRACE() << DEB_VAR4(binX0, binX, binMax, binMode);
+
+	binY0 = aBin.getY();
+	binMax = m_pcoData->stcPcoDescription.wMaxBinVertDESC;
+	binMode = m_pcoData->stcPcoDescription.wBinVertSteppingDESC;
+	binY = _binning_fit(binY0, binMax, binMode);
+
+	DEB_TRACE() << DEB_VAR4(binY0, binY, binMax, binMode);
+
+	aBin = Bin(binX,binY);
+}
+
+//=================================================================================================
+// ----- ROI
+//=================================================================================================
+void Camera::_xlatRoi_lima2pco(Roi roiLima, unsigned int &x0, unsigned int &x1, unsigned int &y0, unsigned int &y1)
+{
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	Point top_left = roiLima.getTopLeft();
+	Point bot_right = roiLima.getBottomRight();
+	Size size = roiLima.getSize();
+
+	x0 = top_left.x + 1;
+	y0 = top_left.y + 1;
+	x1 = bot_right.x + 1; 
+	y1 = bot_right.y + 1;
+
+}
+
+void Camera::_xlatRoi_pco2lima(Roi &roiLima, unsigned int x0, unsigned int x1, unsigned int y0, unsigned int y1)
+{
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	roiLima.setTopLeft(Point(x0-1 , y0-1 ));
+	roiLima.setSize(Size(x1-x0+1, y1-y0+1));
+
+}

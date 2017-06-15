@@ -490,6 +490,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\..\..\src\PcoBinCtrlObj.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\src\PcoBufferCtrlObj.cpp"
 				>
 			</File>
@@ -499,6 +503,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\src\PcoCameraSdk.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\src\PcoCameraSdkAdd.cpp"
 				>
 			</File>
 			<File
@@ -533,6 +541,10 @@
 			>
 			<File
 				RelativePath="..\..\..\..\include\Pco.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\include\PcoBinCtrlObj.h"
 				>
 			</File>
 			<File

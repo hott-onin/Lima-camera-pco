@@ -77,6 +77,7 @@ namespace lima
       BufferCtrlObj* 	m_buffer;
       SyncCtrlObj* 	m_sync;
       RoiCtrlObj*       m_RoiCtrlObj;
+      BinCtrlObj*       m_BinCtrlObj;
       PcoHwEventCtrlObj*       m_HwEventCtrlObj;
       static RoiCtrlObj*       m_RoiCtrlObjXXX;
     };
