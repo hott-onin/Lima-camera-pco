@@ -2987,7 +2987,7 @@ void Camera::_pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax
 //=================================================================================================
 //=================================================================================================
 
-void Camera::_pco_PCO_SetRecordStopEvent(WORD wRecordStopEventMode, DWORD dwRecordStopDelayImages, int &err)
+void Camera::_pco_SetRecordStopEvent(WORD wRecordStopEventMode, DWORD dwRecordStopDelayImages, int &err)
 {
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;

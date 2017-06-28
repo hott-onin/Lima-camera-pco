@@ -914,7 +914,7 @@ void Camera::prepareAcq()
 			wRecordStopEventMode = 0x0002;    // record stop by edge at the <acq. enbl.>
 			dwRecordStopDelayImages = iRequestedFrames;
 			DEB_TRACE() << "..... PCO_SetRecordStopEvent";
-			_pco_PCO_SetRecordStopEvent(wRecordStopEventMode, dwRecordStopDelayImages, error);
+			_pco_SetRecordStopEvent(wRecordStopEventMode, dwRecordStopDelayImages, error);
 			PCO_THROW_OR_TRACE(error, "PCO_SetRecordStopEvent") ;
 		}
 	}
