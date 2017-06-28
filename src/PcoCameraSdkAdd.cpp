@@ -1463,9 +1463,9 @@ void Camera::_pco_GetTemperatureInfo(int &error){
         << "\n   " << DEB_VAR1(sCoolingSetpoint) 
         ;
 
-	m_pcoData->temperature.wCcd = sTempCcd;
-	m_pcoData->temperature.wCam = sTempCam;
-	m_pcoData->temperature.wPower =sTempPS;
+	m_pcoData->temperature.sCcd = sTempCcd;
+	m_pcoData->temperature.sCam = sTempCam;
+	m_pcoData->temperature.sPower =sTempPS;
 
 #else
 

@@ -63,8 +63,8 @@ BufferCtrlObj::BufferCtrlObj(Camera *cam) :
 
   //----------------------------------------------- initialization buffers & creating events
 	
-  //for(int i=0; i < PCO_BUFFER_NREVENTS; i++) {
-  for(int i=0; i < PCO_MAX_NR_ALLOCATED_BUFFERS; i++) {
+  for(int i=0; i < PCO_MAX_NR_ALLOCATED_BUFFERS; i++) 
+{
 		m_allocBuff.pcoAllocBufferNr[i] = -1;
 		m_allocBuff.pcoAllocBufferPtr[i]	= NULL;
 		m_allocBuff.dwPcoAllocBufferSize[i]	= 0;
@@ -302,10 +302,7 @@ int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast,
 
 	WORD _wMaxWidth, _wMaxHeight;
 	m_cam->_pco_GetSizes(&wArmWidth, &wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
-    //m_cam->getArmWidthHeight(wArmWidth, wArmHeight);
     m_cam->getMaxWidthHeight(uiMaxWidth, uiMaxHeight);
-	//dwMaxWidth = uiMaxWidth;
-	//dwMaxHeight = uiMaxHeight;
 
     m_cam->getBytesPerPixel(bytesPerPixel);
     m_cam->getBitsPerPixel(wBitPerPixel);
@@ -566,7 +563,6 @@ int BufferCtrlObj::_xferImag()
 
 	WORD _wMaxWidth, _wMaxHeight;
 	m_cam->_pco_GetSizes(&wArmWidth, &wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
-	//m_cam->getArmWidthHeight(wArmWidth, wArmHeight);
 	m_cam->getBytesPerPixel(bytesPerPixel);
 	//DWORD dwLen = wArmWidth * wArmHeight * bytesPerPixel;
 
@@ -1020,7 +1016,6 @@ int BufferCtrlObj::_xferImag_getImage()
 
 	WORD _wMaxWidth, _wMaxHeight;
 	m_cam->_pco_GetSizes(&_wArmWidth, &_wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
-	//m_cam->getArmWidthHeight(_wArmWidth, _wArmHeight);  // actual
 	_pcoAllocBuffersInfo(_iPcoAllocatedBuffNr, _dwPcoAllocatedBuffSize);
 	dwFrameSize = (DWORD) _wArmWidth * (DWORD) _wArmHeight * (DWORD) _uiBytesPerPixel;
 	//dwFramesPerBuffer = _dwPcoAllocatedBuffSize / dwFrameSize ;
@@ -1246,7 +1241,6 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 
 	WORD _wMaxWidth, _wMaxHeight;
 	m_cam->_pco_GetSizes(&_wArmWidth, &_wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
-	//m_cam->getArmWidthHeight(_wArmWidth, _wArmHeight);  // actual
 	_pcoAllocBuffersInfo(_iPcoAllocatedBuffNr, _dwPcoAllocatedBuffSize);
 	dwFrameSize = (DWORD) _wArmWidth * (DWORD) _wArmHeight * (DWORD) _uiBytesPerPixel;
 	dwFramesPerBuffer = 1;
@@ -1500,7 +1494,6 @@ int BufferCtrlObj::_xferImagMult()
 	
 	WORD _wMaxWidth, _wMaxHeight;
 	m_cam->_pco_GetSizes(&_wArmWidth, &_wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
-	//m_cam->getArmWidthHeight(_wArmWidth, _wArmHeight);  // actual
 	_pcoAllocBuffersInfo(_iPcoAllocatedBuffNr, _dwPcoAllocatedBuffSize);
 
 	WORD _wRoiWidth = m_pcoData->wRoiX1Now - m_pcoData->wRoiX0Now +1;
@@ -1757,14 +1750,12 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 		_dwMaxWidth = _uiMaxWidth; 
 		_dwMaxHeight = _uiMaxHeight;
 
-		//m_cam->getArmWidthHeight(_wArmWidth, _wArmHeight);  // actual
 			
 		WORD _wMaxWidth, _wMaxHeight;
 		m_cam->_pco_GetSizes(&_wArmWidth, &_wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
 	
 		DWORD _dwAllocatedBufferSizeMax = (DWORD) _wMaxWidth * (DWORD)_wMaxHeight * (DWORD) _bytesPerPixel ;
 
-		//DWORD _dwAllocatedBufferSizeMax = _dwMaxWidth * _dwMaxHeight * (DWORD) _bytesPerPixel ;
 		DWORD _dwArmSize = (DWORD) _wArmWidth * (DWORD) _wArmHeight * (DWORD) _bytesPerPixel;
 
 		// CDI and Double Image requires a double size + 1 page for metadata
