@@ -836,8 +836,6 @@ void Camera::prepareAcq()
 		WORD cdi;
 		int err;
 		_pco_GetCDIMode(cdi, err);
-		if(!err && (cdi != m_cdi_mode))
-				_pco_SetCDIMode(m_cdi_mode, err);
 	}
 
     //------------------------------------------------- 
@@ -1003,18 +1001,18 @@ void Camera::prepareAcq()
 		//      must be even and twice of the nr of images for pco
 		_pco_GetDoubleImageMode(wDoubleImage, err);
 
-		bool outOfRange = false;
+		bool bOutOfRange = false;
 
 		if(wDoubleImage) 
 		{
-			if ( ((ulRequestedFrames % 2) != 0) || (ulRequestedFrames/2 > ulFramesMaxInSegment) ) outOfRange = true;
+			if ( ((ulRequestedFrames % 2) != 0) || (ulRequestedFrames/2 > ulFramesMaxInSegment) ) bOutOfRange = true;
 		}
 		else
 		{
-			if ( ulRequestedFrames > ulFramesMaxInSegment ) outOfRange = true;
+			if ( ulRequestedFrames > ulFramesMaxInSegment ) bOutOfRange = true;
 		}
 
-		if(outOfRange)
+		if(bOutOfRange)
 		{
 
 			DEB_ALWAYS() << "\nERROR frames OUT OF RANGE " << DEB_VAR3(ulRequestedFrames, ulFramesMaxInSegment, wDoubleImage);
@@ -1114,7 +1112,7 @@ void Camera::startAcq()
 			if((trig_mode  == ExtTrigSingle) ) {
 				_beginthread( _pco_acq_thread_dimax_trig_single, 0, (void*) this);
 			} else {
-				_beginthread( _pco_acq_thread_dimax, 0, (void*) this);
+				_beginthread( _pco_acq_thread_dimax, 0, (void*) this);	// normal mode
 			}
 		} else {
 			_beginthread( _pco_acq_thread_dimax_live, 0, (void*) this);
@@ -1309,17 +1307,29 @@ void _pco_acq_thread_dimax(void *argin) {
 		{
 			pcoAcqStatus status;
 
+			WORD wDoubleImage;
+			int err;
+			m_cam->_pco_GetDoubleImageMode(wDoubleImage, err);
+
+
 			if(m_cam->_isCameraType(Pco2k | Pco4k)){
 				if(m_pcoData->testCmdMode & TESTCMDMODE_DIMAX_XFERMULTI) {
 					status = (pcoAcqStatus) m_buffer->_xferImag();
 				} else {
-					status = (pcoAcqStatus) m_buffer->_xferImagMult();  //  <------------- default NO waitobj
+					status = (pcoAcqStatus) m_buffer->_xferImagMult();  //  <------------- default pco2k/4k NO waitobj
 				}
 			}else{
 				if(m_pcoData->testCmdMode & TESTCMDMODE_DIMAX_XFERMULTI) {
 					status = (pcoAcqStatus) m_buffer->_xferImagMult();
 				} else {
-					status = (pcoAcqStatus) m_buffer->_xferImag(); //  <------------- default YES waitobj
+					if(wDoubleImage)
+					{ 
+						status = (pcoAcqStatus) m_buffer->_xferImagDoubleImage(); //  <------------- default dimax YES waitobj
+					}
+					else
+					{
+						status = (pcoAcqStatus) m_buffer->_xferImag(); //  <------------- default dimax YES waitobj
+					}
 				}
 
 			}

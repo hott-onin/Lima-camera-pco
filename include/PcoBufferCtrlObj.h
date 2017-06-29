@@ -40,6 +40,7 @@ struct stcAllocBuff {
         DWORD	dwPcoAllocBufferSize[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by PCO_AllocateBuffer
 
 		WORD	*limaAllocBufferPtr[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
+		WORD	*limaAllocBufferPtr1[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
         DWORD	dwLimaAllocBufferSize[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
 		DWORD	dwStatus[8];			// PCO_AddBufferEx status/error return
 
@@ -97,6 +98,7 @@ namespace lima
         //-------------------------------------------------------------  moved from taco
         
 	  
+        int _xferImagDoubleImage();
         int _xferImag();
         int _xferImag_getImage();
         int _xferImag_getImage_edge();
@@ -109,7 +111,8 @@ namespace lima
 
 	
 	private:
-		int _assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast, DWORD dwRequestedFrames, int bufIdx, bool live_mode);
+		int _assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast, 
+			DWORD dwRequestedFrames, int bufIdx, bool live_mode, WORD wDoubleImage=0);
 		
 		void _pcoAllocBuffers(bool max = false);
 		//-------------------------------------------------------------

@@ -701,7 +701,6 @@ namespace lima
 		bool m_isArmed;
 		long long m_state;
 
-		WORD m_cdi_mode; 
 		//----------------------------------
 
         Camera::Status m_status;

@@ -684,7 +684,7 @@ void Camera::_pco_GetCDIMode(WORD &wCDIMode, int &err)
     pcoErr = -1;
 #endif
 
-	err |= pcoErr;
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetCDIMode");
 
 	return;
 }
@@ -719,9 +719,9 @@ void Camera::_pco_SetCDIMode(WORD wCDIMode, int &err)
 	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
     pcoErr = -1;
 #endif
-	
-	err |= pcoErr;
 
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_SetCDIMode");
+	
 	return;
 }
 //=================================================================================================
@@ -738,6 +738,7 @@ void Camera::_pco_GetDoubleImageMode(WORD &wDoubleImage, int &err)
 	{
 		wDoubleImage = 0;
 		err = 1;
+		DEB_TRACE() <<  "WARNING / DoubleImage mode is NOT ALLOWED!";
 		return;
 	}
 	
@@ -751,7 +752,7 @@ void Camera::_pco_GetDoubleImageMode(WORD &wDoubleImage, int &err)
     pcoErr = -1;
 #endif
 
-	err |= pcoErr;
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetDoubleImageMode");
 
 	return;
 }
@@ -769,6 +770,7 @@ void Camera::_pco_SetDoubleImageMode(WORD wDoubleImage, int &err)
 	if(!_isCapsDesc(capsDoubleImage))
 	{
 		err = 1;
+		DEB_TRACE() <<  "WARNING / DoubleImage mode is NOT ALLOWED!";
 		return;
 	}
 	
@@ -787,8 +789,7 @@ void Camera::_pco_SetDoubleImageMode(WORD wDoubleImage, int &err)
     pcoErr = -1;
 #endif
 
-
-	err |= pcoErr;
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_SetDoubleImageMode");
 
 	return;
 }

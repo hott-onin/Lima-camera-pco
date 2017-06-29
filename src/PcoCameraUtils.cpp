@@ -3323,8 +3323,6 @@ void Camera::setCDIMode(int cdi)
 	int error;
 	WORD wCdi = (WORD) cdi;
 
-	m_cdi_mode = wCdi;
-
 	_pco_SetCDIMode(wCdi, error);
 
 }
