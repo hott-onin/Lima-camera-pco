@@ -556,6 +556,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\include\PcoCameraSdk.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\include\PcoCameraUtils.h"
 				>
 			</File>

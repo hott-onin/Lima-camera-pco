@@ -35,6 +35,7 @@
 #include "lima/HwSyncCtrlObj.h"
 
 #include "PcoCamera.h"
+#include "PcoCameraSdk.h"
 #include "PcoSyncCtrlObj.h"
 
 using namespace lima;
@@ -165,17 +166,6 @@ void Camera::_pco_GetCOCRuntime(int &error){
 
 }
 
-
-//=================================================================================================
-//=================================================================================================
-void Camera::_pco_GetFirmwareInfo(WORD wDeviceBlock, PCO_FW_Vers* pstrFirmWareVersion, int &error)
-{
-#ifndef __linux__
-		error =  PCO_GetFirmwareInfo(m_handle, wDeviceBlock, pstrFirmWareVersion);
-#else
-        error = -1;
-#endif
-}
 
 
 
@@ -1018,19 +1008,19 @@ void Camera::_pco_SetCoolingSetpointTemperature(int val, int &error)
 
 #ifndef __linux__
 	char *pcoFn;
-	WORD _wSetpoint = (WORD) val;
+	SHORT _sSetpoint =  val;
 
 	if(
 		!_isCooledCamera() ||
-		(_wSetpoint < m_pcoData->stcPcoDescription.sMinCoolSetDESC) ||
-		(_wSetpoint > m_pcoData->stcPcoDescription.sMaxCoolSetDESC)
+		(_sSetpoint < m_pcoData->stcPcoDescription.sMinCoolSetDESC) ||
+		(_sSetpoint > m_pcoData->stcPcoDescription.sMaxCoolSetDESC)
 		)
 	{
 		error = -1;
 		return;
 	}
 
-	PCO_FN2(error, pcoFn,PCO_SetCoolingSetpointTemperature, m_handle, _wSetpoint);
+	PCO_FN2(error, pcoFn,PCO_SetCoolingSetpointTemperature, m_handle, _sSetpoint);
 	if(error)
 	{
 		return;
@@ -1099,12 +1089,38 @@ void Camera::_pco_SetCameraToCurrentTime(int &err)
 	DEF_FNID;
 
 #ifdef __linux__
+// Sets the camera time to current system time.
+//
+// The date and time is updated automatically, as long as the camera is supplied with power.
+// Camera time is used for the timestamp and metadata.
+// When powering up the camera, then this command or PCO_SetDateTime should be done once.
+// return: Error code
+
 	err=camera->PCO_SetCameraToCurrentTime();
-    PCO_CHECK_ERROR(err, "PCO_SetCameraToCurrentTime"); 
+
 #else
-	DEB_ALWAYS() << "ERROR - NOT IMPLEMENTED!" ;
-	err = -1;
+	{
+		// set date/time to PCO	
+		struct tm tmNow;
+		time_t now = time(NULL);
+		int day, mon, year, hour, min, sec;
+
+		localtime_s(&tmNow, &now);
+
+		BYTE ucDay   = day  = tmNow.tm_mday;
+		BYTE ucMonth = mon  = tmNow.tm_mon + 1;
+		WORD wYear   = year = tmNow.tm_year + 1900;
+		WORD wHour   = hour = tmNow.tm_hour;
+		BYTE ucMin   = min  = tmNow.tm_min;
+		BYTE ucSec   = sec  = tmNow.tm_sec;
+
+		err = PCO_SetDateTime(m_handle, ucDay, ucMonth, wYear, wHour, ucMin, ucSec);
+
+		//DEB_TRACE() << DEB_VAR6(day, mon, year, hour, min, sec);
+	}
 #endif
+
+    PCO_CHECK_ERROR(err, "PCO_SetCameraToCurrentTime"); 
 
     return;
 }
@@ -1112,56 +1128,58 @@ void Camera::_pco_SetCameraToCurrentTime(int &err)
 
 //=================================================================================================
 //=================================================================================================
-void Camera::_pco_SetBinning(int &error){
+//SC2_SDK_FUNC int WINAPI PCO_SetBinning(HANDLE ph, WORD wBinHorz, WORD wBinVert)
+
+void Camera::_pco_SetBinning(Bin binNew, Bin &binActual, int &err)
+{
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
-#ifdef __linux__
-	//SetBinning, SetROI, ARM, GetSizes, AllocateBuffer.
-    //------------------------------------------------- set binning if needed
-    WORD wBinHorz, wBinVert, wBinHorzNow, wBinVertNow;
-    if (m_bin.changed == Changed) {
-		wBinHorz = (WORD)m_bin.x;
-		wBinVert = (WORD)m_bin.y;
+	WORD wBinHorz, wBinVert;
+	Bin binOld;
+	int err0;
 
-        error=camera->PCO_GetBinning(&wBinHorzNow, &wBinVertNow);
-        PCO_CHECK_ERROR(error, "PCO_GetBinning");
-		PCO_THROW_OR_TRACE(error, "PCO_GetBinning") ;
+	_pco_GetBinning(binOld, err);
 
-		if((wBinHorz != wBinHorzNow) || (wBinVert != wBinVertNow)) {
+	if(binOld == binNew)
+	{
+		binActual = binOld;
+		err = 0;
+		return;
+	}
+	wBinHorz = binNew.getX();
+	wBinVert = binNew.getY();
 
-            error=camera->PCO_SetBinning(wBinHorz, wBinVert);
-	        PCO_CHECK_ERROR(error, "PCO_SetBinning");
-			PCO_THROW_OR_TRACE(error, "PCO_SetBinning") ;
-			
-			_armRequired(true);
+#ifndef __linux__
+	err = PCO_SetBinning(m_handle, wBinHorz, wBinVert);
 
-            error=camera->PCO_GetBinning(&wBinHorzNow, &wBinVertNow);
-	        PCO_CHECK_ERROR(error, "PCO_GetBinning");
-			PCO_THROW_OR_TRACE(error, "PCO_GetBinning") ;
-		}
-		m_bin.changed= Valid;
-		DEB_TRACE() << DEB_VAR4(wBinHorz, wBinVert, wBinHorzNow, wBinVertNow);
-    }
+	if(PCO_CHECK_ERROR(err, "PCO_SetBinning"))
+	{
+		DEB_ALWAYS() << "ERROR - PCO_SetBinning";
+	}
+
 #else
-	DEB_ALWAYS() << "ERROR - NOT IMPLEMENTED!" ;
-	error = -1;
+    err=camera->PCO_SetBinning(wBinHorz, wBinVert);
+    PCO_CHECK_ERROR(err, "PCO_SetBinning");
+	PCO_THROW_OR_TRACE(err, "PCO_SetBinning") ;
+	
 #endif
+	_armRequired(true);
 
-	return;
+	_pco_GetBinning(binActual, err0);
 
 }
 
 
+
 //=================================================================================================
 //=================================================================================================
-const char *Camera::_pco_SetCamLinkSetImageParameters(int &error){
+void Camera::_pco_SetCamLinkSetImageParameters(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
-#ifdef __linux__
+#ifndef __linux__
 
-	const char *pcoFn;
 
 	// camLink -> imgPar
 	// GigE    -> imgPar 
@@ -1170,13 +1188,14 @@ const char *Camera::_pco_SetCamLinkSetImageParameters(int &error){
 		case INTERFACE_ETHERNET:
 		    WORD wXres, wYres;
 
-            wXres= m_pcoData->wXResActual;
-            wYres= m_pcoData->wYResActual;
+			WORD _wMaxWidth, _wMaxHeight;
+			_pco_GetSizes(&wXres, &wYres, &_wMaxWidth, &_wMaxHeight, error);
+
 			
 			DEB_ALWAYS() << "ERROR PCO_CamLinkSetImageParameters: " <<  DEB_VAR2(wXres, wYres);
 
-			PCO_FN3(error, pcoFn,PCO_CamLinkSetImageParameters, m_handle, wXres, wYres);
-			if(error) { throw LIMA_HW_EXC(Error, pcoFn); }
+			error = PCO_CamLinkSetImageParameters(m_handle, wXres, wYres);
+			if(error) { throw LIMA_HW_EXC(Error, "PCO_CamLinkSetImageParameters"); }
 
         default: break;
     } // switch
@@ -1185,7 +1204,7 @@ const char *Camera::_pco_SetCamLinkSetImageParameters(int &error){
 	DEB_ALWAYS() << "ERROR - NOT IMPLEMENTED!" ;
 	error = -1;
 #endif
-	return fnId;
+	return;
 }
 
 //=================================================================================================
@@ -1451,37 +1470,40 @@ void Camera::_pco_GetTemperatureInfo(int &error){
 #else
 
 	char msg[MSG_SIZE + 1];
-	char *pcoFn;
 
 
 	// -- Print out current temperatures
-	PCO_FN4(error, pcoFn,PCO_GetTemperature, m_handle, &m_pcoData->temperature.wCcd, &m_pcoData->temperature.wCam, &m_pcoData->temperature.wPower);
+	error = PCO_GetTemperature(m_handle, &m_pcoData->temperature.sCcd, &m_pcoData->temperature.sCam, &m_pcoData->temperature.sPower);
 	if(error) return;
 	//PCO_THROW_OR_TRACE(error, "PCO_GetTemperature") ;
 
-	sprintf_s(msg, MSG_SIZE, "* temperature: CCD[%.1f]  CAM[%d]  PS[%d]\n", m_pcoData->temperature.wCcd/10., m_pcoData->temperature.wCam, m_pcoData->temperature.wPower);
+	sprintf_s(msg, MSG_SIZE, "* temperature: CCD[%.1f]  CAM[%d]  PS[%d]\n", m_pcoData->temperature.sCcd/10., m_pcoData->temperature.sCam, m_pcoData->temperature.sPower);
 	//DEB_TRACE() <<   msg;
 	m_log.append(msg);
 
 
-	m_pcoData->temperature.wMinCoolSet = m_pcoData->stcPcoDescription.sMinCoolSetDESC;
-	m_pcoData->temperature.wMaxCoolSet = m_pcoData->stcPcoDescription.sMaxCoolSetDESC;
+	m_pcoData->temperature.sMinCoolSet = m_pcoData->stcPcoDescription.sMinCoolSetDESC;
+	m_pcoData->temperature.sMaxCoolSet = m_pcoData->stcPcoDescription.sMaxCoolSetDESC;
+	m_pcoData->temperature.sDefaultCoolSet = m_pcoData->stcPcoDescription.sDefaultCoolSetDESC;
 
 	// SC2_SDK_FUNC int WINAPI PCO_GetCoolingSetpointTemperature(HANDLE ph, SHORT* sCoolSet)
 
-	if ((m_pcoData->temperature.wMinCoolSet == 0) && (m_pcoData->temperature.wMaxCoolSet == 0)) // no cooled camera
+	if ((m_pcoData->temperature.sMinCoolSet == 0) && (m_pcoData->temperature.sMaxCoolSet == 0)) // no cooled camera
 	{
-		m_pcoData->temperature.wSetpoint = 0;
+		m_pcoData->temperature.sSetpoint = 0;
 		sprintf_s(msg, MSG_SIZE, "*     cooling: NO cooled camera");
 		m_log.append(msg);
 		return;
 	}
 
-	PCO_FN2(error, pcoFn,PCO_GetCoolingSetpointTemperature, m_handle, &m_pcoData->temperature.wSetpoint);
+	error = PCO_GetCoolingSetpointTemperature( m_handle, &m_pcoData->temperature.sSetpoint);
 
 
-	sprintf_s(msg, MSG_SIZE, "*     cooling: min[%d]  max[%d]  setpoint[%d]\n",  
-				m_pcoData->temperature.wMinCoolSet, m_pcoData->temperature.wMaxCoolSet, m_pcoData->temperature.wSetpoint);
+	sprintf_s(msg, MSG_SIZE, "*     cooling: min[%d] max[%d] default[%d] setpoint[%d]\n",  
+				m_pcoData->temperature.sMinCoolSet, 
+				m_pcoData->temperature.sMaxCoolSet, 
+				m_pcoData->temperature.sDefaultCoolSet, 
+				m_pcoData->temperature.sSetpoint);
 	m_log.append(msg);
 
 #endif
@@ -1495,37 +1517,42 @@ void Camera::_pco_GetTemperatureInfo(char *ptr, char *ptrMax, int &error)
 	DEF_FNID;
 
 #ifndef __linux__
-	char *pcoFn;
 
 	// -- Print out current temperatures
-	PCO_FN4(error, pcoFn,PCO_GetTemperature, m_handle, &m_pcoData->temperature.wCcd, &m_pcoData->temperature.wCam, &m_pcoData->temperature.wPower);
+	error = PCO_GetTemperature(m_handle, &m_pcoData->temperature.sCcd, &m_pcoData->temperature.sCam, &m_pcoData->temperature.sPower);
 	if(error) {
 		ptr += sprintf_s(ptr, ptrMax - ptr, "[SDK error - getTemperature]"); 
 		return;
 	}
 	ptr += sprintf_s(ptr, ptrMax - ptr, "CCD[%.1f] CAM[%d] PS[%d]", 
-		m_pcoData->temperature.wCcd/10., m_pcoData->temperature.wCam, m_pcoData->temperature.wPower);
+		m_pcoData->temperature.sCcd/10., 
+		m_pcoData->temperature.sCam, 
+		m_pcoData->temperature.sPower);
 
-	m_pcoData->temperature.wMinCoolSet = m_pcoData->stcPcoDescription.sMinCoolSetDESC;
-	m_pcoData->temperature.wMaxCoolSet = m_pcoData->stcPcoDescription.sMaxCoolSetDESC;
+	m_pcoData->temperature.sMinCoolSet = m_pcoData->stcPcoDescription.sMinCoolSetDESC;
+	m_pcoData->temperature.sMaxCoolSet = m_pcoData->stcPcoDescription.sMaxCoolSetDESC;
+	m_pcoData->temperature.sDefaultCoolSet = m_pcoData->stcPcoDescription.sDefaultCoolSetDESC;
 
 	// SC2_SDK_FUNC int WINAPI PCO_GetCoolingSetpointTemperature(HANDLE ph, SHORT* sCoolSet)
 
-	if ((m_pcoData->temperature.wMinCoolSet == 0) && (m_pcoData->temperature.wMaxCoolSet == 0)) // no cooled camera
+	if ((m_pcoData->temperature.sMinCoolSet == 0) && (m_pcoData->temperature.sMaxCoolSet == 0)) // no cooled camera
 	{
-		m_pcoData->temperature.wSetpoint = 0;
+		m_pcoData->temperature.sSetpoint = 0;
 		ptr += sprintf_s(ptr, ptrMax - ptr, " cooling: [NO cooled camera]");
 		return;
 	}
 
-	PCO_FN2(error, pcoFn,PCO_GetCoolingSetpointTemperature, m_handle, &m_pcoData->temperature.wSetpoint);
+	error = PCO_GetCoolingSetpointTemperature(m_handle, &m_pcoData->temperature.sSetpoint);
 	if(error) {
 		ptr += sprintf_s(ptr, ptrMax - ptr, " [SDK error - getSetpoint]"); 
 		return;
 	}
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, " cooling: min[%d] max[%d] setpoint[%d]",  
-				m_pcoData->temperature.wMinCoolSet, m_pcoData->temperature.wMaxCoolSet, m_pcoData->temperature.wSetpoint);
+	ptr += sprintf_s(ptr, ptrMax - ptr, " cooling: min[%d] max[%d] default[%d] setpoint[%d]",  
+				m_pcoData->temperature.sMinCoolSet, 
+				m_pcoData->temperature.sMaxCoolSet, 
+				m_pcoData->temperature.sDefaultCoolSet, 
+				m_pcoData->temperature.sSetpoint);
 
 	return;
 
@@ -1985,7 +2012,7 @@ void Camera::_pco_GetPixelRate(DWORD &pixRateActual, DWORD &pixRateNext, int &er
 //    PCO_SetStorageMode
 //    PCO_SetRecorderSubmode
 //=================================================================================================
-const char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode mode, int &error){
+void Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode mode, int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	const char *msg, *sMode;
@@ -2006,11 +2033,11 @@ const char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode m
 
 #ifndef __linux__
 	PCO_FN2(error, msg,PCO_SetStorageMode, m_handle, m_pcoData->storage_mode);
-	if(error) return msg;
+	if(error) return;
     //PCO_THROW_OR_TRACE(error, msg) ;
 
     PCO_FN2(error, msg,PCO_SetRecorderSubmode, m_handle, m_pcoData->recorder_submode);
-	if(error) return msg;
+	if(error) return;
     //PCO_THROW_OR_TRACE(error, msg) ;
 #else
     error=camera->PCO_SetStorageMode(m_pcoData->storage_mode);
@@ -2021,7 +2048,7 @@ const char * Camera::_pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode m
     msg = "PCO_SetRecorderSubmode" ; PCO_CHECK_ERROR(error, msg);
     //PCO_THROW_OR_TRACE(error, msg) ;
 #endif
-	return fnId;
+	return;
 }
 
 //=================================================================================================
@@ -2114,21 +2141,16 @@ int Camera::_pco_GetImageTiming(double &frameTime, double &expTime, double &sysD
 
 //=================================================================================================
 //=================================================================================================
-const char *Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
+void Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	const char *msg;
 
 	WORD trigmode, acqmode;
 	
-#ifndef __linux__
-	trigmode = m_sync->xlatLimaTrigMode2PcoTrigMode(m_pcoData->bExtTrigEnabled);
-	acqmode = m_sync->xlatLimaTrigMode2PcoAcqMode();
-#else
     lima::TrigMode limaTrigMode;
 	m_sync->getTrigMode(limaTrigMode);
 	m_sync->xlatLimaTrigMode2Pco( limaTrigMode,trigmode,acqmode, m_pcoData->bExtTrigEnabled, error); 
-#endif
 
 
 	//------------------------------------------------- triggering mode 
@@ -2141,7 +2163,7 @@ const char *Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 	if(error) 
 	{
         DEB_ALWAYS() << "ERROR PCO_SetTriggerMode" << DEB_VAR1(trigmode) ;
-	    return msg;
+	    return;
     }
 
 	
@@ -2156,10 +2178,10 @@ const char *Camera::_pco_SetTriggerMode_SetAcquireMode(int &error){
 	if(error) 
 	{
         DEB_ALWAYS() << "ERROR PCO_SetAcquireMode" << DEB_VAR1(acqmode) ;
-	    return msg;
+	    return;
     }
 
-	return fnId;
+	return;
 }
 
 
@@ -2196,46 +2218,110 @@ void Camera::_pco_SetHWIOSignal(int sigNum, int &error){
 }
 //=================================================================================================
 //=================================================================================================
-void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-
-
-#ifndef __linux__
-
-	struct stcPcoData _pcoData;
-	char msg[ERRMSG_SIZE + 1];
-	char *pcoFn;
-	bool doLut = false;
-
-
-	// sizes are only updated AFTER arm, so i will use the last roi settings
-	// to get the size. after arm, the size is updated with this value
-	WORD wXResActual = m_pcoData->wRoiX1Now - m_pcoData->wRoiX0Now +1;
-
-	//================================================================================================
-	// PCO_SetTransferParameter
-	//================================================================================================
 	// PCO_CL_DATAFORMAT_5x12   0x07     //extract data to 12bit
 	// PCO_CL_DATAFORMAT_5x12L  0x09     //extract data to 16Bit
 	// PCO_CL_DATAFORMAT_5x12R  0x0A     //without extract
 
-	if (_isInterfaceType(ifCameralinkAll)) 
-	{
-		char *info = "[none]";
+    // transfer dataformat must be changed depending on pixelrate and horizontal resolution
 
-		PCO_FN3(error, pcoFn,PCO_GetTransferParameter, m_handle, &m_pcoData->clTransferParam, sizeof(PCO_SC2_CL_TRANSFER_PARAM));
-		PCO_THROW_OR_TRACE(error, pcoFn) ;
+    // SC2_SDKAddendum.h:#define PCO_CL_DATAFORMAT_5x12   0x07     //extract data to 12bit
+    // SC2_SDKAddendum.h:#define PCO_CL_DATAFORMAT_5x12L  0x09     //extract data to 16Bit
+    // SC2_SDKAddendum.h:#define PCO_CL_DATAFORMAT_5x12R  0x0A     //without extract
+    
+    // DWORD   baudrate;         // serial baudrate: 9600, 19200, 38400, 56400, 115200
+    // DWORD   ClockFrequency;   // Pixelclock in Hz: 40000000,66000000,80000000
+    // DWORD   CCline;           // Usage of CameraLink CC1-CC4 lines, use value returned by Get 
+    // DWORD   DataFormat;       // see defines below, use value returned by Get
+    // DWORD   Transmit;         // single or continuous transmitting images, 0-single, 1-continuous
+
+void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	if (!_isInterfaceType(ifCameralinkAll)) 
+	{
+		DEB_TRACE() << "PCO_SetTransferParameter (clTransferParam) NOT DONE!";
+        return;
+    }
+
+	const char *info = "[none]";
+	bool doLut = false;
+
+	WORD width, height, wXResMax, wYResMax;
+    _pco_GetSizes( &width, &height, &wXResMax, &wYResMax, error);
+    WORD wXResActual = width;
+
+
+
+ 
+#ifndef __linux__    // linux prep
+
+	struct stcPcoData _pcoData;
+	char msg[ERRMSG_SIZE + 1];
+	char *pcoFn;
+
+
+	// sizes are only updated AFTER arm, so i will use the last roi settings
+	// to get the size. after arm, the size is updated with this value
+
+	//================================================================================================
+	// PCO_SetTransferParameter
+	//================================================================================================
+
+        _pco_GetTransferParameter(error);
+		PCO_THROW_OR_TRACE(error, "_pco_GetTransferParameter(") ;
 	
 		memcpy(&_pcoData.clTransferParam, &m_pcoData->clTransferParam,sizeof(PCO_SC2_CL_TRANSFER_PARAM));
 	
 		m_pcoData->clTransferParam.baudrate = PCO_CL_BAUDRATE_115K2;
 
+
+#else   // linux prep
+
+#define USERSET
+	struct stcPcoData _pcoData;
+	char *pbla = mybla;
+	const char *msg;
+	DWORD pixelrate, pixRateNext;
+	WORD actlut;
+	//WORD lutparam;
+	int pcoBuffNr = 10;
+
+
+#ifdef USERSET       // USERSET
+    WORD lut;
+
+    _pco_GetPixelRate(pixelrate, pixRateNext, error);
+    error=camera->PCO_GetPixelRate(&pixelrate);
+    msg = "PCO_GetPixelRate" ; PCO_CHECK_ERROR(error, msg);
+
+    error=camera->PCO_GetTransferParameter(&clpar,sizeof(clpar));
+    if(error!=PCO_NOERROR)
+    {
+        DEB_ALWAYS() << "ERROR - PCO_GetTransferParameter " << DEB_VAR1(error);
+    }
+
+
+    m_pcoData->clTransferParam.baudrate = clpar.baudrate;
+    m_pcoData->clTransferParam.ClockFrequency = clpar.ClockFrequency;
+    m_pcoData->clTransferParam.CCline = clpar.CCline;
+	m_pcoData->clTransferParam.DataFormat = clpar.DataFormat;
+	m_pcoData->clTransferParam.Transmit = clpar.Transmit;
+
+#endif    // USERSET
+
+#endif    // linux prep
+
+
+        //---------------------------------------------------------------------------
+        // set of parameters
+        //---------------------------------------------------------------------------
 		if(_isCameraType(Dimax)){
 				//m_pcoData->clTransferParam.Transmit = 1;
 				//_pcoData.clTransferParam.Transmit = m_pcoData->clTransferParam.Transmit;
 				m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_2x12; //=2
-				info = "DIMAX / 2x12 ";
+				info = "DIMAX / 2x12 / LUT notValid";
+    			doLut = false;
 		} else 
 		if(_isCameraType(EdgeGL)) {
 			m_pcoData->clTransferParam.Transmit = 1;
@@ -2244,7 +2330,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 				//SCCMOS_FORMAT_TOP_BOTTOM;
 			m_pcoData->wLUT_Identifier = 0; //Switch LUT->off
 			doLut = true;
-			info = "EDGE GL / 5x12 TOP_CENTER_BOTTOM_CENTER / LUT off";
+			info = "EDGE GL / 5x12 topCenter bottomCenter / LUT off";
 		} else 
 		if(_isCameraType(EdgeHS)) {
 			m_pcoData->clTransferParam.Transmit = 1;
@@ -2252,7 +2338,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 						SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
 			m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
 			doLut = true;
-			info = "EDGE HS / 5x16 TOP_CENTER_BOTTOM_CENTER / LUT off";
+			info = "EDGE HS / 5x16 topCenter bottomCenter / LUT off";
 		} else 
 		if(_isCameraType(EdgeRolling)){
 			m_pcoData->clTransferParam.Transmit = 1;
@@ -2261,27 +2347,27 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 				m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x16 | 
 					SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
 				m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
-				info = "EDGE Rolling / 5x16 TOP_CENTER_BOTTOM_CENTER / LUT off";
+				info = "EDGE Rolling / 5x16 topCenter bottomCenter / LUT off";
 			} else 
 			if( ((m_pcoData->dwPixelRate >= PCO_EDGE_PIXEL_RATE_HIGH) & 
 					(wXResActual > PCO_EDGE_WIDTH_HIGH))) {
 				m_pcoData->clTransferParam.DataFormat=PCO_CL_DATAFORMAT_5x12L | 
 					SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
 				m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_SQRT; //Switch LUT->sqrt
-				info = "EDGE Rolling / 5x12L TOP_CENTER_BOTTOM_CENTER / LUT SQRT";
+				info = "EDGE Rolling / 5x12L topCenter bottomCenter / LUT SQRT";
 			} else {
 				m_pcoData->clTransferParam.DataFormat = PCO_CL_DATAFORMAT_5x16 | 
 					SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER;
 				m_pcoData->wLUT_Identifier = PCO_EDGE_LUT_NONE; // Switch LUT->off
-				info = "EDGE Rolling / 5x16 TOP_CENTER_BOTTOM_CENTER / LUT off";
+				info = "EDGE Rolling / 5x16 topCenter bottomCenter / LUT off";
 			}
 			doLut = true;
 		} 
 
-		if((_pcoData.clTransferParam.baudrate != m_pcoData->clTransferParam.baudrate) ||
-			(_pcoData.clTransferParam.DataFormat != m_pcoData->clTransferParam.DataFormat) ||
-			(_pcoData.clTransferParam.Transmit != m_pcoData->clTransferParam.Transmit)	)
-		{
+        //---------------------------------------------------------------------------
+
+#ifndef __linux__  // linux pcoSet
+
 			DEB_TRACE() << "PCO_SetTransferParameter (clTransferParam) " << info ;
 			PCO_FN3(error, pcoFn,PCO_SetTransferParameter,m_handle, &m_pcoData->clTransferParam, sizeof(m_pcoData->clTransferParam));
 			if(error){
@@ -2292,16 +2378,6 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 				throw LIMA_HW_EXC(Error, msg); 
 			} 
 			_armRequired(true);
-		} 
-		else 
-		{
-			DEB_TRACE() << "PCO_SetTransferParameter (clTransferParam) NOT DONE@" << info ;
-			
-		}
-
-	} // if cameralink
-
-
 
 	//================================================================================================
 	// PCO_SetActiveLookupTable
@@ -2323,51 +2399,16 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
 		}
 	}
 
-#else
+#else  // linux pcoSet
 
-#define USERSET
+#ifdef USERSET   // USERSET  
 
-	struct stcPcoData _pcoData;
-	char *pbla = mybla;
-	const char *msg;
-	DWORD pixelrate, pixRateNext;
-	WORD width, height, wXResMax, wYResMax;
-	WORD actlut;
-	//WORD lutparam;
-	int pcoBuffNr = 10;
+		//m_pcoData->clTransferParam.baudrate = PCO_CL_BAUDRATE_115K2;
 
-    _pco_GetSizes( &width, &height, &wXResMax, &wYResMax, error);
+        clpar.DataFormat = m_pcoData->clTransferParam.DataFormat;
+        m_pcoData->sClTransferParameterSettings = info;
+        lut = m_pcoData->wLUT_Identifier;
 
-#ifdef USERSET
-    //transfer dataformat must be changed depending on pixelrate and horizontal resolution
-    // SC2_SDKAddendum.h:#define PCO_CL_DATAFORMAT_5x12   0x07     //extract data to 12bit
-    // SC2_SDKAddendum.h:#define PCO_CL_DATAFORMAT_5x12L  0x09     //extract data to 16Bit
-    // SC2_SDKAddendum.h:#define PCO_CL_DATAFORMAT_5x12R  0x0A     //without extract
-    
-    WORD lut;
-
-    _pco_GetPixelRate(pixelrate, pixRateNext, error);
-    error=camera->PCO_GetPixelRate(&pixelrate);
-    msg = "PCO_GetPixelRate" ; PCO_CHECK_ERROR(error, msg);
-
-    if((width>1920)&&(pixelrate>=286000000)&&(camtype==CAMERATYPE_PCO_EDGE))
-    {
-        clpar.DataFormat=SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER|PCO_CL_DATAFORMAT_5x12L;
-        lut=0x1612;
-		pbla += sprintf_s(pbla,myblamax - pbla, 
-		    "%s> width[%d] > 1920  && pixelrate[%d] >= 286000000 -> Dataformat[0x%x] lut[0x%x]",
-					fnId, width, pixelrate,clpar.DataFormat, lut);
-		m_pcoData->sClTransferParameterSettings = "Edge 5x12 topCenter botCenter lut 0x1612";
-    }
-    else
-    {
-        clpar.DataFormat=SCCMOS_FORMAT_TOP_CENTER_BOTTOM_CENTER|PCO_CL_DATAFORMAT_5x16;
-        lut=0;
-		pbla += sprintf_s(pbla,myblamax - pbla, 
-		    "%s> width[%d] <= 1920  || pixelrate[%d] < 286000000 -> Dataformat[0x%x] lut[0x%x]",
-					fnId, width, pixelrate,clpar.DataFormat, lut);
-		m_pcoData->sClTransferParameterSettings = "PCO 5x16 topCenter botCenter lut 0";
-    }
 
     pbla += sprintf_s(pbla,myblamax - pbla, 
 		    " / width[%d][%d] height[%d][%d]", width, wXResMax, height, wYResMax);
@@ -2376,22 +2417,33 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
     //mylog->writelog(INFO_M, "%s", bla);
     mylog->writelog(INFO_M, mybla);
     
-    actlut=lut; 
-    error=camera->PCO_SetLut(actlut,0);
-    msg = "PCO_SetLut" ; PCO_CHECK_ERROR(error, msg);
-
+    if(doLut)
+    {
+        actlut=lut; 
+        error=camera->PCO_SetLut(actlut,0);
+        msg = "PCO_SetLut" ; PCO_CHECK_ERROR(error, msg);
+    }
 
     error=camera->PCO_SetTransferParameter(&clpar,sizeof(clpar));
     if(error!=PCO_NOERROR)
-        printf("PCO_TransferParameter() Error 0x%x\n",error);
+    {
+        DEB_ALWAYS() << "ERROR - PCO_SetTransferParameter " << DEB_VAR1(error);
+    }
 
     error=camera->PCO_ArmCamera();
     msg = "PCO_ArmCamera()" ; PCO_CHECK_ERROR(error, msg);
+    if(error!=PCO_NOERROR)
+    {
+        DEB_ALWAYS() << "ERROR - PCO_ArmCamera() " << DEB_VAR1(error);
+    }
 
 
     error=grabber->Set_DataFormat(clpar.DataFormat);
     msg = "Set_DataFormat" ; PCO_CHECK_ERROR(error, msg);
-
+    if(error!=PCO_NOERROR)
+    {
+        DEB_ALWAYS() << "ERROR - Set_DataFormat " << DEB_VAR1(error);
+    }
 
     error=grabber->Set_Grabber_Size(width,height);
     msg = "Set_Grabber_Size" ; PCO_CHECK_ERROR(error, msg);
@@ -2399,16 +2451,16 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable_win(int &error){
     error=grabber->PostArm(1);
     msg = "PostArm(1)" ; PCO_CHECK_ERROR(error, msg);
 
-#else
+#else // USERSET
     error=grabber->PostArm();
     msg = "PostArm(0)" ; PCO_CHECK_ERROR(error, msg);
-#endif
+#endif // USERSET
 
     error=grabber->Allocate_Framebuffer(pcoBuffNr);
     msg = "Allocate_Framebuffer" ; PCO_CHECK_ERROR(error, msg);
     error = 0;
     
-#endif
+#endif   // linux pcoSet
 
 	return ;
 
@@ -2535,3 +2587,1201 @@ void Camera::_pco_initHWIOSignal(int mode, WORD wVal, int &error){
 
     }
 }
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_GetROI(Roi &roi, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	WORD wX0, wY0, wX1, wY1;
+
+#ifndef __linux__
+	err = PCO_GetROI(m_handle, &wX0, &wY0, &wX1, &wY1);
+#else
+    //DWORD PCO_GetROI ( WORD *RoiX0, WORD * RoiY0, WORD *RoiX1, WORD *RoiY1 )
+	err = camera->PCO_GetROI(&wX0, &wY0, &wX1, &wY1);
+#endif
+    PCO_CHECK_ERROR(err, "PCO_GetROI");
+	if(err)
+	{
+		DEB_ALWAYS() << "ERROR - PCO_GetROI";
+        wX0=wY0=wX1=wY1 = 0;
+	}
+
+	_xlatRoi_pco2lima(roi, wX0, wX1, wY0, wY1 );
+}
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_SetROI(Roi roi, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	unsigned int  uiX0, uiY0, uiX1, uiY1;
+
+	_xlatRoi_lima2pco(roi, uiX0, uiX1, uiY0, uiY1 );
+
+#ifndef __linux__
+	err = PCO_SetROI(m_handle, uiX0, uiY0, uiX1, uiY1);
+
+#else
+    err=camera->PCO_SetROI(uiX0, uiY0, uiX1, uiY1);
+
+#endif
+    PCO_CHECK_ERROR(err, "PCO_SetROI");
+	if(err)
+	{
+		DEB_ALWAYS() << "ERROR - PCO_SetROI";
+	}
+
+
+    _armRequired(true);
+
+
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetRoiInfo(char *buf_in, int size_in, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	char *ptr = buf_in;
+	char *ptrMax = ptr + size_in;
+
+	Roi roi;
+	
+	unsigned int x0, x1, y0, y1;
+	_pco_GetROI(roi, err);
+
+	_xlatRoi_lima2pco(roi, x0, x1, y0, y1);
+
+
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, 
+			"pco[x<%d,%d> y<%d,%d>] lima[<%d,%d>-<%dx%d>]",
+			x0, x1, 
+			y0, y1,
+			roi.getTopLeft().x,roi.getTopLeft().y,
+			roi.getSize().getWidth(), roi.getSize().getHeight());
+
+}
+
+//=================================================================================================
+//=================================================================================================
+int Camera::_binning_fit(int binRequested, int binMax, int binMode)
+{
+	int binLast, bin;
+
+	if(binRequested < 1) return 1;
+	if(binRequested >= binMax) return binMax;
+
+	binLast = bin = 1;
+
+	while(true)
+	{
+		if(bin == binRequested) return bin;
+		if(bin > binRequested) return binLast;
+		binLast = bin;
+		bin = binMode ? bin+1 : bin*2;
+		if(bin > binMax) return binLast;
+	}
+}
+
+
+
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetBinningInfo(char *buf_in, int size_in, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	char *ptr = buf_in;
+	char *ptrMax = ptr + size_in;
+
+	Bin aBin;
+	
+	int binX, binY, binMaxX, binModeX, binMaxY, binModeY;
+	_pco_GetBinning(aBin, err);
+
+	binX = aBin.getX();
+	binY = aBin.getY();
+
+#ifndef __linux__
+	binMaxX = m_pcoData->stcPcoDescription.wMaxBinHorzDESC;
+	binModeX = m_pcoData->stcPcoDescription.wBinHorzSteppingDESC;
+
+	binMaxY = m_pcoData->stcPcoDescription.wMaxBinVertDESC;
+	binModeY = m_pcoData->stcPcoDescription.wBinVertSteppingDESC;
+#else
+    // TOCHECK - the same?
+    binMaxX = m_pcoData->stcPcoDescription.wMaxBinHorzDESC;
+	binModeX = m_pcoData->stcPcoDescription.wBinHorzSteppingDESC;
+
+	binMaxY = m_pcoData->stcPcoDescription.wMaxBinVertDESC;
+	binModeY = m_pcoData->stcPcoDescription.wBinVertSteppingDESC;
+#endif
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, 
+			"bin[%d,%d] binMax[%d,%d] binStepMode[%d,%d][%s,%s]",
+			binX, binY, binMaxX, binMaxY,
+			binModeX, binModeY, 
+			binModeX ? "lin" : "bin",
+			binModeY ? "lin" : "bin");
+
+}
+
+//=================================================================================================
+//=================================================================================================
+//SC2_SDK_FUNC int WINAPI PCO_GetBinning(HANDLE ph, WORD* wBinHorz, WORD* wBinVert)
+
+void Camera::_pco_GetBinning(Bin &bin, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	WORD wBinHorz, wBinVert;
+
+#ifndef __linux__
+	err = PCO_GetBinning(m_handle, &wBinHorz, &wBinVert);
+
+	if(PCO_CHECK_ERROR(err, "PCO_GetBinning"))
+	{
+		wBinHorz, wBinVert = 1;
+		DEB_ALWAYS() << "ERROR - PCO_GetBinning";
+	}
+
+#else
+	err=camera->PCO_GetBinning(&wBinHorz, &wBinVert);
+	PCO_CHECK_ERROR(err, "PCO_GetBinning");
+	if(err)
+	{
+		wBinHorz = wBinVert = 1;
+		DEB_ALWAYS() << "ERROR - PCO_GetBinning";
+	}
+
+#endif
+
+	bin = Bin(wBinHorz, wBinVert);
+
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetFirmwareInfo(char *buf_in, int size_in, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	char *ptr = buf_in;
+	char *ptrMax = ptr + size_in;
+
+#ifndef __linux__
+	ptr += sprintf_s(ptr, ptrMax - ptr, "* firmware \n");
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... firmware dwHWVersion[%x]  dwFWVersion[%x] <- not used\n", 
+			m_pcoData->stcPcoCamType.dwHWVersion, 
+			m_pcoData->stcPcoCamType.dwFWVersion);
+		
+
+		int nrDev, iDev;
+
+		nrDev=m_pcoData->stcPcoCamType.strHardwareVersion.BoardNum;
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* Hardware_DESC device[%d]  szName          wBatchNo/wRevision   wVariant\n", nrDev);
+		for(iDev = 0; iDev< nrDev; iDev++) {
+			PCO_SC2_Hardware_DESC *ptrhw;
+			ptrhw = &m_pcoData->stcPcoCamType.strHardwareVersion.Board[iDev];
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* %20d      %-18s   %4d.%-4d    %4d\n", 
+				iDev, 
+				ptrhw->szName,
+				ptrhw->wBatchNo,
+				ptrhw->wRevision,
+				ptrhw->wVariant
+				);
+		}
+
+		nrDev=m_pcoData->stcPcoCamType.strFirmwareVersion.DeviceNum;
+		ptr += sprintf_s(ptr, ptrMax - ptr, 
+			"* Firmware_DESC device[%d]  szName          bMajorRev/Minor   wVariant\n", nrDev);
+
+		for(iDev = 0; iDev< nrDev; iDev++) {
+			PCO_SC2_Firmware_DESC *ptrfw;
+			ptrfw = &m_pcoData->stcPcoCamType.strFirmwareVersion.Device[iDev];
+			ptr += sprintf_s(ptr, ptrMax - ptr, "* %20d      %-18s   %4d.%-4d    %4d\n", 
+				iDev,
+				ptrfw->szName,
+				ptrfw->bMajorRev,
+				ptrfw->bMinorRev,
+				ptrfw->wVariant
+				);
+		}
+
+		PCO_FW_Vers strFirmwareVersion;
+		WORD wblock = 0;
+		int iCnt, err;
+//		err =  PCO_GetFirmwareInfo(m_handle, wblock++, &strFirmwareVersion);
+		err =  PCO_GetFirmwareInfo(m_handle, wblock++, &strFirmwareVersion);
+		nrDev = (err == PCO_NOERROR) ? strFirmwareVersion.DeviceNum : 0;
+
+		if(nrDev > 0){
+			ptr += sprintf_s(ptr, ptrMax - ptr, 
+				"* Firmware_DESC device[%d]  szName          bMajorRev/Minor   wVariant (PCO_GetFirmwareInfo)\n", 
+				nrDev);
+
+			for(iDev = 0, iCnt = 0; iDev< nrDev; iDev++, iCnt++) {
+				PCO_SC2_Firmware_DESC *ptrfw;
+				if(iCnt >= 10) {
+					iCnt = 0;
+            		err =  PCO_GetFirmwareInfo(m_handle, wblock++, &strFirmwareVersion);
+					if (err != PCO_NOERROR) break;
+				} // iCnt
+				
+				ptrfw = &strFirmwareVersion.Device[iCnt];
+				ptr += sprintf_s(ptr, ptrMax - ptr, "* %20d      %-18s   %4d.%-4d    %4d\n", 
+					iDev, ptrfw->szName, ptrfw->bMajorRev, ptrfw->bMinorRev, ptrfw->wVariant);
+			} // for
+		} // if nrDev
+#else
+    int lg = ptrMax - ptr;
+    
+    err = camera->PCO_GetHardwareVersion (ptr, &lg);
+    PCO_CHECK_ERROR(err, "PCO_GetROI");
+    if(err) return;
+    
+    lg = strlen(buf_in) ;
+    ptr = buf_in + lg;
+    lg = ptrMax - ptr;
+
+    if(lg) 
+    {
+        err = camera->PCO_GetFirmwareVersion (ptr, &lg);
+        PCO_CHECK_ERROR(err, "PCO_GetROI");
+        if(err) return;
+    }
+
+    return;
+#endif
+
+
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsigned int &xMax, unsigned int &yMax, unsigned int &xMinSize, unsigned int &yMinSize ){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	unsigned int xMinSize0;
+
+	
+	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
+	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
+
+	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+
+#ifndef __linux__
+	xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wMinSizeHorzDESC;
+	yMinSize = m_pcoData->stcPcoDescription.wMinSizeVertDESC;
+#else
+	xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
+	yMinSize = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
+#endif
+	{ // patch meanwhile firmware 1.19 is fixed
+		if(m_pcoData->params_xMinSize) {
+			xMinSize += xSteps;
+			DEB_TRACE() << "PATCH APPLIED: " << DEB_VAR2(xMinSize0, xMinSize);
+		
+		}
+	}
+
+}
+
+void Camera::getXYsteps(unsigned int &xSteps, unsigned int &ySteps){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	
+	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
+	ySteps = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
+}
+
+void Camera::getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+}
+	
+#if 0
+void Camera::getMaxWidthHeight(DWORD &xMax, DWORD &yMax){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	xMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
+	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+}
+#endif
+
+
+
+void Camera::getBytesPerPixel(unsigned int& pixbytes){
+	pixbytes = (m_pcoData->stcPcoDescription.wDynResDESC <= 8)?1:2;
+}
+
+void Camera::getBitsPerPixel(WORD& pixbits){
+	pixbits = m_pcoData->stcPcoDescription.wDynResDESC;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error)
+{
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+    error = 0;
+         
+#ifdef __linux__
+	const char *msg;
+   	char *bla = mybla;
+    DWORD dwXResActual, dwYResActual;
+
+	error=camera->PCO_GetActualSize(&dwXResActual, &dwYResActual);
+    msg = "PCO_GetActualSize" ; PCO_CHECK_ERROR(error, msg);
+
+    if(error) return;
+	
+	*wXResActual = (WORD)dwXResActual;
+    *wYResActual = (WORD)dwYResActual;
+    *wXResMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
+    *wYResMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
+
+	bla += sprintf_s(bla,myblamax - bla,
+	    "%s> resAct[%d][%d] resStdMax[%d][%d] resExtMax[%d][%d]",
+	    fnId,
+	    *wXResActual, *wYResActual, *wXResMax, *wYResMax,
+	    m_pcoData->stcPcoDescription.wMaxHorzResExtDESC,
+	    m_pcoData->stcPcoDescription.wMaxVertResExtDESC);
+		mylog->writelog(INFO_M, mybla);
+
+#else
+    //PCOFN5(error, msg,PCO_GetSizes , m_handle, &dwXResActual, &dwYResActual, &dwXResMax, &dwYResMax) ;
+    error = PCO_GetSizes(m_handle, wXResActual, wYResActual, wXResMax, wYResMax) ;
+    PCO_CHECK_ERROR(error, "PCO_GetSizes");
+	if(error)
+	{
+		DEB_ALWAYS() << "ERROR - PCO_GetSizes";
+        *wXResActual=*wYResActual = 0;
+	}
+#endif
+
+    
+	return;
+
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_PCO_SetRecordStopEvent(WORD wRecordStopEventMode, DWORD dwRecordStopDelayImages, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	err = camera->PCO_SetRecordStopEvent(wRecordStopEventMode, dwRecordStopDelayImages);
+#else
+	err = PCO_SetRecordStopEvent(m_handle, wRecordStopEventMode, dwRecordStopDelayImages);
+#endif
+
+	PCO_CHECK_ERROR(err, "PCO_SetRecordStopEvent");
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, "PCO_SetRecordStopEvent") ;
+	}
+	return;
+}
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_SetDelayExposureTime(int &error, int ph){
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	bool doIt;
+	//const char *msg;
+
+    DWORD dwExposure, dwDelay;
+	WORD wExposure_base, wDelay_base;
+    double _exposure, _delay;
+    m_sync->getExpTime(_exposure);
+    m_sync->getLatTime(_delay);
+	double _delay0 = _delay;
+
+	doIt = TRUE;
+	
+	ph = 0;
+	
+	if(ph != 0){ 
+		doIt = FALSE;
+
+		WORD _wArmWidth, _wArmHeight, _wMaxWidth, _wMaxHeight;
+		_pco_GetSizes(&_wArmWidth, &_wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
+
+		if((_isCameraType(Edge)) && (m_pcoData->dwPixelRate >= PCO_EDGE_PIXEL_RATE_HIGH) ) {
+			double pixels = ((double) _wArmWidth)* ((double) _wArmHeight);
+			double bytes = (m_pcoData->wLUT_Identifier == PCO_EDGE_LUT_SQRT) ? 1.5 : 2.0;
+			double period = bytes * pixels / (m_pcoData->fTransferRateMHzMax * 1000000.);
+
+			printf("--- %s>period[%g] -> cocRunTime[%g]\n", fnId, period , m_pcoData->cocRunTime);
+			if(period > m_pcoData->cocRunTime) {
+				_delay += period - m_pcoData->cocRunTime;
+				doIt = TRUE;
+				printf("--- %s> delay forced [%g] -> [%g]\n", fnId, _delay0, _delay);
+			}
+		}
+	}
+
+	if(!doIt) return;
+	
+	
+	
+    error = 0;	
+
+	_pco_time2dwbase(_exposure, dwExposure, wExposure_base);
+	_pco_time2dwbase(_delay,  dwDelay, wDelay_base);
+	
+	
+#ifndef __linux__
+	//PCO_FN5(error, msg,PCO_SetDelayExposureTime, m_handle, dwDelay, dwExposure, wDelay_base, wExposure_base);
+	error = PCO_SetDelayExposureTime(m_handle, dwDelay, dwExposure, wDelay_base, wExposure_base);
+    PCO_CHECK_ERROR(error, "PCO_SetDelayExposureTime");
+#else
+	int err;
+
+    err=camera->PCO_SetTimebase(wDelay_base,wExposure_base);
+    PCO_CHECK_ERROR(err, "PCO_SetTimebase");
+    error |= err;
+    
+    err=camera->PCO_SetDelayExposure(dwDelay,dwExposure);
+    PCO_CHECK_ERROR(err, "PCO_SetDelayExposure");
+    error |= err;
+#endif
+
+	m_pcoData->traceAcq.dLimaExposure = _exposure;
+	m_pcoData->traceAcq.dLimaDelay = _delay;
+
+	m_pcoData->traceAcq.iPcoExposure = dwExposure;
+	m_pcoData->traceAcq.iPcoDelay = dwDelay;
+	m_pcoData->traceAcq.iPcoExposureBase = wExposure_base;
+	m_pcoData->traceAcq.iPcoDelayBase = wDelay_base;
+
+
+	if(error || _getDebug(DBG_EXP)) {
+		DEB_ALWAYS() << DEB_VAR3(_exposure, dwExposure, wExposure_base);
+		DEB_ALWAYS() << DEB_VAR3(_delay,  dwDelay, wDelay_base);
+	}
+
+	return;
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_FreeBuffer(int bufIdx, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+	err = PCO_FreeBuffer(m_handle, bufIdx);
+
+	err = PCO_CHECK_ERROR(err, "PCO_FreeBuffer");
+	if(err)
+	{
+		DEB_ALWAYS() << "SDK ERROR - PCO_FreeBuffer: " << DEB_VAR3(err, m_handle, bufIdx);
+		//PCO_THROW_OR_TRACE(err, "PCO_FreeBuffer") ;
+	}
+	return;
+#endif
+
+}
+
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_AllocateBuffer(SHORT* sBufNr, DWORD dwSize,
+                WORD** wBuf, void** hEvent, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+	err = PCO_AllocateBuffer(m_handle, sBufNr, dwSize, wBuf,  hEvent);
+
+	PCO_CHECK_ERROR(err, "PCO_AllocateBuffer");
+	if(err)
+	{
+		DEB_ALWAYS() << "SDK ERROR - pCO_AllocateBuffer: " << DEB_VAR4(DEB_HEX(err), m_handle, sBufNr, dwSize);
+		PCO_THROW_OR_TRACE(err, "PCO_AllocateBuffer") ;
+	}
+	return;
+#endif
+
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_GetImageEx(WORD wSegment, DWORD dw1stImage,
+            DWORD dwLastImage, SHORT sBufNr, WORD wXRes, WORD wYRes, 
+            WORD wBitPerPixel, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+//SC2_SDK_FUNC int WINAPI PCO_GetImageEx(HANDLE ph, WORD wSegment, DWORD dw1stImage, DWORD dwLastImage, SHORT sBufNr,
+//                                        WORD wXRes, WORD wYRes, WORD wBitPerPixel);
+	err = PCO_GetImageEx(m_handle, wSegment, \
+			dw1stImage, dwLastImage, sBufNr, wXRes,wYRes, wBitPerPixel);
+
+	PCO_CHECK_ERROR(err, "PCO_GetImageEx");
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, "PCO_GetImageEx") ;
+	}
+	return;
+#endif
+
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_GetBufferStatus(SHORT sBufNr, DWORD* dwStatusDll,
+                    DWORD* dwStatusDrv, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+	err = PCO_GetBufferStatus(m_handle, sBufNr, dwStatusDll, dwStatusDrv);
+
+	PCO_CHECK_ERROR(err, "PCO_GetBufferStatus");
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, "PCO_GetBufferStatus") ;
+	}
+	return;
+#endif
+
+}
+
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_AddBufferExtern(HANDLE hEvent, WORD wActSeg,
+        DWORD dw1stImage, DWORD dwLastImage, DWORD dwSynch, void* pBuf, DWORD dwLen, 
+        DWORD* dwStatus, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+	err = PCO_AddBufferExtern(m_handle, hEvent, wActSeg,
+            dw1stImage, dwLastImage, dwSynch, pBuf, dwLen, dwStatus);
+
+	PCO_CHECK_ERROR(err, "PCO_AddBufferExtern");
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, "PCO_AddBufferExtern") ;
+	}
+	return;
+#endif
+
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_AddBufferEx(DWORD dw1stImage, DWORD dwLastImage,
+        SHORT sBufNr, WORD wXRes, WORD wYRes, WORD wBitPerPixel, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+	err = PCO_AddBufferEx(m_handle, dw1stImage, dwLastImage,
+            sBufNr, wXRes, wYRes, wBitPerPixel);
+
+	PCO_CHECK_ERROR(err, "PCO_AddBufferEx");
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, "PCO_AddBufferEx") ;
+	}
+	return;
+#endif
+
+}
+			
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_RebootCamera(int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+    //PCO_FN1(error, msg,PCO_RebootCamera, m_handle);
+
+
+	err = PCO_RebootCamera(m_handle);
+
+	PCO_CHECK_ERROR(err, "PCO_RebootCamera");
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, "PCO_RebootCamera") ;
+	}
+	return;
+#endif
+
+}
+			
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_OpenCamera(int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+//==========================================================================================
+// SC2_SDK_FUNC int WINAPI PCO_OpenCamera(HANDLE* ph, WORD wCamNum)
+//   b.) Input parameter:
+//       HANDLE* ph: HANDLE pointer to receive the opened camera device. This parameter has
+//                   to be stored for later use with all other function calls.
+//       WORD wCamNum: Don’t care.
+//   The input data should be filled with the following parameter:
+//       HANDLE* ph:
+//                  - 0 = open new camera.
+//                  - xyz = Handle to a previously opened camera.
+//       WORD wCamNum:
+//                  - don’t care, set to zero.
+//==========================================================================================
+
+	err = PCO_OpenCamera(&m_handle, 0);
+
+	PCO_CHECK_ERROR(err, "PCO_OpenCamera");
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, "PCO_OpenCamera") ;
+	}
+	return;
+#endif
+
+}
+			
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_GetCameraRamSize(DWORD &dwRamSize, WORD&wPageSizeint, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+    //PCO_GetCameraRamSize, m_handle, &ramSize, &pageSize);
+
+
+	err = PCO_GetCameraRamSize( m_handle, &dwRamSize, &wPageSizeint);
+
+	PCO_CHECK_ERROR(err, "PCO_GetCameraRamSize");
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, "PCO_GetCameraRamSize") ;
+	}
+	return;
+#endif
+
+}
+			
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_ResetLib(int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+
+
+	err = PCO_ResetLib();
+
+	PCO_CHECK_ERROR(err, fnId);
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, fnId) ;
+	}
+	return;
+#endif
+
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_GetCameraSetup(WORD& wType, DWORD& dwSetup, WORD& wLen, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+
+/***********************************************************************************
+SC2_SDK_FUNC int WINAPI PCO_GetCameraSetup(HANDLE ph, WORD* wType, DWORD* dwSetup,
+WORD* wLen)
+b.) Input parameter:
+ HANDLE ph: Handle to a previously opened camera device.
+ WORD* wType: Pointer to a WORD to receive the actual setup type. Init to zero.
+ DWORD* dwSetup: Pointer to a DWORD array to get the actual setup.
+ WORD* wLen: Pointer to a WORD to indicate the number of valid DWORDs in dwSetup.
+The input pointers will be filled with the following parameters:
+ wType: Actual setup type.
+ dwSetup: Actual setup.
+ wLen: Length in number of DWORDs.
+***********************************************************************************/
+
+	err = PCO_GetCameraSetup(m_handle, &wType, &dwSetup, &wLen);
+
+	PCO_CHECK_ERROR(err, fnId);
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, fnId) ;
+	}
+	return;
+#endif
+
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_SetCameraSetup(WORD wType, DWORD& dwSetup, WORD wLen, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+
+/***********************************************************************************
+SC2_SDK_FUNC int WINAPI PCO_SetCameraSetup(HANDLE ph, WORD wType, DWORD* dwSetup,
+WORD wLen)
+b.) Input parameter:
+ HANDLE ph: Handle to a previously opened camera device.
+ WORD wType: WORD to set the actual setup type. Do not change this value.
+ DWORD* dwSetup: Pointer to a DWORD array to set the actual setup.
+ WORD wLen: WORD to indicate the number of valid DWORDs in dwSetup.
+The input pointers should be filled with the following parameters:
+ wType: Actual setup type got by a previous call to PCO_GetCameraSetup.
+ dwSetup: dwSetup[0] = 1 (Rolling Shutter), 2 (Global Shutter)
+ wLen: Length in number of DWORDs, usually 1.
+ ***********************************************************************************/
+
+	err = PCO_SetCameraSetup(m_handle, wType, &dwSetup, wLen);
+
+	PCO_CHECK_ERROR(err, fnId);
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, fnId) ;
+	}
+	return;
+#endif
+
+}
+
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_SetTimeouts(void *buf_in, unsigned int size_in, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+
+/***********************************************************************************
+4.7.18 PCO_SetTimeouts
+This call sets the driver time outs to new values. Usually there is no need to change these values.
+In case there are timeout errors while calling e.g. PCO_ArmCamera, the user might increase the
+command timeout.
+a.) Prototype:
+SC2_SDK_FUNC int WINAPI PCO_SetTimeouts(HANDLE ph, void *buf_in, unsigned int size_in)
+b.) Input parameter:
+ HANDLE ph: Handle to a previously opened camera device.
+ void* buf: Pointer to hold the address of the first element of an unsigned int array.
+ unsigned int size_in: Variable which sets the number of valid values accessible by the
+pointer.
+The input data should be filled with the following parameter:
+ buf_in: Array of unsigned int values, whereas:
+- buf_in[0]: Command timeout – A command will be aborted after x ms if there is no
+response from the camera.
+- buf_in[1]: Image timeout – An image request will be aborted after x ms if there is
+no response from the camera. This is valid for the PCO_GetImage command.
+- buf_in[2]: Transfer timeout – The 1394 driver will close the allocated isochronous
+channel after x ms if there is no image transfer from the camera. The camera link
+interface will remove all occupied resources after x ms.
+
+ size_in: Number of valid values, usually three. Set this to two for the camera link interfaces 
+***********************************************************************************/
+
+	err = PCO_SetTimeouts(m_handle, buf_in, size_in);
+
+	PCO_CHECK_ERROR(err, fnId);
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, fnId) ;
+	}
+	return;
+#endif
+
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_GetCameraRamSegmentSize(DWORD* dwRamSegSize, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+
+/***********************************************************************************
+4.4.4 PCO_GetCameraRamSegmentSize
+Get camera RAM (camRAM) segment size.
+a.) Prototype:
+SC2_SDK_FUNC int WINAPI PCO_GetCameraRamSegmentSize(HANDLE ph, DWORD* dwRamSegSize)
+b.) Input parameter:
+ HANDLE ph: Handle to a previously opened camera device.
+ DWORD* dwRamSegSize: Address of a DWORD array to get the segment sizes.
+The input pointer will be filled with the following parameter:
+ Size of segment 1 .. segment 4 as multiples of RAM pages
+Note:
+ the sum of all segment sizes must not be larger than the total size of the RAM (as multiples of
+pages)
+ size = [0] indicates that the segment will not be used
+ using only one segment is possible by assigning the total RAM size to segment 1 and 0x0000
+to all other segments.
+ The segment number is 1 based, while the array dwRamSegSize is zero based, e.g. ram size
+of segment 1 is stored in dwRamSegSize[0]!
+c.) Return value:
+ int: Error message, 0 in case of success else less than 0: see Error / Warning Codes
+ ***********************************************************************************/
+
+	err = PCO_GetCameraRamSegmentSize(m_handle, dwRamSegSize);
+
+	PCO_CHECK_ERROR(err, fnId);
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, fnId) ;
+	}
+	return;
+#endif
+
+}
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_SetCameraRamSegmentSize(DWORD* dwRamSegSize, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+
+/***********************************************************************************
+4.4.5 PCO_SetCameraRamSegmentSize
+Set Camera RAM Segment Size. The segment size has to be big enough to hold at least two
+images.
+a.) Prototype:
+SC2_SDK_FUNC int WINAPI PCO_SetCameraRamSegmentSize(HANDLE ph, DWORD* dwRamSegSize)
+b.) Input parameter:
+ HANDLE ph: Handle to a previously opened camera device.
+ DWORD* dwRamSegSize: Address of a DWORD array to set the segment sizes.
+The input pointer should be filled with the following parameters:
+ Size of segment 1 .. segment 4 as multiples of RAM pages
+Note:
+ the sum of all segment sizes must not be larger than the total size of the RAM (as multiples of
+pages)
+ a single segment size can have the value 0x0000, but the sum of all four segments must be
+bigger than the size of two images.
+ the command will be rejected, if Recording State is [run]
+ The segment number is 1 based, while the array dwRamSegSize is zero based, e.g. ram size
+of segment 1 is stored in dwRamSegSize[0]!
+ This function will result in all segments being cleared. All previously recorded images
+will be lost!
+ ***********************************************************************************/
+
+	err = PCO_SetCameraRamSegmentSize(m_handle, dwRamSegSize);
+
+	PCO_CHECK_ERROR(err, fnId);
+	if(err)
+	{
+		PCO_THROW_OR_TRACE(err, fnId) ;
+	}
+	return;
+#endif
+
+}
+
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_ArmCamera(int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifndef __linux__
+	err = PCO_ArmCamera(m_handle); 
+#else
+    err=camera->PCO_ArmCamera();
+#endif
+
+    PCO_CHECK_ERROR(err, "PCO_ArmCamera()");
+
+    if(err!=PCO_NOERROR)
+    {
+        DEB_ALWAYS() << "ERROR - PCO_ArmCamera() " << DEB_VAR1(err);
+    }
+
+	PCO_THROW_OR_TRACE(err, "PCO_ArmCamera") ;
+	return;
+}
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetTransferParameter(int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+
+    err=camera->PCO_GetTransferParameter(&clpar,sizeof(clpar));
+    PCO_CHECK_ERROR(err, "PCO_GetTransferParameter"); 
+    if(err) return;
+
+    DEB_ALWAYS() 
+        << "\n   " << DEB_VAR1(clpar.baudrate) 
+        << "\n   " << DEB_VAR1(clpar.ClockFrequency) 
+        << "\n   " << DEB_VAR1(clpar.DataFormat) 
+        << "\n   " << DEB_VAR1(clpar.Transmit) 
+        ;
+
+
+#else
+
+	err = PCO_GetTransferParameter(m_handle, &m_pcoData->clTransferParam, sizeof(PCO_SC2_CL_TRANSFER_PARAM));
+    PCO_CHECK_ERROR(err, "PCO_GetTransferParameter"); 
+
+#endif
+
+
+
+
+    return;
+}
+
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_FillStructures(int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+	//char *pcoFn;
+	err = 0;
+
+#ifndef __linux__
+	int pcoErr;
+	// PCO_GETGENERAL(hCam, &strGeneral)
+
+	// -- Get General
+	m_pcoData->stcPcoGeneral.wSize= sizeof(m_pcoData->stcPcoGeneral);
+	m_pcoData->stcPcoGeneral.strCamType.wSize= sizeof(m_pcoData->stcPcoGeneral.strCamType);
+
+	pcoErr = PCO_GetGeneral(m_handle, &m_pcoData->stcPcoGeneral);
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetGeneral");
+
+	// PCO_GETCAMERATYPE(hCam, &strCamType)
+
+	m_pcoData->stcPcoCamType.wSize = sizeof(m_pcoData->stcPcoCamType);
+	pcoErr = PCO_GetCameraType(m_handle, &m_pcoData->stcPcoCamType);
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetCameraType");
+
+	// PCO_GETSENSORSTRUCT(hCam, &strSensor)
+
+	// -- Get Sensor struct
+	m_pcoData->stcPcoSensor.wSize= sizeof(m_pcoData->stcPcoSensor);
+	m_pcoData->stcPcoSensor.strDescription.wSize= sizeof(m_pcoData->stcPcoSensor.strDescription);
+	m_pcoData->stcPcoSensor.strDescription2.wSize= sizeof(m_pcoData->stcPcoSensor.strDescription2);
+
+	pcoErr = PCO_GetSensorStruct(m_handle, &m_pcoData->stcPcoSensor);
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetSensorStruct");
+
+
+	// PCO_GETCAMERADESCRIPTION(hCam, &strDescription)
+
+	// -- Get camera description
+	m_pcoData->stcPcoDescription.wSize= sizeof(m_pcoData->stcPcoDescription);
+
+	pcoErr = PCO_GetCameraDescription(m_handle, &m_pcoData->stcPcoDescription);
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetCameraDescription"); 	
+
+	// PCO_GETTIMINGSTRUCT(hCam, &strTiming)
+
+	// -- Get timing struct
+	m_pcoData->stcPcoTiming.wSize= sizeof(m_pcoData->stcPcoTiming);
+
+	pcoErr = PCO_GetTimingStruct(m_handle, &m_pcoData->stcPcoTiming);
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetTimingStruct");
+
+	// PCO_GETRECORDINGSTRUCT(hCam, &strRecording)
+
+	// -- Get recording struct
+	m_pcoData->stcPcoRecording.wSize= sizeof(m_pcoData->stcPcoRecording);
+
+	pcoErr = PCO_GetRecordingStruct(m_handle, &m_pcoData->stcPcoRecording);
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetRecordingStruct");
+
+
+	// -- Get storage struct
+	m_pcoData->stcPcoStorage.wSize= sizeof(m_pcoData->stcPcoStorage);
+
+	pcoErr = PCO_GetStorageStruct(m_handle, &m_pcoData->stcPcoStorage);
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetStorageStruct");
+
+#else
+	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+    err = -1;
+#endif
+
+	return;
+
+}
+
+
+
+
+
+

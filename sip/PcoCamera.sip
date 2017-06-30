@@ -16,7 +16,6 @@ namespace Pco
         void	reset(int);
 
         const char *talk(const char *cmd);
-        //char *talk(char *cmd);       
 
         int getNbAcquiredFrames();
 
@@ -88,6 +87,11 @@ namespace Pco
 		void getCameraNameBase(std::string &o_sn /Out/);
 		void getCameraNameEx(std::string &o_sn /Out/) ;
 
+		void getBinningInfo(std::string &o_sn /Out/);
+		void getFirmwareInfo(std::string &o_sn /Out/);
+		void getRoiInfo(std::string &o_sn /Out/); 
+
+		void getMsgLog(std::string &o_sn /Out/);
 
   };
 };

@@ -39,6 +39,9 @@ void BinCtrlObj::setBin(const Bin& aBin)
 {
     DEB_MEMBER_FUNCT();    
     m_cam.setBin(aBin);
+
+	DEB_RETURN() 
+		<< "\n... " << DEB_VAR1(aBin);
 }
 
 //-----------------------------------------------------
@@ -59,3 +62,60 @@ void BinCtrlObj::checkBin(Bin &aBin)
     m_cam.checkBin(aBin);
 }
 
+//=================================================================================================
+// ----- BIN
+//=================================================================================================
+void Camera::setBin(const Bin& requestedBin)
+{
+	DEB_MEMBER_FUNCT();
+	int err;
+
+	Bin actualBin;
+
+	_pco_SetBinning(requestedBin, actualBin, err);
+	if(err)
+	{
+		DEB_ALWAYS() << "ERROR - setBin " << DEB_VAR2(requestedBin, actualBin) ;
+	}
+
+
+}
+//=================================================================================================
+//=================================================================================================
+void Camera::getBin(Bin& aBin)
+{
+	DEB_MEMBER_FUNCT();
+	int err;
+
+	_pco_GetBinning(aBin, err);
+	if(err)
+	{
+		DEB_ALWAYS() << "ERROR - getBin" ;
+	}
+}
+//=================================================================================================
+//=================================================================================================
+void Camera::checkBin(Bin& aBin)
+{
+	DEB_MEMBER_FUNCT();
+
+	int set_binX, hw_binX, binMaxX, binModeX;
+	int set_binY, hw_binY, binMaxY, binModeY;
+	
+	set_binX = aBin.getX();
+	binMaxX = m_pcoData->stcPcoDescription.wMaxBinHorzDESC;
+	binModeX = m_pcoData->stcPcoDescription.wBinHorzSteppingDESC;
+
+	set_binY = aBin.getY();
+	binMaxY = m_pcoData->stcPcoDescription.wMaxBinVertDESC;
+	binModeY = m_pcoData->stcPcoDescription.wBinVertSteppingDESC;
+
+	hw_binX = _binning_fit(set_binX, binMaxX, binModeX);
+	hw_binY = _binning_fit(set_binY, binMaxY, binModeY);
+
+	DEB_RETURN()  
+		<< "\n... " << DEB_VAR4(set_binX, hw_binX, binMaxX, binModeX) 
+		<< "\n... " << DEB_VAR4(set_binY, hw_binY, binMaxY, binModeY);
+
+	aBin = Bin(hw_binX,hw_binY);
+}
