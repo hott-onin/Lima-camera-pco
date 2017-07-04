@@ -1,65 +1,57 @@
-#CMakeLists.txt for pco camera
+###########################################################################
+# This file is part of LImA, a Library for Image Acquisition
+#
+#  Copyright (C) : 2009-2017
+#  European Synchrotron Radiation Facility
+#  BP 220, Grenoble 38043
+#  FRANCE
+# 
+#  Contact: lima@esrf.fr
+# 
+#  This is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 3 of the License, or
+#  (at your option) any later version.
+# 
+#  This software is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, see <http://www.gnu.org/licenses/>.
+############################################################################
 
 IF(WIN32)
+SET(NAME "pco")
+
 SET(PCO_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPco" CACHE PATH "location of pco sdk")
 
 #Sources
-SET(pco_srcs src/PcoCamera.cpp src/PcoInterface.cpp src/PcoDetInfoCtrlObj.cpp
+SET(${NAME}_srcs src/PcoCamera.cpp src/PcoInterface.cpp src/PcoDetInfoCtrlObj.cpp
 	                src/PcoSyncCtrlObj.cpp src/PcoRoiCtrlObj.cpp
 	                src/PcoBufferCtrlObj.cpp src/PcoHwEventCtrlObj.cpp
 			src/PcoCameraUtils.cpp src/PcoCameraSdk.cpp)
 
-FILE(STRINGS "VERSION" pco_ver)
-ADD_LIBRARY(limapco SHARED ${pco_srcs})
 
-TARGET_INCLUDE_DIRECTORIES(limapco PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-TARGET_INCLUDE_DIRECTORIES(limapco PUBLIC "${PCO_SDK_DIR}/include")
-TARGET_INCLUDE_DIRECTORIES(limapco PUBLIC "${PCO_SDK_DIR}")
+ADD_LIBRARY(lima${NAME} SHARED ${${NAME}_srcs})
+
+TARGET_INCLUDE_DIRECTORIES(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+TARGET_INCLUDE_DIRECTORIES(lima${NAME} PUBLIC "${PCO_SDK_DIR}/include")
+TARGET_INCLUDE_DIRECTORIES(lima${NAME} PUBLIC "${PCO_SDK_DIR}")
 
 #LIBRARY
 FIND_LIBRARY(PCO_LIB_CAM SC2_Cam ${PCO_SDK_DIR}/lib64)
 
+TARGET_LINK_LIBRARIES(lima${NAME} limacore)
+TARGET_LINK_LIBRARIES(lima${NAME} ${PCO_LIB_CAM})
 
-TARGET_LINK_LIBRARIES(limapco limacore)
-TARGET_LINK_LIBRARIES(limapco ${PCO_LIB_CAM})
+limatools_set_library_soversion(lima${NAME} "VERSION")
+SET_TARGET_PROPERTIES(lima${NAME} PROPERTIES PREFIX "lib")
+INSTALL(TARGETS lima${NAME} DESTINATION lib)
 
-SET_TARGET_PROPERTIES(limapco PROPERTIES VERSION ${pco_ver} SOVERSION "1")
-SET_TARGET_PROPERTIES(limapco PROPERTIES PREFIX "lib")
-
-INSTALL(TARGETS limapco DESTINATION lib)
-
-IF(COMPILE_SIP)
-    SET(NAME "pco")
-    SET(INCLUDES)
-    FILE(GLOB sipfiles
-         RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/sip"
-         "${CMAKE_CURRENT_SOURCE_DIR}/sip/*.sip")
-    FOREACH(sipfile ${sipfiles})
-        SET(INCLUDES
-"${INCLUDES}
-%Include ${sipfile}")
-    ENDFOREACH()
-
-    CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/sip/limamodules.sip.in sip/limapco.sip)
-    SET(SIP_CONCAT_PARTS 1)
-    SET(SIP_INCLUDES ${SIP_INCLUDES}
-        "${CMAKE_SOURCE_DIR}/third-party/Processlib/sip"
-        "${CMAKE_BINARY_DIR}/sip/core"
-        "${CMAKE_SOURCE_DIR}/third-party/Processlib/tasks/sip"
-        "${CMAKE_SOURCE_DIR}/common/sip"
-        "${CMAKE_SOURCE_DIR}/hardware/sip"
-        "${CMAKE_SOURCE_DIR}/control/sip"
-        "${CMAKE_SOURCE_DIR}/control/software_operation/sip"
-        "${CMAKE_CURRENT_SOURCE_DIR}/sip")
-    set(SIP_DISABLE_FEATURES WITH_CONFIG)
-    set(SIP_CHECK_EXC ON)
-    ADD_SIP_PYTHON_MODULE(limapco ${CMAKE_CURRENT_BINARY_DIR}/sip/limapco.sip)
-    TARGET_INCLUDE_DIRECTORIES(python_module_limapco PRIVATE
-                               ${PYTHON_INCLUDE_DIRS}
-                               "${CMAKE_SOURCE_DIR}/sip"
-                               "${CMAKE_SOURCE_DIR}/sip/core")
-    TARGET_LINK_LIBRARIES(python_module_limapco limapco)
-
+IF(LIMA_ENABLE_PYTHON)
+    limatools_run_sip_for_camera(${NAME})
     INSTALL(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco")
 ENDIF()
 ENDIF()
