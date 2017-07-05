@@ -485,6 +485,8 @@ struct stcPcoData
 	bool params_xMinSize;
 	bool params_ignoreMaxImages;
 
+	char camerasFound[MSG1K];
+
 	long reserved[32];
 
 }; // struct stcPcoData
@@ -1032,6 +1034,7 @@ namespace lima
 		void _pco_OpenCameraSn(DWORD sn, int &err);
 		void _pco_GetCameraTypeOnly(int &err);
 		const char *_getCameraIdn();
+		void getCamerasFound(std::string &o_sn) ;
 
 
 	}; // class camera

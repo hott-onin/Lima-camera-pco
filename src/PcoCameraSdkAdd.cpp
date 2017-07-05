@@ -3804,6 +3804,10 @@ void Camera::_pco_OpenCameraSn(DWORD snRequested, int &err)
 #else
 	HANDLE handleList[HANDLE_LIST_DIM];
 	DWORD snList[HANDLE_LIST_DIM];
+	char *ptr, *ptr0;
+	ptr = ptr0 = m_pcoData->camerasFound;
+	char *ptrMax = m_pcoData->camerasFound + sizeof(m_pcoData->camerasFound);
+
 
 	int iHandle, iHandleLast;
 	for(iHandle = 0; iHandle < HANDLE_LIST_DIM; iHandle++)
@@ -3841,12 +3845,14 @@ void Camera::_pco_OpenCameraSn(DWORD snRequested, int &err)
 		_pco_GetCameraType(err);
 
 		snList[iHandle] = _getCameraSerialNumber();
-		DEB_ALWAYS() 
-			<< "\n* CAMERA SEARCH: " 
-			<< _getCameraIdn() 
-			<< " " << DEB_VAR3(snRequested, iHandle, iHandleLast);
+
+		ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n",_getCameraIdn());
 	}
-	
+
+	DEB_ALWAYS() 
+			<< "\n* CAMERA SEARCH: " 
+			<< ptr0;
+
 	HANDLE handleOK = NULL;
 
 	// ---- if sn == 0, it opens the first camera!

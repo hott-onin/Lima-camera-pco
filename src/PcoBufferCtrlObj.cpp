@@ -380,7 +380,7 @@ if(wDoubleImage)
 		return -1;
 	}
 
-	if(wDoubleImage && (myLimaBufferPtr == NULL)) 
+	if(wDoubleImage && (myLimaBufferPtr1 == NULL)) 
 	{
 		DEB_ALWAYS() << "ERROR myLimaBufferPtr1 "
 			<< DEB_VAR5(dwArmLen, dimSize, myLimaBufferPtr, lima_buffer_nb, m_pcoData->iAllocatedBufferNumberLima);

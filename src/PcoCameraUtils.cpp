@@ -3516,3 +3516,17 @@ void Camera::getMsgLog(std::string &o_sn)
 
 	o_sn = buff;
 }
+
+//=================================================================================================
+// SIP - msgLog
+//=================================================================================================
+void Camera::getCamerasFound(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "search:\n%s",m_pcoData->camerasFound);
+	ptr += sprintf_s(ptr, ptrMax - ptr, "opened:\n%s",_getCameraIdn());
+
+	o_sn = buff;
+}
