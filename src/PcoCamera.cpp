@@ -511,7 +511,12 @@ void Camera::_init(){
 
 	DEB_TRACE() <<_getDllPath(FILE_PCO_DLL, msg, sizeof(msg));
 
-	//PCO_FN0(error, pMsg,PCO_ResetLib);
+
+	const char *key = "sn";
+	char *value;
+	bool bRet = paramsGet(key, value);
+	DWORD dwSn = (DWORD) (bRet ? atoi(value) : 0);
+
 
 		// --- Open Camera - close before if it is open
 	if(m_handle) {
@@ -525,7 +530,8 @@ void Camera::_init(){
 	int retryMax = 0;
 	int retry = retryMax;
 	while(true) {
-		_pco_OpenCamera(error);
+		//_pco_OpenCamera(error);
+		_pco_OpenCameraSn(dwSn, error);
 		if(error)
 		{
 			if(retry--<=0) break;
@@ -537,13 +543,24 @@ void Camera::_init(){
 	if(error)
 	{ 
 		DEB_ALWAYS() << "\n... ERROR - PCO_OpenCamera / abort" ; 
-		THROW_HW_ERROR(Error) ;
+		THROW_HW_ERROR(Error) << "ERROR - PCO_OpenCamera";
 	}
 		
-	PCO_THROW_OR_TRACE(error, "_init(): PCO_OpenCamera") ;
+	DEB_TRACE() << "_init(): PCO_OpenCamera" ;
 	
 	_pco_GetCameraType(error);
 	PCO_THROW_OR_TRACE(error, "_pco_GetCameraType") ;
+
+
+	DEB_ALWAYS() 
+			<< "\n"
+			<< "\n====================== CAMERA FOUND ======================"
+			<< "\n* "  << _getCameraIdn()
+			<< "\n==========================================================" 
+			<< "\n"
+			;
+
+
 
 	DEB_TRACE() << fnId << " [camera opened] " << DEB_VAR1(m_handle);
 
@@ -2274,6 +2291,11 @@ const char *Camera::_getInterfaceTypeStr()
 }
 
 
+const char *Camera::_getCameraIdn()
+{
+	DEB_MEMBER_FUNCT();
+	return m_pcoData->camera_name;
+}
 
 //=================================================================================================
 //=================================================================================================

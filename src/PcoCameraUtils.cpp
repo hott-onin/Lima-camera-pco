@@ -2288,6 +2288,7 @@ char * _getPcoSdkVersion(char *infoBuff, int strLen, char *lib)
 }
 
 
+
 //====================================================================
 //====================================================================
 char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
@@ -2309,7 +2310,8 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* camera type \n");
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... cam_name[%s]\n", m_pcoData->camera_name);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... cam_name[%s]\n", 
+			_getCameraIdn());
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... dwSerialNumber[%d]\n", 
 			_getCameraSerialNumber());

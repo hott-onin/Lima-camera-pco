@@ -1626,10 +1626,10 @@ void Camera::_pco_GetCameraType(int &error){
 			_getCameraSubTypeStr(), 
 			_getInterfaceTypeStr(), 
 			_getCameraSerialNumber());
-		DEB_ALWAYS() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
+		DEB_TRACE() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
 			<< "\n"
 			<< "\n====================== CAMERA FOUND ======================"
-			<< "\n* "  << m_pcoData->camera_name
+			<< "\n* "  << _getCameraIdn()
 			<< "\n==========================================================" 
 			<< "\n"
 			;
@@ -3785,4 +3785,123 @@ void Camera::_pco_FillStructures(int &err)
 
 
 
+//=================================================================================================
+//=================================================================================================
 
+#define HANDLE_LIST_DIM 30
+
+void Camera::_pco_OpenCameraSn(DWORD snRequested, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+	HANDLE handleList[HANDLE_LIST_DIM];
+	DWORD snList[HANDLE_LIST_DIM];
+
+	int iHandle, iHandleLast;
+	for(iHandle = 0; iHandle < HANDLE_LIST_DIM; iHandle++)
+	{
+		handleList[iHandle] = NULL;
+	}
+
+	iHandle = 0;
+	iHandleLast = -1;
+	while (true)
+	{
+		if(iHandle >=  HANDLE_LIST_DIM)
+		{
+			DEB_ALWAYS() << "WARNING!!!! - many opened cameras! " << DEB_VAR1(iHandle); 
+			break;
+		}
+
+		err = PCO_OpenCamera(&handleList[iHandle],0);
+		PCO_CHECK_ERROR(err, "PCO_OpenCamera");
+		if(err != PCO_NOERROR) break;
+		iHandleLast = iHandle++;
+	}
+
+	if(iHandleLast < 0)
+	{
+		DEB_ALWAYS() << "ERROR!!!! - no cam found!" ;
+		err = -1;
+		return;
+	}
+
+	
+	for(iHandle = 0; iHandle <= iHandleLast; iHandle++)
+	{
+		m_handle = handleList[iHandle];
+		_pco_GetCameraType(err);
+
+		snList[iHandle] = _getCameraSerialNumber();
+		DEB_ALWAYS() 
+			<< "\n* CAMERA SEARCH: " 
+			<< _getCameraIdn() 
+			<< " " << DEB_VAR3(snRequested, iHandle, iHandleLast);
+	}
+	
+	HANDLE handleOK = NULL;
+
+	// ---- if sn == 0, it opens the first camera!
+	for(iHandle = 0; iHandle <= iHandleLast; iHandle++)
+	{
+		m_handle = handleList[iHandle];
+		DWORD snCam = snList[iHandle];
+		if(((snRequested == 0) || (snCam == snRequested)) && (handleOK == NULL))
+		{
+			handleOK = m_handle;
+			DEB_ALWAYS() 
+				<< "\n* CAMERA FOUND & OPENED: " 
+				<< DEB_VAR4(snRequested, snCam, iHandle, iHandleLast);
+		}
+		else
+		{
+			_pco_CloseCamera(err);
+		}
+	}
+
+	if(handleOK != NULL)
+	{
+		m_handle = handleOK;
+		err = 0;
+	}
+	else
+	{
+		m_handle = NULL;
+		DEB_ALWAYS() << "CAMERA NOT FOUND: " << DEB_VAR2(snRequested, iHandleLast);
+		err = -1;
+	}
+
+#endif
+
+}
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_GetCameraTypeOnly(int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+
+	m_pcoData->stcPcoCamType.wSize = sizeof(m_pcoData->stcPcoCamType);
+	err = PCO_GetCameraType(m_handle, &m_pcoData->stcPcoCamType);
+
+	PCO_CHECK_ERROR(err, "PCO_GetCameraType");
+#endif
+
+}
