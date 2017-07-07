@@ -992,7 +992,7 @@ namespace lima
 
 		void _pco_GetFirmwareInfo(char *buf_in, int size_in, int &err);
 
-		const char *_sprintComment(const char *comment, const char *comment1 ="" , const char *comment2 ="" );
+		const char *_sprintComment(bool bAlways, const char *comment, const char *comment1 ="" , const char *comment2 ="" );
 
 		void _pco_ArmCamera(int &err);
 		void _pco_SetRecordStopEvent(WORD wRecordStopEventMode, DWORD dwRecordStopDelayImages, int &err);
@@ -1036,6 +1036,8 @@ namespace lima
 		const char *_getCameraIdn();
 		void getCamerasFound(std::string &o_sn) ;
 
+		void getDoubleImageMode(int & val);
+		void setDoubleImageMode(int val);
 
 	}; // class camera
   } // namespace pco

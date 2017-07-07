@@ -460,7 +460,7 @@ void SyncCtrlObj::startAcq()
   
   bool _started = getStarted();
 
-  DEB_ALWAYS() << m_cam->_sprintComment(fnId, "[ENTRY]");
+  DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
 
   DEB_TRACE() << ": SyncCtrlObj::startAcq() " << DEB_VAR1(_started);
 
@@ -474,6 +474,11 @@ void SyncCtrlObj::startAcq()
 		_setRequestStop(stopNone);
 		setExposing(pcoAcqStart);
 		m_cam->startAcq();
+		if(getExposing() == pcoAcqError)
+		{
+			setStarted(false);
+			return;
+		}
 
 		AutoMutex lock(m_cond.mutex());
 
@@ -497,7 +502,8 @@ void SyncCtrlObj::startAcq()
 
 //=========================================================================================================
 //=========================================================================================================
-void SyncCtrlObj::setExposing(pcoAcqStatus exposing) {
+void SyncCtrlObj::setExposing(pcoAcqStatus exposing) 
+{
 		
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
@@ -507,13 +513,27 @@ void SyncCtrlObj::setExposing(pcoAcqStatus exposing) {
 	m_exposing = exposing;
 	m_cond.broadcast();
 
-	DEB_TRACE() << fnId << "[exit]" << ": " << DEB_VAR2(m_exposing, exposing);
+	DEB_TRACE() << DEB_VAR2(m_exposing, exposing);
 }
 
+//=========================================================================================================
+//=========================================================================================================
+pcoAcqStatus SyncCtrlObj::getExposing() 
+{
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	
+	DEB_TRACE() << DEB_VAR1(m_exposing);
+	return m_exposing;
+
+}
 
 //=========================================================================================================
 //=========================================================================================================
-void SyncCtrlObj::setStarted(bool started) {
+void SyncCtrlObj::setStarted(bool started) 
+{
 
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
@@ -523,8 +543,24 @@ void SyncCtrlObj::setStarted(bool started) {
 	m_started = started;
 	m_cond.broadcast();
 
-	DEB_TRACE() << fnId << "[exit]" << ": " << DEB_VAR2(m_started, started);
+	DEB_TRACE() << DEB_VAR2(m_started, started);
 }
+
+//=========================================================================================================
+//=========================================================================================================
+bool SyncCtrlObj::getStarted() 
+{
+
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	DEB_TRACE() << DEB_VAR1(m_started);
+
+	return m_started;
+
+}
+
+
 
 //=========================================================================================================
 //=========================================================================================================
@@ -540,12 +576,13 @@ void SyncCtrlObj::stopAcq(bool clearQueue)
 
 	AutoMutex lock(m_cond.mutex());
 
-	DEB_ALWAYS() << m_cam->_sprintComment(fnId, "[ENTRY]");
-
+	DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
+	
 	_stopRequestIn = _getRequestStop(_nrStop);
-
+	
 	while( (_started = getStarted()) ) 
 	{
+		DEB_TRACE() << "[while]" << DEB_VAR1(_started);
 		_setRequestStop(stopRequest);
         resWait = m_cond.wait(5.);
 	}

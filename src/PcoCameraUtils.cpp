@@ -1669,7 +1669,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 		if(_stricmp(cmd, key) == 0){
 			char *comment = str_trim(cmdBuffAux + strlen(cmd));
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, _sprintComment(comment) );
+			ptr += sprintf_s(ptr, ptrMax - ptr, _sprintComment(false, comment) );
 
 			DEB_TRACE() << output ;
 			return output;
@@ -2677,8 +2677,10 @@ void Camera::_traceMsg(char *msg)
 //====================================================================
 //====================================================================
 #define LEN_COMMENT 511
-const char * Camera::_sprintComment(const char *comment, const char *comment1, const char *comment2)
+const char * Camera::_sprintComment(bool bAlways, const char *comment, const char *comment1, const char *comment2)
 {
+	DEB_MEMBER_FUNCT();
+
 	static char buff[LEN_COMMENT+1];
 //			"\n=================================================\n--- %s %s %s %s\n",
 
@@ -2689,6 +2691,11 @@ const char * Camera::_sprintComment(const char *comment, const char *comment1, c
 	sprintf_s(buff, LEN_COMMENT, 
 			"\n--- %s %s %s %s\n",
 			getTimestamp(Iso), comment, comment1, comment2);
+
+	if(bAlways)
+	{
+		DEB_ALWAYS() << buff;
+	}
 
 	return buff ;
 }
@@ -3529,4 +3536,25 @@ void Camera::getCamerasFound(std::string &o_sn)
 	ptr += sprintf_s(ptr, ptrMax - ptr, "opened:\n%s",_getCameraIdn());
 
 	o_sn = buff;
+}
+//====================================================================
+// SIP - attrib
+//====================================================================
+void Camera::getDoubleImageMode(int &mode)
+{
+	int error;
+	WORD wMode;
+
+	_pco_GetDoubleImageMode(wMode, error);
+
+	mode = error ? -1 : wMode;
+}
+
+void Camera::setDoubleImageMode(int mode)
+{
+	int error;
+	WORD wMode = (WORD) mode;
+
+	_pco_SetDoubleImageMode(wMode, error);
+
 }

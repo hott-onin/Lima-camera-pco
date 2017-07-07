@@ -119,7 +119,7 @@ void Interface::prepareAcq()
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
-	DEB_ALWAYS() << m_cam->_sprintComment(fnId, "[ENTRY]");
+	DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
 
 	m_cam->_setActionTimestamp(tsPrepareAcq);
 
@@ -138,7 +138,7 @@ void Interface::startAcq()
   DEB_MEMBER_FUNCT();
   DEF_FNID;
 
-	DEB_ALWAYS() << m_cam->_sprintComment(fnId, "[ENTRY]");
+	DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
 
 	m_cam->_setActionTimestamp(tsStartAcq);
 
@@ -154,7 +154,7 @@ void Interface::stopAcq()
   DEB_MEMBER_FUNCT();
   DEF_FNID;
 
-	DEB_ALWAYS() << m_cam->_sprintComment(fnId, "[ENTRY]");
+	DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
 
 	m_cam->_setActionTimestamp(tsStopAcq);
 	m_sync->stopAcq();
@@ -202,7 +202,7 @@ void Interface::getStatus(StatusType& status)
 
 #endif
 
-	DEB_RETURN() << DEB_VAR1(status);
+	//DEB_RETURN() << DEB_VAR1(status);
 }
 
 //=========================================================================================================

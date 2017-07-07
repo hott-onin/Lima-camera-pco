@@ -42,6 +42,10 @@ struct stcAllocBuff {
 		WORD	*limaAllocBufferPtr[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
 		WORD	*limaAllocBufferPtr1[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
         DWORD	dwLimaAllocBufferSize[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
+		int 	limaAllocBufferNr[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer nr allocated by Lima
+		int 	limaAllocBufferNr1[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer nr allocated by Lima
+
+
 		DWORD	dwStatus[8];			// PCO_AddBufferEx status/error return
 
         //HANDLE bufferAllocEvent[PCO_MAX_NR_ALLOCATED_BUFFERS];

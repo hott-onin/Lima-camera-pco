@@ -671,6 +671,7 @@ void Camera::_pco_GetCDIMode(WORD &wCDIMode, int &err)
 	{
 		wCDIMode = 0;
 		err = 1;
+		DEB_TRACE() <<  "WARNING / CDI mode is NOT ALLOWED!";
 		return;
 	}
 	
@@ -702,6 +703,7 @@ void Camera::_pco_SetCDIMode(WORD wCDIMode, int &err)
 	if(!_isCapsDesc(capsCDI))
 	{
 		err = 1;
+		DEB_TRACE() <<  "WARNING / CDI mode is NOT ALLOWED!";
 		return;
 	}
 	

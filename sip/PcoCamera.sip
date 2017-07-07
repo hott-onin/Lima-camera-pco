@@ -24,77 +24,70 @@ namespace Pco
 
 //--------------------------------------------------------
 
-        void getBytesPerPixel(unsigned int& pixbytes /Out/); // bytesPerPixel
 
 		void getAcqTimeoutRetry(int &val /Out/);   // acqTimeoutRetry
 		void setAcqTimeoutRetry(int val);
 
-        void getAdc(int & adc /Out/);    // adc
-        void setAdc(int val);
+		void getAdc(int & adc /Out/);    // adc
+		void setAdc(int val);
 
-        void getAdcMax(int & adc /Out/);    // adcMax
+		void getAdcMax(int & adc /Out/);    // adcMax
 
-		void getClTransferParam(std::string &o_sn /Out/) ;    // clXferPar
-		
-		void getLastError(std::string &o_sn /Out/) ;   // last error
-		
-		void getTraceAcq(std::string &o_sn /Out/) ;   // traceAcq
-		
+		void getBinningInfo(std::string &o_sn /Out/);
 
-		void getLastImgRecorded(unsigned long & img /Out/);   // lastImgRecorded
-		
-		void getLastImgAcquired(unsigned long & img /Out/);   // lastImgAcquired
-		
-		void getMaxNbImages(unsigned long & nr /Out/);     // maxNbImages
-		
+		void getBytesPerPixel(unsigned int& pixbytes /Out/); // bytesPerPixel
 
-		void getCocRunTime(double & coc /Out/);    // CocRunTime
-		
-		void getFrameRate(double & frameRate /Out/);  // frameRate
-
+		void getCamerasFound(std::string &o_sn /Out/) ;
 		void getCamInfo(std::string &o_sn /Out/) ;    // camInfo
-		
+		void getCameraName(std::string &o_sn /Out/);
+		void getCameraNameBase(std::string &o_sn /Out/);
+		void getCameraNameEx(std::string &o_sn /Out/) ;
 		void getCamType(std::string &o_sn /Out/) ;   // camType
-		
-		void getVersion(std::string &o_sn /Out/) ;   // version
-
-
-		void getPcoLogsEnabled(int & enabled /Out/);      // pcoLogsEnabled
-
-		void getPixelRate(int & val /Out/);   // pixelRate
-		void setPixelRate(int val);
-
-		void getPixelRateValidValues(std::string &o_sn /Out/) ;  // pixelRateValidValues
-		
-		void getPixelRateInfo(std::string &o_sn /Out/) ;       // pixelRateInfo
-
-		void getRollingShutter(int & val /Out/);    // rollingShutter
-		void setRollingShutter(int val);
-
-		void getRollingShutterInfo(std::string &o_sn /Out/) ;       // rollingShutterInfo
-
-		void getLastFixedRoi(std::string &o_sn /Out/) ;   // lastFixedRoi
 
 		void getCDIMode(int & val /Out/);     // cdiMode
 		void setCDIMode(int val);
 
-		void getTemperatureInfo(std::string &o_sn /Out/);
+		void getClTransferParam(std::string &o_sn /Out/) ;    // clXferPar
+
+		void getCocRunTime(double & coc /Out/);    // CocRunTime
+
 		void getCoolingTemperature(int & val /Out/);
 		void setCoolingTemperature(int val);
-		
-		void getSdkRelease(std::string &o_sn /Out/) ;
-		void getCameraName(std::string &o_sn /Out/);
-		void getCameraNameBase(std::string &o_sn /Out/);
-		void getCameraNameEx(std::string &o_sn /Out/) ;
 
-		void getBinningInfo(std::string &o_sn /Out/);
+		void getDoubleImageMode(int & val /Out/);
+		void setDoubleImageMode(int val);
+
 		void getFirmwareInfo(std::string &o_sn /Out/);
+
+		void getFrameRate(double & frameRate /Out/);  // frameRate
+
+		void getLastError(std::string &o_sn /Out/) ;   // last error
+		void getLastImgAcquired(unsigned long & img /Out/);   // lastImgAcquired
+		void getLastImgRecorded(unsigned long & img /Out/);   // lastImgRecorded
+		void getMsgLog(std::string &o_sn /Out/);  // logMsg
+		void getPcoLogsEnabled(int & enabled /Out/);      // logPcoEnabled
+
+		void getMaxNbImages(unsigned long & nr /Out/);     // maxNbImages
+
+		void getPixelRate(int & val /Out/);   // pixelRate
+		void setPixelRate(int val);
+		void getPixelRateInfo(std::string &o_sn /Out/) ;       // pixelRateInfo
+		void getPixelRateValidValues(std::string &o_sn /Out/) ;  // pixelRateValidValues
+
 		void getRoiInfo(std::string &o_sn /Out/); 
+		void getLastFixedRoi(std::string &o_sn /Out/) ;   // roiLastFixed
 
-		void getMsgLog(std::string &o_sn /Out/);
+		void getRollingShutter(int & val /Out/);    // rollingShutter
+		void setRollingShutter(int val);
+		void getRollingShutterInfo(std::string &o_sn /Out/) ;       // rollingShutterInfo
 
-		void getCamerasFound(std::string &o_sn /Out/) ;
+		void getTemperatureInfo(std::string &o_sn /Out/);
 
+		void getTraceAcq(std::string &o_sn /Out/) ;   // traceAcq
+
+		void getVersion(std::string &o_sn /Out/) ;   // version
+
+		void getSdkRelease(std::string &o_sn /Out/) ; // versionSdk
 
   };
 };
