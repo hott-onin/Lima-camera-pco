@@ -353,6 +353,10 @@ bool Camera::paramsGet(const char *key, char *&value) {
 
 //=========================================================================================================
 //=========================================================================================================
+
+// params string:
+//      "key1 = value1 ; key2 = value2 ; key2 ; ...."
+
 void Camera::paramsInit(const char *str) 
 {
 	DEF_FNID;
@@ -511,7 +515,12 @@ void Camera::_init(){
 
 	DEB_TRACE() <<_getDllPath(FILE_PCO_DLL, msg, sizeof(msg));
 
-	//PCO_FN0(error, pMsg,PCO_ResetLib);
+
+	const char *key = "sn";
+	char *value;
+	bool bRet = paramsGet(key, value);
+	DWORD dwSn = (DWORD) (bRet ? atoi(value) : 0);
+
 
 		// --- Open Camera - close before if it is open
 	if(m_handle) {
@@ -525,7 +534,8 @@ void Camera::_init(){
 	int retryMax = 0;
 	int retry = retryMax;
 	while(true) {
-		_pco_OpenCamera(error);
+		//_pco_OpenCamera(error);
+		_pco_OpenCameraSn(dwSn, error);
 		if(error)
 		{
 			if(retry--<=0) break;
@@ -537,13 +547,24 @@ void Camera::_init(){
 	if(error)
 	{ 
 		DEB_ALWAYS() << "\n... ERROR - PCO_OpenCamera / abort" ; 
-		THROW_HW_ERROR(Error) ;
+		THROW_HW_ERROR(Error) << "ERROR - PCO_OpenCamera";
 	}
 		
-	PCO_THROW_OR_TRACE(error, "_init(): PCO_OpenCamera") ;
+	DEB_TRACE() << "_init(): PCO_OpenCamera" ;
 	
 	_pco_GetCameraType(error);
 	PCO_THROW_OR_TRACE(error, "_pco_GetCameraType") ;
+
+
+	DEB_ALWAYS() 
+			<< "\n"
+			<< "\n====================== CAMERA FOUND ======================"
+			<< "\n* "  << _getCameraIdn()
+			<< "\n==========================================================" 
+			<< "\n"
+			;
+
+
 
 	DEB_TRACE() << fnId << " [camera opened] " << DEB_VAR1(m_handle);
 
@@ -836,8 +857,6 @@ void Camera::prepareAcq()
 		WORD cdi;
 		int err;
 		_pco_GetCDIMode(cdi, err);
-		if(!err && (cdi != m_cdi_mode))
-				_pco_SetCDIMode(m_cdi_mode, err);
 	}
 
     //------------------------------------------------- 
@@ -914,7 +933,7 @@ void Camera::prepareAcq()
 			wRecordStopEventMode = 0x0002;    // record stop by edge at the <acq. enbl.>
 			dwRecordStopDelayImages = iRequestedFrames;
 			DEB_TRACE() << "..... PCO_SetRecordStopEvent";
-			_pco_PCO_SetRecordStopEvent(wRecordStopEventMode, dwRecordStopDelayImages, error);
+			_pco_SetRecordStopEvent(wRecordStopEventMode, dwRecordStopDelayImages, error);
 			PCO_THROW_OR_TRACE(error, "PCO_SetRecordStopEvent") ;
 		}
 	}
@@ -1003,18 +1022,18 @@ void Camera::prepareAcq()
 		//      must be even and twice of the nr of images for pco
 		_pco_GetDoubleImageMode(wDoubleImage, err);
 
-		bool outOfRange = false;
+		bool bOutOfRange = false;
 
 		if(wDoubleImage) 
 		{
-			if ( ((ulRequestedFrames % 2) != 0) || (ulRequestedFrames/2 > ulFramesMaxInSegment) ) outOfRange = true;
+			if ( ((ulRequestedFrames % 2) != 0) || (ulRequestedFrames/2 > ulFramesMaxInSegment) ) bOutOfRange = true;
 		}
 		else
 		{
-			if ( ulRequestedFrames > ulFramesMaxInSegment ) outOfRange = true;
+			if ( ulRequestedFrames > ulFramesMaxInSegment ) bOutOfRange = true;
 		}
 
-		if(outOfRange)
+		if(bOutOfRange)
 		{
 
 			DEB_ALWAYS() << "\nERROR frames OUT OF RANGE " << DEB_VAR3(ulRequestedFrames, ulFramesMaxInSegment, wDoubleImage);
@@ -1114,7 +1133,7 @@ void Camera::startAcq()
 			if((trig_mode  == ExtTrigSingle) ) {
 				_beginthread( _pco_acq_thread_dimax_trig_single, 0, (void*) this);
 			} else {
-				_beginthread( _pco_acq_thread_dimax, 0, (void*) this);
+				_beginthread( _pco_acq_thread_dimax, 0, (void*) this);	// normal mode
 			}
 		} else {
 			_beginthread( _pco_acq_thread_dimax_live, 0, (void*) this);
@@ -1309,17 +1328,29 @@ void _pco_acq_thread_dimax(void *argin) {
 		{
 			pcoAcqStatus status;
 
+			WORD wDoubleImage;
+			int err;
+			m_cam->_pco_GetDoubleImageMode(wDoubleImage, err);
+
+
 			if(m_cam->_isCameraType(Pco2k | Pco4k)){
 				if(m_pcoData->testCmdMode & TESTCMDMODE_DIMAX_XFERMULTI) {
 					status = (pcoAcqStatus) m_buffer->_xferImag();
 				} else {
-					status = (pcoAcqStatus) m_buffer->_xferImagMult();  //  <------------- default NO waitobj
+					status = (pcoAcqStatus) m_buffer->_xferImagMult();  //  <------------- default pco2k/4k NO waitobj
 				}
 			}else{
 				if(m_pcoData->testCmdMode & TESTCMDMODE_DIMAX_XFERMULTI) {
 					status = (pcoAcqStatus) m_buffer->_xferImagMult();
 				} else {
-					status = (pcoAcqStatus) m_buffer->_xferImag(); //  <------------- default YES waitobj
+					if(wDoubleImage)
+					{ 
+						status = (pcoAcqStatus) m_buffer->_xferImagDoubleImage(); //  <------------- default dimax YES waitobj
+					}
+					else
+					{
+						status = (pcoAcqStatus) m_buffer->_xferImag(); //  <------------- default dimax YES waitobj
+					}
 				}
 
 			}
@@ -2264,6 +2295,11 @@ const char *Camera::_getInterfaceTypeStr()
 }
 
 
+const char *Camera::_getCameraIdn()
+{
+	DEB_MEMBER_FUNCT();
+	return m_pcoData->camera_name;
+}
 
 //=================================================================================================
 //=================================================================================================

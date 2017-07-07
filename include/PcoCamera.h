@@ -49,6 +49,27 @@
 //---- linux sdk [end]
 #endif
 
+// --------------------- cam utils
+
+#define CAMINFO_ALL				0xffffffffffffffffLL
+
+#define CAMINFO_BLOCK			(0x1LL << 0)
+#define CAMINFO_UNSORTED		(0x1LL << 1)
+#define CAMINFO_LOG				(0x1LL << 2)
+
+#define CAMINFO_PIXELRATE		(0x1LL << 8)
+#define CAMINFO_ADC				(0x1LL << 9)
+#define CAMINFO_FIRMWARE		(0x1LL << 10)
+#define CAMINFO_GENERAL			(0x1LL << 11)
+#define CAMINFO_VERSION			(0x1LL << 12)
+#define CAMINFO_DIMAX			(0x1LL << 13)
+#define CAMINFO_EXP				(0x1LL << 14)
+#define CAMINFO_ROI				(0x1LL << 15)
+
+#define CAMINFO_CAMERALINK		(0x1LL << 16)
+#define CAMINFO_CAMERATYPE		(0x1LL << 17)
+// --------------------- 
+
 
 #define RESET_CLOSE_INTERFACE	100
 #define DISABLE_ACQ_ENBL_SIGNAL
@@ -464,6 +485,8 @@ struct stcPcoData
 	bool params_xMinSize;
 	bool params_ignoreMaxImages;
 
+	char camerasFound[MSG1K];
+
 	long reserved[32];
 
 }; // struct stcPcoData
@@ -701,7 +724,6 @@ namespace lima
 		bool m_isArmed;
 		long long m_state;
 
-		WORD m_cdi_mode; 
 		//----------------------------------
 
         Camera::Status m_status;
@@ -831,7 +853,6 @@ namespace lima
 		void getAdc(int &val);
         void setAdc(int val);
         void getAdcMax(int &val);
-
 		
 		void getCamInfo(std::string &o_sn) ;
 		void getCamType(std::string &o_sn) ;
@@ -851,7 +872,7 @@ namespace lima
 		void getLastImgAcquired(unsigned long & img);
 
         void getMaxNbImages(unsigned long & nr);
-		void  getPcoLogsEnabled(int & enabled);
+		void getPcoLogsEnabled(int & enabled);
 
 		void getRollingShutterInfo(std::string &o_sn) ;
 
@@ -869,7 +890,20 @@ namespace lima
 		void getTemperatureInfo(std::string &o_sn);
 		void getCoolingTemperature(int &val);
 		void setCoolingTemperature(int val);
+
+		void getSdkRelease(std::string &o_sn) ;
+		void getCameraNameEx(std::string &o_sn) ;
+		void getCameraNameBase(std::string &o_sn) ;
+
+		void getBinningInfo(std::string &o_sn);
+		void getFirmwareInfo(std::string &o_sn);
+		void getRoiInfo(std::string &o_sn); 
+
+		void getMsgLog(std::string &o_sn);
 	
+		//--------------------------------------
+
+
 	public:		//----------- pco sdk functions
 		void _pco_GetActiveRamSegment(WORD &, int &); // {return m_pcoData->wActiveRamSegment;}
 
@@ -945,10 +979,6 @@ namespace lima
 #endif
 		//----
 		void _pco_GetInfoString(int infotype, char *buf_in, int size_in, int &error);
-		void getSdkRelease(std::string &o_sn) ;
-		void getCameraNameEx(std::string &o_sn) ;
-		void getCameraNameBase(std::string &o_sn) ;
-
 		void _pco_GetBinning(Bin &bin, int &err);
 		void _pco_SetBinning(Bin binNew, Bin &binActual, int &err);
 		int _binning_fit(int binRequested, int binMax, int binMode);
@@ -962,15 +992,10 @@ namespace lima
 
 		void _pco_GetFirmwareInfo(char *buf_in, int size_in, int &err);
 
-		void getBinningInfo(std::string &o_sn);
-		void getFirmwareInfo(std::string &o_sn);
-		void getRoiInfo(std::string &o_sn); 
-
 		const char *_sprintComment(const char *comment, const char *comment1 ="" , const char *comment2 ="" );
-		void getMsgLog(std::string &o_sn);
 
 		void _pco_ArmCamera(int &err);
-		void _pco_PCO_SetRecordStopEvent(WORD wRecordStopEventMode, DWORD dwRecordStopDelayImages, int &err);
+		void _pco_SetRecordStopEvent(WORD wRecordStopEventMode, DWORD dwRecordStopDelayImages, int &err);
 
         //----
         void _pco_FreeBuffer(int bufIdx, int &err);
@@ -1003,6 +1028,14 @@ namespace lima
 		void _pco_SetTimeouts(void *buf_in, unsigned int size_in, int &err);
 		void _pco_GetCameraRamSegmentSize(DWORD* dwRamSegSize, int &err);
 		void _pco_SetCameraRamSegmentSize(DWORD* dwRamSegSize, int &err);
+
+
+
+		void _pco_OpenCameraSn(DWORD sn, int &err);
+		void _pco_GetCameraTypeOnly(int &err);
+		const char *_getCameraIdn();
+		void getCamerasFound(std::string &o_sn) ;
+
 
 	}; // class camera
   } // namespace pco

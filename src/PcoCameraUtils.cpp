@@ -2288,6 +2288,7 @@ char * _getPcoSdkVersion(char *infoBuff, int strLen, char *lib)
 }
 
 
+
 //====================================================================
 //====================================================================
 char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
@@ -2309,7 +2310,8 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* camera type \n");
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... cam_name[%s]\n", m_pcoData->camera_name);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... cam_name[%s]\n", 
+			_getCameraIdn());
 
 		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... dwSerialNumber[%d]\n", 
 			_getCameraSerialNumber());
@@ -3323,8 +3325,6 @@ void Camera::setCDIMode(int cdi)
 	int error;
 	WORD wCdi = (WORD) cdi;
 
-	m_cdi_mode = wCdi;
-
 	_pco_SetCDIMode(wCdi, error);
 
 }
@@ -3513,6 +3513,20 @@ void Camera::getMsgLog(std::string &o_sn)
 	// 0 -> decreasing / older - last
 	// 1 -> increasing / newer - last
 	m_msgLog->dump(ptr, (int)(ptrMax - ptr), 1);
+
+	o_sn = buff;
+}
+
+//=================================================================================================
+// SIP - msgLog
+//=================================================================================================
+void Camera::getCamerasFound(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "search:\n%s",m_pcoData->camerasFound);
+	ptr += sprintf_s(ptr, ptrMax - ptr, "opened:\n%s",_getCameraIdn());
 
 	o_sn = buff;
 }

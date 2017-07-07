@@ -93,6 +93,9 @@ namespace Pco
 
 		void getMsgLog(std::string &o_sn /Out/);
 
+		void getCamerasFound(std::string &o_sn /Out/) ;
+
+
   };
 };
 

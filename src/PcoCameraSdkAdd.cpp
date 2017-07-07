@@ -684,7 +684,7 @@ void Camera::_pco_GetCDIMode(WORD &wCDIMode, int &err)
     pcoErr = -1;
 #endif
 
-	err |= pcoErr;
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetCDIMode");
 
 	return;
 }
@@ -719,9 +719,9 @@ void Camera::_pco_SetCDIMode(WORD wCDIMode, int &err)
 	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
     pcoErr = -1;
 #endif
-	
-	err |= pcoErr;
 
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_SetCDIMode");
+	
 	return;
 }
 //=================================================================================================
@@ -738,6 +738,7 @@ void Camera::_pco_GetDoubleImageMode(WORD &wDoubleImage, int &err)
 	{
 		wDoubleImage = 0;
 		err = 1;
+		DEB_TRACE() <<  "WARNING / DoubleImage mode is NOT ALLOWED!";
 		return;
 	}
 	
@@ -751,7 +752,7 @@ void Camera::_pco_GetDoubleImageMode(WORD &wDoubleImage, int &err)
     pcoErr = -1;
 #endif
 
-	err |= pcoErr;
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetDoubleImageMode");
 
 	return;
 }
@@ -769,6 +770,7 @@ void Camera::_pco_SetDoubleImageMode(WORD wDoubleImage, int &err)
 	if(!_isCapsDesc(capsDoubleImage))
 	{
 		err = 1;
+		DEB_TRACE() <<  "WARNING / DoubleImage mode is NOT ALLOWED!";
 		return;
 	}
 	
@@ -787,8 +789,7 @@ void Camera::_pco_SetDoubleImageMode(WORD wDoubleImage, int &err)
     pcoErr = -1;
 #endif
 
-
-	err |= pcoErr;
+	err |= PCO_CHECK_ERROR(pcoErr, "PCO_SetDoubleImageMode");
 
 	return;
 }
@@ -1463,9 +1464,9 @@ void Camera::_pco_GetTemperatureInfo(int &error){
         << "\n   " << DEB_VAR1(sCoolingSetpoint) 
         ;
 
-	m_pcoData->temperature.wCcd = sTempCcd;
-	m_pcoData->temperature.wCam = sTempCam;
-	m_pcoData->temperature.wPower =sTempPS;
+	m_pcoData->temperature.sCcd = sTempCcd;
+	m_pcoData->temperature.sCam = sTempCam;
+	m_pcoData->temperature.sPower =sTempPS;
 
 #else
 
@@ -1625,10 +1626,10 @@ void Camera::_pco_GetCameraType(int &error){
 			_getCameraSubTypeStr(), 
 			_getInterfaceTypeStr(), 
 			_getCameraSerialNumber());
-		DEB_ALWAYS() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
+		DEB_TRACE() <<  DEB_VAR2(_getCameraTypeStr(), _getInterfaceTypeStr())
 			<< "\n"
 			<< "\n====================== CAMERA FOUND ======================"
-			<< "\n* "  << m_pcoData->camera_name
+			<< "\n* "  << _getCameraIdn()
 			<< "\n==========================================================" 
 			<< "\n"
 			;
@@ -2987,7 +2988,7 @@ void Camera::_pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax
 //=================================================================================================
 //=================================================================================================
 
-void Camera::_pco_PCO_SetRecordStopEvent(WORD wRecordStopEventMode, DWORD dwRecordStopDelayImages, int &err)
+void Camera::_pco_SetRecordStopEvent(WORD wRecordStopEventMode, DWORD dwRecordStopDelayImages, int &err)
 {
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
@@ -3784,4 +3785,129 @@ void Camera::_pco_FillStructures(int &err)
 
 
 
+//=================================================================================================
+//=================================================================================================
 
+#define HANDLE_LIST_DIM 30
+
+void Camera::_pco_OpenCameraSn(DWORD snRequested, int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+	HANDLE handleList[HANDLE_LIST_DIM];
+	DWORD snList[HANDLE_LIST_DIM];
+	char *ptr, *ptr0;
+	ptr = ptr0 = m_pcoData->camerasFound;
+	char *ptrMax = m_pcoData->camerasFound + sizeof(m_pcoData->camerasFound);
+
+
+	int iHandle, iHandleLast;
+	for(iHandle = 0; iHandle < HANDLE_LIST_DIM; iHandle++)
+	{
+		handleList[iHandle] = NULL;
+	}
+
+	iHandle = 0;
+	iHandleLast = -1;
+	while (true)
+	{
+		if(iHandle >=  HANDLE_LIST_DIM)
+		{
+			DEB_ALWAYS() << "WARNING!!!! - many opened cameras! " << DEB_VAR1(iHandle); 
+			break;
+		}
+
+		err = PCO_OpenCamera(&handleList[iHandle],0);
+		PCO_CHECK_ERROR(err, "PCO_OpenCamera");
+		if(err != PCO_NOERROR) break;
+		iHandleLast = iHandle++;
+	}
+
+	if(iHandleLast < 0)
+	{
+		DEB_ALWAYS() << "ERROR!!!! - no cam found!" ;
+		err = -1;
+		return;
+	}
+
+	
+	for(iHandle = 0; iHandle <= iHandleLast; iHandle++)
+	{
+		m_handle = handleList[iHandle];
+		_pco_GetCameraType(err);
+
+		snList[iHandle] = _getCameraSerialNumber();
+
+		ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n",_getCameraIdn());
+	}
+
+	DEB_ALWAYS() 
+			<< "\n* CAMERA SEARCH: " 
+			<< ptr0;
+
+	HANDLE handleOK = NULL;
+
+	// ---- if sn == 0, it opens the first camera!
+	for(iHandle = 0; iHandle <= iHandleLast; iHandle++)
+	{
+		m_handle = handleList[iHandle];
+		DWORD snCam = snList[iHandle];
+		if(((snRequested == 0) || (snCam == snRequested)) && (handleOK == NULL))
+		{
+			handleOK = m_handle;
+			DEB_ALWAYS() 
+				<< "\n* CAMERA FOUND & OPENED: " 
+				<< DEB_VAR4(snRequested, snCam, iHandle, iHandleLast);
+		}
+		else
+		{
+			_pco_CloseCamera(err);
+		}
+	}
+
+	if(handleOK != NULL)
+	{
+		m_handle = handleOK;
+		err = 0;
+	}
+	else
+	{
+		m_handle = NULL;
+		DEB_ALWAYS() << "CAMERA NOT FOUND: " << DEB_VAR2(snRequested, iHandleLast);
+		err = -1;
+	}
+
+#endif
+
+}
+//=================================================================================================
+//=================================================================================================
+
+void Camera::_pco_GetCameraTypeOnly(int &err)
+{
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+	err = 0;
+
+#ifdef __linux__
+	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+    return;
+
+#else
+
+	m_pcoData->stcPcoCamType.wSize = sizeof(m_pcoData->stcPcoCamType);
+	err = PCO_GetCameraType(m_handle, &m_pcoData->stcPcoCamType);
+
+	PCO_CHECK_ERROR(err, "PCO_GetCameraType");
+#endif
+
+}
