@@ -3558,3 +3558,81 @@ void Camera::setDoubleImageMode(int mode)
 	_pco_SetDoubleImageMode(wMode, error);
 
 }
+
+//====================================================================
+// SIP - attrib
+//====================================================================
+void Camera::getDebugInt(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+	unsigned long long debugLevel;
+			
+	debugLevel = m_pcoData->debugLevel;
+	ptr += sprintf_s(ptr, ptrMax - ptr, "0x%llx (%lld)",  debugLevel, debugLevel);
+
+	o_sn = buff;
+
+}
+
+void Camera::setDebugInt(std::string &i_sn) 
+{
+	DEB_MEMBER_FUNCT();
+
+	unsigned long long debugLevel;
+	const char *strIn = i_sn.c_str();
+
+	debugLevel = _atoi64(strIn);
+	m_pcoData->debugLevel = debugLevel;
+	
+}
+
+
+void Camera::getDebugIntTypes(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+			
+#define _PRINT_DBG( x )	ptr += sprintf_s(ptr, ptrMax - ptr, "%15s  0x%08x\n", #x, x ) 	
+
+	ptr += sprintf_s(ptr, ptrMax - ptr, "\n");
+	_PRINT_DBG( DBG_BUFF ) ;
+	_PRINT_DBG( DBG_XFER2LIMA ) ;
+	_PRINT_DBG( DBG_LIMABUFF ) ;
+	_PRINT_DBG( DBG_EXP ) ;
+	_PRINT_DBG( DBG_XFERMULT ) ;
+	_PRINT_DBG( DBG_XFERMULT1 ) ;
+	_PRINT_DBG( DBG_ASSIGN_BUFF ) ;
+	_PRINT_DBG( DBG_DUMMY_IMG ) ;
+	_PRINT_DBG( DBG_WAITOBJ ) ;
+	_PRINT_DBG( DBG_XFER_IMG ) ;
+	_PRINT_DBG( DBG_ROI ) ;
+
+	o_sn = buff;
+
+}
+
+
+//====================================================================
+// SIP - attrib
+//====================================================================
+void Camera::setTest(int val) 
+{
+	DEB_MEMBER_FUNCT();
+	
+	int val0 = val;
+	val *= 2;			
+
+	DEB_ALWAYS() << DEB_VAR2(val0, val);
+}
+
+void Camera::getTest(int &val) 
+{
+	DEB_MEMBER_FUNCT();
+	int valIn;
+
+	valIn = val;
+	val += 10;
+
+	DEB_ALWAYS() << DEB_VAR2(valIn, val);
+}

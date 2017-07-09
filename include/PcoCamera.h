@@ -1039,6 +1039,13 @@ namespace lima
 		void getDoubleImageMode(int & val);
 		void setDoubleImageMode(int val);
 
+		void getDebugIntTypes(std::string &o_sn);
+		void getDebugInt(std::string &o_sn);
+		void setDebugInt(std::string &i_sn); 
+		
+		void setTest(int val) ;
+		void getTest(int &val) ;
+
 	}; // class camera
   } // namespace pco
 } // namespace lima
