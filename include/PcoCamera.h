@@ -1046,6 +1046,10 @@ namespace lima
 		void setTest(int val) ;
 		void getTest(int &val) ;
 
+		void setTimestampMode(int mode);
+		void getTimestampMode(int &mode);
+
+
 	}; // class camera
   } // namespace pco
 } // namespace lima

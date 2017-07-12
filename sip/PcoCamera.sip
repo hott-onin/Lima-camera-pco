@@ -96,6 +96,8 @@ namespace Pco
 		void setTest(int val) ;
 		void getTest(int &val /Out/) ;
  
+		void setTimestampMode(int mode);
+		void getTimestampMode(int &mode /Out/);
 
 
   };
