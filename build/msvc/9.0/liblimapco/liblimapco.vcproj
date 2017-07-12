@@ -426,7 +426,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\..\..\..\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\common\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\hardware\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\third-party\Processlib\core\include\WindowSpecific&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\third-party\Processlib\core\include&quot;;&quot;$(ProjectDir)..\..\..\..\sdkPco\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\..\..\..\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\common\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\hardware\include&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\third-party\Processlib\core\include\WindowSpecific&quot;;&quot;$(ProjectDir)..\..\..\..\..\..\third-party\Processlib\core\include&quot;;&quot;$(ProjectDir)..\..\..\..\sdkPco\include&quot;;&quot;$(ProjectDir)..\..\..\..\sdkPco&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBLIMAPCO_EXPORTS;LIMA_PROCESSCORE_DLL;VS_PLATFORM=$(PlatformName);VS_CONFIGURATION=$(ConfigurationName);LIMA_PROCESSCORE_BUILD;WITH_GIT_VERSION"
 				GeneratePreprocessedFile="0"
 				RuntimeLibrary="2"
@@ -490,6 +490,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\..\..\src\PcoBinCtrlObj.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\src\PcoBufferCtrlObj.cpp"
 				>
 			</File>
@@ -499,6 +503,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\src\PcoCameraSdk.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\src\PcoCameraSdkAdd.cpp"
 				>
 			</File>
 			<File
@@ -536,11 +544,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\include\PcoBinCtrlObj.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\include\PcoBufferCtrlObj.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\..\include\PcoCamera.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\include\PcoCameraSdk.h"
 				>
 			</File>
 			<File
@@ -595,6 +611,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\..\sdkPco\PcoSdkVersion.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\..\sdkPco\include\SC2_CamExport.h"
 					>
 				</File>
@@ -634,11 +654,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\doc\errors.log"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\doc\index.rst"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\..\doc\notes.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\..\..\applications\tango\python\doc\camera\pco.rst"
 				>
 			</File>
 			<File

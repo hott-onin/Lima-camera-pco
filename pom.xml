@@ -58,6 +58,7 @@
                         <includePaths>
                             <includePath>include</includePath>
                             <includePath>sdkPco/include</includePath>
+                            <includePath>sdkPco</includePath>
                         </includePaths>
 
                         <defines>
