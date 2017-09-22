@@ -4,6 +4,79 @@
 #===================================================
 #===================================================
 
+#===================================================
+#========= 2017/09/22 / lima patch for buff realloc
+#===================================================
+lima tag - tango-camera-pco-1.7.5
+cb35d0f3a77e09381c5e149d3463d28dd7870067
+
+--->
+Merge branch Hardware buffer realloc
+move to core-1.7.5
+
+
+#===================================================
+#========= 2017/09/21 / system memory ==============
+#===================================================
+
+cameraUtils.cpp = talk
+		key = keys[ikey] = "winMem";     
+		keys_desc[ikey++] = "(R) read win memory";
+		
+MemUtils.cpp
+
+void lima::GetSystemMem(int& mem_unit, int& system_mem)
+{
+	if (mem_unit < 0)
+		throw LIMA_HW_EXC(InvalidValue, "Invalid mem_unit value");
+#ifdef __unix
+        struct sysinfo s_info;
+	if (sysinfo(&s_info) < 0)
+		throw LIMA_HW_EXC(Error, "Error calling sysinfo");
+
+        long long tot_mem = s_info.totalram;
+	tot_mem *= s_info.mem_unit;
+	if (mem_unit == 0) 
+		mem_unit = s_info.mem_unit;
+#else  // Windoze
+	MEMORYSTATUSEX statex;
+	statex.dwLength = sizeof(statex);
+	
+	GlobalMemoryStatusEx(&statex);
+	long long tot_mem = (long long) statex.ullAvailPhys;
+	if (mem_unit == 0) 
+	  mem_unit = 1;
+#endif
+
+	const bool platform_32 = (sizeof(void *) == 4);
+	const long long two_gigas = 2LL * 1024 * 1024 * 1024;
+	if ((platform_32) && (tot_mem > two_gigas))
+		tot_mem = two_gigas;
+
+
+	long long huge_blocks = tot_mem / mem_unit;
+	if (huge_blocks > INT_MAX)
+		huge_blocks = INT_MAX;
+
+	system_mem = int(huge_blocks);
+}
+
+CtBuffer.cpp
+void CtBuffer::Parameters::reset()
+{
+  DEB_MEMBER_FUNCT();
+
+  mode= Linear;
+  nbBuffers= 1;
+  maxMemory= 70;
+
+  DEB_TRACE() << *this;
+}
+
+#===================================================
+#===================================================
+
+
 2016/06/06 17:29:24 ==========================================
 - long tests done with pco gold /cameralink (wid19edge - 64b)
 
