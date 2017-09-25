@@ -350,6 +350,10 @@ void Camera::_get_MaxRoi(Roi &roi){
 //=========================================================================================================
 void Camera::_get_RoiSize(Size& roi_size)
 {
+	Roi limaRoi;
+	int error;
 
-	roi_size = m_RoiLima.getSize();
+	_pco_GetROI(limaRoi, error);
+
+	roi_size = limaRoi.getSize();
 }

@@ -545,10 +545,13 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 					m_pcoData->traceAcq.iPcoBinHorz, 
 					m_pcoData->traceAcq.iPcoBinVert);
 
+			Roi limaRoi;
+			int error;
+			_pco_GetROI(limaRoi, error);
 
-			Point top_left = m_RoiLima.getTopLeft();
-			Point bot_right = m_RoiLima.getBottomRight();
-			Size size = m_RoiLima.getSize();			
+			Point top_left = limaRoi.getTopLeft();
+			Point bot_right = limaRoi.getBottomRight();
+			Size size = limaRoi.getSize();			
 			unsigned int bytesPerPix; getBytesPerPixel(bytesPerPix);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* limaRoi xy0[%d,%d] xy1[%d,%d] size[%d,%d]\n",  
@@ -951,23 +954,16 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
 					x0, x1, y0, y1, x1-x0+1, y1-y0+1);
 			{
-			Point top_left = m_RoiLima.getTopLeft();
-			Point bot_right = m_RoiLima.getBottomRight();
-			Size size = m_RoiLima.getSize();
+			Point top_left = limaRoi.getTopLeft();
+			Point bot_right = limaRoi.getBottomRight();
+			Size size = limaRoi.getSize();
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* roiLima PCO XY0(%d,%d) XY1(%d,%d) size(%d,%d)\n",  
 					top_left.x, top_left.y,
 					bot_right.x, bot_right.y,
 					size.getWidth(), size.getHeight());
 
-			top_left = m_RoiLimaRequested.getTopLeft();
-			bot_right = m_RoiLimaRequested.getBottomRight();
-			size = m_RoiLimaRequested.getSize();
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "* roiLima REQUESTED XY0(%d,%d) XY1(%d,%d) size(%d,%d)\n",  
-					top_left.x, top_left.y,
-					bot_right.x, bot_right.y,
-					size.getWidth(), size.getHeight());
 			}
 
 

@@ -282,10 +282,13 @@ void Camera::getTraceAcq(std::string &o_sn)
 			m_pcoData->traceAcq.iPcoBinHorz, 
 			m_pcoData->traceAcq.iPcoBinVert);
 
+	Roi limaRoi;
+	int error;
+	_pco_GetROI(limaRoi, error);
 
-	Point top_left = m_RoiLima.getTopLeft();
-	Point bot_right = m_RoiLima.getBottomRight();
-	Size size = m_RoiLima.getSize();			
+	Point top_left = limaRoi.getTopLeft();
+	Point bot_right = limaRoi.getBottomRight();
+	Size size = limaRoi.getSize();			
 	unsigned int bytesPerPix; getBytesPerPixel(bytesPerPix);
 
 	ptr += sprintf_s(ptr, ptrMax - ptr, "* limaRoi xy0[%d,%d] xy1[%d,%d] size[%d,%d]\n",  

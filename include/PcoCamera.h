@@ -709,8 +709,6 @@ namespace lima
 	
 		int m_pcoError;
 
-		Roi m_RoiLima, m_RoiLimaRequested ;
-
 		Roi m_Roi_lastFixed_hw;
 		Roi m_Roi_lastFixed_requested;
 		time_t m_Roi_lastFixed_time;

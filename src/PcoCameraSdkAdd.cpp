@@ -1414,12 +1414,16 @@ unsigned long Camera::_pco_GetNumberOfImagesInSegment_MaxCalc(int segmentPco)
         }
         
 #else
+		int error;
 		int segmentArr = segmentPco-1;
 		unsigned long xroisize,yroisize;
 		unsigned long long pixPerFrame, pagesPerFrame;
 
-		xroisize = m_RoiLima.getSize().getWidth();
-		yroisize = m_RoiLima.getSize().getHeight();
+		Roi limaRoi;
+		_pco_GetROI(limaRoi, error);
+
+		xroisize = limaRoi.getSize().getWidth();
+		yroisize = limaRoi.getSize().getHeight();
 
 		//xroisize = m_roi.x[1] - m_roi.x[0] + 1;
 		//yroisize = m_roi.y[1] - m_roi.y[0] + 1;
@@ -2638,6 +2642,7 @@ void Camera::_pco_SetROI(Roi roi, int &err)
 	{
 		DEB_ALWAYS() << "ERROR - PCO_SetROI";
 	}
+
 
 
     _armRequired(true);

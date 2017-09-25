@@ -1,20 +1,6 @@
 
-2017/09/22 15:51:18 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-09-22_155108]
-  to: [/t/rhoms1/install-2017-09-22_155108]
-  to: [/t/rhoms1/install-beta]
-
-2017/09/22 15:48:39 ==========================================
-#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
-#define        PCO_GIT_VERSION "$Id:       PCO rev[2017-07-12 08:15:38 +0200] head[eae3c10][eae3c108127ae99d6f68747a3240179147fa42f8] ref[ (HEAD, gitrh/pco-dev02, pco-dev02)] at [2017/09/22 15:48:39] $"
-#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2017-09-22 15:27:46 +0200] head[fd4638e][fd4638e994b16d638591ac73c4755007030bc7c2] ref[ (HEAD, github/core-1.7, core-1.7)] at [2017/09/22 15:48:39] $"
-#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD)] at [2017/09/22 15:48:39] $"
-#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/09/22 15:48:39] $"
-#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/09/22 15:48:39] $"
-#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2017/09/22 15:48:39] $"
-
+# 2017/09/25
+- fix actual roi value
 
 #===================================================
 #========= 2017/09/22 / lima patch for buff realloc

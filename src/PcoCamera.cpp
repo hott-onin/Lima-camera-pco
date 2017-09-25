@@ -594,9 +594,7 @@ void Camera::_init(){
 	getXYsteps(maxwidth_step, maxheight_step);
 
 
-	_get_MaxRoi(m_RoiLima);
-	_get_MaxRoi(m_RoiLimaRequested);
-	
+
 	WORD bitsPerPix;
 	getBitsPerPixel(bitsPerPix);
 
