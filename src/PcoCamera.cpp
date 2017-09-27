@@ -428,7 +428,8 @@ Camera::Camera(const char *params) :
 	m_acq_frame_nb(1),
 	m_sync(NULL),
 	m_buffer(NULL),
-	m_handle(NULL)
+	m_handle(NULL),
+	m_Roi_lastFixed_time(0)
 {
 	DEF_FNID;
 	DEB_CONSTRUCTOR();

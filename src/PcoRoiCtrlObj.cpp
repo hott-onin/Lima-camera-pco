@@ -40,8 +40,8 @@ const char* _timestamp_pcoroictrlobj() {return ID_FILE_TIMESTAMP ;}
 //=========================================================================================================
 //=========================================================================================================
 RoiCtrlObj::RoiCtrlObj(Camera *cam):
-  m_cam(cam),
-  m_handle(cam->getHandle())
+	m_cam(cam),
+	m_handle(cam->getHandle())
 {
 	DEB_CONSTRUCTOR();
 }

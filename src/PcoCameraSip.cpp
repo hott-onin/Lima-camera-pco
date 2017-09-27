@@ -441,31 +441,39 @@ void Camera::getLastFixedRoi(std::string &o_sn)
 	ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO ACTUAL X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
 			x0, x1, y0, y1, x1-x0+1, y1-y0+1);
 
-	limaRoi = limaRoiRequested; 
-	x0 = limaRoi.getTopLeft().x - 1;
-	x1 = limaRoi.getBottomRight().x - 1;
-	y0 = limaRoi.getTopLeft().y - 1;
-	y1 = limaRoi.getBottomRight().y - 1;
+	if(dt)
+	{
+		limaRoi = limaRoiRequested; 
+		x0 = limaRoi.getTopLeft().x - 1;
+		x1 = limaRoi.getBottomRight().x - 1;
+		y0 = limaRoi.getTopLeft().y - 1;
+		y1 = limaRoi.getBottomRight().y - 1;
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO REQUESTED X(%d,%d) Y(%d,%d) size(%d,%d) [%s]\n",  
-			x0, x1, y0, y1, x1-x0+1, y1-y0+1, getTimestamp(Iso, dt));
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO REQUESTED X(%d,%d) Y(%d,%d) size(%d,%d) [%s]\n",  
+				x0, x1, y0, y1, x1-x0+1, y1-y0+1, getTimestamp(Iso, dt));
 
-	limaRoi = limaRoiFixed; 
-	x0 = limaRoi.getTopLeft().x - 1;
-	x1 = limaRoi.getBottomRight().x - 1;
-	y0 = limaRoi.getTopLeft().y - 1;
-	y1 = limaRoi.getBottomRight().y - 1;
+		limaRoi = limaRoiFixed; 
+		x0 = limaRoi.getTopLeft().x - 1;
+		x1 = limaRoi.getBottomRight().x - 1;
+		y0 = limaRoi.getTopLeft().y - 1;
+		y1 = limaRoi.getBottomRight().y - 1;
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO FIXED X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
-			x0, x1, y0, y1, x1-x0+1, y1-y0+1);
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO FIXED X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+				x0, x1, y0, y1, x1-x0+1, y1-y0+1);
+	}
+	else
+	{
+		ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO FIXED - no roi fixed yet!\n");  
+	
+	}
 
 	bool bSymX, bSymY;
 	unsigned int xMax, yMax, xSteps, ySteps, xMinSize, yMinSize;
 	getXYdescription(xSteps, ySteps, xMax, yMax, xMinSize, yMinSize); 
 	getRoiSymetrie(bSymX, bSymY );
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "* xSteps[%d] ySteps[%d] xMinSize[%d] yMinSize[%d] xSym[%d] ySym[%d]\n",  
-			xSteps, ySteps, xMinSize, yMinSize, bSymX, bSymY);
+	ptr += sprintf_s(ptr, ptrMax - ptr, "* xySteps[%d,%d] xyMinSize[%d,%d] xyMaxSize[%d,%d] xySym[%d,%d]\n",  
+			xSteps, ySteps, xMinSize, yMinSize, xMax, yMax, bSymX, bSymY);
 
 
 //------
