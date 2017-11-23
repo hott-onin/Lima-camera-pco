@@ -3,6 +3,7 @@
 *.swp
 *.bck
 *.bak
+*.map
 *~
 *target*
 *.vcproj.*user
@@ -10,3 +11,6 @@
 PcoGitVersion.*
 [0-9]*
 *.cpp.*
+*.h.*
+*.sip.*
+*Makefile.*

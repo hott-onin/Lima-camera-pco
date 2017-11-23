@@ -506,7 +506,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\src\PcoCameraSdkAdd.cpp"
+				RelativePath="..\..\..\..\src\PcoCameraSdkLin.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\src\PcoCameraSdkWin.cpp"
 				>
 			</File>
 			<File

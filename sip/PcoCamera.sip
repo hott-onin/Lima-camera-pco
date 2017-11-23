@@ -99,6 +99,8 @@ namespace Pco
 		void setTimestampMode(int mode);
 		void getTimestampMode(int &mode /Out/);
 
+		void setBitAlignment(std::string &i_sn);
+		void getBitAlignment(std::string &o_sn /Out/); 
 
   };
 };

@@ -750,7 +750,11 @@ void Camera::setDebugInt(std::string &i_sn)
 	unsigned long long debugLevel;
 	const char *strIn = i_sn.c_str();
 
+#ifdef __linux__
+ 	debugLevel = atoll(strIn);
+#else
 	debugLevel = _atoi64(strIn);
+#endif
 	m_pcoData->debugLevel = debugLevel;
 	
 }
@@ -828,4 +832,59 @@ void Camera::getTimestampMode(int &val)
 
 	if(!err) val = mode;
 
+}
+//====================================================================
+// SIP - attrib
+//====================================================================
+void Camera::getBitAlignment(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+	int alignment, error;
+
+	error = _pco_GetBitAlignment(alignment);
+
+	if(error)
+	{
+		ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR");
+	}
+	else
+	{
+		ptr += sprintf_s(ptr, ptrMax - ptr, "%s(%d)", (alignment ? "LSB" : "MSB") , alignment);
+	}
+
+	o_sn = buff;
+
+}
+
+void Camera::setBitAlignment(std::string &i_sn) 
+{
+	DEB_MEMBER_FUNCT();
+
+	const char *strIn = i_sn.c_str();
+	int _val;
+
+#ifdef __linux__
+ 	debugLevel = atoll(strIn);
+#else
+	if( (_stricmp(strIn, "0") == 0) || (_stricmp(strIn, "MSB") == 0) )
+	{
+		_val = 0;
+	}
+	else 
+	{
+		if( (_stricmp(strIn, "1") == 0) || (_stricmp(strIn, "LSB") == 0) )
+		{
+			_val = 1;
+		}
+		else
+		{
+			DEB_ALWAYS() << "ERROR - invalid value: " << strIn;
+			return;
+		}
+	}
+#endif
+	_pco_SetBitAlignment(_val);
+	return;
+	
 }

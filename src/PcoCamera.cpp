@@ -587,6 +587,14 @@ void Camera::_init(){
 
 	// set alignment to [LSB aligned]; all raw image data will be aligned to the LSB.
 
+
+	if(paramsGet("bitAlignment", value))
+	{
+		std::string str(value);
+		setBitAlignment(str);
+	}
+
+
 	_pco_SetBitAlignment(1);
 
 		// -- Initialise size, bin, roi

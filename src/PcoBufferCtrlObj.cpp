@@ -240,7 +240,7 @@ int BufferCtrlObj::_assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast,
 	void *myLimaBufferPtr1;
 	int myLimaBufferNr, myLimaBufferNr1;
 	DWORD myLimaBufferLen;
-	DWORD myPcoBufferLen, myPcoBufferLenReal;
+	DWORD myPcoBufferLen;
 	int lima_buffer_nb;
 	double timeout = 30;
 	const char *msg;
@@ -371,7 +371,7 @@ if(wDoubleImage)
 
 	myLimaBufferLen = wDoubleImage ? dwArmLen/2 : dwArmLen;
  	m_ImageBufferSize = dwArmLen;
-	myPcoBufferLenReal = dwArmLen;
+	//DWORD myPcoBufferLenReal = dwArmLen;
 
 #ifdef DEBUG_XFER_IMAG
 	DEB_ALWAYS() << "_assignImage2Buffer: " << DEB_VAR3(myBufferLen, myPcoBufferLen, dwArmLen);

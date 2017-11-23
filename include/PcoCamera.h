@@ -1047,6 +1047,8 @@ namespace lima
 		void setTimestampMode(int mode);
 		void getTimestampMode(int &mode);
 
+		void setBitAlignment(std::string &i_sn);
+		void getBitAlignment(std::string &o_sn); 
 
 	}; // class camera
   } // namespace pco
