@@ -591,11 +591,11 @@ void Camera::_init(){
 	if(paramsGet("bitAlignment", value))
 	{
 		std::string str(value);
+
+		DEB_ALWAYS() <<  "params bitAligment): " << str;
 		setBitAlignment(str);
 	}
 
-
-	_pco_SetBitAlignment(1);
 
 		// -- Initialise size, bin, roi
 	unsigned int maxWidth, maxHeight,maxwidth_step, maxheight_step; 
