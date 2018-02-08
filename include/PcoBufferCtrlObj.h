@@ -42,6 +42,10 @@ struct stcAllocBuff {
 		WORD	*limaAllocBufferPtr[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
 		WORD	*limaAllocBufferPtr1[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
         DWORD	dwLimaAllocBufferSize[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
+		int 	limaAllocBufferNr[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer nr allocated by Lima
+		int 	limaAllocBufferNr1[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer nr allocated by Lima
+
+
 		DWORD	dwStatus[8];			// PCO_AddBufferEx status/error return
 
         //HANDLE bufferAllocEvent[PCO_MAX_NR_ALLOCATED_BUFFERS];
@@ -88,21 +92,21 @@ namespace lima
 		int m_ImageBufferSize;
 
 	public:
-      BufferCtrlObj(Camera *cam);
-      void prepareAcq();
-      void startAcq();
-      //void getStatus(int &err,bool& exposing) {err = m_status,exposing = m_exposing;}
-      void getStatus(int &err) {err = m_cam->pcoGetError();}
-      //void setStatus(int status) {m_status = status;}
+		BufferCtrlObj(Camera *cam);
+		void prepareAcq();
+		void startAcq();
+		//void getStatus(int &err,bool& exposing) {err = m_status,exposing = m_exposing;}
+		void getStatus(int &err) {err = m_cam->pcoGetError();}
+		//void setStatus(int status) {m_status = status;}
 
-        //-------------------------------------------------------------  moved from taco
-        
-	  
-        int _xferImagDoubleImage();
-        int _xferImag();
-        int _xferImag_getImage();
-        int _xferImag_getImage_edge();
-        int _xferImagMult();
+
+		void _setNewFrameReady(int iLimaFrame);	  
+		int _xferImagMultDoubleImage();
+		int _xferImagDoubleImage();
+		int _xferImag();
+		int _xferImag_getImage();
+		int _xferImag_getImage_edge();
+		int _xferImagMult();
 		void *_getLimaBuffer(int lima_buffer_nb, Sync::Status &status);
 		void _pcoAllocBuffersFree();
 		void _pcoAllocBuffersInfo(int &nr, DWORD &size);

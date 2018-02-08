@@ -85,15 +85,14 @@ namespace lima
 
 		void getStatus(HwInterface::StatusType&);
 
-		void SyncCtrlObj::xlatLimaTrigMode2Pco(
+		void xlatLimaTrigMode2Pco(
 	        lima::TrigMode limaTrigMode, WORD &pcoTrigMode, WORD &pcoAcqMode, bool &extTrig, int &err);
-
 
 		//BufferCtrlObj* _getBufferCtrlObj() {return m_buffer;}
 		void setExposing(pcoAcqStatus exposing);
 		void setStarted(bool started); 
-		bool getStarted() {return m_started;}
-		pcoAcqStatus getExposing() {return m_exposing;}
+		bool getStarted();
+		pcoAcqStatus getExposing();
 
 		int _getRequestStop(int &nrStop);
 		void _setRequestStop(int requestStop);

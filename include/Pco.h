@@ -205,21 +205,15 @@ typedef int tPvErr;
 		} \
 }
 
-#ifndef __linux__
-#define DEF_FNID 	static char *fnId =__FUNCTION__;
-
 #define PCO_CHECK_ERROR(er, fn)   (PcoCheckError(__LINE__, __FILE__, ( er ) , ( fn ) ))
 
-#else
-#define DEF_FNID 	const char *fnId  __attribute__((unused)) =__FUNCTION__ ;
+#ifndef __linux__
 
-#define PCO_CHECK_ERROR(__err__ , __comments__)  \
-{ \
-		if(__err__) \
-		{ \
-			__err__ = PcoCheckError(__LINE__, __FILE__, __err__, fnId , __comments__); \
-		} \
-}
+#define DEF_FNID 	static char *fnId =__FUNCTION__;
+
+#else
+
+#define DEF_FNID 	const char *fnId  __attribute__((unused)) =__FUNCTION__ ;
 
 #define PCO_CHECK_ERROR1(__err__ , __comments__)  \
 { \

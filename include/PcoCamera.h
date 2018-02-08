@@ -709,8 +709,6 @@ namespace lima
 	
 		int m_pcoError;
 
-		Roi m_RoiLima, m_RoiLimaRequested ;
-
 		Roi m_Roi_lastFixed_hw;
 		Roi m_Roi_lastFixed_requested;
 		time_t m_Roi_lastFixed_time;
@@ -992,7 +990,7 @@ namespace lima
 
 		void _pco_GetFirmwareInfo(char *buf_in, int size_in, int &err);
 
-		const char *_sprintComment(const char *comment, const char *comment1 ="" , const char *comment2 ="" );
+		const char *_sprintComment(bool bAlways, const char *comment, const char *comment1 ="" , const char *comment2 ="" );
 
 		void _pco_ArmCamera(int &err);
 		void _pco_SetRecordStopEvent(WORD wRecordStopEventMode, DWORD dwRecordStopDelayImages, int &err);
@@ -1036,6 +1034,21 @@ namespace lima
 		const char *_getCameraIdn();
 		void getCamerasFound(std::string &o_sn) ;
 
+		void getDoubleImageMode(int & val);
+		void setDoubleImageMode(int val);
+
+		void getDebugIntTypes(std::string &o_sn);
+		void getDebugInt(std::string &o_sn);
+		void setDebugInt(std::string &i_sn); 
+		
+		void setTest(int val) ;
+		void getTest(int &val) ;
+
+		void setTimestampMode(int mode);
+		void getTimestampMode(int &mode);
+
+		void setBitAlignment(std::string &i_sn);
+		void getBitAlignment(std::string &o_sn); 
 
 	}; // class camera
   } // namespace pco

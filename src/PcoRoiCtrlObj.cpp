@@ -40,8 +40,8 @@ const char* _timestamp_pcoroictrlobj() {return ID_FILE_TIMESTAMP ;}
 //=========================================================================================================
 //=========================================================================================================
 RoiCtrlObj::RoiCtrlObj(Camera *cam):
-  m_cam(cam),
-  m_handle(cam->getHandle())
+	m_cam(cam),
+	m_handle(cam->getHandle())
 {
 	DEB_CONSTRUCTOR();
 }
@@ -350,6 +350,10 @@ void Camera::_get_MaxRoi(Roi &roi){
 //=========================================================================================================
 void Camera::_get_RoiSize(Size& roi_size)
 {
+	Roi limaRoi;
+	int error;
 
-	roi_size = m_RoiLima.getSize();
+	_pco_GetROI(limaRoi, error);
+
+	roi_size = limaRoi.getSize();
 }
