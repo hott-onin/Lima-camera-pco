@@ -521,6 +521,8 @@ if(wDoubleImage)
 //===================================================================================================================
 int BufferCtrlObj::_xferImag()
 {
+
+#ifndef __linux__
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
@@ -946,7 +948,7 @@ _EXIT_STOP:
 	m_pcoData->traceAcq.endXferTimestamp = getTimestamp();
 
 	return pcoAcqTransferStop;
-
+#endif
 }
 
 
@@ -1263,6 +1265,7 @@ int BufferCtrlObj::_xferImag_getImage()
 
 int BufferCtrlObj::_xferImag_getImage_edge()
 {
+#ifndef __linux__
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 	
@@ -1489,7 +1492,7 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 	DEB_TRACE()	<< DEB_VAR3(_retStatus, _stopReq, _newFrameReady);  
 
 	return _retStatus;
-
+#endif
 }
 
 
@@ -1789,6 +1792,7 @@ int BufferCtrlObj::_xferImagMult()
 // called by startAcq
 void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 	
+#ifndef __linux__
 
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
@@ -1904,6 +1908,8 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 
 		}
 	}
+
+#endif
 }
 
 //===================================================================================================================
@@ -1986,6 +1992,8 @@ void BufferCtrlObj::_pcoAllocBuffersFree() {
 //===================================================================================================================
 int BufferCtrlObj::_xferImagDoubleImage()
 {
+
+#ifndef __linux__
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
 
@@ -2410,7 +2418,7 @@ _EXIT_STOP:
 	m_pcoData->traceAcq.endXferTimestamp = getTimestamp();
 
 	return pcoAcqTransferStop;
-
+#endif
 }
 
 

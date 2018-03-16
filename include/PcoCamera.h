@@ -816,8 +816,9 @@ namespace lima
 
 		bool _getCameraState(long long flag);
 		void _setCameraState(long long flag, bool val);
+#ifndef __linux__
 		bool _isRunAfterAssign();
-
+#endif
 		bool _isCapsDesc(int caps);
        	void _pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &err);
 
@@ -951,6 +952,7 @@ namespace lima
 
 		double pcoGetCocRunTime();
 		double pcoGetFrameRate();
+ 		void _pco_GetCameraMinSizeCalc(WORD& wMinSizeHorz, WORD& wMinSizeVert);
 
 		void _pco_GetCOCRuntime(int &err);
  		
@@ -1064,13 +1066,19 @@ void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase);
 	int PCO_GetActiveRamSegment(HANDLE ph, WORD *);
 	int PCO_GetActiveLookupTable(HANDLE ph, WORD *wIdentifier, WORD *wParameter);
 	int PCO_SetActiveLookupTable(HANDLE ph, WORD *wIdentifier, WORD *wParameter);
-int PCO_CamLinkSetImageParameters(HANDLE ph, WORD wxres, WORD wyres);
+	int PCO_CamLinkSetImageParameters(HANDLE ph, WORD wxres, WORD wyres);
 
+
+
+long msElapsedTime(TIME_USEC &t0);
+void msElapsedTimeSet(TIME_USEC &t0);
+void usElapsedTimeSet(TIME_UTICKS &tick0) ;
+long long usElapsedTime(TIME_UTICKS &tick0) ;
+double usElapsedTimeTicsPerSec() ;
+enum traceAcqId {traceAcq_execTimeTot, };
+int image_nr_from_timestamp(void *buf,int shift, bool bDisable);
 
 #endif
-
-
-
 
 
 

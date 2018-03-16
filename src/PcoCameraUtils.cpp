@@ -181,14 +181,17 @@ char *_split_date(const char *s) {
 	ptr1 = strchr(s,'[');
 	ptr2 = strchr(ptr1,']');
 	strncpy_s4(s1, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
+    s1[ptr2-ptr1-1] = 0;
 
 	ptr1 = strchr(ptr2,'[');
 	ptr2 = strchr(ptr1,']');
 	strncpy_s4(s2, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
+    s2[ptr2-ptr1-1] = 0;
 
 	ptr1 = strchr(ptr2,'[');
 	ptr2 = strchr(ptr1,']');
 	strncpy_s4(s3, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
+    s3[ptr2-ptr1-1] = 0;
 
 	return _xlat_date(s1, s2, s3);
 }
@@ -2905,4 +2908,3 @@ void Camera::getRollingShutterInfo(std::string &o_sn)
 	o_sn = buff;
 	return;
 }
-

@@ -479,7 +479,7 @@ int Camera::_pco_SetBitAlignment(int alignment){
 	error = PCO_CHECK_ERROR(error, "PCO_SetBitAlignment");
 #else
     error=camera->PCO_SetBitAlignment(wBitAlignment);
-    msg = "PCO_SetBitAlignment" ; PCO_CHECK_ERROR(error, msg);
+    char *msg = "PCO_SetBitAlignment" ; PCO_CHECK_ERROR(error, msg);
     PCO_THROW_OR_TRACE(error, msg) ;
 #endif
 
@@ -2893,18 +2893,23 @@ void Camera::getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsign
 #ifndef __linux__
 	xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wMinSizeHorzDESC;
 	yMinSize = m_pcoData->stcPcoDescription.wMinSizeVertDESC;
-#else
-	xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
-	yMinSize = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
-#endif
+
 	{ // patch meanwhile firmware 1.19 is fixed
-		if(m_pcoData->params_xMinSize) {
+		if(m_pcoData->params_xMinSize) 
+		{
 			xMinSize += xSteps;
 			DEB_TRACE() << "PATCH APPLIED: " << DEB_VAR2(xMinSize0, xMinSize);
-		
 		}
 	}
 
+#else
+	//xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
+	//yMinSize = m_pcoData->stcPcoDescription.wRoiVertStepsDESC;
+    WORD wXMinSize, wYMinSize;
+	_pco_GetCameraMinSizeCalc(wXMinSize, wYMinSize);
+    xMinSize = wXMinSize;
+    yMinSize = wYMinSize;
+#endif
 }
 
 void Camera::getXYsteps(unsigned int &xSteps, unsigned int &ySteps){
@@ -3916,3 +3921,79 @@ void Camera::_pco_GetCameraTypeOnly(int &err)
 #endif
 
 }
+
+//=================================================================================================
+//=================================================================================================
+void Camera::_pco_GetCameraMinSizeCalc(WORD& wMinSizeHorz, WORD& wMinSizeVert)
+{
+		
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
+    unsigned int uiHorzSteps, uiVertSteps;
+    getXYsteps(uiHorzSteps, uiVertSteps);
+    WORD wHorzSteps = uiHorzSteps;
+    WORD wVertSteps = uiVertSteps;
+
+
+    WORD wh = _getCameraType();
+    if((wh == CAMERATYPE_PCO_EDGE) ||
+      (wh == CAMERATYPE_PCO_EDGE_GL) ||
+      (wh == CAMERATYPE_PCO_EDGE_42) ||
+      (wh == CAMERATYPE_PCO_EDGE_USB3) ||
+      (wh == CAMERATYPE_PCO_EDGE_HS))
+    {
+      wMinSizeHorz = wHorzSteps;
+      wMinSizeVert = wVertSteps;
+
+      if(wMinSizeHorz < 160)
+        wMinSizeHorz = 160;            // due to camera limitation
+      if(wMinSizeVert < 16)
+        wMinSizeVert = 16;
+      if(wh == CAMERATYPE_PCO_EDGE_42)
+      {
+        wMinSizeHorz = 40;            // due to camera limitation
+        wMinSizeVert = 16;
+      }
+      if ((wh == CAMERATYPE_PCO_EDGE_USB3) ||
+        (wh == CAMERATYPE_PCO_EDGE_HS))
+      {
+        wMinSizeVert = 16;
+        wMinSizeHorz = 64;            // due to camera limitation
+      }
+    }
+    else
+    {
+      wMinSizeHorz = wHorzSteps * 2;
+      wMinSizeVert = wVertSteps * 2;
+
+      if(wMinSizeHorz < 8)
+        wMinSizeHorz = 8;
+      if(wMinSizeVert < 8)
+        wMinSizeVert = 8;
+    }
+    if(wHorzSteps > 1)
+    {
+      int k = (wMinSizeHorz) % wHorzSteps;
+      if(k > 0)
+      {
+        k++;
+        wMinSizeHorz = wHorzSteps * k;
+      }
+    }
+
+    if(wVertSteps > 1)
+    {
+      int k = (wMinSizeVert) % wVertSteps;
+      if(k > 0)
+      {
+        k++;
+        wMinSizeVert = wVertSteps * k;
+      }
+    }
+
+    DEB_ALWAYS() << DEB_VAR4(wMinSizeHorz, wMinSizeVert, wHorzSteps, wVertSteps);
+}
+
+
+
