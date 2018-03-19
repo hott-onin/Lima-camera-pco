@@ -80,9 +80,7 @@ DECLARE_HANDLE(HWND);
 
 #define _stricmp strcasecmp
 #define strcpy_s(d, l, s) strncpy( (d), (s), (l) )
-
-#define strncpy_s(d, s, l) strncpy( (d), (s), (l) )
-#define strncpy_s4(d, l , s , n) strncpy( (d), (s), (l) )
+#define strncpy_s(d, l , s , n) strncpy( (d), (s), (l) )
 
 #define VS_PLATFORM "osLinux"
 #define VS_CONFIGURATION x64

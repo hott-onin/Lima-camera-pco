@@ -522,40 +522,6 @@ void Camera::getRoiSymetrie(bool &bSymX, bool &bSymY ){
 	_pco_GetADCOperation(adc_working, adc_max);
 	if(adc_working != 1) { bSymX = true; }
 }
-//=================================================================================================
-//=================================================================================================
-
-void usElapsedTimeSet(LARGE_INTEGER &tick0) {
-
-#ifndef __linux__
-	QueryPerformanceCounter(&tick0);
-#else
-	tick0 = 0;
-#endif
-
-}
-
-long long usElapsedTime(LARGE_INTEGER &tick0) {
-
-#ifndef __linux__
-	LARGE_INTEGER ticksPerSecond;
-	LARGE_INTEGER tick;   // A point in time
-	long long uS, uS0;
-
-	QueryPerformanceFrequency(&ticksPerSecond); 
-	QueryPerformanceCounter(&tick);
-
-	double ticsPerUSecond = ticksPerSecond.QuadPart/1.0e6;
-	uS = (long long) (tick.QuadPart/ticsPerUSecond);
-	uS0 = (long long) (tick0.QuadPart/ticsPerUSecond);
-
-	return uS - uS0;
-#else
-	return 0;
-#endif	
-}
-
-
 //====================================================================
 // SIP - attrib
 //====================================================================
@@ -864,9 +830,6 @@ void Camera::setBitAlignment(std::string &i_sn)
 	const char *strIn = i_sn.c_str();
 	int _val;
 
-#ifdef __linux__
- 	debugLevel = atoll(strIn);
-#else
 	if( (_stricmp(strIn, "0") == 0) || (_stricmp(strIn, "MSB") == 0) )
 	{
 		_val = 0;
@@ -883,7 +846,7 @@ void Camera::setBitAlignment(std::string &i_sn)
 			return;
 		}
 	}
-#endif
+
 	_pco_SetBitAlignment(_val);
 	return;
 	

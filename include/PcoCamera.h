@@ -166,6 +166,10 @@ struct stcSegmentInfo
 	DWORD dwValidImageCnt;
 	DWORD dwMaxImageCnt;
 };
+
+//================================================================
+// LINUX
+//================================================================
 #ifdef __linux__
 typedef struct
 {
@@ -180,6 +184,8 @@ typedef struct
   DWORD ZZdwReserved[11];              // 60
 } PCO_SignalLinux;
 #endif
+//================================================================
+//================================================================
 
 #define LEN_TRACEACQ_MSG 512
 #define LEN_ERROR_MSG			(512-1)
@@ -193,9 +199,12 @@ char DLL_EXPORT *_hex_dump_bytes(void *obj, size_t lenObj, char *buff, size_t le
 long msElapsedTime(TIME_USEC &t0);
 void msElapsedTimeSet(TIME_USEC &t0);
 
-void usElapsedTimeSet(LARGE_INTEGER &tick0) ;
-long long usElapsedTime(LARGE_INTEGER &tick0) ;
+void usElapsedTimeSet(long long &us0) ;
+long long usElapsedTime(long long &us0) ;
+
 double usElapsedTimeTicsPerSec() ;
+
+
 
 #define DIM_ACTION_TIMESTAMP 10
 enum actionTimestamp {tsConstructor = 0, tsStartAcq, tsStopAcq, tsPrepareAcq, tsReset};
@@ -279,6 +288,9 @@ struct stcPcoData
 	PCO_CameraType	stcPcoCamType;
 	PCO_Sensor stcPcoSensor;
 	
+//================================================================
+// LINUX / WIN
+//================================================================
 #ifndef __linux__
 	PCO_Description	stcPcoDescription;	/* camera description structure */
 	PCO_Signal stcPcoHWIOSignal[SIZEARR_stcPcoHWIOSignal];
@@ -294,6 +306,8 @@ struct stcPcoData
 	SC2_Get_HW_IO_Signal_Descriptor_Response stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
 	char sPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal][SIZESTR_PcoHWIOSignal+1];
 #endif
+//================================================================
+//================================================================
 
 	const char *sClTransferParameterSettings;
 
@@ -614,6 +628,9 @@ namespace lima
 		void 	startAcq();
 		void	reset(int reset_level);
 
+//================================================================
+// LINUX
+//================================================================
 #ifdef __linux__
   	CPco_com *camera;
   	CPco_grab_cl_me4* grabber;
@@ -622,6 +639,8 @@ namespace lima
         void    stopAcq();
         void    _stopAcq(bool waitForThread);
 #endif
+//================================================================
+//================================================================
 
 		// ----- BIN
 		void setBin(const Bin& aBin);
@@ -676,9 +695,6 @@ namespace lima
 		void paramsInit(const char *str);
 
 		bool paramsGet(const char *key, char *&value);
-#ifdef __linux
-		bool paramsGet(const char *key, unsigned long long &value);
-#endif
 		time_t _getActionTimestamp(int action);
 		void _setActionTimestamp(int action);
 
@@ -698,11 +714,16 @@ namespace lima
 
 		Cond m_cond;
 
+//================================================================
+// LINUX
+//================================================================
 #ifdef __linux__
         class _AcqThread;
         friend class _AcqThread;
 	_AcqThread*                   m_acq_thread;
 #endif    
+//================================================================
+//================================================================
         volatile bool               m_wait_flag;
         volatile bool               m_quit;
         volatile bool               m_thread_running;
@@ -816,9 +837,14 @@ namespace lima
 
 		bool _getCameraState(long long flag);
 		void _setCameraState(long long flag, bool val);
+//================================================================
+// WIN
+//================================================================
 #ifndef __linux__
 		bool _isRunAfterAssign();
 #endif
+//================================================================
+//================================================================
 		bool _isCapsDesc(int caps);
        	void _pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &err);
 
@@ -829,6 +855,9 @@ namespace lima
 		void _pco_SetCameraToCurrentTime(int &error);
 		void _pco_SetCamLinkSetImageParameters(int &error);
 
+//================================================================
+// LINUX
+//================================================================
 #ifdef __linux__
 		void _pco_GetLut(int &err);
 		void _pco_Open_Cam(int &err);
@@ -836,6 +865,8 @@ namespace lima
 		void _pco_GetCameraInfo(int &error);
  		void _pco_ResetSettingsToDefault(int &err);
 #endif
+//================================================================
+//================================================================
 
    		void _pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error); 
 		void _pco_SetTransferParameter_SetActiveLookupTable_win(int &error);
@@ -974,9 +1005,14 @@ namespace lima
 
 		void dummySip();
 
+//================================================================
+// LINUX
+//================================================================
 #ifdef __linux__
         void _waitForRecording(int nrFrames, DWORD &_dwValidImageCnt, DWORD &_dwMaxImageCnt, int &error) ;
 #endif
+//================================================================
+//================================================================
 		//----
 		void _pco_GetInfoString(int infotype, char *buf_in, int size_in, int &error);
 		void _pco_GetBinning(Bin &bin, int &err);
@@ -1060,6 +1096,9 @@ void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase);
 
 
 
+//================================================================
+// LINUX
+//================================================================
 //--------------------- dummies for linux
 #ifdef __linux__
 
@@ -1070,15 +1109,12 @@ void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase);
 
 
 
-long msElapsedTime(TIME_USEC &t0);
-void msElapsedTimeSet(TIME_USEC &t0);
-void usElapsedTimeSet(TIME_UTICKS &tick0) ;
-long long usElapsedTime(TIME_UTICKS &tick0) ;
-double usElapsedTimeTicsPerSec() ;
 enum traceAcqId {traceAcq_execTimeTot, };
 int image_nr_from_timestamp(void *buf,int shift, bool bDisable);
 
 #endif
+//================================================================
+//================================================================
 
 
 

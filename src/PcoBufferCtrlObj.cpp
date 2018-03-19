@@ -948,7 +948,11 @@ _EXIT_STOP:
 	m_pcoData->traceAcq.endXferTimestamp = getTimestamp();
 
 	return pcoAcqTransferStop;
+#else
+	return -1;
 #endif
+
+
 }
 
 
@@ -1084,7 +1088,7 @@ int BufferCtrlObj::_xferImag_getImage()
 	TIME_USEC tStart;
 	msElapsedTimeSet(tStart);
 
-	LARGE_INTEGER usStart;
+	long long usStart;
 	usElapsedTimeSet(usStart);
 
 	bool checkImgNr = false;
@@ -1306,7 +1310,7 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 	TIME_USEC tStartXfer;
 	msElapsedTimeSet(tStart);
 
-	LARGE_INTEGER usStart;
+	long long usStart;
 	usElapsedTimeSet(usStart);
 
 	bool checkImgNr = false;
@@ -1492,6 +1496,8 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 	DEB_TRACE()	<< DEB_VAR3(_retStatus, _stopReq, _newFrameReady);  
 
 	return _retStatus;
+#else
+    return -1;
 #endif
 }
 
@@ -1564,7 +1570,7 @@ int BufferCtrlObj::_xferImagMult()
 	TIME_USEC tStart;
 	msElapsedTimeSet(tStart);
 
-	LARGE_INTEGER usStart, usStartPco;
+	long long usStart, usStartPco;
 	usElapsedTimeSet(usStart);
 	usElapsedTimeSet(usStartPco);
 
@@ -2418,6 +2424,8 @@ _EXIT_STOP:
 	m_pcoData->traceAcq.endXferTimestamp = getTimestamp();
 
 	return pcoAcqTransferStop;
+#else
+    return -1;
 #endif
 }
 
@@ -2472,7 +2480,7 @@ int BufferCtrlObj::_xferImagMultDoubleImage()
 	TIME_USEC tStart;
 	msElapsedTimeSet(tStart);
 
-	LARGE_INTEGER usStart, usStartPco;
+	long long usStart, usStartPco;
 	usElapsedTimeSet(usStart);
 	usElapsedTimeSet(usStartPco);
 

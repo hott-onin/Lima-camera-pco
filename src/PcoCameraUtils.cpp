@@ -55,7 +55,7 @@
 using namespace lima;
 using namespace lima::Pco;
 
-const char *timebaseUnits[] = {"ns", "us", "ms"};
+//const char *timebaseUnits[] = {"ns", "us", "ms"};
 
 #define BUFF_INFO_SIZE 10000
 
@@ -180,17 +180,17 @@ char *_split_date(const char *s) {
 
 	ptr1 = strchr(s,'[');
 	ptr2 = strchr(ptr1,']');
-	strncpy_s4(s1, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
+	strncpy_s(s1, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
     s1[ptr2-ptr1-1] = 0;
 
 	ptr1 = strchr(ptr2,'[');
 	ptr2 = strchr(ptr1,']');
-	strncpy_s4(s2, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
+	strncpy_s(s2, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
     s2[ptr2-ptr1-1] = 0;
 
 	ptr1 = strchr(ptr2,'[');
 	ptr2 = strchr(ptr1,']');
-	strncpy_s4(s3, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
+	strncpy_s(s3, LEN_BUFF_DATE, ptr1+1, ptr2-ptr1-1);
     s3[ptr2-ptr1-1] = 0;
 
 	return _xlat_date(s1, s2, s3);
@@ -282,9 +282,9 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 
 		//int width = +20;
 
-		strncpy_s4(cmdBuff, BUFF_INFO_SIZE, _cmd, BUFF_INFO_SIZE);
+		strncpy_s(cmdBuff, BUFF_INFO_SIZE, _cmd, BUFF_INFO_SIZE);
 		cmd = str_trim(cmdBuff);
-		strncpy_s4(cmdBuffAux, BUFF_INFO_SIZE, cmd, BUFF_INFO_SIZE);
+		strncpy_s(cmdBuffAux, BUFF_INFO_SIZE, cmd, BUFF_INFO_SIZE);
 
 		if(*cmd){
 			char *tokContext;
@@ -712,7 +712,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			if((tokNr == 2) &&  (_stricmp(tok[1], "time")==0)){
 				long long us;
 
-				LARGE_INTEGER usStart;
+				long long usStart;
 
 				ptr += sprintf_s(ptr, ptrMax - ptr, "sleeping ...\n"); 
 
@@ -1982,7 +1982,7 @@ int ringLog::add(const char *s) {
         }
         
         ptr->timestamp = getTimestamp();
-        strncpy_s(ptr->str, s,RING_LOG_BUFFER_SIZE);
+		strncpy_s(ptr->str, RING_LOG_BUFFER_SIZE, s, RING_LOG_BUFFER_SIZE);
         return m_size;
 
 }
@@ -2908,3 +2908,113 @@ void Camera::getRollingShutterInfo(std::string &o_sn)
 	o_sn = buff;
 	return;
 }
+
+
+//=================================================================================================
+//=================================================================================================
+
+void usElapsedTimeSet(long long &us0) {
+
+#ifdef __linux__
+    TIME_UTICKS tickNow;
+    clock_gettime(CLOCK_REALTIME, &tickNow); 
+
+    us0 = (long long)   ((tickNow.tv_sec) * 1000000. +
+            (tickNow.tv_nsec) / 1000. );
+
+#else
+	TIME_UTICKS tick;   // A point in time
+	TIME_UTICKS ticksPerSecond;
+	QueryPerformanceFrequency(&ticksPerSecond); 
+	QueryPerformanceCounter(&tick);
+
+	double ticsPerUSecond = ticksPerSecond.QuadPart/1.0e6;
+	us0 = (long long) (tick.QuadPart/ticsPerUSecond);
+#endif
+}
+
+//------------------------------------------------
+long long usElapsedTime(long long &us0) {
+
+long long usDiff;
+
+#ifdef __linux__
+    TIME_UTICKS tickNow;
+    clock_gettime(CLOCK_REALTIME, &tickNow); 
+
+    usDiff = ((long long int)  ((tickNow.tv_sec) * 1000000. +
+            (tickNow.tv_nsec) / 1000. )) - us0;
+
+#else
+	TIME_UTICKS tick;   // A point in time
+	TIME_UTICKS ticksPerSecond;
+	QueryPerformanceFrequency(&ticksPerSecond); 
+	QueryPerformanceCounter(&tick);
+
+	double ticsPerUSecond = ticksPerSecond.QuadPart/1.0e6;
+	long long us = (long long) (tick.QuadPart/ticsPerUSecond);
+    usDiff = us - us0;
+#endif
+
+	return usDiff;
+
+}
+//------------------------------------------------
+
+
+long msElapsedTime(TIME_USEC &t0) {
+    long msDiff;
+	TIME_USEC tNow;
+
+
+#ifdef __linux__
+    long seconds, useconds;
+    gettimeofday(&tNow, NULL);
+
+    seconds  = tNow.tv_sec  - t0.tv_sec;
+    useconds = tNow.tv_usec - t0.tv_usec;
+
+    msDiff = long ( ((seconds) * 1000 + useconds/1000.0) + 0.5 );
+#else
+	_ftime64_s(&tNow);
+
+	msDiff = (long)((tNow.time - t0.time)*1000) + (tNow.millitm - t0.millitm);
+#endif
+
+	return msDiff;
+}
+
+//------------------------------------------------
+
+
+void msElapsedTimeSet(TIME_USEC &t0) {
+
+#ifdef __linux__
+    gettimeofday(&t0, NULL);
+#else
+	_ftime64_s(&t0);
+#endif
+
+}
+
+//------------------------------------------------
+
+double usElapsedTimeTicsPerSec() {
+    double ticks = 0;
+#ifdef __linux__
+	TIME_UTICKS tick;   // A point in time
+    clock_gettime(CLOCK_REALTIME, &tick); 
+
+#else
+	LARGE_INTEGER ticksPerSecond;
+	QueryPerformanceFrequency(&ticksPerSecond); 
+    ticks = (double) ticksPerSecond.QuadPart;
+#endif
+	return ticks;
+
+}
+
+//==========================================================================================================
+//==========================================================================================================
+
+

@@ -502,6 +502,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\src\PcoCameraLin.cpp"
+				>
+				<FileConfiguration
+					Name="Release|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\..\src\PcoCameraSdk.cpp"
 				>
 			</File>
@@ -520,6 +532,18 @@
 			<File
 				RelativePath="..\..\..\..\src\PcoCameraUtils.cpp"
 				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\src\PcoCameraWin.cpp"
+				>
+				<FileConfiguration
+					Name="Release|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\..\src\PcoDetInfoCtrlObj.cpp"

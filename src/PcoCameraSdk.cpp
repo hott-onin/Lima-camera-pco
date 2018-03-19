@@ -316,7 +316,7 @@ WORD Camera::_pco_GetRecordingState(int &err){
 const char * Camera::_pco_SetRecordingState(int state, int &err){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-	LARGE_INTEGER usStart;
+	long long usStart;
 
 
 	WORD wRecState_new, wRecState_actual;
@@ -479,7 +479,7 @@ int Camera::_pco_SetBitAlignment(int alignment){
 	error = PCO_CHECK_ERROR(error, "PCO_SetBitAlignment");
 #else
     error=camera->PCO_SetBitAlignment(wBitAlignment);
-    char *msg = "PCO_SetBitAlignment" ; PCO_CHECK_ERROR(error, msg);
+    const char *msg = "PCO_SetBitAlignment" ; PCO_CHECK_ERROR(error, msg);
     PCO_THROW_OR_TRACE(error, msg) ;
 #endif
 
@@ -2881,7 +2881,6 @@ void Camera::_pco_GetFirmwareInfo(char *buf_in, int size_in, int &err)
 void Camera::getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsigned int &xMax, unsigned int &yMax, unsigned int &xMinSize, unsigned int &yMinSize ){
 	DEB_MEMBER_FUNCT();
 	DEF_FNID;
-	unsigned int xMinSize0;
 
 	
 	xSteps = m_pcoData->stcPcoDescription.wRoiHorStepsDESC;
@@ -2891,6 +2890,7 @@ void Camera::getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsign
 	yMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
 
 #ifndef __linux__
+	unsigned int xMinSize0;
 	xMinSize = xMinSize0 = m_pcoData->stcPcoDescription.wMinSizeHorzDESC;
 	yMinSize = m_pcoData->stcPcoDescription.wMinSizeVertDESC;
 
