@@ -90,8 +90,8 @@ pco-objs :=  \
             PcoBinCtrlObj.o  \
             PcoBufferCtrlObj.o  \
             PcoCamera.o  \
-            PcoCameraSdkAux.o  \
             PcoCameraSdk.o  \
+            PcoCameraSdkLin.o  \
             PcoCameraSip.o  \
             PcoCameraUtils.o  \
             PcoDetInfoCtrlObj.o  \
