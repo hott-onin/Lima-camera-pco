@@ -682,6 +682,10 @@
 			Name="doc"
 			>
 			<File
+				RelativePath="..\..\..\..\CMakeLists.txt"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\cpInstall"
 				>
 			</File>

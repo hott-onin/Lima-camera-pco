@@ -562,8 +562,15 @@ void Camera::getSdkRelease(std::string &o_sn)
 {
 	char *ptr = buff;
 	char *ptrMax = buff + sizeof(buff);
+    const char* release ;
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, PCO_SDK_RELEASE );
+#ifdef __linux__
+    release =  PCO_SDK_LIN_RELEASE;
+#else
+    release =  PCO_SDK_WIN_RELEASE;
+#endif    
+    
+	ptr += sprintf_s(ptr, ptrMax - ptr, release);
 	
 	o_sn = buff;
 }
