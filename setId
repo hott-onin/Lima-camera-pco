@@ -10,7 +10,8 @@
 #======================================================================
 
 FILE="./include/PcoGitVersion.h"
-SDK_H="./sdkPco/PcoSdkVersion.h"
+SDK_LIN_H="./sdkPco/PcoSdkVersion.h"
+SDK_WIN_H="./sdkPcoLin/include/PcoSdkVersion.h"
 LOG="./doc/VERSION.log"
 
 DT=`date +"%Y/%m/%d %H:%M:%S"`
@@ -23,13 +24,14 @@ TANGOREV=`cd ../../applications/tango/python ; git log -n 1 --date=iso --format=
 SPECREV=`cd ../../applications/spec ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
 
 {
-head -1 ${SDK_H}
-echo "#define        PCO_GIT_VERSION \"\$Id:       PCO ${PCOREV} at [${DT}] \$\"" 
-echo "#define       LIMA_GIT_VERSION \"\$Id:      LIMA ${LIMAREV} at [${DT}] \$\"" 
-echo "#define    PROCLIB_GIT_VERSION \"\$Id:   PROCLIB ${PROCLIBREV} at [${DT}] \$\"" 
-echo "#define  LIBCONFIG_GIT_VERSION \"\$Id: LIBCONFIG ${LIBCONFIGREV} at [${DT}] \$\"" 
-echo "#define      TANGO_GIT_VERSION \"\$Id:     TANGO ${TANGOREV} at [${DT}] \$\"" 
-echo "#define       SPEC_GIT_VERSION \"\$Id:      SPEC ${SPECREV} at [${DT}] \$\"" 
+head -1 ${SDK_WIN_H}
+head -1 ${SDK_LIN_H}
+echo "#define         PCO_GIT_VERSION \"\$Id:       PCO ${PCOREV} at [${DT}] \$\"" 
+echo "#define        LIMA_GIT_VERSION \"\$Id:      LIMA ${LIMAREV} at [${DT}] \$\"" 
+echo "#define     PROCLIB_GIT_VERSION \"\$Id:   PROCLIB ${PROCLIBREV} at [${DT}] \$\"" 
+echo "#define   LIBCONFIG_GIT_VERSION \"\$Id: LIBCONFIG ${LIBCONFIGREV} at [${DT}] \$\"" 
+echo "#define       TANGO_GIT_VERSION \"\$Id:     TANGO ${TANGOREV} at [${DT}] \$\"" 
+echo "#define        SPEC_GIT_VERSION \"\$Id:      SPEC ${SPECREV} at [${DT}] \$\"" 
 } > ${FILE}
 
 cat ${FILE}
