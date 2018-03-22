@@ -1711,7 +1711,15 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 		keys_desc[ikey++] = "(R) sdk release";     
 		if(_stricmp(cmd, key) == 0){
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, PCO_SDK_RELEASE );
+        const char* release ;
+
+#ifdef __linux__
+        release =  PCO_SDK_LIN_RELEASE;
+#else
+        release =  PCO_SDK_LIN_RELEASE;
+#endif    
+
+			ptr += sprintf_s(ptr, ptrMax - ptr, release );
 
 			return output;
 		}
@@ -2289,7 +2297,7 @@ char * _getPcoSdkVersion(char *infoBuff, int strLen, char *lib)
 		nr = sprintf_s(ptr, strLen, "file[%s] ver[%d.%d.%d]\n", lib, ima, imi, imb);
 	}
 #else
-		sprintf_s(ptr, strLen, PCO_SDK_RELEASE);
+		sprintf_s(ptr, strLen, PCO_SDK_LIN_RELEASE);
 
 #endif
 	return infoBuff ;
