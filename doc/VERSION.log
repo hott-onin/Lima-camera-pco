@@ -1,5 +1,18 @@
 
 
+2018/03/23 08:52:21 ==========================================
+#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
+#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-03-22 18:30:59 +0100] head[bf540b5][bf540b55683592c463d93926eb8c0e83e0990a88] ref[ (HEAD -> master, gitrh/master)] at [2018/03/23 08:52:20] $"
+#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2017-11-29 11:17:58 +0100] head[3fff9079][3fff90797f193a001182a4a8cbb6a2eaf72c0dce] ref[ (HEAD -> core-1.7, tag: pco-1.7.5)] at [2018/03/23 08:52:20] $"
+#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-10-25 16:10:40 +0200] head[0fb65c4][0fb65c45b4dee5367a2e26d963c6821900bd4abb] ref[ (HEAD -> master)] at [2018/03/23 08:52:20] $"
+#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD -> master, github/master, github/HEAD)] at [2018/03/23 08:52:20] $"
+#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/03/23 08:52:20] $"
+#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/03/23 08:52:20] $"
+
+
+
+
 2018/03/22 18:24:20 ==========================================
 #define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
 #define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"

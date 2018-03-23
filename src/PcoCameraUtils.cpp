@@ -1716,7 +1716,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 #ifdef __linux__
         release =  PCO_SDK_LIN_RELEASE;
 #else
-        release =  PCO_SDK_LIN_RELEASE;
+        release =  PCO_SDK_WIN_RELEASE;
 #endif    
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, release );
