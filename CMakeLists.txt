@@ -55,3 +55,68 @@ IF(LIMA_ENABLE_PYTHON)
     INSTALL(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco")
 ENDIF()
 ENDIF()
+
+
+if(UNIX)
+    set(NAME "pco")
+
+
+    #Current location of linux sdk, on the branch linux_dev.v123 the 09/06/17
+    set(PCO_SDKWIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPco" CACHE PATH "location of pco sdk-win")
+    set(PCO_SDKLIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPcoLin" CACHE PATH "location of pco sdk-lin")
+    set(PCO_SDK_LIB_DIR "${PCO_SDKLIN_DIR}/pco_common/pco_lib" CACHE PATH "location of pco sdklib-lin")
+    #directory copied at same level camera/pco
+    set(PCO_COMMON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pco_clhs_x64_1_02_03/pco_camera/pco_common" CACHE PATH "common location of pco linux lib")
+
+    #Sources
+    set(${NAME}_srcs 
+        src/PcoBinCtrlObj.cpp  
+        src/PcoBufferCtrlObj.cpp  
+        src/PcoCamera.cpp  
+        src/PcoCameraSdk.cpp  
+        src/PcoCameraSdkLin.cpp  
+        src/PcoCameraSip.cpp  
+        src/PcoCameraUtils.cpp  
+        src/PcoDetInfoCtrlObj.cpp  
+        src/PcoHwEventCtrlObj.cpp  
+        src/PcoInterface.cpp  
+        src/PcoRoiCtrlObj.cpp  
+        src/PcoSyncCtrlObj.cpp  
+    )
+
+    add_library(lima${NAME} SHARED ${${NAME}_srcs})
+
+    target_include_directories(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    target_include_directories(lima${NAME} PUBLIC "${PCO_SDKLIN_DIR}/include")
+    target_include_directories(lima${NAME} PUBLIC "${PCO_SDKWIN_DIR}/include")
+
+    #LIBRARIES
+
+    find_library(PCO_CAM_ME4_LIB pcocam_me4 ${PCO_SDK_LIB_DIR})
+    find_library(PCO_FILE_LIB pcofile ${PCO_SDK_LIB_DIR})
+    find_library(PCO_LOG_LIB pcolog ${PCO_SDK_LIB_DIR})
+    find_library(PCO_FUNC_LIB reorderfunc ${PCO_SDK_LIB_DIR})
+  
+    find_library(PCO_PTHREAD_LIB pthread)
+
+    target_link_libraries(lima${NAME} limacore)
+
+    target_link_libraries(lima${NAME} ${PCO_CAM_ME4_LIB})
+    target_link_libraries(lima${NAME} ${PCO_FILE_LIB})
+    target_link_libraries(lima${NAME} ${PCO_LOG_LIB})
+    target_link_libraries(lima${NAME} ${PCO_FUNC_LIB})
+
+    target_link_libraries(lima${NAME} ${PCO_PTHREAD_LIB})
+
+    limatools_set_library_soversion(lima${NAME} "VERSION")
+
+    install(TARGETS lima${NAME} LIBRARY DESTINATION lib)
+
+
+    if(LIMA_ENABLE_PYTHON)
+        limatools_run_sip_for_camera(${NAME})
+        install(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco")
+    endif()
+endif()
+
+
