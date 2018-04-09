@@ -101,6 +101,10 @@ namespace Pco
 
 		void setBitAlignment(std::string &i_sn);
 		void getBitAlignment(std::string &o_sn /Out/); 
+		
+		void getRecorderForcedFifo(int & val /Out/);
+		void setRecorderForcedFifo(int val);
+
 
   };
 };

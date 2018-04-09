@@ -743,6 +743,7 @@ namespace lima
 		bool m_isArmed;
 		long long m_state;
 
+		bool bRecorderForcedFifo;
 		//----------------------------------
 
         Camera::Status m_status;
@@ -1087,6 +1088,10 @@ namespace lima
 
 		void setBitAlignment(std::string &i_sn);
 		void getBitAlignment(std::string &o_sn); 
+
+		void getRecorderForcedFifo(int & val);
+		void setRecorderForcedFifo(int val);
+
 
 	}; // class camera
   } // namespace pco

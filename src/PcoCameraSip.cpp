@@ -858,3 +858,20 @@ void Camera::setBitAlignment(std::string &i_sn)
 	return;
 	
 }
+//====================================================================
+// SIP - attrib
+//====================================================================
+void Camera::setRecorderForcedFifo(int val) 
+{
+	DEB_MEMBER_FUNCT();
+
+	bRecorderForcedFifo = !! val;
+
+}
+
+void Camera::getRecorderForcedFifo(int &val) 
+{
+	DEB_MEMBER_FUNCT();
+	val = bRecorderForcedFifo;
+
+}

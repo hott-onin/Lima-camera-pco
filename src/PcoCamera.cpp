@@ -879,16 +879,25 @@ void Camera::prepareAcq()
     // ----------------------------------------- storage mode (recorder + sequence)
     if(_isCameraType(Dimax | Pco4k | Pco2k)) {
 
-               enumPcoStorageMode mode;
+		enumPcoStorageMode mode;
+		int forced;
 
-               if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) {
-                       mode = RecRing;
-               } else {
-                        // live video requested frames = 0
-                       mode = (iRequestedFrames > 0) ? RecSeq : Fifo;
-               }
+		getRecorderForcedFifo(forced);
 
-               DEB_TRACE() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
+        if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) 
+		{
+			mode = RecRing;
+		} 
+		else if(forced || iRequestedFrames == 0)
+		{
+			mode = Fifo;
+		}
+		else
+		{	// live video requested frames = 0
+			mode = RecSeq;
+        }
+
+        DEB_TRACE() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
 
 		_pco_SetStorageMode_SetRecorderSubmode(mode, error);
 		PCO_THROW_OR_TRACE(error, "_pco_SetStorageMode_SetRecorderSubmode") ;
