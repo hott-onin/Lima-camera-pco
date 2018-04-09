@@ -1379,9 +1379,7 @@ unsigned long Camera::_pco_GetNumberOfImagesInSegment_MaxCalc(int segmentPco)
 
 		unsigned long framesMax;
 
-		if(_isCameraType(Edge)) {
-			return LONG_MAX;
-		}
+		//if(_isCameraType(Edge)) {return LONG_MAX;}
 
 
 		if(!_isCameraType(Dimax | Pco2k | Pco4k)) {

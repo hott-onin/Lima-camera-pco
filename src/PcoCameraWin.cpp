@@ -30,7 +30,8 @@ Camera::Camera(const char *params) :
 	m_sync(NULL),
 	m_buffer(NULL),
 	m_handle(NULL),
-	m_Roi_lastFixed_time(0)
+	m_Roi_lastFixed_time(0),
+	bRecorderForcedFifo(false)
 {
 	DEF_FNID;
 	DEB_CONSTRUCTOR();
@@ -911,6 +912,10 @@ void Camera::startAcq()
     int iRequestedFrames;
     m_sync->getNbFrames(iRequestedFrames);
 
+
+	int forced = 0;
+	getRecorderForcedFifo(forced);
+
 	unsigned long ulFramesMaxInSegment = _pco_GetNumberOfImagesInSegment_MaxCalc(m_pcoData->wActiveRamSegment);
 	unsigned long ulRequestedFrames = (unsigned long) iRequestedFrames;
 
@@ -925,14 +930,22 @@ void Camera::startAcq()
 
 		bool bOutOfRange = false;
 
-		if( (wDoubleImage) && ((ulRequestedFrames % 2) != 0) ) bOutOfRange = true;
-		if((ulFramesMaxInSegment >0) && (ulRequestedFrames > ulFramesMaxInSegment)) bOutOfRange = true;
-
+		if( (wDoubleImage) && ((ulRequestedFrames % 2) != 0) ) 
+		{
+			DEB_ALWAYS() << "\nERROR odd nr of frames in DoubleImage";
+			bOutOfRange = true;
+		}
+			
+		if((ulFramesMaxInSegment > 0) && (ulRequestedFrames > ulFramesMaxInSegment) && (!forced) )
+		{
+			DEB_ALWAYS() << "\nERROR many frames in record mode";
+			bOutOfRange = true;
+		}
 
 		if(bOutOfRange)
 		{
 
-			DEB_ALWAYS() << "\nERROR frames OUT OF RANGE " << DEB_VAR3(ulRequestedFrames, ulFramesMaxInSegment, wDoubleImage);
+			DEB_ALWAYS() << "\nERROR frames OUT OF RANGE " << DEB_VAR4(ulRequestedFrames, ulFramesMaxInSegment, wDoubleImage, forced);
 			{
 				Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamNoMemory, "ERROR frames OUT OF RANGE");
 				_getPcoHwEventCtrlObj()->reportEvent(ev);
