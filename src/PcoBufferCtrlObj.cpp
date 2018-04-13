@@ -553,15 +553,26 @@ int BufferCtrlObj::_xferImag()
 	int requested_nb_frames;
 	DWORD dwFramesPerBuffer, dwRequestedFrames;
 	DWORD dwRequestedFramesMax =DWORD_MAX;
+	int iRequestedFramesMax = INT_DWORD_MAX;
+	
+	int forcedFifo = 0;
+	m_cam->getRecorderForcedFifo(forcedFifo);
 
 // --------------- live video -> nr frames = 0 / idx lima buffers 32b (0...ffff)
 	m_sync->getNbFrames(requested_nb_frames);
 	
-	if(requested_nb_frames > 0){
+	if( (requested_nb_frames > 0) && (forcedFifo == 0))
+	{
 		dwRequestedFrames = (DWORD) requested_nb_frames;
 		live_mode =false;
-	} else {
-		dwRequestedFrames = dwRequestedFramesMax;
+	} 
+	else 
+	{
+		if((requested_nb_frames == 0) || (requested_nb_frames > iRequestedFramesMax))
+			dwRequestedFrames = dwRequestedFramesMax;
+		else 
+			dwRequestedFrames = (DWORD) requested_nb_frames;
+
 		live_mode = true;
 	}
 		
@@ -671,7 +682,7 @@ int BufferCtrlObj::_xferImag()
 
 	dwFrameIdx = 1;
 	if(m_cam->_getDebug(DBG_WAITOBJ)){
-		DEB_ALWAYS() << "FRAME IDX before while: " << DEB_VAR2(dwFrameIdx, dwRequestedFrames);
+		DEB_ALWAYS() << "\n... FRAME IDX before while: " << DEB_VAR2(dwFrameIdx, dwRequestedFrames);
 	}
 	while(dwFrameIdx <= dwRequestedFrames) {
 		
@@ -692,12 +703,13 @@ _RETRY:
 			// lima frame nr is from 0 .... N-1, PCO nr is from 1 ... N        
 			lima_buffer_nb = dwFrameIdx -1; // this frame was already readout to the buffer
           
-#ifdef DEBUG_XFER_IMAG
+				DEB_ALWAYS() << "=====================!";
 			if(m_cam->_getDebug(DBG_WAITOBJ)){
-				sprintf_s(msg, RING_LOG_BUFFER_SIZE, "... BUFFER[%d] lima[%d] frame[%d]", bufIdx, lima_buffer_nb, dwFrameIdx);
+				sprintf_s(msg, RING_LOG_BUFFER_SIZE, "\n... BUFF-TO-LIMA BUFFER[%d] lima[%d] frame[%d]", bufIdx, lima_buffer_nb, dwFrameIdx);
 				m_cam->m_tmpLog->add(msg);
+				DEB_ALWAYS() << msg;
+				DEB_ALWAYS() << "=====================!";
 			}
-#endif
 			m_pcoData->traceAcq.nrImgAcquired = dwFrameIdx;
 
 #ifdef DEBUG_XFER_IMAG

@@ -1001,7 +1001,11 @@ void Camera::startAcq()
 	    TrigMode trig_mode;
 		m_sync->getTrigMode(trig_mode);
 		_pco_SetRecordingState(1, error);
-		if(iRequestedFrames > 0 ) {
+
+		int forcedFifo = 0;
+		getRecorderForcedFifo(forcedFifo);
+
+		if((iRequestedFrames > 0 ) && (forcedFifo == 0) ){
 			if((trig_mode  == ExtTrigSingle) ) {
 				_beginthread( _pco_acq_thread_dimax_trig_single, 0, (void*) this);
 			} else {
