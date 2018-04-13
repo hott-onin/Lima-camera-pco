@@ -1150,10 +1150,12 @@ int Camera::PcoCheckError(int line, const char *file, int err, const char *fn, c
 	if (err != 0) {
 		sprintf_s(tmpMsg1,LEN_TMP_MSG,"ERROR - PCOfn[%s]", fn);
 		msgLog(tmpMsg);
+
 		DWORD dwErr = err;
 		m_pcoData->pcoError = err;
 		msg = m_pcoData->pcoErrorMsg;
 
+		memset(msg,0,ERR_SIZE);
 		PCO_GetErrorText(dwErr, msg, ERR_SIZE-14);
         
 		lg = strlen(msg);
@@ -1189,7 +1191,7 @@ char* Camera::_PcoCheckError(int line, const char *file, int err, int &error, co
 		
 		PCO_GetErrorText(err, lastErrorMsg, ERR_SIZE-14);
 		//strncpy_s(msg, ERR_SIZE, lastErrorMsg, _TRUNCATE);
-		strncpy_s(msg, ERR_SIZE, lastErrorMsg, ERR_SIZE);
+		strncpy_s(msg, ERR_SIZE, lastErrorMsg, ERR_SIZE-1);
 
 
 		lg = strlen(msg);

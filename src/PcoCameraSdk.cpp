@@ -3181,6 +3181,12 @@ void Camera::_pco_GetImageEx(WORD wSegment, DWORD dw1stImage,
 	PCO_CHECK_ERROR(err, "PCO_GetImageEx");
 	if(err)
 	{
+
+		_pco_GetStorageMode_GetRecorderSubmode();
+
+		DEB_ALWAYS() << "ERROR:  " 
+			<< DEB_VAR3(dw1stImage, dwLastImage, m_pcoData->storage_str)
+			<< "\n   " << DEB_VAR5(wSegment, sBufNr, wXRes,wYRes, wBitPerPixel);
 		PCO_THROW_OR_TRACE(err, "PCO_GetImageEx") ;
 	}
 	return;

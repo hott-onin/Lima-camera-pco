@@ -1677,6 +1677,8 @@ int BufferCtrlObj::_xferImagMult()
 		//   included a waiting loop to chech when the image is ready
 		//========================================================================================
 		
+		// recording loop / waits up to recorded images _dwValidImageCnt >= dwFrameIdxFirst
+		// in continuos mode (dwFrameIdxFirst == 0) is bypassed
 		while(1){
 			if((_dwValidImageCnt > 0 ) && ( (_dwValidImageCnt >= dwFrameIdxFirst) || (dwFrameIdxFirst == 0))) break;
 

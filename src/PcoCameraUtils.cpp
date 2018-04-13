@@ -282,9 +282,9 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 
 		//int width = +20;
 
-		strncpy_s(cmdBuff, BUFF_INFO_SIZE, _cmd, BUFF_INFO_SIZE);
+		strncpy_s(cmdBuff, BUFF_INFO_SIZE, _cmd, BUFF_INFO_SIZE-1);
 		cmd = str_trim(cmdBuff);
-		strncpy_s(cmdBuffAux, BUFF_INFO_SIZE, cmd, BUFF_INFO_SIZE);
+		strncpy_s(cmdBuffAux, BUFF_INFO_SIZE, cmd, BUFF_INFO_SIZE-1);
 
 		if(*cmd){
 			char *tokContext;
@@ -1741,6 +1741,26 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 			_pco_GetRoiInfo(ptr, (int) (ptrMax - ptr), err);
 			return output;
 		}
+
+
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "RecorderForcedFifo";     
+		keys_desc[ikey++] = "(RW) force recorder mode to FIFo (0/1)";
+		if(_stricmp(cmd, key) == 0){
+			int forced;
+
+			if(tokNr == 1) {
+				forced = atoi(tok[1]);
+				setRecorderForcedFifo(forced);
+			}
+
+			getRecorderForcedFifo(forced);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", forced);
+
+			return output;
+		}
+
+
 		//----------------------------------------------------------------------------------------------------------
 		// this must be the last cmd TALK / END
 		//----------------------------------------------------------------------------------------------------------
@@ -1976,22 +1996,25 @@ ringLog::~ringLog() {
 
 int ringLog::add(const char *s) {
 
-        struct data *ptr;
-        int offset;
-        
-        if (m_size < m_capacity){
-                offset = (m_head + m_size) % m_capacity;
-                ptr = buffer + offset;
-                m_size++;
-        } else {
-                ptr = buffer + m_head;
-                m_head = (m_head + 1) % m_capacity;
-                m_size = m_capacity;
-        }
-        
-        ptr->timestamp = getTimestamp();
-		strncpy_s(ptr->str, RING_LOG_BUFFER_SIZE, s, RING_LOG_BUFFER_SIZE);
-        return m_size;
+    struct data *ptr;
+    int offset;
+    
+    if (m_size < m_capacity){
+            offset = (m_head + m_size) % m_capacity;
+            ptr = buffer + offset;
+            m_size++;
+    } else {
+            ptr = buffer + m_head;
+            m_head = (m_head + 1) % m_capacity;
+            m_size = m_capacity;
+    }
+    
+    ptr->timestamp = getTimestamp();
+
+	long long l = strlen(s);
+
+	strncpy_s(ptr->str, RING_LOG_BUFFER_SIZE, s, RING_LOG_BUFFER_SIZE-1);
+    return m_size;
 
 }
 
