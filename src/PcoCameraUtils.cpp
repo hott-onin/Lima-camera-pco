@@ -522,7 +522,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 				"* fnId[%s] nrEvents[%d]\n"
 				"* ... fnIdXfer[%s]\n",
 				m_pcoData->traceAcq.fnId,
-				PCO_BUFFER_NREVENTS,
+				m_pco_buffer_nrevents,
 				m_pcoData->traceAcq.fnIdXfer);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* ... testCmdMode [0x%llx]\n",  m_pcoData->testCmdMode);
@@ -1756,6 +1756,24 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 
 			getRecorderForcedFifo(forced);
 			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", forced);
+
+			return output;
+		}
+
+
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "NrEvents";     
+		keys_desc[ikey++] = "(RW) set NrEvents (1-4)";
+		if(_stricmp(cmd, key) == 0){
+			int nrEvents;
+
+			if(tokNr == 1) {
+				nrEvents = atoi(tok[1]);
+				setNrEvents(nrEvents);
+			}
+
+			getNrEvents(nrEvents);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", nrEvents);
 
 			return output;
 		}

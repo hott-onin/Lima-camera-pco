@@ -743,6 +743,8 @@ namespace lima
 		bool m_isArmed;
 		long long m_state;
 
+		int m_pco_buffer_nrevents;
+
 		bool bRecorderForcedFifo;
 		//----------------------------------
 
@@ -1092,6 +1094,8 @@ namespace lima
 		void getRecorderForcedFifo(int & val);
 		void setRecorderForcedFifo(int val);
 
+		void getNrEvents(int & val);
+		void setNrEvents(int val);
 
 	}; // class camera
   } // namespace pco

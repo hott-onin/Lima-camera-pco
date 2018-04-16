@@ -256,7 +256,7 @@ void Camera::getTraceAcq(std::string &o_sn)
 		"* fnId[%s] nrEvents[%d]\n"
 		"* ... fnIdXfer[%s]\n",
 		m_pcoData->traceAcq.fnId,
-		PCO_BUFFER_NREVENTS,
+		m_pco_buffer_nrevents,
 		m_pcoData->traceAcq.fnIdXfer);
 
 	ptr += sprintf_s(ptr, ptrMax - ptr, "* ... testCmdMode [0x%llx]\n",  m_pcoData->testCmdMode);
@@ -873,5 +873,23 @@ void Camera::getRecorderForcedFifo(int &val)
 {
 	DEB_MEMBER_FUNCT();
 	val = bRecorderForcedFifo;
+
+}
+//====================================================================
+// SIP - attrib
+//====================================================================
+void Camera::setNrEvents(int val) 
+{
+	DEB_MEMBER_FUNCT();
+
+	if((val < 1) || (val>PCO_BUFFER_NREVENTS) ) return;
+	 m_pco_buffer_nrevents = val;
+
+}
+
+void Camera::getNrEvents(int &val) 
+{
+	DEB_MEMBER_FUNCT();
+	val = m_pco_buffer_nrevents;
 
 }

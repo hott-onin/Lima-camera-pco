@@ -105,6 +105,8 @@ namespace Pco
 		void getRecorderForcedFifo(int & val /Out/);
 		void setRecorderForcedFifo(int val);
 
+		void getNrEvents(int & val /Out/);
+		void setNrEvents(int val);
 
   };
 };
