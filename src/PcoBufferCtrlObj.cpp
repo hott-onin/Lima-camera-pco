@@ -635,8 +635,10 @@ int BufferCtrlObj::_xferImag()
 			if((!runAfterAssign) || (!recording && runAfterAssign))
 			{
 
-				if(m_cam->_getDebug(DBG_WAITOBJ)){
-					sprintf_s(msg, RING_LOG_BUFFER_SIZE, "... ASSIGN BUFFER[%d] frame[%d] recordState[%d] live[%d]", bufIdx, dwFrameFirst2assign, recording, live_mode);
+				if(m_cam->_getDebug(DBG_WAITOBJ))
+				{
+					char msg[512];
+					sprintf_s(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] recordState[%d] live[%d]", bufIdx, dwFrameFirst2assign, recording, live_mode);
 					m_cam->m_tmpLog->add(msg);  DEB_ALWAYS() << msg;
 				}
 
@@ -648,6 +650,23 @@ int BufferCtrlObj::_xferImag()
 					DEB_TRACE() << "ERROR _assignImage2Buffer";
 						return pcoAcqPcoError;
 				}
+
+				if(m_cam->_getDebug(DBG_WAITOBJ))
+				{
+
+					SHORT sBufNr = 	m_allocBuff.pcoAllocBufferNr[bufIdx];
+					DWORD dwStatusDll, dwStatusDrv;
+					int errPco;
+
+					m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
+					char msg[128];
+					sprintf_s(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
+					DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
+
+				}
+
+
+
 			}
 			else
 			{
@@ -704,6 +723,21 @@ _RETRY:
 	{
 		if((m_allocBuff.bufferAssignedFrameFirst[bufIdx] == dwFrameIdx) && m_allocBuff.bufferReady[bufIdx]) 
 		{
+			SHORT sBufNr = 	m_allocBuff.pcoAllocBufferNr[bufIdx];
+			DWORD dwStatusDll, dwStatusDrv;
+			int errPco;
+
+			m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
+
+			if(m_cam->_getDebug(DBG_WAITOBJ))
+			{
+				char msg[128];
+				sprintf_s(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
+				DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
+            }
+
+			//if((dwStatusDll != 0x80008000)) break;
+
 			// lima frame nr is from 0 .... N-1, PCO nr is from 1 ... N        
 			lima_buffer_nb = dwFrameIdx -1; // this frame was already readout to the buffer
           
@@ -723,12 +757,8 @@ _RETRY:
 			size_t size = m_allocBuff.dwPcoAllocBufferSize[bufIdx];
 
 			size = sizeLima;
-			SHORT sBufNr = 	m_allocBuff.pcoAllocBufferNr[bufIdx];
-
-			DWORD dwStatusDll, dwStatusDrv;
 			if((m_sync->_getRequestStop(_nrStop) == stopRequest) && (_nrStop > MAX_NR_STOP)) {goto _EXIT_STOP;}
 
-			int errPco;
 
 
 			m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
@@ -766,7 +796,6 @@ _RETRY:
 			}		
 #else
 			ERROR USING_PCO_ALLOCATED_BUFFERS
-
 #endif
 
 
@@ -811,6 +840,19 @@ _RETRY:
 					{
 						return pcoAcqPcoError;
 					}
+
+					if(m_cam->_getDebug(DBG_WAITOBJ))
+					{
+						SHORT sBufNr = 	m_allocBuff.pcoAllocBufferNr[bufIdx];
+						DWORD dwStatusDll, dwStatusDrv;
+						int errPco;
+
+						m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
+						char msg[128];
+						sprintf_s(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
+						DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
+					}
+
 				}
 				else
 				{

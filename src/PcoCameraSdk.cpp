@@ -3217,7 +3217,7 @@ void Camera::_pco_GetBufferStatus(SHORT sBufNr, DWORD* dwStatusDll,
 	{
 		char msg[512];
 		sprintf_s(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, *dwStatusDll, *dwStatusDrv, err);
-		DEB_ALWAYS() << "\n... PCO_GetBufferStatus: " << msg;
+		DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
 	}
 #endif
 
