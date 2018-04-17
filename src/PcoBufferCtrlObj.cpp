@@ -719,22 +719,42 @@ _RETRY:
     // m_allocatedBufferAssignedFrameFirst[bufIdx] -> first frame in the buffer (we are using only 1 frame per buffer)
     // m_allocatedBufferReady[bufIdx] -> is already filled by sdk (ready)
 
+	{
+		int iPending;
+	PCO_GetPendingBuffer(m_cam->m_handle, &iPending);
+
+	if(m_cam->_getDebug(DBG_WAITOBJ))
+					{
+						DEB_ALWAYS() << "... PCO_GetPendingBuffer: " << DEB_VAR1(iPending);
+					}
+	}
+
     for(bufIdx = 0; bufIdx <m_cam->m_pco_buffer_nrevents; bufIdx++) 
 	{
-		if((m_allocBuff.bufferAssignedFrameFirst[bufIdx] == dwFrameIdx) && m_allocBuff.bufferReady[bufIdx]) 
-		{
+
 			SHORT sBufNr = 	m_allocBuff.pcoAllocBufferNr[bufIdx];
 			DWORD dwStatusDll, dwStatusDrv;
 			int errPco;
+			DWORD dwBuffFrame = m_allocBuff.bufferAssignedFrameFirst[bufIdx];
 
-			m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
+		m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
+
 
 			if(m_cam->_getDebug(DBG_WAITOBJ))
 			{
-				char msg[128];
-				sprintf_s(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
+				char msg[256];
+				sprintf_s(msg,sizeof(msg),"buffNr[%d] dwBuffFrame[%d] dwFrameIdx[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", 
+					sBufNr, dwBuffFrame, dwFrameIdx, dwStatusDll, dwStatusDrv, errPco);
 				DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
             }
+
+
+//		if((m_allocBuff.bufferAssignedFrameFirst[bufIdx] == dwFrameIdx) && m_allocBuff.bufferReady[bufIdx]) 
+		if(( dwBuffFrame == dwFrameIdx) && (dwStatusDll == 0x80008000)) 
+		{
+
+			//m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
+
 
 			//if((dwStatusDll != 0x80008000)) break;
 
@@ -771,7 +791,8 @@ _RETRY:
 				DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
             }
 
-			if((dwStatusDll != 0x80000000) || dwStatusDrv || errPco) {
+//			if((dwStatusDll != 0x80000000) || dwStatusDrv || errPco) {
+			if(0) {
 				char msg[MSG1K];
 				sprintf_s(msg,MSG1K,"SDK ERROR got frame[%d / %d] bufIdx[%d] size[%ld] dest[%p] src[%p] \n"
 					"dwStatusDll[%08x] dwStatusDrv[%08x] errPco[%08x] err[%s]\n", 
@@ -824,13 +845,21 @@ _RETRY:
 			//----- the image dwFrameIdx is already in the buffer -> callback!
 			if((m_sync->_getRequestStop(_nrStop) == stopRequest) && (_nrStop > MAX_NR_STOP)) {goto _EXIT_STOP;}
 			
-			if(dwFrameFirst2assign <= dwRequestedFrames) 
+			if(0) 
+//			if(!(dwFrameFirst2assign <= dwRequestedFrames)) 
+			{
+				char msg[128];
+				//ResetEvent(m_allocBuff.bufferAllocEvent[bufIdx]);
+				sprintf_s(msg, sizeof(msg), "... RESETING BUFFER BUFFER[%d] frame[%d] live[%d]", bufIdx, dwFrameFirst2assign, live_mode);
+				DEB_ALWAYS() << msg;
+			}
+			else
 			{
 				if( (m_cam->_getCameraState(CAMSTATE_RECORD_STATE) && m_cam->_isRunAfterAssign()) || (!m_cam->_isRunAfterAssign()) )
 				{
 					if(m_cam->_getDebug(DBG_WAITOBJ))
 					{
-						sprintf_s(msg, RING_LOG_BUFFER_SIZE, "... ASSIGN BUFFER[%d] frame[%d] live[%d]", bufIdx, dwFrameFirst2assign, live_mode);
+						sprintf_s(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] live[%d]", bufIdx, dwFrameFirst2assign, live_mode);
 						m_cam->m_tmpLog->add(msg);  DEB_ALWAYS() << msg;
 					}
 					
@@ -879,6 +908,16 @@ _RETRY_WAIT:
 			EVENT_WAIT_TMOUT_MS);       // ms wait
 
     // The return value indicates which event is signaled
+
+	int iPending;
+	PCO_GetPendingBuffer(m_cam->m_handle, &iPending);
+
+					if(m_cam->_getDebug(DBG_WAITOBJ))
+					{
+						DEB_ALWAYS() << "... PCO_GetPendingBuffer: " << DEB_VAR1(iPending);
+					}
+
+
 
 #if PCO_BUFFER_NREVENTS != 4
   #pragma message ("============================================== ABORT - wrong nr of WAIT_OBJECT ")
@@ -1846,7 +1885,7 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 		 // Create two event objects
 		   m_allocBuff.bufferAllocEvent[bufIdx] = CreateEvent( 
 				NULL,   // default security attributes
-				FALSE,  // auto-reset event object
+				TRUE,  // auto-reset event object = FALSE / manual reset = TRUE
 				FALSE,  // initial state is nonsignaled
 				NULL);  // unnamed object
 
