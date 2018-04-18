@@ -2440,6 +2440,56 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 	}
 
 
+	//--------------------- acqinfo
+	if(flag & CAMINFO_ACQ)
+	{
+		int err;	
+
+		double _exposure, _delay;
+		m_sync->getExpTime(_exposure);
+		m_sync->getLatTime(_delay);
+
+		ptr += sprintf_s(ptr, ptrMax - ptr, 
+			"... exp[%g ms][%g s] delay[%g ms][%g s]\n", 
+			_exposure*1.0e3,_exposure, 
+			_delay*1.0e3, _delay); 
+
+		Roi limaRoi;
+		int error;
+
+		int forcedFifo = 0;
+		getRecorderForcedFifo(forcedFifo);
+
+		Bin aBin;
+		_pco_GetBinning(aBin, err);
+
+		int binX = aBin.getX();
+		int binY = aBin.getY();
+
+		_pco_GetROI(limaRoi, error);
+
+		Point top_left = limaRoi.getTopLeft();
+		Point bot_right = limaRoi.getBottomRight();
+		Size size = limaRoi.getSize();			
+
+		ptr += sprintf_s(ptr, ptrMax - ptr, 
+			"... roiLima XY0[%d,%d] XY1[%d,%d] size[%d,%d]\n",  
+			top_left.x, top_left.y,
+			bot_right.x, bot_right.y,
+			size.getWidth(), size.getHeight());
+
+		int iFrames;
+		m_sync->getNbFrames(iFrames);
+
+		ptr += sprintf_s(ptr, ptrMax - ptr, 
+			"... bin[%d,%d] nrFrames[%d] forcedFifo[%d]\n",  
+			binX, binY,
+			iFrames,
+			forcedFifo);
+
+
+	}
+
 	//--------------------- size, roi, ...
 	if(flag & CAMINFO_ROI)
 	{

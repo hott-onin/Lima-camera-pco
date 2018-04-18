@@ -56,6 +56,7 @@
 #define CAMINFO_BLOCK			(0x1LL << 0)
 #define CAMINFO_UNSORTED		(0x1LL << 1)
 #define CAMINFO_LOG				(0x1LL << 2)
+#define CAMINFO_ACQ				(0x1LL << 3)
 
 #define CAMINFO_PIXELRATE		(0x1LL << 8)
 #define CAMINFO_ADC				(0x1LL << 9)
