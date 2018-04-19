@@ -380,10 +380,11 @@ void Camera::getTraceAcq(std::string &o_sn)
 		totTime, xferSpeed, framesPerSec);
 
 	ptr += sprintf_s(ptr, ptrMax - ptr, 
-		"* ... checkImgNr pco[%d] lima[%d] diff[%d]\n",  
+		"* ... checkImgNr pco[%d] lima[%d] diff[%d] order[%d]\n",  
 		m_pcoData->traceAcq.checkImgNrPco,
 		m_pcoData->traceAcq.checkImgNrLima,
-		m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima);
+		m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima,
+		m_pcoData->traceAcq.checkImgNrOrder);
 
 	ptr += sprintf_s(ptr, ptrMax - ptr, 
 		"%s\n", m_pcoData->traceAcq.msg);

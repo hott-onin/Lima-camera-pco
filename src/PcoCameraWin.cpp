@@ -32,7 +32,8 @@ Camera::Camera(const char *params) :
 	m_handle(NULL),
 	m_Roi_lastFixed_time(0),
 	m_pco_buffer_nrevents(PCO_BUFFER_NREVENTS),
-	bRecorderForcedFifo(false)
+	bRecorderForcedFifo(false),
+	m_checkImgNr()
 {
 	DEF_FNID;
 	DEB_CONSTRUCTOR();

@@ -646,10 +646,11 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 				totTime, xferSpeed, framesPerSec);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* ... checkImgNr pco[%d] lima[%d] diff[%d]\n",  
+				"* ... checkImgNr pco[%d] lima[%d] diff[%d] order[%d]\n",  
 				m_pcoData->traceAcq.checkImgNrPco,
 				m_pcoData->traceAcq.checkImgNrLima,
-				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima);
+				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima,
+				m_pcoData->traceAcq.checkImgNrOrder);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"%s\n", m_pcoData->traceAcq.msg);
@@ -839,10 +840,11 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"pco: %d lima: %d diff: %d",  
+				"pco: %d lima: %d diff: %d order: %d",  
 				m_pcoData->traceAcq.checkImgNrPco,
 				m_pcoData->traceAcq.checkImgNrLima,
-				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima);
+				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima,
+				m_pcoData->traceAcq.checkImgNrOrder);
 
 			return output;
 		}
@@ -1989,6 +1991,75 @@ void print_hex_dump_buff(void *ptr_buff, size_t len) {
 	}
 
 }
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+
+CheckImgNr::CheckImgNr()
+{
+}
+
+CheckImgNr::~CheckImgNr()
+{
+}
+
+void CheckImgNr::update(int iLimaFrame, void *ptrImage)
+{
+
+	int pcoImgNr, diff;
+
+	if(!checkImgNr) return;
+
+	pcoImgNr = _get_imageNr_from_imageTimestamp(ptrImage, alignmentShift);
+	if(pcoImgNr <= pcoImgNrLast) pcoImgNrOrder++;
+	diff = pcoImgNr - iLimaFrame;
+	m_pcoData->traceAcq.checkImgNrLima = iLimaFrame +1;
+	m_pcoData->traceAcq.checkImgNrPco = pcoImgNr;
+	m_pcoData->traceAcq.checkImgNrOrder = pcoImgNrOrder;
+
+	if(diff > pcoImgNrDiff) 
+	{
+		pcoImgNrDiff = diff;
+	}
+	pcoImgNrLast = pcoImgNr;
+}
+
+void CheckImgNr::init(Camera *cam, struct stcPcoData *pcoData)
+{
+	m_cam = cam;
+	m_pcoData = pcoData;
+
+	checkImgNr = false;
+	pcoImgNrDiff = 1;
+	alignmentShift = 0;
+	int err;
+
+	WORD wTimeStampMode;
+
+	m_cam->_pco_GetTimestampMode(wTimeStampMode, err);
+
+	if(wTimeStampMode == 0) return;
+
+	checkImgNr = true;
+	pcoImgNrLast = -1;
+	pcoImgNrOrder = 0;
+
+
+	int alignment;
+
+	m_cam->_pco_GetBitAlignment(alignment);
+
+	if(alignment == 0)
+		alignmentShift = (16 - m_cam->m_pcoData->stcPcoDescription.wDynResDESC);
+	else
+		alignmentShift = 0;
+
+	
+	return;
+
+}
+
+
 
 
 //--------------------------------------------------------------------

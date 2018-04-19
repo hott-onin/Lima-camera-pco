@@ -1568,39 +1568,6 @@ const char *Camera::_getCameraSubTypeStr()
 //=================================================================================================
 //=================================================================================================
 
-
-//=================================================================================================
-//=================================================================================================
-
-void Camera::_checkImgNrInit(bool &checkImgNr, int &imgNrDiff, int &alignmentShift){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-
-	checkImgNr = false;
-	imgNrDiff = 1;
-	alignmentShift = 0;
-	int err;
-
-	WORD wTimeStampMode;
-
-	_pco_GetTimestampMode(wTimeStampMode, err);
-
-	if(wTimeStampMode == 0) return;
-	checkImgNr = true;
-
-	int alignment;
-
-	_pco_GetBitAlignment(alignment);
-
-	if(alignment == 0)
-		alignmentShift = (16 - m_pcoData->stcPcoDescription.wDynResDESC);
-	else
-		alignmentShift = 0;
-
-	
-	return;
-
-}
 //=================================================================================================
 //=================================================================================================
 

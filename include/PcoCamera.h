@@ -168,6 +168,9 @@ struct stcSegmentInfo
 	DWORD dwMaxImageCnt;
 };
 
+
+
+
 //================================================================
 // LINUX
 //================================================================
@@ -264,6 +267,9 @@ private:
         int m_head;
         struct data *buffer;
 };
+
+
+
 
 struct stcTemp 
 {
@@ -402,7 +408,7 @@ struct stcPcoData
 		int nrImgAcquired;
 		long msTotal, msRecord, msRecordLoop, msXfer, msTout;
 		long msStartAcqStart, msStartAcqEnd, msStartAcqNow;
-		int checkImgNrPco, checkImgNrPcoTimestamp, checkImgNrLima;
+		int checkImgNrPco, checkImgNrPcoTimestamp, checkImgNrLima, checkImgNrOrder;
 
 		
 #define LEN_TRACEACQ_TRHEAD 11
@@ -609,6 +615,30 @@ namespace lima
     class BufferCtrlObj;
     class SyncCtrlObj;
     class VideoCtrlObj;
+	class Camera;
+
+	//--------------------------------------- class CehckImgNr
+	class CheckImgNr 
+	{
+	      
+	   public:
+			CheckImgNr();
+			~CheckImgNr();
+			void init(Camera *cam, struct stcPcoData *pcoData);
+			void update(int iLimaFrame, void *ptrImage);
+;
+		private:
+			Camera *m_cam;
+			struct stcPcoData *m_pcoData;
+			bool checkImgNr;
+			int pcoImgNrDiff;
+			int pcoImgNrOrder;
+			int pcoImgNrLast;
+			int alignmentShift;
+	};
+
+
+	//--------------------------------------- class Camera
     class  DLL_EXPORT  Camera : public HwMaxImageSizeCallbackGen
     {
       friend class Interface;
@@ -617,6 +647,7 @@ namespace lima
 	  friend class RoiCtrlObj;
 	  friend class BinCtrlObj;
 	  friend class BufferCtrlObj;
+	  friend class CheckImgNr;
 
       DEB_CLASS_NAMESPC(DebModCamera,"Camera","Pco");
       public:
@@ -817,6 +848,8 @@ namespace lima
 
 		ringLog *m_msgLog;
 		ringLog *m_tmpLog;
+		
+		CheckImgNr m_checkImgNr;
 		char *mybla, *myblamax;
 		char *mytalk, *mytalkmax;
 		
@@ -834,7 +867,6 @@ namespace lima
 
 		DWORD _getCameraSerialNumber()  ;
 
-		void _checkImgNrInit(bool &checkImgNr, int &imgNrDiff, int &alignmentShift);
 
 		const char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
 		const char *xlatCode2Str(int code, struct stcXlatCode2Str *stc);

@@ -105,7 +105,7 @@ namespace lima
 		int _xferImagDoubleImage();
 		int _xferImag();
 
-		int _xferImag_buff2lima(DWORD &dwFrameIdx, int &bufIdx, int &imgNrDiff, int &alignmentShift, bool &checkImgNr);
+		int _xferImag_buff2lima(DWORD &dwFrameIdx, int &bufIdx);
 
 
 		int _xferImag_getImage();

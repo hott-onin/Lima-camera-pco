@@ -523,7 +523,7 @@ if(wDoubleImage)
 
 //===================================================================================================================
 //===================================================================================================================
-int BufferCtrlObj::_xferImag_buff2lima(DWORD &dwFrameIdx, int &bufIdx, int &imgNrDiff, int &alignmentShift, bool &checkImgNr)
+int BufferCtrlObj::_xferImag_buff2lima(DWORD &dwFrameIdx, int &bufIdx)
 
 {
 	DEB_MEMBER_FUNCT();
@@ -582,19 +582,7 @@ int BufferCtrlObj::_xferImag_buff2lima(DWORD &dwFrameIdx, int &bufIdx, int &imgN
 
 
 	//=============================== check PCO ImgNr with the limaFrame
-	if(checkImgNr) 
-	{
-		int imgNr, diff;
-		imgNr = _get_imageNr_from_imageTimestamp(ptrSrc, alignmentShift);
-		diff = imgNr - iLimaFrame;
-		m_pcoData->traceAcq.checkImgNrLima = iLimaFrame +1;
-		m_pcoData->traceAcq.checkImgNrPco = imgNr;
-		if(diff != imgNrDiff) 
-		{
-			//DEB_ALWAYS() << DEB_VAR3(iLimaFrame, imgNr, diff);
-			imgNrDiff = diff;
-		}
-	}
+	m_cam->m_checkImgNr.update(iLimaFrame, ptrSrc);
 
 	//----- the image dwFrameIdx is already in the buffer -> callback!
 	if((m_sync->_getRequestStop(_nrStop) == stopRequest) && (_nrStop > MAX_NR_STOP)) 
@@ -628,14 +616,10 @@ int BufferCtrlObj::_xferImag()
 
 	unsigned long long dbgWaitobj = m_cam->_getDebug(DBG_WAITOBJ);
 
-	bool checkImgNr = false;
-	int imgNrDiff = 0;
-	int alignmentShift = 0;
-	m_cam->_checkImgNrInit(checkImgNr, imgNrDiff, alignmentShift);
+	m_cam->m_checkImgNr.init(m_cam, m_pcoData);
 
 	int forcedFifo = 0;
 	m_cam->getRecorderForcedFifo(forcedFifo);
-
 
 
 	
@@ -892,7 +876,7 @@ int BufferCtrlObj::_xferImag()
 					sBufNr, dwBuffFrame, dwFrameIdx, dwStatusDll, dwStatusDrv, errPco, iLoopsPolled);
 			DEB_ALWAYS() << msg;
 		}
-		int xferRet = _xferImag_buff2lima(dwFrameIdx, bufIdx, imgNrDiff, alignmentShift, checkImgNr);
+		int xferRet = _xferImag_buff2lima(dwFrameIdx, bufIdx);
 
 		if(xferRet == pcoAcqStop) goto _EXIT_STOP;
 
@@ -1105,11 +1089,7 @@ int BufferCtrlObj::_xferImag_getImage()
 	long long usStart;
 	usElapsedTimeSet(usStart);
 
-	bool checkImgNr = false;
-	int imgNrDiff = 0;
-	int alignmentShift = 0;
-
-	m_cam->_checkImgNrInit(checkImgNr, imgNrDiff, alignmentShift);
+	m_cam->m_checkImgNr.init(m_cam, m_pcoData);
 
 	_pcoAllocBuffers(true); // allocate 2 pco buff at max size
 
@@ -1220,18 +1200,10 @@ int BufferCtrlObj::_xferImag_getImage()
 
 		memcpy(ptrLimaBuffer, ptrSrc, dwFrameSize);
 
-		//=============================== checkImgNr
-		if(checkImgNr) {
-			int imgNr, diff;
-			imgNr = _get_imageNr_from_imageTimestamp(ptrSrc, alignmentShift);
-			diff = imgNr - iLimaFrame;
-			m_pcoData->traceAcq.checkImgNrLima = iLimaFrame +1;
-			m_pcoData->traceAcq.checkImgNrPco = imgNr;
-			if(diff != imgNrDiff) {
-				//DEB_ALWAYS() << DEB_VAR3(iLimaFrame, imgNr, diff);
-				imgNrDiff = diff;
-			}
-		}
+		//=============================== check PCO ImgNr with the limaFrame
+		m_cam->m_checkImgNr.update(iLimaFrame, ptrSrc);
+
+
 
 		ptrSrc = ((char *)ptrSrc) + dwFrameSize;
 		
@@ -1328,11 +1300,7 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 	long long usStart;
 	usElapsedTimeSet(usStart);
 
-	bool checkImgNr = false;
-	int imgNrDiff = 0;
-	int alignmentShift = 0;
-
-	m_cam->_checkImgNrInit(checkImgNr, imgNrDiff, alignmentShift);
+	m_cam->m_checkImgNr.init(m_cam, m_pcoData);
 
 	_pcoAllocBuffers(true); // allocate 2 pco buff at max size
 
@@ -1453,18 +1421,8 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 
 		memcpy(ptrLimaBuffer, ptrSrc, dwFrameSize);
 
-		//=============================== checkImgNr
-		if(checkImgNr) {
-			int imgNr, diff;
-			imgNr = _get_imageNr_from_imageTimestamp(ptrSrc, alignmentShift);
-			diff = imgNr - iLimaFrame;
-			m_pcoData->traceAcq.checkImgNrLima = iLimaFrame +1;
-			m_pcoData->traceAcq.checkImgNrPco = imgNr;
-			if(diff != imgNrDiff) {
-				//DEB_ALWAYS() << DEB_VAR3(iLimaFrame, imgNr, diff);
-				imgNrDiff = diff;
-			}
-		}
+		//=============================== check PCO ImgNr with the limaFrame
+		m_cam->m_checkImgNr.update(iLimaFrame, ptrSrc);
 
 		ptrSrc = ((char *)ptrSrc) + dwFrameSize;
 		
@@ -2036,11 +1994,9 @@ int BufferCtrlObj::_xferImagDoubleImage()
 
 	unsigned long long dbgWaitobj = m_cam->_getDebug(DBG_WAITOBJ);
 
-	bool checkImgNr = false;
-	int imgNrDiff = 0;
-	int alignmentShift = 0;
 	int iLimaFrame;
-	m_cam->_checkImgNrInit(checkImgNr, imgNrDiff, alignmentShift);
+
+	m_cam->m_checkImgNr.init(m_cam, m_pcoData);
 
 	DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[WaitForMultipleObjects]", "[ENTRY]");
 	
@@ -2286,19 +2242,9 @@ _RETRY:
 //----------- img2 / end
 
 
-
 			//=============================== check PCO ImgNr with the limaFrame
-			if(checkImgNr) {
-				int imgNr, diff;
-				imgNr = _get_imageNr_from_imageTimestamp(ptrPcoBuffer, alignmentShift);
-				diff = imgNr - iLimaFrame;
-				m_pcoData->traceAcq.checkImgNrLima = iLimaFrame +1;
-				m_pcoData->traceAcq.checkImgNrPco = imgNr;
-				if(diff != imgNrDiff) {
-					//DEB_ALWAYS() << DEB_VAR3(iLimaFrame, imgNr, diff);
-					imgNrDiff = diff;
-				}
-			}
+			m_cam->m_checkImgNr.update(iLimaFrame, ptrPcoBuffer);
+
 
 			//----- the image dwPcoFrameIdx is already in the buffer -> callback!
 		if((m_sync->_getRequestStop(_nrStop) == stopRequest) && (_nrStop > MAX_NR_STOP)) {goto _EXIT_STOP;}
