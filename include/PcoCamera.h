@@ -230,6 +230,8 @@ enum timestampFmt {Iso=1, IsoHMS, FnFull, FnDate};
 char *getTimestamp(timestampFmt fmtIdx, time_t xtime = 0) ;
 time_t getTimestamp();
 
+//================================================================
+//================================================================
 struct stcFrame 
 {
 	BOOL	changed;
@@ -242,6 +244,9 @@ struct stcFrame
 
 
 };
+
+//================================================================
+//================================================================
 #define RING_LOG_BUFFER_SIZE 64
 class ringLog 
 {
@@ -271,6 +276,8 @@ private:
 
 
 
+//================================================================
+//================================================================
 struct stcTemp 
 {
 	short sCcd, sCam, sPower;
@@ -279,13 +286,65 @@ struct stcTemp
 	short sDefaultCoolSet;
 };
 
+//================================================================
+//================================================================
 struct stcLongLongStr 
 {
 	long long value;
 	const char *desc;
 };
 
+//================================================================
+//================================================================
+typedef struct {
+		DWORD nrImgRecorded;
+		DWORD maxImgCount;
+		int nrImgRequested;
+		int nrImgRequested0;
+		int nrImgAcquired;
+		long msTotal, msRecord, msRecordLoop, msXfer, msTout;
+		long msStartAcqStart, msStartAcqEnd, msStartAcqNow;
+		int checkImgNrPco, checkImgNrPcoTimestamp, checkImgNrLima, checkImgNrOrder;
 
+		
+#define LEN_TRACEACQ_TRHEAD 11
+		//long msThreadBeforeXfer, msThreadAfterXfer, msThreadEnd;
+		//long msThread[LEN_TRACEACQ_TRHEAD];
+		long msReserved[15-LEN_TRACEACQ_TRHEAD];
+		
+		struct stcLongLongStr usTicks[LEN_TRACEACQ_TRHEAD];
+		double msImgCoc;
+		double sExposure, sDelay;
+		time_t endRecordTimestamp;
+		time_t endXferTimestamp;
+		const char *fnId;
+		const char *fnIdXfer;
+		const char *sPcoStorageRecorderMode;
+		int iPcoStorageMode, iPcoRecorderSubmode;
+		int iPcoBinHorz, iPcoBinVert;
+		int iPcoRoiX0, iPcoRoiX1, iPcoRoiY0, iPcoRoiY1;
+		const char *sPcoTriggerMode;
+		const char *sLimaTriggerMode;
+		int iPcoTriggerMode;
+
+		const char *sPcoAcqMode;
+		int iPcoAcqMode;
+
+		double dLimaExposure, dLimaDelay;
+		int iPcoExposure, iPcoExposureBase;
+		int iPcoDelay, iPcoDelayBase;
+
+		char msg[LEN_TRACEACQ_MSG+1];
+
+		time_t fnTimestampEntry, fnTimestampExit;
+		int nrErrors;
+	    
+		void traceMsg(char *s);
+
+} STC_traceAcq;
+
+//================================================================
+//================================================================
 
 #define SIZEARR_stcPcoHWIOSignal 10
 #define SIZESTR_PcoHWIOSignal 1024
@@ -399,64 +458,7 @@ struct stcPcoData
 	long msAcqRec, msAcqXfer, msAcqTout, msAcqTnow, msAcqAll;
 	time_t msAcqRecTimestamp, msAcqXferTimestamp, msAcqToutTimestamp, msAcqTnowTimestamp;
 
-
-	struct stcTraceAcq{
-		DWORD nrImgRecorded;
-		DWORD maxImgCount;
-		int nrImgRequested;
-		int nrImgRequested0;
-		int nrImgAcquired;
-		long msTotal, msRecord, msRecordLoop, msXfer, msTout;
-		long msStartAcqStart, msStartAcqEnd, msStartAcqNow;
-		int checkImgNrPco, checkImgNrPcoTimestamp, checkImgNrLima, checkImgNrOrder;
-
-		
-#define LEN_TRACEACQ_TRHEAD 11
-		//long msThreadBeforeXfer, msThreadAfterXfer, msThreadEnd;
-		//long msThread[LEN_TRACEACQ_TRHEAD];
-		long msReserved[15-LEN_TRACEACQ_TRHEAD];
-		
-		struct stcLongLongStr usTicks[LEN_TRACEACQ_TRHEAD];
-		double msImgCoc;
-		double sExposure, sDelay;
-		time_t endRecordTimestamp;
-		time_t endXferTimestamp;
-		const char *fnId;
-		const char *fnIdXfer;
-		const char *sPcoStorageRecorderMode;
-		int iPcoStorageMode, iPcoRecorderSubmode;
-		int iPcoBinHorz, iPcoBinVert;
-		int iPcoRoiX0, iPcoRoiX1, iPcoRoiY0, iPcoRoiY1;
-		const char *sPcoTriggerMode;
-		const char *sLimaTriggerMode;
-		int iPcoTriggerMode;
-
-		const char *sPcoAcqMode;
-		int iPcoAcqMode;
-
-		double dLimaExposure, dLimaDelay;
-		int iPcoExposure, iPcoExposureBase;
-		int iPcoDelay, iPcoDelayBase;
-
-		char msg[LEN_TRACEACQ_MSG+1];
-
-		time_t fnTimestampEntry, fnTimestampExit;
-		int nrErrors;
-	    
-		void traceMsg(char *s);
-
-	} traceAcq;
-
-
-
-
-
-
-
-
-
-
-
+	STC_traceAcq traceAcq;
 
 	DWORD dwPixelRate, dwPixelRateRequested;
 	double fTransferRateMHzMax;
@@ -622,14 +624,14 @@ namespace lima
 	{
 	      
 	   public:
-			CheckImgNr();
+			CheckImgNr(Camera *cam);
 			~CheckImgNr();
-			void init(Camera *cam, struct stcPcoData *pcoData);
+			void init(STC_traceAcq *traceAcq);
 			void update(int iLimaFrame, void *ptrImage);
 ;
 		private:
 			Camera *m_cam;
-			struct stcPcoData *m_pcoData;
+			STC_traceAcq *m_traceAcq;
 			bool checkImgNr;
 			int pcoImgNrDiff;
 			int pcoImgNrOrder;
@@ -849,7 +851,7 @@ namespace lima
 		ringLog *m_msgLog;
 		ringLog *m_tmpLog;
 		
-		CheckImgNr m_checkImgNr;
+		CheckImgNr *m_checkImgNr;
 		char *mybla, *myblamax;
 		char *mytalk, *mytalkmax;
 		

@@ -73,7 +73,10 @@ void Camera::_pco_SetImageParameters(int &error){
 	int iLenParam = 0;
 	DWORD dwFlags = 0;
 
-	dwFlags = _isCameraType(Edge) ? 
+	int forcedFifo = 0;
+	getRecorderForcedFifo(forcedFifo);
+
+	dwFlags = (_isCameraType(Edge) || forcedFifo) ? 
 					IMAGEPARAMETERS_READ_WHILE_RECORDING :
 					IMAGEPARAMETERS_READ_FROM_SEGMENTS;
 

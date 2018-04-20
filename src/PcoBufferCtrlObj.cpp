@@ -582,7 +582,7 @@ int BufferCtrlObj::_xferImag_buff2lima(DWORD &dwFrameIdx, int &bufIdx)
 
 
 	//=============================== check PCO ImgNr with the limaFrame
-	m_cam->m_checkImgNr.update(iLimaFrame, ptrSrc);
+	m_cam->m_checkImgNr->update(iLimaFrame, ptrSrc);
 
 	//----- the image dwFrameIdx is already in the buffer -> callback!
 	if((m_sync->_getRequestStop(_nrStop) == stopRequest) && (_nrStop > MAX_NR_STOP)) 
@@ -616,7 +616,7 @@ int BufferCtrlObj::_xferImag()
 
 	unsigned long long dbgWaitobj = m_cam->_getDebug(DBG_WAITOBJ);
 
-	m_cam->m_checkImgNr.init(m_cam, m_pcoData);
+	m_cam->m_checkImgNr->init(&m_pcoData->traceAcq);
 
 	int forcedFifo = 0;
 	m_cam->getRecorderForcedFifo(forcedFifo);
@@ -799,6 +799,7 @@ int BufferCtrlObj::_xferImag()
 			if( dwBuffFrame == dwFrameIdx)
 			{
 				found = true;
+				printf("--- sBufNr[%d] dwFrameIdx[%d]\n", sBufNr, dwFrameIdx);
 				break;
 			}
 		}
@@ -809,7 +810,6 @@ int BufferCtrlObj::_xferImag()
 			sprintf_s(msg,sizeof(msg),"... ERROR - dwFrameIdx[%d] not found in the assigned buffers",dwFrameIdx);
 			DEB_ALWAYS() <<  msg;
 		}
-
 
 		// -----------------------------------------------------------------------------------------
 		// ---------------------------------- loop of WaitForMultipleObjects waiting the buff sBufNr is fired
@@ -839,30 +839,53 @@ int BufferCtrlObj::_xferImag()
 			//GetPendingBuffer(hCamera, &ipending);// <--- This can indicate that more than one buffer is ready
 			// If this returns 3 in ipending, everyting is fine and you keep the pace.
 			
-			if((eventRet >= eventMin) && (eventRet <= eventMax) && dbgWaitobj)
+    switch (eventRet) { 
+        case WAIT_OBJECT_0 + 0: 
+				printf("--- WAIT_OBJECT_0 + 0 / event[%d]\n", eventRet);
+				break;
+		case WAIT_OBJECT_0 + 1: 
+				printf("--- WAIT_OBJECT_0 + 1 / event[%d]\n", eventRet);
+				break;
+        case WAIT_OBJECT_0 + 2: 
+				printf("--- WAIT_OBJECT_0 + 2 / event[%d]\n", eventRet);
+				break;
+        case WAIT_OBJECT_0 + 3: 
+				printf("--- WAIT_OBJECT_0 + 3 / event[%d]\n", eventRet);
+				break;
+        case WAIT_TIMEOUT: 
+				printf("--- WAIT_TIMEOUT / event[%d]\n", eventRet);
+				break;
+		default: 
+				printf("--- DEFAULT / event[%d]\n", eventRet);
+				break;
+    }
+
+
+			if((eventRet >= eventMin) && (eventRet <= eventMax))
 			{
-				char msg[256];
-				sprintf_s(msg,sizeof(msg),"... WAITOBJ [%d] found", eventRet); 
-				DEB_ALWAYS() << msg;
+				printf("--- event[%d]\n", eventRet);
+
+				if(dbgWaitobj)
+				{
+					char msg[256];
+					sprintf_s(msg,sizeof(msg),"... WAITOBJ [%d] found", eventRet); 
+					DEB_ALWAYS() << msg;
+				}
 			}
 
 			m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
-			if (errPco != 0)
+			if ((errPco != 0) || (dwStatusDrv != 0))
 			{
 				char msg[256];
-				sprintf_s(msg,sizeof(msg),"... ERROR - PCO_GetBufferStatus[0x%lx]", errPco);
+				sprintf_s(msg,sizeof(msg),"... ERROR - PCO_GetBufferStatus err[0x%lx] dwStatusDrv[0x%lx]", errPco, dwStatusDrv);
 				DEB_ALWAYS() << msg;
 				//goto abnormal;
 			}
+			int ret = ResetEvent(m_allocBuff.bufferAllocEvent[bufIdx]);
+			printf("--- ResetEvent[%d] buffIdx[%d] sBufNr[%d] dwFrameIdx[%d]\n", ret, bufIdx, sBufNr, dwFrameIdx);
 
-			if (dwStatusDrv != 0)
-			{
-				char msg[256];
-				sprintf_s(msg,sizeof(msg),"... ERROR - PCO_GetBufferStatus dwStatusDrv[0x%lx]", dwStatusDrv);
-				DEB_ALWAYS() << msg;
-				//goto abnormal;
-			}
 			iLoopsPolled++;
+			printf("--- iLoopsPolled[%d] dwStatusDll[0x%lx] sBufNr[%d] dwFrameIdx[%d]\n", iLoopsPolled, dwStatusDll, sBufNr, dwFrameIdx);
 		} while (!(dwStatusDll & 0x00008000));
 		
 		// -----------------------------------------------------------------------------------------
@@ -885,7 +908,7 @@ int BufferCtrlObj::_xferImag()
 		// ---------------------------------- assing the buff already free to the next image
 		// -----------------------------------------------------------------------------------------
 
-		if( 1 || (dwFrameFirst2assign <= dwRequestedFrames)) 
+		if( 0 || (dwFrameFirst2assign <= dwRequestedFrames)) 
 		{
 			if( (m_cam->_getCameraState(CAMSTATE_RECORD_STATE))  )
 			{
@@ -893,7 +916,7 @@ int BufferCtrlObj::_xferImag()
 				{
 					char msg[256];
 					sprintf_s(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] live[%d]", bufIdx, dwFrameFirst2assign, live_mode);
-					m_cam->m_tmpLog->add(msg);  DEB_ALWAYS() << msg;
+					DEB_ALWAYS() << msg;
 				}
 				
 				if( (error = _assignImage2Buffer(
@@ -915,7 +938,28 @@ int BufferCtrlObj::_xferImag()
 				char msg[256];
 				sprintf_s(msg, sizeof(msg), "... BYPASSED ASSIGN BUFFER[%d] dwFrameFirst2assign[%d] dwRequestedFrames[%d] live[%d]", 
 					bufIdx, dwFrameFirst2assign, dwRequestedFrames, live_mode);
-				m_cam->m_tmpLog->add(msg);  DEB_ALWAYS() << msg;
+				DEB_ALWAYS() << msg;
+			}
+
+			//int ret = ResetEvent(m_allocBuff.bufferAllocEvent[bufIdx]);
+			//printf("--- ResetEvent[%d] buffIdx[%d] sBufNr[%d]\n", ret, bufIdx, sBufNr);
+
+			if(1)
+			//if(!ret)
+			{
+
+			DWORD errorMessageID = ::GetLastError();
+
+			LPSTR messageBuffer = NULL;
+			size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                 NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+			std::string message(messageBuffer, size);
+
+			//Free the buffer.
+			LocalFree(messageBuffer);
+
+			DEB_ALWAYS() << message;
 			}
 		}
 
@@ -1089,7 +1133,7 @@ int BufferCtrlObj::_xferImag_getImage()
 	long long usStart;
 	usElapsedTimeSet(usStart);
 
-	m_cam->m_checkImgNr.init(m_cam, m_pcoData);
+	m_cam->m_checkImgNr->init(&m_pcoData->traceAcq);
 
 	_pcoAllocBuffers(true); // allocate 2 pco buff at max size
 
@@ -1201,7 +1245,7 @@ int BufferCtrlObj::_xferImag_getImage()
 		memcpy(ptrLimaBuffer, ptrSrc, dwFrameSize);
 
 		//=============================== check PCO ImgNr with the limaFrame
-		m_cam->m_checkImgNr.update(iLimaFrame, ptrSrc);
+		m_cam->m_checkImgNr->update(iLimaFrame, ptrSrc);
 
 
 
@@ -1300,7 +1344,7 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 	long long usStart;
 	usElapsedTimeSet(usStart);
 
-	m_cam->m_checkImgNr.init(m_cam, m_pcoData);
+	m_cam->m_checkImgNr->init(&m_pcoData->traceAcq);
 
 	_pcoAllocBuffers(true); // allocate 2 pco buff at max size
 
@@ -1422,7 +1466,7 @@ int BufferCtrlObj::_xferImag_getImage_edge()
 		memcpy(ptrLimaBuffer, ptrSrc, dwFrameSize);
 
 		//=============================== check PCO ImgNr with the limaFrame
-		m_cam->m_checkImgNr.update(iLimaFrame, ptrSrc);
+		m_cam->m_checkImgNr->update(iLimaFrame, ptrSrc);
 
 		ptrSrc = ((char *)ptrSrc) + dwFrameSize;
 		
@@ -1780,6 +1824,11 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 
 	int bufIdx;
 
+
+
+
+#if 0
+
 	if(!m_allocBuff.createEventsDone){
 		for(bufIdx=0; bufIdx <m_cam->m_pco_buffer_nrevents; bufIdx++) {
 		 // Create two event objects
@@ -1797,6 +1846,7 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 		m_allocBuff.createEventsDone = true;
 
 	}
+#endif
 
 #ifdef USING_PCO_ALLOCATED_BUFFERS 
 	
@@ -1804,7 +1854,7 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 	
 	// we are using pco allocated buffer, we must to allocate them
     int error = 0;
-    char *sErr;
+    //char *sErr;
 	DWORD _dwMaxWidth, _dwMaxHeight;
 	unsigned int _uiMaxWidth, _uiMaxHeight;
 	WORD _wArmWidth, _wArmHeight;
@@ -1852,8 +1902,32 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 			<< "\n ... " << DEB_VAR4(_dwAllocatedBufferSize,max, _dwAllocatedBufferSizeMax, _dwArmSize ); 
 
 
+
+		//if(!m_allocBuff.createEventsDone){
+			for(bufIdx = 0; bufIdx <m_cam->m_pco_buffer_nrevents ; bufIdx ++) 
+			{
+				m_allocBuff.bufferAllocEvent[bufIdx] = NULL;
+				m_allocBuff.pcoAllocBufferNr[bufIdx] = -1;
+				m_allocBuff.pcoAllocBufferPtr[bufIdx]=NULL;
+			}
+			m_allocBuff.createEventsDone = true;
+		//}
+
+		for(bufIdx = 0; bufIdx <m_cam->m_pco_buffer_nrevents ; bufIdx ++) 
+		{
+			error = PCO_AllocateBuffer(m_cam->m_handle, 
+				&m_allocBuff.pcoAllocBufferNr[bufIdx], 
+				_dwAllocatedBufferSize, 
+				&m_allocBuff.pcoAllocBufferPtr[bufIdx], 
+				&m_allocBuff.bufferAllocEvent[bufIdx]);
+		}
+
+
+
+#if 0
 		//-------------- allocate 2 buffers (0,1) and received the handle, mem ptr, events
-			for(bufIdx = 0; bufIdx <m_cam->m_pco_buffer_nrevents ; bufIdx ++) {
+			for(bufIdx = 0; bufIdx <m_cam->m_pco_buffer_nrevents ; bufIdx ++) 
+			{
 				m_allocBuff.pcoAllocBufferNr[bufIdx] = -1;
 				m_cam->_pco_AllocateBuffer(
 					&m_allocBuff.pcoAllocBufferNr[bufIdx], \
@@ -1873,6 +1947,8 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 				m_allocBuff.dwPcoAllocBufferSize[bufIdx] = _dwAllocatedBufferSize;
 
 			}
+
+#endif			
 		m_pcoData->bAllocatedBufferDone = m_allocBuff.pcoAllocBufferDone = true;
 	}
 #endif
@@ -1996,7 +2072,7 @@ int BufferCtrlObj::_xferImagDoubleImage()
 
 	int iLimaFrame;
 
-	m_cam->m_checkImgNr.init(m_cam, m_pcoData);
+	m_cam->m_checkImgNr->init(&m_pcoData->traceAcq);
 
 	DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[WaitForMultipleObjects]", "[ENTRY]");
 	
@@ -2243,7 +2319,7 @@ _RETRY:
 
 
 			//=============================== check PCO ImgNr with the limaFrame
-			m_cam->m_checkImgNr.update(iLimaFrame, ptrPcoBuffer);
+			m_cam->m_checkImgNr->update(iLimaFrame, ptrPcoBuffer);
 
 
 			//----- the image dwPcoFrameIdx is already in the buffer -> callback!

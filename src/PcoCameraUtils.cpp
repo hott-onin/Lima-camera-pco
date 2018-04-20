@@ -239,7 +239,7 @@ char *str_toupper(char *s) {
 
 void stcPcoData::traceAcqClean(){
 	void *ptr = &this->traceAcq;
-	memset(ptr, 0, sizeof(struct stcTraceAcq));
+	memset(ptr, 0, sizeof(STC_traceAcq));
 }
 
 void stcPcoData::traceMsg(char *s){
@@ -1995,8 +1995,9 @@ void print_hex_dump_buff(void *ptr_buff, size_t len) {
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
 
-CheckImgNr::CheckImgNr()
+CheckImgNr::CheckImgNr(Camera *cam)
 {
+	m_cam = cam;
 }
 
 CheckImgNr::~CheckImgNr()
@@ -2013,9 +2014,9 @@ void CheckImgNr::update(int iLimaFrame, void *ptrImage)
 	pcoImgNr = _get_imageNr_from_imageTimestamp(ptrImage, alignmentShift);
 	if(pcoImgNr <= pcoImgNrLast) pcoImgNrOrder++;
 	diff = pcoImgNr - iLimaFrame;
-	m_pcoData->traceAcq.checkImgNrLima = iLimaFrame +1;
-	m_pcoData->traceAcq.checkImgNrPco = pcoImgNr;
-	m_pcoData->traceAcq.checkImgNrOrder = pcoImgNrOrder;
+	m_traceAcq->checkImgNrLima = iLimaFrame +1;
+	m_traceAcq->checkImgNrPco = pcoImgNr;
+	m_traceAcq->checkImgNrOrder = pcoImgNrOrder;
 
 	if(diff > pcoImgNrDiff) 
 	{
@@ -2024,10 +2025,9 @@ void CheckImgNr::update(int iLimaFrame, void *ptrImage)
 	pcoImgNrLast = pcoImgNr;
 }
 
-void CheckImgNr::init(Camera *cam, struct stcPcoData *pcoData)
+void CheckImgNr::init(STC_traceAcq *traceAcq)
 {
-	m_cam = cam;
-	m_pcoData = pcoData;
+	m_traceAcq = traceAcq;
 
 	checkImgNr = false;
 	pcoImgNrDiff = 1;

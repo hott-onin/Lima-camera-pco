@@ -32,8 +32,7 @@ Camera::Camera(const char *params) :
 	m_handle(NULL),
 	m_Roi_lastFixed_time(0),
 	m_pco_buffer_nrevents(PCO_BUFFER_NREVENTS),
-	bRecorderForcedFifo(false),
-	m_checkImgNr()
+	bRecorderForcedFifo(false)
 {
 	DEF_FNID;
 	DEB_CONSTRUCTOR();
@@ -54,6 +53,8 @@ Camera::Camera(const char *params) :
 	if(m_pcoData == NULL)
 		throw LIMA_HW_EXC(Error, "m_pcoData > creation error");
 
+
+	m_checkImgNr = new CheckImgNr(this);
 
 
 	// properties: params 
@@ -917,6 +918,15 @@ void Camera::startAcq()
 
 	int forced = 0;
 	getRecorderForcedFifo(forced);
+
+	int iPending;
+	PCO_GetPendingBuffer(m_handle, &iPending);
+	if(iPending < m_pco_buffer_nrevents)
+	{
+		PCO_CancelImages(m_handle);
+		DEB_ALWAYS() << "PCO_CancelImages "<< DEB_VAR1(iPending);
+	}
+
 
 	unsigned long ulFramesMaxInSegment = _pco_GetNumberOfImagesInSegment_MaxCalc(m_pcoData->wActiveRamSegment);
 	unsigned long ulRequestedFrames = (unsigned long) iRequestedFrames;
