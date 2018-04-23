@@ -90,6 +90,10 @@ void Camera::_pco_SetImageParameters(int &error){
 
 	PCO_FN6(error, pcoFn,PCO_SetImageParameters, m_handle, wXres, wYres, dwFlags, param, iLenParam);
 
+	if(_getDebug(DBG_TRACE_FIFO))
+	{
+		printf("---TRACE - PCO_SetImageParameters dwFlags[0x%lx]\n", dwFlags);
+	}
 	if(error) 
 	{ 
 		DEB_ALWAYS() << "ERROR: \n" << DEB_VAR2(pcoFn, error);

@@ -373,6 +373,11 @@ const char * Camera::_pco_SetRecordingState(int state, int &err){
 		DEB_TRACE() << fnId << ": PCO_SetRecordingState " << DEB_VAR1(wRecState_new);
 		PCO_FN2(err, msg,PCO_SetRecordingState, m_handle, wRecState_new);
 		PCO_PRINT_ERR(err, msg); 	if(err) return msg;
+
+		if(_getDebug(DBG_TRACE_FIFO))
+		{
+			printf("---TRACE - PCO_SetRecordingState[%d]\n", wRecState_new);
+		}
 	}
 
 	if(wRecState_new) 

@@ -615,6 +615,7 @@ int BufferCtrlObj::_xferImag()
 	int maxWaitTimeout ; m_cam->getAcqTimeoutRetry(maxWaitTimeout);
 
 	unsigned long long dbgWaitobj = m_cam->_getDebug(DBG_WAITOBJ);
+	unsigned long long dbgTraceFifo = m_cam->_getDebug(DBG_TRACE_FIFO);
 
 	m_cam->m_checkImgNr->init(&m_pcoData->traceAcq);
 
@@ -705,6 +706,11 @@ int BufferCtrlObj::_xferImag()
 
 		if((!runAfterAssign) || (!recording && runAfterAssign))
 		{
+
+			if(dbgTraceFifo)
+			{
+				printf("---TRACE - ASSIGN BUFFER[%d] frame[%d] recordState[%d] live[%d]\n", bufIdx, dwFrameFirst2assign, recording, live_mode);
+			}
 			if(dbgWaitobj)
 			{
 				char msg[512];
@@ -717,6 +723,9 @@ int BufferCtrlObj::_xferImag()
 				DEB_ALWAYS() << "... ERROR _assignImage2Buffer / return";
 				return pcoAcqPcoError;
 			}
+
+
+
 			if(dbgWaitobj)
 			{
 				SHORT sBufNr = 	m_allocBuff.pcoAllocBufferNr[bufIdx];
@@ -799,7 +808,10 @@ int BufferCtrlObj::_xferImag()
 			if( dwBuffFrame == dwFrameIdx)
 			{
 				found = true;
-				printf("--- sBufNr[%d] dwFrameIdx[%d]\n", sBufNr, dwFrameIdx);
+				if(dbgTraceFifo)
+				{
+					printf("---TRACE WAITING FOR sBufNr[%d] dwFrameIdx[%d]\n", sBufNr, dwFrameIdx);
+				}
 				break;
 			}
 		}
@@ -839,7 +851,8 @@ int BufferCtrlObj::_xferImag()
 			//GetPendingBuffer(hCamera, &ipending);// <--- This can indicate that more than one buffer is ready
 			// If this returns 3 in ipending, everyting is fine and you keep the pace.
 			
-    switch (eventRet) { 
+#if 0
+			switch (eventRet) { 
         case WAIT_OBJECT_0 + 0: 
 				printf("--- WAIT_OBJECT_0 + 0 / event[%d]\n", eventRet);
 				break;
@@ -859,12 +872,15 @@ int BufferCtrlObj::_xferImag()
 				printf("--- DEFAULT / event[%d]\n", eventRet);
 				break;
     }
+#endif
 
 
 			if((eventRet >= eventMin) && (eventRet <= eventMax))
 			{
-				printf("--- event[%d]\n", eventRet);
-
+				if(dbgTraceFifo)
+				{
+					printf("---TRACE WAITOBJ [%d] found\n", eventRet);
+				}
 				if(dbgWaitobj)
 				{
 					char msg[256];
@@ -881,13 +897,19 @@ int BufferCtrlObj::_xferImag()
 				DEB_ALWAYS() << msg;
 				//goto abnormal;
 			}
-			int ret = ResetEvent(m_allocBuff.bufferAllocEvent[bufIdx]);
-			printf("--- ResetEvent[%d] buffIdx[%d] sBufNr[%d] dwFrameIdx[%d]\n", ret, bufIdx, sBufNr, dwFrameIdx);
 
 			iLoopsPolled++;
-			printf("--- iLoopsPolled[%d] dwStatusDll[0x%lx] sBufNr[%d] dwFrameIdx[%d]\n", iLoopsPolled, dwStatusDll, sBufNr, dwFrameIdx);
 		} while (!(dwStatusDll & 0x00008000));
-		
+
+		if(dbgTraceFifo)
+		{
+			printf("---TRACE iLoopsPolled[%d] dwStatusDll[0x%lx] sBufNr[%d] dwFrameIdx[%d]\n", iLoopsPolled, dwStatusDll, sBufNr, dwFrameIdx);
+		}		
+
+
+
+
+
 		// -----------------------------------------------------------------------------------------
 		// ---------------------------------- sBufNr was fired
 		// -----------------------------------------------------------------------------------------
@@ -900,6 +922,14 @@ int BufferCtrlObj::_xferImag()
 			DEB_ALWAYS() << msg;
 		}
 		int xferRet = _xferImag_buff2lima(dwFrameIdx, bufIdx);
+		if(dbgTraceFifo)
+		{
+			printf("---TRACE  _xferImag_buff2lima sBufNr[%d] dwFrameIdx[%d]\n", sBufNr, dwFrameIdx);
+		}
+
+		//int ret = ResetEvent(m_allocBuff.bufferAllocEvent[bufIdx]);
+		//printf("---TRACE - ResetEvent[%d] buffIdx[%d] sBufNr[%d] dwFrameIdx[%d]\n", ret, bufIdx, sBufNr, dwFrameIdx);
+
 
 		if(xferRet == pcoAcqStop) goto _EXIT_STOP;
 
@@ -908,7 +938,9 @@ int BufferCtrlObj::_xferImag()
 		// ---------------------------------- assing the buff already free to the next image
 		// -----------------------------------------------------------------------------------------
 
-		if( 0 || (dwFrameFirst2assign <= dwRequestedFrames)) 
+		bool useAssign = !m_cam->_getDebug(DBG_FN1);
+
+		if( useAssign || (dwFrameFirst2assign <= dwRequestedFrames)) 
 		{
 			if( (m_cam->_getCameraState(CAMSTATE_RECORD_STATE))  )
 			{
@@ -918,7 +950,11 @@ int BufferCtrlObj::_xferImag()
 					sprintf_s(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] live[%d]", bufIdx, dwFrameFirst2assign, live_mode);
 					DEB_ALWAYS() << msg;
 				}
-				
+
+				if(dbgTraceFifo)
+				{
+					printf("---TRACE - ASSIGN BUFFER[%d] frame[%d] live[%d]\n", bufIdx, dwFrameFirst2assign, live_mode);
+				}	
 				if( (error = _assignImage2Buffer(
 					dwFrameFirst2assign, dwFrameLast2assign, dwRequestedFrames, bufIdx, live_mode) ) ) 
 				{
@@ -941,29 +977,26 @@ int BufferCtrlObj::_xferImag()
 				DEB_ALWAYS() << msg;
 			}
 
-			//int ret = ResetEvent(m_allocBuff.bufferAllocEvent[bufIdx]);
-			//printf("--- ResetEvent[%d] buffIdx[%d] sBufNr[%d]\n", ret, bufIdx, sBufNr);
+			void * ev = m_allocBuff.bufferAllocEvent[bufIdx];
+			int ret = ResetEvent(ev);
+			printf("--- ResetEvent[%d] buffIdx[%d] sBufNr[%d] event[%p]\n", ret, bufIdx, sBufNr, ev);
 
-			if(1)
-			//if(!ret)
+			if(!ret)
 			{
+				DWORD errorMessageID = ::GetLastError();
 
-			DWORD errorMessageID = ::GetLastError();
+				LPSTR messageBuffer = NULL;
+				size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+									 NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
 
-			LPSTR messageBuffer = NULL;
-			size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                 NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+				std::string message(messageBuffer, size);
 
-			std::string message(messageBuffer, size);
+				//Free the buffer.
+				LocalFree(messageBuffer);
 
-			//Free the buffer.
-			LocalFree(messageBuffer);
-
-			DEB_ALWAYS() << message;
+				DEB_ALWAYS() << message;
 			}
 		}
-
-
 
 		m_sync->setAcqFrames(dwFrameIdx);
 		dwFrameIdx++;
@@ -1903,23 +1936,22 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 
 
 
-		//if(!m_allocBuff.createEventsDone){
-			for(bufIdx = 0; bufIdx <m_cam->m_pco_buffer_nrevents ; bufIdx ++) 
-			{
-				m_allocBuff.bufferAllocEvent[bufIdx] = NULL;
-				m_allocBuff.pcoAllocBufferNr[bufIdx] = -1;
-				m_allocBuff.pcoAllocBufferPtr[bufIdx]=NULL;
-			}
-			m_allocBuff.createEventsDone = true;
-		//}
-
 		for(bufIdx = 0; bufIdx <m_cam->m_pco_buffer_nrevents ; bufIdx ++) 
 		{
-			error = PCO_AllocateBuffer(m_cam->m_handle, 
+			m_allocBuff.bufferAllocEvent[bufIdx] = NULL;
+			m_allocBuff.pcoAllocBufferNr[bufIdx] = -1;
+			m_allocBuff.pcoAllocBufferPtr[bufIdx]=NULL;
+
+			error = PCO_AllocateBuffer(
+				m_cam->m_handle, 
 				&m_allocBuff.pcoAllocBufferNr[bufIdx], 
 				_dwAllocatedBufferSize, 
 				&m_allocBuff.pcoAllocBufferPtr[bufIdx], 
-				&m_allocBuff.bufferAllocEvent[bufIdx]);
+				&m_allocBuff.bufferAllocEvent[bufIdx]
+			);
+
+			m_allocBuff.createEventsDone = true;
+
 		}
 
 

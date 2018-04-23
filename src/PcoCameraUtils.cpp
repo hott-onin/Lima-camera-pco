@@ -1101,7 +1101,8 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "0x%llx",  m_pcoData->debugLevel);
 
-			if((tokNr == 1)){
+			if((tokNr == 1))
+			{
 					nr = sscanf_s(tok[1], "0x%llx",  &m_pcoData->debugLevel);
 					ptr += sprintf_s(ptr, ptrMax - ptr, "   %s>  ",  (nr == 1) ? "changed OK": "NOT changed");
 					ptr += sprintf_s(ptr, ptrMax - ptr, "0x%llx",  m_pcoData->debugLevel);
@@ -1109,21 +1110,12 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 					DEB_TRACE() << output ;
 			}
 			
-#define _PRINT_DBG( x )	ptr += sprintf_s(ptr, ptrMax - ptr, "%15s  0x%08x\n", #x, x ) 	
-
-			if((tokNr == 0)){
-				ptr += sprintf_s(ptr, ptrMax - ptr, "\n");
-				_PRINT_DBG( DBG_BUFF ) ;
-				_PRINT_DBG( DBG_XFER2LIMA ) ;
-				_PRINT_DBG( DBG_LIMABUFF ) ;
-				_PRINT_DBG( DBG_EXP ) ;
-				_PRINT_DBG( DBG_XFERMULT ) ;
-				_PRINT_DBG( DBG_XFERMULT1 ) ;
-				_PRINT_DBG( DBG_ASSIGN_BUFF ) ;
-				_PRINT_DBG( DBG_DUMMY_IMG ) ;
-				_PRINT_DBG( DBG_WAITOBJ ) ;
-				_PRINT_DBG( DBG_XFER_IMG ) ;
-				_PRINT_DBG( DBG_ROI ) ;
+			if((tokNr == 0))
+			{
+				char msg[MSG1K];
+				std::string _msg=msg;
+				getDebugIntTypes(_msg);
+				ptr += sprintf_s(ptr, ptrMax - ptr, "%s", _msg.c_str() );
 			}
 
 			return output;

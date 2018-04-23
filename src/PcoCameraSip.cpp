@@ -752,7 +752,9 @@ void Camera::getDebugIntTypes(std::string &o_sn)
 	_PRINT_DBG( DBG_DUMMY_IMG ) ;
 	_PRINT_DBG( DBG_WAITOBJ ) ;
 	_PRINT_DBG( DBG_XFER_IMG ) ;
+	_PRINT_DBG( DBG_TRACE_FIFO ) ;
 	_PRINT_DBG( DBG_ROI ) ;
+	_PRINT_DBG( DBG_FN1 ) ;
 
 	o_sn = buff;
 

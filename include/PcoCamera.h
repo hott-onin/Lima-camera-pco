@@ -106,8 +106,13 @@
 #define DBG_DUMMY_IMG      0x00000100
 #define DBG_WAITOBJ		   0x00000200
 #define DBG_XFER_IMG       0x00000400
+#define DBG_TRACE_FIFO     0x00000800
 
 #define DBG_ROI            0x00001000
+
+#define DBG_FN1            0x00010000
+
+
 //---------------------------------------
 
 //--------------------------------------- test cmd mode
