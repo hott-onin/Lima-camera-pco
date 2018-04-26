@@ -1,4 +1,60 @@
 
+2018/04/26 12:14:55 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-26_121449]
+  to: [/t/rhoms1/install-2018-04-26_121449]
+  to: [/t/rhoms1/install-beta]
+
+
+2018/04/26 11:08:56 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-26_110849]
+  to: [/t/rhoms1/install-2018-04-26_110849]
+  to: [/t/rhoms1/install-beta]
+
+
+2018/04/26 08:59:32 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-26_085926]
+  to: [/t/rhoms1/install-2018-04-26_085926]
+  to: [/t/rhoms1/install-beta]
+
+
+2018/04/25 17:46:20 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-25_174614]
+  to: [/t/rhoms1/install-2018-04-25_174614]
+  to: [/t/rhoms1/install-beta]
+
+
+2018/04/25 15:37:16 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-25_153709]
+  to: [/t/rhoms1/install-2018-04-25_153709]
+  to: [/t/rhoms1/install-beta]
+
+
+2018/04/25 11:14:03 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-25_111358]
+  to: [/t/rhoms1/install-2018-04-25_111358]
+  to: [/t/rhoms1/install-beta]
+
+
+2018/04/25 11:03:04 ==========================================
+scp: copied local directory to segfs and /tmp_14_days:
+from: [../../install/] and [./bat/]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-25_110258]
+  to: [/t/rhoms1/install-2018-04-25_110258]
+  to: [/t/rhoms1/install-beta]
+
+
 2018/04/23 19:43:26 ==========================================
 scp: copied local directory to segfs and /tmp_14_days:
 from: [../../install/] and [./bat/]

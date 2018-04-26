@@ -111,6 +111,9 @@
 #define DBG_ROI            0x00001000
 
 #define DBG_FN1            0x00010000
+#define DBG_FN2            0x00020000
+#define DBG_FN3            0x00040000
+#define DBG_FN4            0x00080000
 
 
 //---------------------------------------

@@ -826,7 +826,7 @@ int BufferCtrlObj::_xferImag()
 		// -----------------------------------------------------------------------------------------
 		// ---------------------------------- loop of WaitForMultipleObjects waiting the buff sBufNr is fired
 		// -----------------------------------------------------------------------------------------
-		int msTimeout = 10;
+		int msTimeout = 100;
 		int nrEvents = m_cam->m_pco_buffer_nrevents;
 		int eventMin = WAIT_OBJECT_0;
 		int eventMax = eventMin + nrEvents;
@@ -873,8 +873,6 @@ int BufferCtrlObj::_xferImag()
 				break;
     }
 #endif
-
-
 			if((eventRet >= eventMin) && (eventRet <= eventMax))
 			{
 				if(dbgTraceFifo)
@@ -888,13 +886,20 @@ int BufferCtrlObj::_xferImag()
 					DEB_ALWAYS() << msg;
 				}
 			}
-
 			m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
 			if ((errPco != 0) || (dwStatusDrv != 0))
 			{
 				char msg[256];
-				sprintf_s(msg,sizeof(msg),"... ERROR - PCO_GetBufferStatus err[0x%lx] dwStatusDrv[0x%lx]", errPco, dwStatusDrv);
-				DEB_ALWAYS() << msg;
+				sprintf_s(msg,sizeof(msg),
+					"... ERROR - PCO_GetBufferStatus \n"
+					"err[0x%lx] dwStatusDll[0x%lx] dwStatusDrv[0x%lx] \n"
+					"sBufNr[%d] WAITOBJ[%d] dwFrameIdx[%d] iLoopsPolled[%d] msTimeout[%d]", 
+					errPco, dwStatusDll, dwStatusDrv, 
+					sBufNr, eventRet, dwFrameIdx, iLoopsPolled, msTimeout);
+				
+				DEB_ALWAYS() 
+					<<"\n" << msg <<"\n"
+					<< m_cam->_PcoCheckError(__LINE__, __FILE__, dwStatusDrv, error);
 				//goto abnormal;
 			}
 
@@ -938,9 +943,10 @@ int BufferCtrlObj::_xferImag()
 		// ---------------------------------- assing the buff already free to the next image
 		// -----------------------------------------------------------------------------------------
 
-		bool useAssign = !m_cam->_getDebug(DBG_FN1);
+		bool alwaysAssign = !!m_cam->_getDebug(DBG_FN1);
+		bool useReset = !m_cam->_getDebug(DBG_FN2);
 
-		if( useAssign || (dwFrameFirst2assign <= dwRequestedFrames)) 
+		if( alwaysAssign || (dwFrameFirst2assign <= dwRequestedFrames)) 
 		{
 			if( (m_cam->_getCameraState(CAMSTATE_RECORD_STATE))  )
 			{
@@ -967,7 +973,7 @@ int BufferCtrlObj::_xferImag()
 				DEB_ALWAYS() << "ERROR _assignImage2Buffer with recordState = 0 / IGNORED!!!!";
 			}
 		}
-		else
+		else if(useReset)
 		{
 			if(dbgWaitobj)
 			{
@@ -979,7 +985,10 @@ int BufferCtrlObj::_xferImag()
 
 			void * ev = m_allocBuff.bufferAllocEvent[bufIdx];
 			int ret = ResetEvent(ev);
-			printf("--- ResetEvent[%d] buffIdx[%d] sBufNr[%d] event[%p]\n", ret, bufIdx, sBufNr, ev);
+			if(dbgTraceFifo)
+			{
+				printf("--- ResetEvent[%d] buffIdx[%d] sBufNr[%d] event[%p]\n", ret, bufIdx, sBufNr, ev);
+			}
 
 			if(!ret)
 			{
