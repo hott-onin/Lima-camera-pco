@@ -89,27 +89,39 @@ int getNrBitsOn(WORD x)
 //=========================================================================================================
 //=========================================================================================================
 char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
-   static char timeline[128];
-   time_t ltime;
+	static char timeline[128];
+	time_t ltime;
 	struct tm today;
 	const char *fmt;
 
-  switch(fmtIdx) {
-    case Iso: fmt = "%Y/%m/%d %H:%M:%S"; break;
-    case IsoHMS: fmt = "%H:%M:%S"; break;
-    case FnDate: fmt = "%Y-%m-%d"; break;
+	if((xtime == 0) && (fmtIdx==IsoMilliSec))
+	{
+		SYSTEMTIME st;
+		GetLocalTime(&st);
+		sprintf_s(timeline, sizeof(timeline),"%4d/%02d/%02d %02d:%02d:%02d.%03d",
+		st.wYear, st.wMonth, st.wDay,
+		st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+		return timeline;
+	}
 
-    default:
-    case FnFull: fmt = "%Y-%m-%d-%H%M%S"; break;
-  }
+	switch(fmtIdx) 
+	{
+		case Iso: fmt = "%Y/%m/%d %H:%M:%S"; break;
+		case IsoHMS: fmt = "%H:%M:%S"; break;
+		case FnDate: fmt = "%Y-%m-%d"; break;
+
+		default:
+		case FnFull: fmt = "%Y-%m-%d-%H%M%S"; break;
+	}
 
 	if(xtime == 0) 
 		time( &ltime );
 	else
 		ltime = xtime;
+	
 	localtime_s( &today, &ltime );
 	strftime(timeline, 128, fmt, &today );
-      
+
 	return timeline;
 }
 
@@ -1673,7 +1685,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, _sprintComment(false, comment) );
 
-			DEB_TRACE() << output ;
+			DEB_ALWAYS() << output ;
 			return output;
 		}
 
@@ -2860,7 +2872,7 @@ const char * Camera::_sprintComment(bool bAlways, const char *comment, const cha
 
 	sprintf_s(buff, LEN_COMMENT, 
 			"\n--- %s %s %s %s\n",
-			getTimestamp(Iso), comment, comment1, comment2);
+			getTimestamp(IsoMilliSec), comment, comment1, comment2);
 
 	if(bAlways)
 	{

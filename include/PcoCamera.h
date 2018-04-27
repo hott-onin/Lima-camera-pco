@@ -234,7 +234,7 @@ enum capsDesc
 
 };
 
-enum timestampFmt {Iso=1, IsoHMS, FnFull, FnDate};
+enum timestampFmt {Iso=1, IsoHMS, FnFull, FnDate, IsoMilliSec};
 char *getTimestamp(timestampFmt fmtIdx, time_t xtime = 0) ;
 time_t getTimestamp();
 

@@ -890,16 +890,17 @@ int BufferCtrlObj::_xferImag()
 			if ((errPco != 0) || (dwStatusDrv != 0))
 			{
 				char msg[256];
+
 				sprintf_s(msg,sizeof(msg),
-					"... ERROR - PCO_GetBufferStatus \n"
 					"err[0x%lx] dwStatusDll[0x%lx] dwStatusDrv[0x%lx] \n"
-					"sBufNr[%d] WAITOBJ[%d] dwFrameIdx[%d] iLoopsPolled[%d] msTimeout[%d]", 
+					"sBufNr[%d] WAITOBJ[%d] dwFrameIdx[%d] iLoopsPolled[%d] msTimeout[%d]\n",
 					errPco, dwStatusDll, dwStatusDrv, 
 					sBufNr, eventRet, dwFrameIdx, iLoopsPolled, msTimeout);
 				
 				DEB_ALWAYS() 
-					<<"\n" << msg <<"\n"
-					<< m_cam->_PcoCheckError(__LINE__, __FILE__, dwStatusDrv, error);
+					<<"\n" << msg 
+					<< m_cam->_PcoCheckError(__LINE__, __FILE__, dwStatusDrv, error)
+					<< m_cam->_sprintComment(false, fnId, "[PCO_GetBufferStatus]", "[ERROR]");
 				//goto abnormal;
 			}
 
