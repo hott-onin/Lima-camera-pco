@@ -16,6 +16,7 @@ LOG="./doc/VERSION.log"
 
 DT=`date +"%Y/%m/%d %H:%M:%S"`
 
+PCOLIMAVER=`head -1 VERSION`
 PCOREV=`git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
 LIMAREV=`cd ../.. ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
 PROCLIBREV=`cd ../../third-party/Processlib ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
@@ -26,6 +27,7 @@ SPECREV=`cd ../../applications/spec ; git log -n 1 --date=iso --format=format:"r
 {
 head -1 ${SDK_WIN_H}
 head -1 ${SDK_LIN_H}
+echo "#define        PCO_LIMA_VERSION \"\$Id:   PCOLIMA [${PCOLIMAVER}] \$\"" 
 echo "#define         PCO_GIT_VERSION \"\$Id:       PCO ${PCOREV} at [${DT}] \$\"" 
 echo "#define        LIMA_GIT_VERSION \"\$Id:      LIMA ${LIMAREV} at [${DT}] \$\"" 
 echo "#define     PROCLIB_GIT_VERSION \"\$Id:   PROCLIB ${PROCLIBREV} at [${DT}] \$\"" 

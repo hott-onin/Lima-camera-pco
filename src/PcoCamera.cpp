@@ -99,14 +99,15 @@ const char* _timestamp_pcocamera() {return ID_FILE_TIMESTAMP ;}
 
 char * _timestamp_gitversion(char *buffVersion, int len)
 {
-	sprintf_s(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
+	sprintf_s(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
 				 PCO_GIT_VERSION,
 				 PCO_SDK_VERSION,
 				 PROCLIB_GIT_VERSION,
 				 LIBCONFIG_GIT_VERSION,
 				 LIMA_GIT_VERSION,
 				 TANGO_GIT_VERSION,
-				 SPEC_GIT_VERSION
+				 SPEC_GIT_VERSION,
+				 PCO_LIMA_VERSION
 				 );
 	return buffVersion;
 }
