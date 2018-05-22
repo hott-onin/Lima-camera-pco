@@ -455,18 +455,24 @@ void SyncCtrlObj::getValidRanges(ValidRangesType& valid_ranges)
 //=========================================================================================================
 void SyncCtrlObj::startAcq()
 {
-  DEB_MEMBER_FUNCT();
-  DEF_FNID;
-  
-  bool _started = getStarted();
+	DEB_MEMBER_FUNCT();
+	DEF_FNID;
 
-  DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
+	char msg[512];
 
-  DEB_TRACE() << ": SyncCtrlObj::startAcq() " << DEB_VAR1(_started);
+	bool _started = getStarted();
 
-  if(!_started)
-    {
-  
+	m_cam->_camInfo(msg, msg+sizeof(msg), CAMINFO_ACQ);
+
+	DEB_ALWAYS() 
+		<<"\n" << msg
+		<< m_cam->_sprintComment(false, fnId, "[ENTRY]");
+
+	DEB_TRACE() << ": SyncCtrlObj::startAcq() " << DEB_VAR1(_started);
+
+	if(!_started)
+	{
+
 		if(m_buffer) {
 			m_buffer->startAcq();
 		}
@@ -496,7 +502,7 @@ void SyncCtrlObj::startAcq()
 
 
 		setStarted(true);
-    }
+}
 }
 
 

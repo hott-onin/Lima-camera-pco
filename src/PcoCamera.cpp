@@ -99,14 +99,15 @@ const char* _timestamp_pcocamera() {return ID_FILE_TIMESTAMP ;}
 
 char * _timestamp_gitversion(char *buffVersion, int len)
 {
-	sprintf_s(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
+	sprintf_s(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
 				 PCO_GIT_VERSION,
 				 PCO_SDK_VERSION,
 				 PROCLIB_GIT_VERSION,
 				 LIBCONFIG_GIT_VERSION,
 				 LIMA_GIT_VERSION,
 				 TANGO_GIT_VERSION,
-				 SPEC_GIT_VERSION
+				 SPEC_GIT_VERSION,
+				 PCO_LIMA_VERSION
 				 );
 	return buffVersion;
 }
@@ -879,16 +880,25 @@ void Camera::prepareAcq()
     // ----------------------------------------- storage mode (recorder + sequence)
     if(_isCameraType(Dimax | Pco4k | Pco2k)) {
 
-               enumPcoStorageMode mode;
+		enumPcoStorageMode mode;
+		int forced;
 
-               if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) {
-                       mode = RecRing;
-               } else {
-                        // live video requested frames = 0
-                       mode = (iRequestedFrames > 0) ? RecSeq : Fifo;
-               }
+		getRecorderForcedFifo(forced);
 
-               DEB_TRACE() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
+        if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) 
+		{
+			mode = RecRing;
+		} 
+		else if(forced || iRequestedFrames == 0)
+		{
+			mode = Fifo;
+		}
+		else
+		{	// live video requested frames = 0
+			mode = RecSeq;
+        }
+
+        DEB_TRACE() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
 
 		_pco_SetStorageMode_SetRecorderSubmode(mode, error);
 		PCO_THROW_OR_TRACE(error, "_pco_SetStorageMode_SetRecorderSubmode") ;
@@ -1141,10 +1151,12 @@ int Camera::PcoCheckError(int line, const char *file, int err, const char *fn, c
 	if (err != 0) {
 		sprintf_s(tmpMsg1,LEN_TMP_MSG,"ERROR - PCOfn[%s]", fn);
 		msgLog(tmpMsg);
+
 		DWORD dwErr = err;
 		m_pcoData->pcoError = err;
 		msg = m_pcoData->pcoErrorMsg;
 
+		memset(msg,0,ERR_SIZE);
 		PCO_GetErrorText(dwErr, msg, ERR_SIZE-14);
         
 		lg = strlen(msg);
@@ -1180,7 +1192,7 @@ char* Camera::_PcoCheckError(int line, const char *file, int err, int &error, co
 		
 		PCO_GetErrorText(err, lastErrorMsg, ERR_SIZE-14);
 		//strncpy_s(msg, ERR_SIZE, lastErrorMsg, _TRUNCATE);
-		strncpy_s(msg, ERR_SIZE, lastErrorMsg, ERR_SIZE);
+		strncpy_s(msg, ERR_SIZE, lastErrorMsg, ERR_SIZE-1);
 
 
 		lg = strlen(msg);
@@ -1557,39 +1569,6 @@ const char *Camera::_getCameraSubTypeStr()
 //=================================================================================================
 //=================================================================================================
 
-
-//=================================================================================================
-//=================================================================================================
-
-void Camera::_checkImgNrInit(bool &checkImgNr, int &imgNrDiff, int &alignmentShift){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-
-	checkImgNr = false;
-	imgNrDiff = 1;
-	alignmentShift = 0;
-	int err;
-
-	WORD wTimeStampMode;
-
-	_pco_GetTimestampMode(wTimeStampMode, err);
-
-	if(wTimeStampMode == 0) return;
-	checkImgNr = true;
-
-	int alignment;
-
-	_pco_GetBitAlignment(alignment);
-
-	if(alignment == 0)
-		alignmentShift = (16 - m_pcoData->stcPcoDescription.wDynResDESC);
-	else
-		alignmentShift = 0;
-
-	
-	return;
-
-}
 //=================================================================================================
 //=================================================================================================
 

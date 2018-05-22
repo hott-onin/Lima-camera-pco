@@ -130,6 +130,7 @@ typedef struct __timeb64 TIME_USEC;
 
 
 #define DWORD_MAX 0xffffffff 
+#define INT_DWORD_MAX 4294967295
 
 #define ERR_SIZE	256
 #define ERRMSG_SIZE	(256+128)

@@ -256,7 +256,7 @@ void Camera::getTraceAcq(std::string &o_sn)
 		"* fnId[%s] nrEvents[%d]\n"
 		"* ... fnIdXfer[%s]\n",
 		m_pcoData->traceAcq.fnId,
-		PCO_BUFFER_NREVENTS,
+		m_pco_buffer_nrevents,
 		m_pcoData->traceAcq.fnIdXfer);
 
 	ptr += sprintf_s(ptr, ptrMax - ptr, "* ... testCmdMode [0x%llx]\n",  m_pcoData->testCmdMode);
@@ -380,10 +380,11 @@ void Camera::getTraceAcq(std::string &o_sn)
 		totTime, xferSpeed, framesPerSec);
 
 	ptr += sprintf_s(ptr, ptrMax - ptr, 
-		"* ... checkImgNr pco[%d] lima[%d] diff[%d]\n",  
+		"* ... checkImgNr pco[%d] lima[%d] diff[%d] order[%d]\n",  
 		m_pcoData->traceAcq.checkImgNrPco,
 		m_pcoData->traceAcq.checkImgNrLima,
-		m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima);
+		m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima,
+		m_pcoData->traceAcq.checkImgNrOrder);
 
 	ptr += sprintf_s(ptr, ptrMax - ptr, 
 		"%s\n", m_pcoData->traceAcq.msg);
@@ -751,7 +752,12 @@ void Camera::getDebugIntTypes(std::string &o_sn)
 	_PRINT_DBG( DBG_DUMMY_IMG ) ;
 	_PRINT_DBG( DBG_WAITOBJ ) ;
 	_PRINT_DBG( DBG_XFER_IMG ) ;
+	_PRINT_DBG( DBG_TRACE_FIFO ) ;
 	_PRINT_DBG( DBG_ROI ) ;
+	_PRINT_DBG( DBG_FN1 ) ;
+	_PRINT_DBG( DBG_FN2 ) ;
+	_PRINT_DBG( DBG_FN3 ) ;
+	_PRINT_DBG( DBG_FN4 ) ;
 
 	o_sn = buff;
 
@@ -857,4 +863,39 @@ void Camera::setBitAlignment(std::string &i_sn)
 	_pco_SetBitAlignment(_val);
 	return;
 	
+}
+//====================================================================
+// SIP - attrib
+//====================================================================
+void Camera::setRecorderForcedFifo(int val) 
+{
+	DEB_MEMBER_FUNCT();
+
+	bRecorderForcedFifo = !! val;
+
+}
+
+void Camera::getRecorderForcedFifo(int &val) 
+{
+	DEB_MEMBER_FUNCT();
+	val = bRecorderForcedFifo;
+
+}
+//====================================================================
+// SIP - attrib
+//====================================================================
+void Camera::setNrEvents(int val) 
+{
+	DEB_MEMBER_FUNCT();
+
+	if((val < 1) || (val>PCO_BUFFER_NREVENTS) ) return;
+	 m_pco_buffer_nrevents = val;
+
+}
+
+void Camera::getNrEvents(int &val) 
+{
+	DEB_MEMBER_FUNCT();
+	val = m_pco_buffer_nrevents;
+
 }

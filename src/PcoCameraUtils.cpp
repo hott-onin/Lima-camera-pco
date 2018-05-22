@@ -89,27 +89,39 @@ int getNrBitsOn(WORD x)
 //=========================================================================================================
 //=========================================================================================================
 char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
-   static char timeline[128];
-   time_t ltime;
+	static char timeline[128];
+	time_t ltime;
 	struct tm today;
 	const char *fmt;
 
-  switch(fmtIdx) {
-    case Iso: fmt = "%Y/%m/%d %H:%M:%S"; break;
-    case IsoHMS: fmt = "%H:%M:%S"; break;
-    case FnDate: fmt = "%Y-%m-%d"; break;
+	if((xtime == 0) && (fmtIdx==IsoMilliSec))
+	{
+		SYSTEMTIME st;
+		GetLocalTime(&st);
+		sprintf_s(timeline, sizeof(timeline),"%4d/%02d/%02d %02d:%02d:%02d.%03d",
+		st.wYear, st.wMonth, st.wDay,
+		st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+		return timeline;
+	}
 
-    default:
-    case FnFull: fmt = "%Y-%m-%d-%H%M%S"; break;
-  }
+	switch(fmtIdx) 
+	{
+		case Iso: fmt = "%Y/%m/%d %H:%M:%S"; break;
+		case IsoHMS: fmt = "%H:%M:%S"; break;
+		case FnDate: fmt = "%Y-%m-%d"; break;
+
+		default:
+		case FnFull: fmt = "%Y-%m-%d-%H%M%S"; break;
+	}
 
 	if(xtime == 0) 
 		time( &ltime );
 	else
 		ltime = xtime;
+	
 	localtime_s( &today, &ltime );
 	strftime(timeline, 128, fmt, &today );
-      
+
 	return timeline;
 }
 
@@ -239,7 +251,7 @@ char *str_toupper(char *s) {
 
 void stcPcoData::traceAcqClean(){
 	void *ptr = &this->traceAcq;
-	memset(ptr, 0, sizeof(struct stcTraceAcq));
+	memset(ptr, 0, sizeof(STC_traceAcq));
 }
 
 void stcPcoData::traceMsg(char *s){
@@ -282,9 +294,9 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 
 		//int width = +20;
 
-		strncpy_s(cmdBuff, BUFF_INFO_SIZE, _cmd, BUFF_INFO_SIZE);
+		strncpy_s(cmdBuff, BUFF_INFO_SIZE, _cmd, BUFF_INFO_SIZE-1);
 		cmd = str_trim(cmdBuff);
-		strncpy_s(cmdBuffAux, BUFF_INFO_SIZE, cmd, BUFF_INFO_SIZE);
+		strncpy_s(cmdBuffAux, BUFF_INFO_SIZE, cmd, BUFF_INFO_SIZE-1);
 
 		if(*cmd){
 			char *tokContext;
@@ -522,7 +534,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 				"* fnId[%s] nrEvents[%d]\n"
 				"* ... fnIdXfer[%s]\n",
 				m_pcoData->traceAcq.fnId,
-				PCO_BUFFER_NREVENTS,
+				m_pco_buffer_nrevents,
 				m_pcoData->traceAcq.fnIdXfer);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "* ... testCmdMode [0x%llx]\n",  m_pcoData->testCmdMode);
@@ -646,10 +658,11 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 				totTime, xferSpeed, framesPerSec);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"* ... checkImgNr pco[%d] lima[%d] diff[%d]\n",  
+				"* ... checkImgNr pco[%d] lima[%d] diff[%d] order[%d]\n",  
 				m_pcoData->traceAcq.checkImgNrPco,
 				m_pcoData->traceAcq.checkImgNrLima,
-				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima);
+				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima,
+				m_pcoData->traceAcq.checkImgNrOrder);
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
 				"%s\n", m_pcoData->traceAcq.msg);
@@ -839,10 +852,11 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, 
-				"pco: %d lima: %d diff: %d",  
+				"pco: %d lima: %d diff: %d order: %d",  
 				m_pcoData->traceAcq.checkImgNrPco,
 				m_pcoData->traceAcq.checkImgNrLima,
-				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima);
+				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima,
+				m_pcoData->traceAcq.checkImgNrOrder);
 
 			return output;
 		}
@@ -1099,7 +1113,8 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, "0x%llx",  m_pcoData->debugLevel);
 
-			if((tokNr == 1)){
+			if((tokNr == 1))
+			{
 					nr = sscanf_s(tok[1], "0x%llx",  &m_pcoData->debugLevel);
 					ptr += sprintf_s(ptr, ptrMax - ptr, "   %s>  ",  (nr == 1) ? "changed OK": "NOT changed");
 					ptr += sprintf_s(ptr, ptrMax - ptr, "0x%llx",  m_pcoData->debugLevel);
@@ -1107,21 +1122,12 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 					DEB_TRACE() << output ;
 			}
 			
-#define _PRINT_DBG( x )	ptr += sprintf_s(ptr, ptrMax - ptr, "%15s  0x%08x\n", #x, x ) 	
-
-			if((tokNr == 0)){
-				ptr += sprintf_s(ptr, ptrMax - ptr, "\n");
-				_PRINT_DBG( DBG_BUFF ) ;
-				_PRINT_DBG( DBG_XFER2LIMA ) ;
-				_PRINT_DBG( DBG_LIMABUFF ) ;
-				_PRINT_DBG( DBG_EXP ) ;
-				_PRINT_DBG( DBG_XFERMULT ) ;
-				_PRINT_DBG( DBG_XFERMULT1 ) ;
-				_PRINT_DBG( DBG_ASSIGN_BUFF ) ;
-				_PRINT_DBG( DBG_DUMMY_IMG ) ;
-				_PRINT_DBG( DBG_WAITOBJ ) ;
-				_PRINT_DBG( DBG_XFER_IMG ) ;
-				_PRINT_DBG( DBG_ROI ) ;
+			if((tokNr == 0))
+			{
+				char msg[MSG1K];
+				std::string _msg=msg;
+				getDebugIntTypes(_msg);
+				ptr += sprintf_s(ptr, ptrMax - ptr, "%s", _msg.c_str() );
 			}
 
 			return output;
@@ -1679,7 +1685,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 
 			ptr += sprintf_s(ptr, ptrMax - ptr, _sprintComment(false, comment) );
 
-			DEB_TRACE() << output ;
+			DEB_ALWAYS() << output ;
 			return output;
 		}
 
@@ -1741,6 +1747,44 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 			_pco_GetRoiInfo(ptr, (int) (ptrMax - ptr), err);
 			return output;
 		}
+
+
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "RecorderForcedFifo";     
+		keys_desc[ikey++] = "(RW) force recorder mode to FIFo (0/1)";
+		if(_stricmp(cmd, key) == 0){
+			int forced;
+
+			if(tokNr == 1) {
+				forced = atoi(tok[1]);
+				setRecorderForcedFifo(forced);
+			}
+
+			getRecorderForcedFifo(forced);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", forced);
+
+			return output;
+		}
+
+
+		//----------------------------------------------------------------------------------------------------------
+		key = keys[ikey] = "NrEvents";     
+		keys_desc[ikey++] = "(RW) set NrEvents (1-4)";
+		if(_stricmp(cmd, key) == 0){
+			int nrEvents;
+
+			if(tokNr == 1) {
+				nrEvents = atoi(tok[1]);
+				setNrEvents(nrEvents);
+			}
+
+			getNrEvents(nrEvents);
+			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", nrEvents);
+
+			return output;
+		}
+
+
 		//----------------------------------------------------------------------------------------------------------
 		// this must be the last cmd TALK / END
 		//----------------------------------------------------------------------------------------------------------
@@ -1952,6 +1996,75 @@ void print_hex_dump_buff(void *ptr_buff, size_t len) {
 
 }
 
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+
+CheckImgNr::CheckImgNr(Camera *cam)
+{
+	m_cam = cam;
+}
+
+CheckImgNr::~CheckImgNr()
+{
+}
+
+void CheckImgNr::update(int iLimaFrame, void *ptrImage)
+{
+
+	int pcoImgNr, diff;
+
+	if(!checkImgNr) return;
+
+	pcoImgNr = _get_imageNr_from_imageTimestamp(ptrImage, alignmentShift);
+	if(pcoImgNr <= pcoImgNrLast) pcoImgNrOrder++;
+	diff = pcoImgNr - iLimaFrame;
+	m_traceAcq->checkImgNrLima = iLimaFrame +1;
+	m_traceAcq->checkImgNrPco = pcoImgNr;
+	m_traceAcq->checkImgNrOrder = pcoImgNrOrder;
+
+	if(diff > pcoImgNrDiff) 
+	{
+		pcoImgNrDiff = diff;
+	}
+	pcoImgNrLast = pcoImgNr;
+}
+
+void CheckImgNr::init(STC_traceAcq *traceAcq)
+{
+	m_traceAcq = traceAcq;
+
+	checkImgNr = false;
+	pcoImgNrDiff = 1;
+	alignmentShift = 0;
+	int err;
+
+	WORD wTimeStampMode;
+
+	m_cam->_pco_GetTimestampMode(wTimeStampMode, err);
+
+	if(wTimeStampMode == 0) return;
+
+	checkImgNr = true;
+	pcoImgNrLast = -1;
+	pcoImgNrOrder = 0;
+
+
+	int alignment;
+
+	m_cam->_pco_GetBitAlignment(alignment);
+
+	if(alignment == 0)
+		alignmentShift = (16 - m_cam->m_pcoData->stcPcoDescription.wDynResDESC);
+	else
+		alignmentShift = 0;
+
+	
+	return;
+
+}
+
+
+
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
@@ -1976,22 +2089,25 @@ ringLog::~ringLog() {
 
 int ringLog::add(const char *s) {
 
-        struct data *ptr;
-        int offset;
-        
-        if (m_size < m_capacity){
-                offset = (m_head + m_size) % m_capacity;
-                ptr = buffer + offset;
-                m_size++;
-        } else {
-                ptr = buffer + m_head;
-                m_head = (m_head + 1) % m_capacity;
-                m_size = m_capacity;
-        }
-        
-        ptr->timestamp = getTimestamp();
-		strncpy_s(ptr->str, RING_LOG_BUFFER_SIZE, s, RING_LOG_BUFFER_SIZE);
-        return m_size;
+    struct data *ptr;
+    int offset;
+    
+    if (m_size < m_capacity){
+            offset = (m_head + m_size) % m_capacity;
+            ptr = buffer + offset;
+            m_size++;
+    } else {
+            ptr = buffer + m_head;
+            m_head = (m_head + 1) % m_capacity;
+            m_size = m_capacity;
+    }
+    
+    ptr->timestamp = getTimestamp();
+
+	long long l = strlen(s);
+
+	strncpy_s(ptr->str, RING_LOG_BUFFER_SIZE, s, RING_LOG_BUFFER_SIZE-1);
+    return m_size;
 
 }
 
@@ -2399,6 +2515,56 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 	}
 
 
+	//--------------------- acqinfo
+	if(flag & CAMINFO_ACQ)
+	{
+		int err;	
+
+		double _exposure, _delay;
+		m_sync->getExpTime(_exposure);
+		m_sync->getLatTime(_delay);
+
+		ptr += sprintf_s(ptr, ptrMax - ptr, 
+			"... exp[%g ms][%g s] delay[%g ms][%g s]\n", 
+			_exposure*1.0e3,_exposure, 
+			_delay*1.0e3, _delay); 
+
+		Roi limaRoi;
+		int error;
+
+		int forcedFifo = 0;
+		getRecorderForcedFifo(forcedFifo);
+
+		Bin aBin;
+		_pco_GetBinning(aBin, err);
+
+		int binX = aBin.getX();
+		int binY = aBin.getY();
+
+		_pco_GetROI(limaRoi, error);
+
+		Point top_left = limaRoi.getTopLeft();
+		Point bot_right = limaRoi.getBottomRight();
+		Size size = limaRoi.getSize();			
+
+		ptr += sprintf_s(ptr, ptrMax - ptr, 
+			"... roiLima XY0[%d,%d] XY1[%d,%d] size[%d,%d]\n",  
+			top_left.x, top_left.y,
+			bot_right.x, bot_right.y,
+			size.getWidth(), size.getHeight());
+
+		int iFrames;
+		m_sync->getNbFrames(iFrames);
+
+		ptr += sprintf_s(ptr, ptrMax - ptr, 
+			"... bin[%d,%d] nrFrames[%d] forcedFifo[%d]\n",  
+			binX, binY,
+			iFrames,
+			forcedFifo);
+
+
+	}
+
 	//--------------------- size, roi, ...
 	if(flag & CAMINFO_ROI)
 	{
@@ -2706,7 +2872,7 @@ const char * Camera::_sprintComment(bool bAlways, const char *comment, const cha
 
 	sprintf_s(buff, LEN_COMMENT, 
 			"\n--- %s %s %s %s\n",
-			getTimestamp(Iso), comment, comment1, comment2);
+			getTimestamp(IsoMilliSec), comment, comment1, comment2);
 
 	if(bAlways)
 	{

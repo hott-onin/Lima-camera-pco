@@ -56,6 +56,7 @@
 #define CAMINFO_BLOCK			(0x1LL << 0)
 #define CAMINFO_UNSORTED		(0x1LL << 1)
 #define CAMINFO_LOG				(0x1LL << 2)
+#define CAMINFO_ACQ				(0x1LL << 3)
 
 #define CAMINFO_PIXELRATE		(0x1LL << 8)
 #define CAMINFO_ADC				(0x1LL << 9)
@@ -105,8 +106,16 @@
 #define DBG_DUMMY_IMG      0x00000100
 #define DBG_WAITOBJ		   0x00000200
 #define DBG_XFER_IMG       0x00000400
+#define DBG_TRACE_FIFO     0x00000800
 
 #define DBG_ROI            0x00001000
+
+#define DBG_FN1            0x00010000
+#define DBG_FN2            0x00020000
+#define DBG_FN3            0x00040000
+#define DBG_FN4            0x00080000
+
+
 //---------------------------------------
 
 //--------------------------------------- test cmd mode
@@ -167,6 +176,9 @@ struct stcSegmentInfo
 	DWORD dwMaxImageCnt;
 };
 
+
+
+
 //================================================================
 // LINUX
 //================================================================
@@ -222,10 +234,12 @@ enum capsDesc
 
 };
 
-enum timestampFmt {Iso=1, IsoHMS, FnFull, FnDate};
+enum timestampFmt {Iso=1, IsoHMS, FnFull, FnDate, IsoMilliSec};
 char *getTimestamp(timestampFmt fmtIdx, time_t xtime = 0) ;
 time_t getTimestamp();
 
+//================================================================
+//================================================================
 struct stcFrame 
 {
 	BOOL	changed;
@@ -238,6 +252,9 @@ struct stcFrame
 
 
 };
+
+//================================================================
+//================================================================
 #define RING_LOG_BUFFER_SIZE 64
 class ringLog 
 {
@@ -264,6 +281,11 @@ private:
         struct data *buffer;
 };
 
+
+
+
+//================================================================
+//================================================================
 struct stcTemp 
 {
 	short sCcd, sCam, sPower;
@@ -272,13 +294,65 @@ struct stcTemp
 	short sDefaultCoolSet;
 };
 
+//================================================================
+//================================================================
 struct stcLongLongStr 
 {
 	long long value;
 	const char *desc;
 };
 
+//================================================================
+//================================================================
+typedef struct {
+		DWORD nrImgRecorded;
+		DWORD maxImgCount;
+		int nrImgRequested;
+		int nrImgRequested0;
+		int nrImgAcquired;
+		long msTotal, msRecord, msRecordLoop, msXfer, msTout;
+		long msStartAcqStart, msStartAcqEnd, msStartAcqNow;
+		int checkImgNrPco, checkImgNrPcoTimestamp, checkImgNrLima, checkImgNrOrder;
 
+		
+#define LEN_TRACEACQ_TRHEAD 11
+		//long msThreadBeforeXfer, msThreadAfterXfer, msThreadEnd;
+		//long msThread[LEN_TRACEACQ_TRHEAD];
+		long msReserved[15-LEN_TRACEACQ_TRHEAD];
+		
+		struct stcLongLongStr usTicks[LEN_TRACEACQ_TRHEAD];
+		double msImgCoc;
+		double sExposure, sDelay;
+		time_t endRecordTimestamp;
+		time_t endXferTimestamp;
+		const char *fnId;
+		const char *fnIdXfer;
+		const char *sPcoStorageRecorderMode;
+		int iPcoStorageMode, iPcoRecorderSubmode;
+		int iPcoBinHorz, iPcoBinVert;
+		int iPcoRoiX0, iPcoRoiX1, iPcoRoiY0, iPcoRoiY1;
+		const char *sPcoTriggerMode;
+		const char *sLimaTriggerMode;
+		int iPcoTriggerMode;
+
+		const char *sPcoAcqMode;
+		int iPcoAcqMode;
+
+		double dLimaExposure, dLimaDelay;
+		int iPcoExposure, iPcoExposureBase;
+		int iPcoDelay, iPcoDelayBase;
+
+		char msg[LEN_TRACEACQ_MSG+1];
+
+		time_t fnTimestampEntry, fnTimestampExit;
+		int nrErrors;
+	    
+		void traceMsg(char *s);
+
+} STC_traceAcq;
+
+//================================================================
+//================================================================
 
 #define SIZEARR_stcPcoHWIOSignal 10
 #define SIZESTR_PcoHWIOSignal 1024
@@ -392,64 +466,7 @@ struct stcPcoData
 	long msAcqRec, msAcqXfer, msAcqTout, msAcqTnow, msAcqAll;
 	time_t msAcqRecTimestamp, msAcqXferTimestamp, msAcqToutTimestamp, msAcqTnowTimestamp;
 
-
-	struct stcTraceAcq{
-		DWORD nrImgRecorded;
-		DWORD maxImgCount;
-		int nrImgRequested;
-		int nrImgRequested0;
-		int nrImgAcquired;
-		long msTotal, msRecord, msRecordLoop, msXfer, msTout;
-		long msStartAcqStart, msStartAcqEnd, msStartAcqNow;
-		int checkImgNrPco, checkImgNrPcoTimestamp, checkImgNrLima;
-
-		
-#define LEN_TRACEACQ_TRHEAD 11
-		//long msThreadBeforeXfer, msThreadAfterXfer, msThreadEnd;
-		//long msThread[LEN_TRACEACQ_TRHEAD];
-		long msReserved[15-LEN_TRACEACQ_TRHEAD];
-		
-		struct stcLongLongStr usTicks[LEN_TRACEACQ_TRHEAD];
-		double msImgCoc;
-		double sExposure, sDelay;
-		time_t endRecordTimestamp;
-		time_t endXferTimestamp;
-		const char *fnId;
-		const char *fnIdXfer;
-		const char *sPcoStorageRecorderMode;
-		int iPcoStorageMode, iPcoRecorderSubmode;
-		int iPcoBinHorz, iPcoBinVert;
-		int iPcoRoiX0, iPcoRoiX1, iPcoRoiY0, iPcoRoiY1;
-		const char *sPcoTriggerMode;
-		const char *sLimaTriggerMode;
-		int iPcoTriggerMode;
-
-		const char *sPcoAcqMode;
-		int iPcoAcqMode;
-
-		double dLimaExposure, dLimaDelay;
-		int iPcoExposure, iPcoExposureBase;
-		int iPcoDelay, iPcoDelayBase;
-
-		char msg[LEN_TRACEACQ_MSG+1];
-
-		time_t fnTimestampEntry, fnTimestampExit;
-		int nrErrors;
-	    
-		void traceMsg(char *s);
-
-	} traceAcq;
-
-
-
-
-
-
-
-
-
-
-
+	STC_traceAcq traceAcq;
 
 	DWORD dwPixelRate, dwPixelRateRequested;
 	double fTransferRateMHzMax;
@@ -608,6 +625,30 @@ namespace lima
     class BufferCtrlObj;
     class SyncCtrlObj;
     class VideoCtrlObj;
+	class Camera;
+
+	//--------------------------------------- class CehckImgNr
+	class CheckImgNr 
+	{
+	      
+	   public:
+			CheckImgNr(Camera *cam);
+			~CheckImgNr();
+			void init(STC_traceAcq *traceAcq);
+			void update(int iLimaFrame, void *ptrImage);
+;
+		private:
+			Camera *m_cam;
+			STC_traceAcq *m_traceAcq;
+			bool checkImgNr;
+			int pcoImgNrDiff;
+			int pcoImgNrOrder;
+			int pcoImgNrLast;
+			int alignmentShift;
+	};
+
+
+	//--------------------------------------- class Camera
     class  DLL_EXPORT  Camera : public HwMaxImageSizeCallbackGen
     {
       friend class Interface;
@@ -616,6 +657,7 @@ namespace lima
 	  friend class RoiCtrlObj;
 	  friend class BinCtrlObj;
 	  friend class BufferCtrlObj;
+	  friend class CheckImgNr;
 
       DEB_CLASS_NAMESPC(DebModCamera,"Camera","Pco");
       public:
@@ -743,6 +785,9 @@ namespace lima
 		bool m_isArmed;
 		long long m_state;
 
+		int m_pco_buffer_nrevents;
+
+		bool bRecorderForcedFifo;
 		//----------------------------------
 
         Camera::Status m_status;
@@ -813,6 +858,8 @@ namespace lima
 
 		ringLog *m_msgLog;
 		ringLog *m_tmpLog;
+		
+		CheckImgNr *m_checkImgNr;
 		char *mybla, *myblamax;
 		char *mytalk, *mytalkmax;
 		
@@ -830,7 +877,6 @@ namespace lima
 
 		DWORD _getCameraSerialNumber()  ;
 
-		void _checkImgNrInit(bool &checkImgNr, int &imgNrDiff, int &alignmentShift);
 
 		const char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
 		const char *xlatCode2Str(int code, struct stcXlatCode2Str *stc);
@@ -1087,6 +1133,12 @@ namespace lima
 
 		void setBitAlignment(std::string &i_sn);
 		void getBitAlignment(std::string &o_sn); 
+
+		void getRecorderForcedFifo(int & val);
+		void setRecorderForcedFifo(int val);
+
+		void getNrEvents(int & val);
+		void setNrEvents(int val);
 
 	}; // class camera
   } // namespace pco

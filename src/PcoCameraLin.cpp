@@ -846,6 +846,7 @@ Camera::Camera(const char *params)
 
    	m_pcoData->traceAcqClean();
 
+	m_checkImgNr = new CheckImgNr(this);
 
 
 	// properties: params 

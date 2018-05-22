@@ -104,6 +104,10 @@ namespace lima
 		int _xferImagMultDoubleImage();
 		int _xferImagDoubleImage();
 		int _xferImag();
+
+		int _xferImag_buff2lima(DWORD &dwFrameIdx, int &bufIdx);
+
+
 		int _xferImag_getImage();
 		int _xferImag_getImage_edge();
 		int _xferImagMult();

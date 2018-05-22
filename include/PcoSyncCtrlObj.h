@@ -30,7 +30,8 @@
 #include "lima/HwInterface.h"
 
 enum pcoAcqStatus {
-	pcoAcqIdle = 0, 
+	pcoAcqOK = 0, 
+	pcoAcqIdle, 
 	pcoAcqStart, 
 	pcoAcqRecordStart, 
 	pcoAcqRecordEnd,  
