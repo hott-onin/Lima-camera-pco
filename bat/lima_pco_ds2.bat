@@ -32,13 +32,15 @@ c:
 @echo on
 cd c:\blissadm\lima\pco\%1
 
+
 rem set PYTHONPATH=c:\blissadm\lima\pco\%1;%PYTHONPATH%
 rem python Lima\Server\LimaCCDs.py %2 -ORBendPoint giop:tcp:%3:
 
-rem python -m Lima.Server.LimaCCDs %2 -ORBendPoint giop:tcp:%3:
 
-python LimaCCDs.py %2 -ORBendPoint giop:tcp:%3:
+rem python LimaCCDs.py %2 -ORBendPoint giop:tcp:%3:
 
+
+python -m Lima.Server.LimaCCDs %2 -ORBendPoint giop:tcp:%3:
 pause 
 
 :eof

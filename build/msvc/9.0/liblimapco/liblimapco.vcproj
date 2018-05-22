@@ -726,6 +726,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\VERSION"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\doc\VERSION.log"
 				>
 			</File>
