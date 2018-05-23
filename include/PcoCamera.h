@@ -307,6 +307,7 @@ struct stcLongLongStr
 typedef struct {
 		DWORD nrImgRecorded;
 		DWORD maxImgCount;
+		int lastImgFifo;
 		int nrImgRequested;
 		int nrImgRequested0;
 		int nrImgAcquired;
@@ -788,6 +789,8 @@ namespace lima
 		int m_pco_buffer_nrevents;
 
 		bool bRecorderForcedFifo;
+		int iRecorderStopRequest;
+
 		//----------------------------------
 
         Camera::Status m_status;
@@ -1139,6 +1142,13 @@ namespace lima
 
 		void getNrEvents(int & val);
 		void setNrEvents(int val);
+
+		void getRecorderStopRequest(int & val);
+		void setRecorderStopRequest(int val);
+		int _getRecorderStopRequest();
+		int _setRecorderStopRequest(int val);
+
+		void getLastImgFifo(int & val);
 
 	}; // class camera
   } // namespace pco

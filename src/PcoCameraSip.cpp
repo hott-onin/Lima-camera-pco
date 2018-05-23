@@ -899,3 +899,48 @@ void Camera::getNrEvents(int &val)
 	val = m_pco_buffer_nrevents;
 
 }
+
+//====================================================================
+// SIP - attrib
+//====================================================================
+
+void Camera::setRecorderStopRequest(int val) 
+{
+	DEB_MEMBER_FUNCT();
+
+	_setRecorderStopRequest(1);
+
+}
+
+void Camera::getRecorderStopRequest(int &val) 
+{
+	DEB_MEMBER_FUNCT();
+	val = _getRecorderStopRequest();
+
+}
+
+int Camera::_getRecorderStopRequest() 
+{
+	DEB_MEMBER_FUNCT();
+	return iRecorderStopRequest;
+
+}
+
+int Camera::_setRecorderStopRequest(int val) 
+{
+	DEB_MEMBER_FUNCT();
+
+	return (iRecorderStopRequest = val);
+
+}
+//====================================================================
+// SIP - attrib
+//====================================================================
+
+
+void Camera::getLastImgFifo(int &val) 
+{
+	DEB_MEMBER_FUNCT();
+	val = m_pcoData->traceAcq.lastImgFifo;
+
+}
