@@ -769,6 +769,8 @@ int BufferCtrlObj::_xferImag()
 	// --------------- loop - process the N frames (dwFrameIdx <= dwRequestedFrames)
 	// -----------------------------------------------------------------------------------------
 	
+	bool bReadRAM = false;
+	bool bCamRAM = m_cam->_isCameraType(camRAM);
 	for(dwFrameIdx = 1; dwFrameIdx <= dwRequestedFrames; ) 
 	{
 		if(dbgWaitobj)
@@ -1010,7 +1012,73 @@ int BufferCtrlObj::_xferImag()
 
 		m_sync->setAcqFrames(dwFrameIdx);
 		dwFrameIdx++;
-  } // while(dwFrameIdx <= dwRequestedFrames).
+		if(live_mode && bCamRAM && m_cam->_getRecorderStopRequest() && (dwFrameIdx <= dwRequestedFrames) )
+		{
+			bReadRAM = true;
+			break;
+		}
+	} // for(dwFrameIdx = 1; dwFrameIdx <= dwRequestedFrames; )
+	
+
+
+	// -----------------------------------------------------------------------------------------
+	// if the "live recording" was interrupted, begin to transfer all the images in the memory
+	// -----------------------------------------------------------------------------------------
+	if(bReadRAM)
+	{
+		int error;
+		DWORD _dwPcoValidImageCnt, _dwPcoMaxImageCnt;
+		WORD wSegment; 
+		DWORD dwImgToRead, dwFirstImg, dwImgIdx;
+
+		WORD _wArmWidth, _wArmHeight, _wBitPerPixel;
+		WORD _wMaxWidth, _wMaxHeight;
+		m_cam->_pco_GetSizes(&_wArmWidth, &_wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
+		m_cam->getBitsPerPixel(_wBitPerPixel);
+
+		bufIdx = 0;
+		SHORT sBufNr = m_allocBuff.pcoAllocBufferNr[bufIdx];
+
+
+		m_cam->_pco_GetActiveRamSegment(wSegment, error ); 
+		m_cam->_pco_GetNumberOfImagesInSegment(wSegment, _dwPcoValidImageCnt, _dwPcoMaxImageCnt, error);
+		if(error) {
+		}
+
+		m_pcoData->dwValidImageCnt[wSegment-1] = 
+			m_pcoData->traceAcq.nrImgRecorded = _dwPcoValidImageCnt;
+		m_pcoData->dwMaxImageCnt[wSegment-1] =
+			m_pcoData->traceAcq.maxImgCount = _dwPcoMaxImageCnt;
+
+		
+		m_pcoData->traceAcq.lastImgFifo = dwFrameIdx;
+
+		dwImgToRead = dwRequestedFrames - dwFrameIdx;
+		dwFirstImg = (_dwPcoValidImageCnt < dwImgToRead) ? 1 : _dwPcoValidImageCnt - dwImgToRead;
+
+		for(dwImgIdx = dwFirstImg; dwImgIdx <= _dwPcoValidImageCnt; dwImgIdx++)
+		{
+			m_cam->_pco_GetImageEx(
+				wSegment, dwImgIdx, dwImgIdx, 
+				sBufNr, _wArmWidth, _wArmHeight, _wBitPerPixel, error);
+
+			int xferRet = _xferImag_buff2lima(dwFrameIdx, bufIdx);
+			if(xferRet == pcoAcqStop) goto _EXIT_STOP;
+
+		} //for(dwImgIdx = dwFirstImg;
+
+
+
+
+
+	}
+
+
+
+
+
+
+
 
 	// -----------------------------------------------------------------------------------------
 	//---------------------------------- end of the while / all img were processed 

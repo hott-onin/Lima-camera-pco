@@ -1370,7 +1370,7 @@ bool Camera::_isCameraType(unsigned long long tp){
 		case CAMERATYPE_PCO_DIMAX_STD: 
 		case CAMERATYPE_PCO_DIMAX_TV:
 		case CAMERATYPE_PCO_DIMAX_CS:
-			if(tp & Dimax) {DEB_TRACE() << "Dimax [exit] "; return TRUE;}
+			if(tp & (Dimax | camRAM)) {DEB_TRACE() << "Dimax [exit] "; return TRUE;}
 			switch(wCameraSubtype >> 8)
 			{
 				case 0x20:
@@ -1402,10 +1402,10 @@ bool Camera::_isCameraType(unsigned long long tp){
 			return !!(tp & (EdgeRolling | Edge));
 
 		case CAMERATYPE_PCO2000:
-			return !!(tp & Pco2k) ;
+			return !!(tp & (Pco2k | camRAM)) ;
 
 		case CAMERATYPE_PCO4000:
-			return !!(tp & Pco4k) ;
+			return !!(tp & (Pco4k | camRAM)) ;
 
 		default:
 			break;

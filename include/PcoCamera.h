@@ -553,6 +553,7 @@ enum enumPcoFamily {
 	DimaxHS1			= 1<<9,
 	DimaxHS2			= 1<<10,
 	DimaxHS4			= 1<<11,
+	camRAM				= 1<<12,
 };
 
 enum enumInterfaceTypes 
