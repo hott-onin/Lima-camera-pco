@@ -1036,6 +1036,8 @@ int BufferCtrlObj::_xferImag()
 		m_cam->_pco_GetSizes(&_wArmWidth, &_wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
 		m_cam->getBitsPerPixel(_wBitPerPixel);
 
+		m_cam->_pco_SetRecordingState(0, error);
+
 		bufIdx = 0;
 		SHORT sBufNr = m_allocBuff.pcoAllocBufferNr[bufIdx];
 
@@ -1063,7 +1065,7 @@ int BufferCtrlObj::_xferImag()
 				sBufNr, _wArmWidth, _wArmHeight, _wBitPerPixel, error);
 
 			int xferRet = _xferImag_buff2lima(dwFrameIdx, bufIdx);
-			if(xferRet == pcoAcqStop) goto _EXIT_STOP;
+			//if(xferRet == pcoAcqStop) goto _EXIT_STOP;
 
 		} //for(dwImgIdx = dwFirstImg;
 
@@ -1088,6 +1090,13 @@ int BufferCtrlObj::_xferImag()
 	m_pcoData->traceAcq.endXferTimestamp = getTimestamp();
 
 	DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[EXIT]");
+
+
+	if(bReadRAM)
+	{
+		return pcoAcqRecordStop;
+
+	}
 
 	return pcoAcqTransferEnd;
 
