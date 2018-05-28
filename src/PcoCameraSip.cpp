@@ -908,7 +908,22 @@ void Camera::setRecorderStopRequest(int val)
 {
 	DEB_MEMBER_FUNCT();
 
+	HwInterface::StatusType status;
+	m_sync->getStatus(status);
+
+	if(_getRecorderStopRequest() || 
+		!_isCameraType(camRAM) ||
+		!(_pco_GetStorageMode_GetRecorderSubmode() != Fifo) ||
+		!(status.acq != AcqRunning)
+		) return;
+
 	_setRecorderStopRequest(1);
+
+	DEB_ALWAYS() << "INFO - setRecorderStopRequest event generated";
+
+	Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamFault, "EVENT setRecorderStopRequest");
+	_getPcoHwEventCtrlObj()->reportEvent(ev);
+	return;
 
 }
 

@@ -1036,8 +1036,9 @@ int BufferCtrlObj::_xferImag()
 		m_cam->_pco_GetSizes(&_wArmWidth, &_wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
 		m_cam->getBitsPerPixel(_wBitPerPixel);
 
-		m_cam->_pco_SetRecordingState(0, error);
-
+		// ------------- stop the recording and clear buffers
+		m_cam->_pco_SetRecordingState(0, error); 
+		
 		bufIdx = 0;
 		SHORT sBufNr = m_allocBuff.pcoAllocBufferNr[bufIdx];
 
@@ -1053,6 +1054,8 @@ int BufferCtrlObj::_xferImag()
 			m_pcoData->traceAcq.maxImgCount = _dwPcoMaxImageCnt;
 
 		
+		// ------------- save the actual image sent to lima / last "live image"
+		// ------------- read the img recorded (all or partial) from the oldest to the last one
 		m_pcoData->traceAcq.lastImgFifo = dwFrameIdx;
 
 		dwImgToRead = dwRequestedFrames - dwFrameIdx;
@@ -1060,6 +1063,8 @@ int BufferCtrlObj::_xferImag()
 
 		for(dwImgIdx = dwFirstImg; dwImgIdx <= _dwPcoValidImageCnt; dwImgIdx++)
 		{
+
+			// ------------- _pco_GetImageEx only allows read 1 img, so dwFirstImg = dwLastImg
 			m_cam->_pco_GetImageEx(
 				wSegment, dwImgIdx, dwImgIdx, 
 				sBufNr, _wArmWidth, _wArmHeight, _wBitPerPixel, error);
