@@ -59,8 +59,6 @@ IF(WIN32)
     TARGET_LINK_LIBRARIES(lima${NAME} ${PCO_LIB_CAM})
 
     limatools_set_library_soversion(lima${NAME} "VERSION")
-    SET_TARGET_PROPERTIES(lima${NAME} PROPERTIES PREFIX "lib")
-    INSTALL(TARGETS lima${NAME} DESTINATION lib)
 
     IF(LIMA_ENABLE_PYTHON)
         limatools_run_sip_for_camera(${NAME})
@@ -135,14 +133,13 @@ if(UNIX)
 
     limatools_set_library_soversion(lima${NAME} "VERSION")
 
-    install(TARGETS lima${NAME} LIBRARY DESTINATION lib)
-
-
     if(LIMA_ENABLE_PYTHON)
         limatools_run_sip_for_camera(${NAME})
         install(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco")
     endif()
 endif()
+
+limatools_set_install_libdir(lima${NAME})
 
 #============================================================================
 #============================================================================
