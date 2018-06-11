@@ -32,9 +32,16 @@
 
 
 #include <cstdlib>
+
+#ifndef __linux__
 #include <process.h>
 #include <sys/stat.h>
 #include <sys/timeb.h>
+#else
+#include <sys/stat.h>
+#include <sys/time.h>
+#endif 
+
 #include <time.h>
 
 #include "lima/Exceptions.h"
@@ -49,7 +56,7 @@
 using namespace lima;
 using namespace lima::Pco;
 
-static char *timebaseUnits[] = {"ns", "us", "ms"};
+//const char *timebaseUnits[] = {"ns", "us", "ms"};
 
 //char *_checkLogFiles();
 void _pco_acq_thread_dimax(void *argin);
@@ -92,14 +99,15 @@ const char* _timestamp_pcocamera() {return ID_FILE_TIMESTAMP ;}
 
 char * _timestamp_gitversion(char *buffVersion, int len)
 {
-	sprintf_s(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
+	sprintf_s(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
 				 PCO_GIT_VERSION,
 				 PCO_SDK_VERSION,
 				 PROCLIB_GIT_VERSION,
 				 LIBCONFIG_GIT_VERSION,
 				 LIMA_GIT_VERSION,
 				 TANGO_GIT_VERSION,
-				 SPEC_GIT_VERSION
+				 SPEC_GIT_VERSION,
+				 PCO_LIMA_VERSION
 				 );
 	return buffVersion;
 }
@@ -420,80 +428,6 @@ void Camera::paramsInit(const char *str)
 	DEB_TRACE() << _sprintComment(false, fnId, "[EXIT]");
 };
 
-//=========================================================================================================
-//=========================================================================================================
-
-Camera::Camera(const char *params) :
-	m_cam_connected(false),
-	m_acq_frame_nb(1),
-	m_sync(NULL),
-	m_buffer(NULL),
-	m_handle(NULL),
-	m_Roi_lastFixed_time(0)
-{
-	DEF_FNID;
-	DEB_CONSTRUCTOR();
-
-	int error=0;
-	m_config = TRUE;
-	DebParams::checkInit();
-
-	
-	m_msgLog = new ringLog(300) ;
-	m_tmpLog = new ringLog(300) ;
-	if(m_msgLog == NULL)
-		throw LIMA_HW_EXC(Error, "m_msgLog > creation error");
-	if(m_tmpLog == NULL)
-		throw LIMA_HW_EXC(Error, "m_tmpLog > creation error");
-
-	m_pcoData =new stcPcoData();
-	if(m_pcoData == NULL)
-		throw LIMA_HW_EXC(Error, "m_pcoData > creation error");
-
-
-
-	// properties: params 
-	paramsInit(params);
-
-	char *value;
-	const char  *key;
-	bool ret;
-	int iValue;
-
-	/***
-	key = "test";
-	key = "withConfig";
-	key = "testMode";
-	key = "debugPco";
-	***/
-	key = "testMode";
-	ret = paramsGet(key, value);
-	if(ret) {m_pcoData->testCmdMode = _atoi64(value);}
-
-	key = "acqTimeoutRetry";
-	ret = paramsGet(key, value);
-	iValue = ret ? atoi(value) : 3;
-	m_pcoData->acqTimeoutRetry = (iValue < 0 ) ? 0 : iValue;
-
-	// patch in xMinSize meanwhile firmware for CLHS 1.19 is fixed
-	key = "xMinSize";
-	m_pcoData->params_xMinSize = !!paramsGet(key, value);
-
-	// ignore the nbMaxImages calculated for dimax HS
-	key = "ignoreMaxImages";
-	m_pcoData->params_ignoreMaxImages = !!paramsGet(key, value);
-
-
-	DEB_ALWAYS()
-		<< ALWAYS_NL << DEB_VAR1(m_pcoData->version) 
-		<< ALWAYS_NL << _checkLogFiles(true);
-
-	//m_bin.changed = Invalid;
-	
-	_init();
-	m_config = FALSE;
-	_setActionTimestamp(tsConstructor);
-}
 
 
 //=========================================================================================================
@@ -504,9 +438,86 @@ void Camera::_init(){
 
 	DEB_ALWAYS() << _sprintComment(false, fnId, "[ENTRY]");
 
-	char msg[MSG4K + 1];
-	//char *pMsg;
 	int error=0;
+
+#ifdef __linux__
+	UNUSED const char *pcoFn;
+
+	//-------------------- linux
+
+
+    board=0;
+    int iErr;
+
+    //int bufnum=20;
+
+    DEB_ALWAYS()  << "setting the log" ;
+    
+
+
+
+    DEB_ALWAYS() << "++++++++++++++ _pco_Open_Cam";
+    _pco_Open_Cam(iErr);
+    if(iErr)
+    {
+        camera->Close_Cam();
+        delete camera;
+        camera = NULL;
+        DEB_ALWAYS()  << "FATAL - _pco_Open_Cam " << DEB_VAR1(iErr);
+        THROW_HW_ERROR(Error) ;
+    }
+   
+    
+    DEB_ALWAYS() << "++++++++++++++ _pco_GetCameraType";
+    _pco_GetCameraType(iErr);
+    if(iErr)
+    {
+        DEB_ALWAYS()  << "WARNING - _pco_GetCameraType " << DEB_VAR1(iErr);
+    }
+
+    DEB_ALWAYS() << "++++++++++++++ _pco_Open_Grab";
+    _pco_Open_Grab(iErr);
+    
+    DEB_ALWAYS() << "++++++++++++++ _pco_GetCameraInfo";
+    _pco_GetCameraInfo(iErr);
+    
+    DEB_ALWAYS() << "++++++++++++++ _pco_ResetSettingsToDefault";
+    _pco_ResetSettingsToDefault(iErr);
+    
+    DEB_ALWAYS() << "++++++++++++++ _pco_SetCameraToCurrentTime";
+    _pco_SetCameraToCurrentTime(iErr);
+
+    DEB_ALWAYS() << "++++++++++++++ _pco_GetTransferParameter";
+    _pco_GetTransferParameter(iErr);
+
+    DEB_ALWAYS() << "++++++++++++++ _pco_GetTemperatureInfo";
+    _pco_GetTemperatureInfo(iErr);
+    
+    DEB_ALWAYS() << "++++++++++++++ pco_GetPixelRate";
+    DWORD pixRateActual, pixRateNext;
+    _pco_GetPixelRate(pixRateActual, pixRateNext, iErr);
+    DEB_ALWAYS()  << DEB_VAR2(pixRateActual, pixRateNext) ;
+    
+    DEB_ALWAYS() << "++++++++++++++ _pco_GetLut";
+    _pco_GetLut(iErr);
+
+    DEB_ALWAYS() << "++++++++++++++ _pco_SetRecordingState";
+    _pco_SetRecordingState(0, iErr);
+
+    //_pco_SetTimestampMode(2, iErr);
+
+
+    DEB_ALWAYS() << "++++++++++++++ _pco_initHWIOSignal";
+    // 0x01: "Low level active"
+    // 0x02: "High Level active"
+    // 0x04: "Rising edge active"
+    // 0x08: "Falling edge active"
+	_pco_initHWIOSignal(0, 0x04, iErr);
+
+#else
+
+	char msg[MSG4K + 1];
+
 
 	_armRequired(true);
 
@@ -640,6 +651,7 @@ void Camera::_init(){
 		throw LIMA_HW_EXC(Error, "Camera not found!");
 
 	_pco_initHWIOSignal(0, 0x4, error);
+#endif
 
 	_pco_SetCameraToCurrentTime(error);
 
@@ -747,7 +759,7 @@ void  Camera::_init_dimax() {
 	DEB_TRACE() <<  "end block 1 / get initial seg Size - images";
 
 	{
-		int segmentPco, segmentArr;
+		int segmentArr;
 		
 		unsigned int maxWidth, maxHeight; 
 		getMaxWidthHeight(maxWidth, maxHeight);
@@ -757,7 +769,6 @@ void  Camera::_init_dimax() {
 
 		///------------------------------------------------------------------------TODO ?????
 		for(segmentArr=0; segmentArr < PCO_MAXSEGMENTS ; segmentArr++) {
-			segmentPco = segmentArr +1;
 			if(m_pcoData->dwMaxImageCnt[segmentArr] == 0){
 				m_pcoData->dwMaxImageCnt[segmentArr] = m_pcoData->dwSegmentSize[segmentArr] / pages_per_image;
 				if(m_pcoData->dwMaxImageCnt[segmentArr] > 4) m_pcoData->dwMaxImageCnt[segmentArr] -= 2;
@@ -793,17 +804,6 @@ void Camera::_init_edge() {
 
 
 
-//=========================================================================================================
-//=========================================================================================================
-Camera::~Camera()
-{
-	DEB_DESTRUCTOR();
-	DEB_TRACE() << "DESTRUCTOR ...................." ;
-
-	m_cam_connected = false;
-
-	reset(RESET_CLOSE_INTERFACE);
-}
 
 
 //=================================================================================================
@@ -871,6 +871,7 @@ void Camera::prepareAcq()
 
 	//------------------------------------------------- triggering mode 
     //------------------------------------- acquire mode : ignore or not ext. signal
+    DEB_TRACE() << "\n>>> _pco_SetTriggerMode_SetAcquireMode";
 	_pco_SetTriggerMode_SetAcquireMode(error);
     PCO_THROW_OR_TRACE(error, "_pco_SetTriggerMode_SetAcquireMode") ;
 
@@ -879,36 +880,34 @@ void Camera::prepareAcq()
     // ----------------------------------------- storage mode (recorder + sequence)
     if(_isCameraType(Dimax | Pco4k | Pco2k)) {
 
-               enumPcoStorageMode mode;
+		enumPcoStorageMode mode;
+		int forced;
 
-               if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) {
-                       mode = RecRing;
-               } else {
-                        // live video requested frames = 0
-                       mode = (iRequestedFrames > 0) ? RecSeq : Fifo;
-               }
+		getRecorderForcedFifo(forced);
 
-               DEB_TRACE() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
+        if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) 
+		{
+			mode = RecRing;
+		} 
+		else if(forced || iRequestedFrames == 0)
+		{
+			mode = Fifo;
+		}
+		else
+		{	// live video requested frames = 0
+			mode = RecSeq;
+        }
+
+        DEB_TRACE() << "\n>>> set storage/recorder mode - DIMAX 2K 4K: " << DEB_VAR1(mode);
 
 		_pco_SetStorageMode_SetRecorderSubmode(mode, error);
 		PCO_THROW_OR_TRACE(error, "_pco_SetStorageMode_SetRecorderSubmode") ;
 	}
 
-#if 0
-	if(_isCameraType(Pco4k | Pco2k)) {
-			// live video requested frames = 0
-		enumPcoStorageMode mode = Fifo;
-		DEB_TRACE() << "PcoStorageMode mode - PCO2K / 4K: " << DEB_VAR1(mode);
 
-		_pco_SetStorageMode_SetRecorderSubmode(mode, error);
-		PCO_THROW_OR_TRACE(error, "_pco_SetStorageMode_SetRecorderSubmode") ;
-	}
-#endif
-
-    //------------------------------------------------- 
-
-	//----------------------------------- set exposure time & delay time
-	_pco_SetDelayExposureTime(error);   // initial set of delay (phase = 0)
+    //----------------------------------- set exposure time & delay time
+    DEB_TRACE() << "\n>>> _pco_SetDelayExposureTime";
+    _pco_SetDelayExposureTime(error,0);   // initial set of delay (phase = 0)
 	PCO_THROW_OR_TRACE(error, "_pco_SetDelayExposureTime") ;
     //------------------------------------------------- 
 
@@ -1063,618 +1062,16 @@ void Camera::prepareAcq()
 #endif
 
 }
-//=================================================================================================
-//=================================================================================================
-void Camera::startAcq()
-{
-    DEB_MEMBER_FUNCT();
-
-	m_acq_frame_nb = -1;
-	m_pcoData->pcoError = 0;
-	m_pcoData->pcoErrorMsg[0] = 0;
-
-	m_pcoData->traceAcqClean();
-
-	TIME_USEC tStart;
-	msElapsedTimeSet(tStart);
-
-
-//=====================================================================
-	DEF_FNID;
-    HANDLE hEvent= NULL;
-
-	DEB_ALWAYS() << _sprintComment(false, fnId, "[ENTRY]") << _checkLogFiles();
-
-	int error;
-
-
-	//------------------------------------------------- start acquisition
-
-	m_pcoData->traceAcq.msStartAcqStart = msElapsedTime(tStart);
-
-	m_sync->setStarted(true);
-	//m_sync->setExposing(pcoAcqRecordStart);
-	m_sync->setExposing(pcoAcqStart);
-	
-    int iRequestedFrames;
-    m_sync->getNbFrames(iRequestedFrames);
-
-	unsigned long ulFramesMaxInSegment = _pco_GetNumberOfImagesInSegment_MaxCalc(m_pcoData->wActiveRamSegment);
-	unsigned long ulRequestedFrames = (unsigned long) iRequestedFrames;
-
-	if(ulRequestedFrames > 0)
-	{
-		WORD wDoubleImage;
-		int err;
-
-		// Double Image -> requested images will be the total nr of images (basic + primary)
-		//      must be even and twice of the nr of images for pco
-		_pco_GetDoubleImageMode(wDoubleImage, err);
-
-		bool bOutOfRange = false;
-
-		if( (wDoubleImage) && ((ulRequestedFrames % 2) != 0) ) bOutOfRange = true;
-		if((ulFramesMaxInSegment >0) && (ulRequestedFrames > ulFramesMaxInSegment)) bOutOfRange = true;
-
-
-		if(bOutOfRange)
-		{
-
-			DEB_ALWAYS() << "\nERROR frames OUT OF RANGE " << DEB_VAR3(ulRequestedFrames, ulFramesMaxInSegment, wDoubleImage);
-			{
-				Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamNoMemory, "ERROR frames OUT OF RANGE");
-				_getPcoHwEventCtrlObj()->reportEvent(ev);
-			}
-				m_sync->setStarted(false);
-				m_sync->setExposing(pcoAcqError);
-				return;
-		}
-	}
-
-	if(!_isRunAfterAssign())
-	{
-		DEB_TRACE() << "========================= recordingState 1 - BEFORE ASSIGN (startAcq)";
-		_pco_SetRecordingState(1, error);
-	}
-
-	if(_isCameraType(Edge)){
-
-		_beginthread( _pco_acq_thread_edge, 0, (void*) this);
-
-#if 0
-		AutoMutex lock(m_cond.mutex());
-
-		bool resWait;
-		int retry = 3;
-		int val, val0; val0 = pcoAcqRecordStart;
-
-		while( ((val =  m_sync->getExposing()) != val0) && retry--)
-		{
-			DEB_TRACE() << "+++ getExposing / pcoAcqRecordStart - WAIT - " << DEB_VAR3(val, val0, retry);
-			resWait = m_cond.wait(2.);
-		}
-		DEB_TRACE() << "+++ getExposing / pcoAcqRecordStart - EXIT - " << DEB_VAR3(val, val0, retry);
-		lock.unlock();
-#endif
-
-		m_pcoData->traceAcq.msStartAcqEnd = msElapsedTime(tStart);
-		return;
-	}
-
-#if 0
-	if(_isCameraType(Pco2k | Pco4k)){
-		_beginthread( _pco_acq_thread_ringBuffer, 0, (void*) this);
-		m_pcoData->traceAcq.msStartAcqEnd = msElapsedTime(tStart);
-		return;
-	}
-#endif
-
-	if(_isCameraType(Dimax | Pco2k | Pco4k)){
-	    int iRequestedFrames;
-		m_sync->getNbFrames(iRequestedFrames);
-
-	    TrigMode trig_mode;
-		m_sync->getTrigMode(trig_mode);
-		_pco_SetRecordingState(1, error);
-		if(iRequestedFrames > 0 ) {
-			if((trig_mode  == ExtTrigSingle) ) {
-				_beginthread( _pco_acq_thread_dimax_trig_single, 0, (void*) this);
-			} else {
-				_beginthread( _pco_acq_thread_dimax, 0, (void*) this);	// normal mode
-			}
-		} else {
-			_beginthread( _pco_acq_thread_dimax_live, 0, (void*) this);
-		}
-		m_pcoData->traceAcq.msStartAcqEnd = msElapsedTime(tStart);
-		return;
-	}
-
-	throw LIMA_HW_EXC(Error, "unkown camera type");
-	return;
-}
 
 
 //==========================================================================================================
 //==========================================================================================================
 
-long msElapsedTime(TIME_USEC &t0) {
-	TIME_USEC tNow;
-	_ftime64_s(&tNow);
 
-	return (long)((tNow.time - t0.time)*1000) + (tNow.millitm - t0.millitm);
-}
 
-void msElapsedTimeSet(TIME_USEC &t0) {
-	_ftime64_s(&t0);
-}
 
 
-double usElapsedTimeTicsPerSec() {
-	LARGE_INTEGER ticksPerSecond;
 
-	QueryPerformanceFrequency(&ticksPerSecond); 
-	return (double) ticksPerSecond.QuadPart;
-
-}
-
-//==========================================================================================================
-//==========================================================================================================
-void _pco_acq_thread_dimax(void *argin) {
-	DEF_FNID;
-
-	static char msgErr[LEN_ERROR_MSG+1];
-
-	int error;
-	int _nrStop;
-	DWORD _dwPcoValidImageCnt, _dwPcoMaxImageCnt;
-
-	Camera* m_cam = (Camera *) argin;
-	SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
-	//BufferCtrlObj* m_buffer = m_sync->_getBufferCtrlObj();
-	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
-
-	char _msg[LEN_MSG + 1];
-    sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
-	m_cam->_traceMsg(_msg);
-
-	m_cam->_sprintComment(true, fnId, "[ENTRY]");
-
-
-	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
-	m_pcoData->traceAcq.fnId = fnId;
-
-	const char *msg;
-	TIME_USEC tStart, tStart0;
-	msElapsedTimeSet(tStart);
-	tStart0 = tStart;
-
-	long timeout, timeout0, msNowRecordLoop, msRecord, msXfer, msTotal;
-	DWORD dwPcoAcquiredFrames;
-	int iLimaAcquiredFrames;
-
-	int requestStop = stopNone;
-
-	HANDLE m_handle = m_cam->getHandle();
-
-	WORD wSegment; m_cam->_pco_GetActiveRamSegment(wSegment, error ); 
-	double msPerFrame = (m_cam->pcoGetCocRunTime() * 1000.);
-	m_pcoData->traceAcq.msImgCoc = msPerFrame;
-
-	//DWORD dwMsSleepOneFrame = (DWORD) (msPerFrame + 0.5);	// 4/5 rounding
-	DWORD dwMsSleepOneFrame = (DWORD) (msPerFrame/5.0);	// 4/5 rounding
-	if(dwMsSleepOneFrame == 0) dwMsSleepOneFrame = 1;		// min sleep
-
-	WORD wDoubleImage;
-	int err;
-	m_cam->_pco_GetDoubleImageMode(wDoubleImage, err);
-
-
-	bool nb_frames_fixed = false;
-
-	int iLimaRequestedFrames; 	m_sync->getNbFrames(iLimaRequestedFrames);
-	m_pcoData->traceAcq.nrImgRequested0 = iLimaRequestedFrames;
-	WORD dwPcoRequestedFrames = wDoubleImage ? iLimaRequestedFrames/2 : iLimaRequestedFrames;
-	
-
-	m_sync->setAcqFrames(0);
-
-	timeout = timeout0 = (long) (msPerFrame * (iLimaRequestedFrames * 1.3));	// 30% guard
-	if(timeout < TOUT_MIN_DIMAX) timeout = TOUT_MIN_DIMAX;
-    
-	m_pcoData->traceAcq.msTout = m_pcoData->msAcqTout = timeout;
-	_dwPcoValidImageCnt = 0;
-
-	m_sync->getExpTime(m_pcoData->traceAcq.sExposure);
-	m_sync->getLatTime(m_pcoData->traceAcq.sDelay);
-
-	m_sync->setExposing(pcoAcqRecordStart);
-
-	while(true) {
-		m_cam->_pco_GetNumberOfImagesInSegment(wSegment, _dwPcoValidImageCnt, _dwPcoMaxImageCnt, error);
-		if(error) {
-			printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, "_pco_GetNumberOfImagesInSegment");
-			throw LIMA_HW_EXC(Error, "PCO_GetNumberOfImagesInSegment");
-		}
-
-		m_pcoData->dwValidImageCnt[wSegment-1] = 
-			m_pcoData->traceAcq.nrImgRecorded = _dwPcoValidImageCnt;
-		m_pcoData->dwMaxImageCnt[wSegment-1] =
-			m_pcoData->traceAcq.maxImgCount = _dwPcoMaxImageCnt;
-
-		m_pcoData->msAcqTnow = msNowRecordLoop = msElapsedTime(tStart);
-		m_pcoData->traceAcq.msRecordLoop = msNowRecordLoop;
-		
-		if( (dwPcoRequestedFrames > _dwPcoMaxImageCnt) ){
-			nb_frames_fixed = true;
-			
-			sprintf_s(msgErr,LEN_ERROR_MSG, 
-				"=== %s [%d]> ERROR INVALID NR FRAMES fixed nb_frames[%d] _dwPcoMaxImageCnt[%d]", 
-				fnId, __LINE__, dwPcoRequestedFrames, _dwPcoMaxImageCnt);
-			printf("%s\n", msgErr);
-
-			m_sync->setExposing(pcoAcqError);
-			break;
-		}
-
-		if(  (_dwPcoValidImageCnt >= dwPcoRequestedFrames)) break;
-
-		if((timeout < msNowRecordLoop) && !m_pcoData->bExtTrigEnabled) { 
-			//m_sync->setExposing(pcoAcqRecordTimeout);
-			//m_sync->stopAcq();
-			m_sync->setExposing(pcoAcqStop);
-			printf("=== %s [%d]> TIMEOUT!!! tout[(%ld) 0(%ld)] recLoopTime[%ld ms] lastImgRecorded[%ld] dwPcoRequestedFrames[%d]\n", 
-				fnId, __LINE__, timeout, timeout0, msNowRecordLoop, _dwPcoValidImageCnt, dwPcoRequestedFrames);
-			break;
-		}
-	
-		if((requestStop = m_sync->_getRequestStop(_nrStop))  == stopRequest) {
-			m_sync->_setRequestStop(stopNone);
-		
-			char msg[LEN_TRACEACQ_MSG+1];
-				//m_buffer->_setRequestStop(stopProcessing);
-				//m_sync->setExposing(pcoAcqStop);
-				
-			snprintf(msg,LEN_TRACEACQ_MSG, "=== %s> STOP REQ (recording). lastImgRec[%d]\n", fnId, _dwPcoValidImageCnt);
-				printf(msg);
-				m_pcoData->traceMsg(msg);
-				break;
-		}
-		Sleep(dwMsSleepOneFrame);	// sleep 1 frame
-	} // while(true)
-
-	m_pcoData->msAcqTnow = msNowRecordLoop = msElapsedTime(tStart);
-	m_pcoData->traceAcq.msRecordLoop = msNowRecordLoop;
-
-	msg = m_cam->_pco_SetRecordingState(0, error);
-	if(error) {
-		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
-		throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
-	}
-
-	if( (requestStop != stopRequest) && (!nb_frames_fixed)) {
-		if(m_sync->getExposing() == pcoAcqRecordStart) m_sync->setExposing(pcoAcqRecordEnd);
-
-		m_cam->_pco_GetNumberOfImagesInSegment(wSegment, _dwPcoValidImageCnt, _dwPcoMaxImageCnt, error);
-		if(error) {
-			printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
-			throw LIMA_HW_EXC(Error, "PCO_GetNumberOfImagesInSegment");
-		}
-
-		m_pcoData->dwValidImageCnt[wSegment-1] = 
-			m_pcoData->traceAcq.nrImgRecorded = _dwPcoValidImageCnt;
-
-		dwPcoAcquiredFrames = (_dwPcoValidImageCnt < dwPcoRequestedFrames) ? _dwPcoValidImageCnt : dwPcoRequestedFrames;
-		iLimaAcquiredFrames = wDoubleImage ? dwPcoAcquiredFrames*2 : dwPcoAcquiredFrames;
-		//m_sync->setAcqFrames(nb_acq_frames);
-
-		// dimax recording time
-		m_pcoData->msAcqRec = msRecord = msElapsedTime(tStart);
-		m_pcoData->traceAcq.msRecord = msRecord;    // loop & stop record
-		
-		m_pcoData->traceAcq.endRecordTimestamp = m_pcoData->msAcqRecTimestamp = getTimestamp();
-		
-		m_pcoData->traceAcq.nrImgAcquired = iLimaAcquiredFrames;
-		m_pcoData->traceAcq.nrImgRequested = iLimaRequestedFrames;
-
-		msElapsedTimeSet(tStart);  // reset for xfer
-
-		if(iLimaAcquiredFrames < iLimaRequestedFrames) m_sync->setNbFrames(iLimaAcquiredFrames);
-
-//		if(m_buffer->_getRequestStop()) {
-//			m_sync->setExposing(pcoAcqStop);
-//		} else 
-		
-		// --- in case of stop request during the record phase, the transfer
-		// --- is made to avoid lose the image recorded
-		{
-			pcoAcqStatus status;
-
-
-
-			if(m_cam->_isCameraType(Pco2k | Pco4k)){
-				if(m_pcoData->testCmdMode & TESTCMDMODE_DIMAX_XFERMULTI) {
-					status = (pcoAcqStatus) m_buffer->_xferImag();
-				} else {
-					if(wDoubleImage)
-					{ 
-						status = (pcoAcqStatus) m_buffer->_xferImagMultDoubleImage();  //  <------------- default pco2k/4k NO waitobj
-					}
-					else
-					{
-						status = (pcoAcqStatus) m_buffer->_xferImagMult();  //  <------------- default pco2k/4k NO waitobj
-					}
-				}
-			}else{
-				if(m_pcoData->testCmdMode & TESTCMDMODE_DIMAX_XFERMULTI) {
-					status = (pcoAcqStatus) m_buffer->_xferImagMult();
-				} else {
-					if(wDoubleImage)
-					{ 
-						status = (pcoAcqStatus) m_buffer->_xferImagDoubleImage(); //  <------------- default dimax YES waitobj
-					}
-					else
-					{
-						status = (pcoAcqStatus) m_buffer->_xferImag(); //  <------------- default dimax YES waitobj
-					}
-				}
-
-			}
-			
-			if(nb_frames_fixed) status = pcoAcqError;
-			m_sync->setExposing(status);
-
-		}
-
-	} // if nb_frames_fixed && no stopRequested
-	
-
-	//m_sync->setExposing(status);
-	m_pcoData->dwMaxImageCnt[wSegment-1] =
-			m_pcoData->traceAcq.maxImgCount = _dwPcoMaxImageCnt;
-
-	// traceAcq info - dimax xfer time
-	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
-	m_pcoData->traceAcq.msXfer = msXfer;
-
-	m_pcoData->msAcqAll = msTotal = msElapsedTime(tStart0);
-	m_pcoData->traceAcq.msTotal= msTotal;
-
-	m_pcoData->traceAcq.endXferTimestamp = m_pcoData->msAcqXferTimestamp = getTimestamp();
-
-
-	sprintf_s(_msg, LEN_MSG, "%s [%d]> [EXIT] imgRecorded[%d] coc[%g] recLoopTime[%ld] "
-			"tout[(%ld) 0(%ld)] rec[%ld] xfer[%ld] all[%ld](ms)\n", 
-			fnId, __LINE__, _dwPcoValidImageCnt, msPerFrame, msNowRecordLoop, timeout, timeout0, msRecord, msXfer, msTotal);
-	m_cam->_traceMsg(_msg);
-
-	// included in 34a8fb6723594919f08cf66759fe5dbd6dc4287e only for dimax (to check for others)
-	m_sync->setStarted(false);
-
-
-#if 0
-	if(requestStop == stopRequest) 
-	{
-		Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamFault, errMsg);
-		m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
-	}
-
-#endif
-
-
-
-	_endthread();
-}
-
-//==========================================================================================================
-//==========================================================================================================
-
-void _pco_acq_thread_dimax_trig_single(void *argin) {
-	DEF_FNID;
-	printf("=== %s [%d]> %s ENTRY\n",  fnId, __LINE__,getTimestamp(Iso));
-
-	static char msgErr[LEN_ERROR_MSG+1];
-
-	int error;
-	int _nrStop;
-	DWORD _dwValidImageCnt, _dwMaxImageCnt;
-
-	Camera* m_cam = (Camera *) argin;
-	SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
-	//BufferCtrlObj* m_buffer = m_sync->_getBufferCtrlObj();
-	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
-
-	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
-	m_pcoData->traceAcq.fnId = fnId;
-
-	m_cam->_sprintComment(true, fnId, "[ENTRY]");
-
-	const char *msg;
-	TIME_USEC tStart, tStart0;
-	msElapsedTimeSet(tStart);
-	tStart0 = tStart;
-
-	long timeout, timeout0, msNowRecordLoop, msRecord, msXfer, msTotal;
-	int nb_acq_frames;
-	int requestStop = stopNone;
-
-	HANDLE m_handle = m_cam->getHandle();
-
-	WORD wSegment;  m_cam->_pco_GetActiveRamSegment(wSegment, error); 
-	double msPerFrame = (m_cam->pcoGetCocRunTime() * 1000.);
-	m_pcoData->traceAcq.msImgCoc = msPerFrame;
-
-	//DWORD dwMsSleepOneFrame = (DWORD) (msPerFrame + 0.5);	// 4/5 rounding
-	DWORD dwMsSleepOneFrame = (DWORD) (msPerFrame/5.0);	// 4/5 rounding
-	if(dwMsSleepOneFrame == 0) dwMsSleepOneFrame = 1;		// min sleep
-
-	bool nb_frames_fixed = false;
-	int nb_frames; 	m_sync->getNbFrames(nb_frames);
-	//m_pcoData->traceAcq.nrImgRequested = nb_frames;
-	m_pcoData->traceAcq.nrImgRequested0 = nb_frames;
-
-	m_sync->setAcqFrames(0);
-
-	timeout = timeout0 = (long) (msPerFrame * (nb_frames * 1.3));	// 30% guard
-	if(timeout < TOUT_MIN_DIMAX) timeout = TOUT_MIN_DIMAX;
-    
-	m_pcoData->traceAcq.msTout = m_pcoData->msAcqTout = timeout;
-	_dwValidImageCnt = 0;
-
-	m_sync->getExpTime(m_pcoData->traceAcq.sExposure);
-	m_sync->getLatTime(m_pcoData->traceAcq.sDelay);
-
-	m_sync->setExposing(pcoAcqRecordStart);
-
-		m_cam->_pco_GetNumberOfImagesInSegment(wSegment, _dwValidImageCnt, _dwMaxImageCnt, error);
-		if(error) {
-			printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, "_pco_GetNumberOfImagesInSegment");
-			throw LIMA_HW_EXC(Error, "PCO_GetNumberOfImagesInSegment");
-		}
-		m_pcoData->dwValidImageCnt[wSegment-1] = 
-			m_pcoData->traceAcq.nrImgRecorded = _dwValidImageCnt;
-	 	m_pcoData->dwMaxImageCnt[wSegment-1] =
-			m_pcoData->traceAcq.maxImgCount = _dwMaxImageCnt;
-
-		bool doWhile =true;
-
-		if( ((DWORD) nb_frames > _dwMaxImageCnt) ){
-			nb_frames_fixed = true;
-			
-			sprintf_s(msgErr,LEN_ERROR_MSG, 
-				"=== %s [%d]> ERROR INVALID NR FRAMES fixed nb_frames[%d] _dwMaxImageCnt[%d]", 
-				fnId, __LINE__, nb_frames, _dwMaxImageCnt);
-			printf("%s\n", msgErr);
-
-			m_sync->setExposing(pcoAcqError);
-			doWhile = false;
-		}
-
-
-
-
-	while(doWhile) {
-		WORD wRecState_actual;
-
-		m_pcoData->msAcqTnow = msNowRecordLoop = msElapsedTime(tStart);
-		m_pcoData->traceAcq.msRecordLoop = msNowRecordLoop;
-		
-
-		wRecState_actual = m_cam->_pco_GetRecordingState(error);
-		if(error) {
-			printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, "_pco_GetRecordingState");
-			throw LIMA_HW_EXC(Error, "PCO_GetRecordingState");
-		}
-		
-		if(wRecState_actual == 0) break;
-
-		if((requestStop = m_sync->_getRequestStop(_nrStop))  == stopRequest) {
-			m_sync->_setRequestStop(stopNone);
-		
-			char msg[LEN_TRACEACQ_MSG+1];
-				//m_buffer->_setRequestStop(stopProcessing);
-				//m_sync->setExposing(pcoAcqStop);
-				
-			snprintf(msg,LEN_TRACEACQ_MSG, "=== %s> STOP REQ (recording). lastImgRec[%d]\n", fnId, _dwValidImageCnt);
-				printf(msg);
-				m_pcoData->traceMsg(msg);
-				break;
-		}
-		Sleep(dwMsSleepOneFrame);	// sleep 1 frame
-	} // while(true)
-
-	m_pcoData->msAcqTnow = msNowRecordLoop = msElapsedTime(tStart);
-	m_pcoData->traceAcq.msRecordLoop = msNowRecordLoop;
-
-	msg = m_cam->_pco_SetRecordingState(0, error);
-	if(error) {
-		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
-		throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
-	}
-
-	if( (requestStop != stopRequest) && (!nb_frames_fixed)) {
-		if(m_sync->getExposing() == pcoAcqRecordStart) m_sync->setExposing(pcoAcqRecordEnd);
-
-		m_cam->_pco_GetNumberOfImagesInSegment(wSegment, _dwValidImageCnt, _dwMaxImageCnt, error);
-		if(error) {
-			printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
-			throw LIMA_HW_EXC(Error, "PCO_GetNumberOfImagesInSegment");
-		}
-
-		m_pcoData->dwValidImageCnt[wSegment-1] = 
-			m_pcoData->traceAcq.nrImgRecorded = _dwValidImageCnt;
-
-		nb_acq_frames = (_dwValidImageCnt < (DWORD) nb_frames) ? _dwValidImageCnt : nb_frames;
-		//m_sync->setAcqFrames(nb_acq_frames);
-
-		// dimax recording time
-		m_pcoData->msAcqRec = msRecord = msElapsedTime(tStart);
-		m_pcoData->traceAcq.msRecord = msRecord;    // loop & stop record
-		
-		m_pcoData->traceAcq.endRecordTimestamp = m_pcoData->msAcqRecTimestamp = getTimestamp();
-		
-		m_pcoData->traceAcq.nrImgAcquired = nb_acq_frames;
-		m_pcoData->traceAcq.nrImgRequested = nb_frames;
-
-		msElapsedTimeSet(tStart);  // reset for xfer
-
-
-		if(nb_acq_frames < nb_frames) m_sync->setNbFrames(nb_acq_frames);
-
-//		if(m_buffer->_getRequestStop()) {
-//			m_sync->setExposing(pcoAcqStop);
-//		} else 
-		
-		// --- in case of stop request during the record phase, the transfer
-		// --- is made to avoid lose the image recorded
-		{
-			pcoAcqStatus status;
-
-			status = (pcoAcqStatus) m_buffer->_xferImag_getImage();
-
-			if(nb_frames_fixed) status = pcoAcqError;
-			m_sync->setExposing(status);
-
-		}
-
-	} // if nb_frames_fixed & no stopped
-	
-	
-	
-	//m_sync->setExposing(status);
-	m_pcoData->dwMaxImageCnt[wSegment-1] =
-			m_pcoData->traceAcq.maxImgCount = _dwMaxImageCnt;
-
-	// traceAcq info - dimax xfer time
-	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
-	m_pcoData->traceAcq.msXfer = msXfer;
-
-	m_pcoData->msAcqAll = msTotal = msElapsedTime(tStart0);
-	m_pcoData->traceAcq.msTotal= msTotal;
-
-	m_pcoData->traceAcq.endXferTimestamp = m_pcoData->msAcqXferTimestamp = getTimestamp();
-
-
-	printf("=== %s [%d]> EXIT nb_frames_requested[%d] _dwValidImageCnt[%d] _dwMaxImageCnt[%d] coc[%g] recLoopTime[%ld] "
-			"tout[(%ld) 0(%ld)] rec[%ld] xfer[%ld] all[%ld](ms)\n", 
-			fnId, __LINE__, nb_frames, _dwValidImageCnt, _dwMaxImageCnt, msPerFrame, msNowRecordLoop, 
-				timeout, timeout0, msRecord, msXfer, msTotal);
-
-	// included in 34a8fb6723594919f08cf66759fe5dbd6dc4287e only for dimax (to check for others)
-	m_sync->setStarted(false);
-
-
-
-#if 0
-	if(requestStop == stopRequest) 
-	{
-		Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamFault, errMsg);
-		m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
-	}
-
-#endif
-
-	_endthread();
-}
 
 //==========================================================================================================
 //==========================================================================================================
@@ -1703,248 +1100,6 @@ const char *sPcoAcqStatus[] ={
 //=====================================================================
 //=====================================================================
 
-void _pco_acq_thread_edge(void *argin) {
-	DEF_FNID;
-
-	Camera* m_cam = (Camera *) argin;
-	SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
-	//BufferCtrlObj* m_buffer = m_sync->_getBufferCtrlObj();
-	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
-
-	char _msg[LEN_MSG + 1];
-	sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
-	m_cam->_traceMsg(_msg);
-
-	m_cam->_sprintComment(true, fnId, "[ENTRY]");
-
-	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
-
-	TIME_USEC tStart;
-	msElapsedTimeSet(tStart);
-	int error;
-	long msXfer;
-	int requestStop = stopNone;
-	pcoAcqStatus status; 
-
-	HANDLE m_handle = m_cam->getHandle();
-
-	m_sync->setAcqFrames(0);
-
-
-	if(m_pcoData->testCmdMode & TESTCMDMODE_EDGE_XFER) {
-		status = (pcoAcqStatus) m_buffer->_xferImag_getImage_edge();
-	} else {
-		status = (pcoAcqStatus) m_buffer->_xferImag();  // original
-	}
-
-	m_sync->setExposing(status);
-	//m_sync->stopAcq();
-	const char *msg = m_cam->_pco_SetRecordingState(0, error);
-	if(error) {
-		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
-		//throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
-	}
-
-	m_pcoData->traceAcq.fnId = fnId;
-
-	m_sync->getExpTime(m_pcoData->traceAcq.sExposure);
-	m_sync->getLatTime(m_pcoData->traceAcq.sDelay);
-
-
-	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
-	sprintf_s(_msg, LEN_MSG, "%s> [EXIT] xfer[%ld] (ms) status[%s]\n", 
-			fnId, msXfer, sPcoAcqStatus[status]);
-	m_cam->_traceMsg(_msg);
-
-
-	
-	m_sync->setStarted(false); // updated
-
-	char *errMsg = NULL;
-	switch(status) 
-	{
-		case pcoAcqRecordTimeout: errMsg = "pcoAcqRecordTimeout" ; break;
-		case pcoAcqWaitTimeout:   errMsg = "pcoAcqWaitTimeout" ; break;
-		case pcoAcqWaitError:     errMsg = "pcoAcqWaitError" ; break;
-		case pcoAcqError:         errMsg = "pcoAcqError" ; break;
-		case pcoAcqPcoError:      errMsg = "pcoAcqPcoError" ; break;
-	}
-
-	if(errMsg) 
-	{
-		Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamFault, errMsg);
-		m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
-	}
-
-	_endthread();
-}
-
-//=====================================================================
-//=====================================================================
-
-void _pco_acq_thread_dimax_live(void *argin) {
-	DEF_FNID;
-
-	Camera* m_cam = (Camera *) argin;
-	SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
-	//BufferCtrlObj* m_buffer = m_sync->_getBufferCtrlObj();
-	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
-
-	char _msg[LEN_MSG + 1];
-    sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
-	m_cam->_traceMsg(_msg);
-
-	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
-
-	TIME_USEC tStart;
-	msElapsedTimeSet(tStart);
-	int error;
-	long msXfer;
-	int requestStop = stopNone;
-
-	m_cam->_sprintComment(true, fnId, "[ENTRY]");
-
-	HANDLE m_handle = m_cam->getHandle();
-
-	m_sync->setAcqFrames(0);
-
-	// dimax recording time -> live NO record
-	m_pcoData->msAcqRec  = 0;
-	m_pcoData->msAcqRecTimestamp = getTimestamp();
-
-
-	pcoAcqStatus status = (pcoAcqStatus) m_buffer->_xferImag();
-	m_sync->setExposing(status);
-	//m_sync->stopAcq();
-	const char *msg = m_cam->_pco_SetRecordingState(0, error);
-	if(error) {
-		printf("=== %s [%d]> ERROR %s\n", fnId, __LINE__, msg);
-		//throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
-	}
-
-	// dimax xfer time
-	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
-	m_pcoData->msAcqXferTimestamp = getTimestamp();
-	sprintf_s(_msg, LEN_MSG, "%s> [EXIT] xfer[%ld] (ms) status[%s]\n", 
-			fnId, msXfer, sPcoAcqStatus[status]);
-	m_cam->_traceMsg(_msg);
-
-	m_sync->setStarted(false); // to test
-
-	_endthread();
-}
-
-//=====================================================================
-//=====================================================================
-void _pco_acq_thread_ringBuffer(void *argin) {
-	DEF_FNID;
-
-	Camera* m_cam = (Camera *) argin;
-	SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
-	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
-
-	char _msg[LEN_MSG + 1];
-	sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
-	m_cam->_traceMsg(_msg);
-
-	m_cam->_sprintComment(true, fnId, "[ENTRY]");
-
-	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
-
-	TIME_USEC tStart;
-	msElapsedTimeSet(tStart);
-
-	LARGE_INTEGER usStart;
-	usElapsedTimeSet(usStart);
-
-	int error;
-	long msXfer;
-	int requestStop = stopNone;
-	pcoAcqStatus status;
-
-	HANDLE m_handle = m_cam->getHandle();
-
-	m_sync->setAcqFrames(0);
-
-	// traceAcq
-	m_pcoData->traceAcq.fnId = fnId;
-	double msPerFrame = (m_cam->pcoGetCocRunTime() * 1000.);
-	m_pcoData->traceAcq.msImgCoc = msPerFrame;
-	m_sync->getExpTime(m_pcoData->traceAcq.sExposure);
-	m_sync->getLatTime(m_pcoData->traceAcq.sDelay);
-
-
-	m_pcoData->msAcqRec  = 0;
-	m_pcoData->msAcqRecTimestamp = getTimestamp();
-
-
-
-	m_pcoData->traceAcq.usTicks[0].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[0].desc = "before xferImag execTime";
-	
-	usElapsedTimeSet(usStart);
-
-	if(m_pcoData->testCmdMode & TESTCMDMODE_PCO2K_XFER_WAITOBJ) {
-		status = (pcoAcqStatus) m_buffer->_xferImag();      //  <------------- uses WAITOBJ
-	} else {
-		status = (pcoAcqStatus) m_buffer->_xferImagMult();  //  <------------- USES PCO_GetImageEx (NO waitobj)   0x20
-	}
-
-	m_pcoData->traceAcq.usTicks[1].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[1].desc = "xferImag execTime";
-	usElapsedTimeSet(usStart);
-
-	
-	m_sync->setExposing(status);
-
-	m_pcoData->traceAcq.usTicks[2].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[2].desc = "sync->setExposing(status) execTime";
-	usElapsedTimeSet(usStart);
-
-	//m_sync->stopAcq();
-
-	m_pcoData->traceAcq.usTicks[3].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[3].desc = "sync->stopAcq execTime";
-	usElapsedTimeSet(usStart);
-
-	const char *msg = m_cam->_pco_SetRecordingState(0, error);
-	m_pcoData->traceAcq.usTicks[4].value = usElapsedTime(usStart);
-	m_pcoData->traceAcq.usTicks[4].desc = "_pco_SetRecordingState execTime";
-	usElapsedTimeSet(usStart);
-
-	if(error) {
-		sprintf_s(_msg, LEN_MSG, "%s> [%d]> ERROR %s", fnId, __LINE__, msg);
-		m_cam->_traceMsg(_msg);
-		//throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
-	}
-
-	// xfer time
-	m_pcoData->msAcqXfer =
-		m_pcoData->traceAcq.msXfer = 
-		m_pcoData->traceAcq.msTotal = 
-		msXfer =
-		msElapsedTime(tStart);
-
-	m_pcoData->traceAcq.endXferTimestamp =
-		m_pcoData->msAcqXferTimestamp = 
-		getTimestamp();
-
-	sprintf_s(_msg, LEN_MSG, "%s> EXIT xfer[%ld] (ms) status[%s]", 
-			fnId, msXfer, sPcoAcqStatus[status]);
-	m_cam->_traceMsg(_msg);
-
-
-	m_pcoData->traceAcq.usTicks[5].desc = "up to _endtrhead execTime";
-	m_pcoData->traceAcq.usTicks[5].value = usElapsedTime(usStart);
-
-	m_sync->setStarted(false); // to test
-
-	_endthread();
-}
-
-//=====================================================================
-//=====================================================================
-
 
 //=====================================================================
 //=====================================================================
@@ -1959,8 +1114,9 @@ void Camera::reset(int reset_level)
 	case RESET_CLOSE_INTERFACE: 
 		DEB_TRACE() << "\n... RESET - freeBuff, closeCam, resetLib  " << DEB_VAR1(reset_level) ;
 
-		m_buffer->_pcoAllocBuffersFree();
-
+#ifndef __linux__
+		if(m_buffer) m_buffer->_pcoAllocBuffersFree();
+#endif
 		_pco_CloseCamera(error);
 		PCO_PRINT_ERR(error, "_pco_CloseCamera"); 
 		m_handle = 0;
@@ -1986,7 +1142,6 @@ int Camera::PcoCheckError(int line, const char *file, int err, const char *fn, c
 	DEF_FNID;
 
 
-	static char lastErrorMsg[500];
 	static char tmpMsg[LEN_TMP_MSG+1];
 	static char tmpMsg1[LEN_TMP_MSG+1];
 	char *msg;
@@ -1996,10 +1151,12 @@ int Camera::PcoCheckError(int line, const char *file, int err, const char *fn, c
 	if (err != 0) {
 		sprintf_s(tmpMsg1,LEN_TMP_MSG,"ERROR - PCOfn[%s]", fn);
 		msgLog(tmpMsg);
+
 		DWORD dwErr = err;
 		m_pcoData->pcoError = err;
 		msg = m_pcoData->pcoErrorMsg;
 
+		memset(msg,0,ERR_SIZE);
 		PCO_GetErrorText(dwErr, msg, ERR_SIZE-14);
         
 		lg = strlen(msg);
@@ -2034,7 +1191,9 @@ char* Camera::_PcoCheckError(int line, const char *file, int err, int &error, co
 		sprintf_s(tmpMsg,LEN_TMP_MSG,"ERROR %s (%d)", fn, line);
 		
 		PCO_GetErrorText(err, lastErrorMsg, ERR_SIZE-14);
-		strncpy_s(msg, ERR_SIZE, lastErrorMsg, _TRUNCATE); 
+		//strncpy_s(msg, ERR_SIZE, lastErrorMsg, _TRUNCATE);
+		strncpy_s(msg, ERR_SIZE, lastErrorMsg, ERR_SIZE-1);
+
 
 		lg = strlen(msg);
 		sprintf_s(msg+lg,ERR_SIZE - lg, " [%s][%d]", file, line);
@@ -2410,39 +1569,6 @@ const char *Camera::_getCameraSubTypeStr()
 //=================================================================================================
 //=================================================================================================
 
-
-//=================================================================================================
-//=================================================================================================
-
-void Camera::_checkImgNrInit(bool &checkImgNr, int &imgNrDiff, int &alignmentShift){
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-
-	checkImgNr = false;
-	imgNrDiff = 1;
-	alignmentShift = 0;
-	int err;
-
-	WORD wTimeStampMode;
-
-	_pco_GetTimestampMode(wTimeStampMode, err);
-
-	if(wTimeStampMode == 0) return;
-	checkImgNr = true;
-
-	int alignment;
-
-	_pco_GetBitAlignment(alignment);
-
-	if(alignment == 0)
-		alignmentShift = (16 - m_pcoData->stcPcoDescription.wDynResDESC);
-	else
-		alignmentShift = 0;
-
-	
-	return;
-
-}
 //=================================================================================================
 //=================================================================================================
 
@@ -2472,13 +1598,6 @@ void Camera::_setCameraState(long long flag, bool val)
 
 
 
-//=================================================================================================
-//=================================================================================================
-
-bool Camera::_isRunAfterAssign()
-{
-	return (_isCameraType(Edge) && (_isInterfaceType(ifCameralinkAll))  );
-}
 
 //=================================================================================================
 //=================================================================================================
@@ -2544,30 +1663,6 @@ void Camera::_get_shutter_rolling_edge(DWORD &dwRolling, int &error){
     PCO_PRINT_ERR(error, "_pco_GetCameraSetup"); 	
 	
 	dwRolling =  error ? 0 :  m_dwSetup[0];
-
-	return;
-
-}
-//=================================================================================================
-//=================================================================================================
-void Camera::_set_shutter_rolling_edge(DWORD dwRolling, int &error)
-{
-		
-	DEB_MEMBER_FUNCT();
-	error = 0;
-
-	if(!_isValid_rollingShutter(dwRolling)) 
-	{
-		DEB_ALWAYS() << "ERROR requested Rolling Shutter not allowed " << DEB_VAR1(dwRolling);
-		error = -1;
-		return;
-	}
-
-	m_pcoData->dwRollingShutter = dwRolling;
-
-	DEB_TRACE() << "requested Rolling Shutter OK " << DEB_VAR1(dwRolling);
-
-	_beginthread( _pco_shutter_thread_edge, 0, (void*) this);
 
 	return;
 
@@ -2688,32 +1783,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	return;
 
 }
-//=====================================================================
-//=====================================================================
-void _pco_shutter_thread_edge(void *argin) {
-	DEF_FNID;
-	int error;
 
-
-	Camera* m_cam = (Camera *) argin;
-	//SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
-
-	char _msg[LEN_MSG + 1];
-	sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
-	m_cam->_traceMsg(_msg);
-
-	m_cam->_sprintComment(true, fnId, "[ENTRY]");
-
-	m_cam->_pco_set_shutter_rolling_edge(error);
-
-
-	sprintf_s(_msg, LEN_MSG, "%s> [EXIT]", fnId);
-	m_cam->_traceMsg(_msg);
-
-	//m_sync->setStarted(false); // to test
-
-	_endthread();
-}
 
 //=================================================================================================
 //=================================================================================================
@@ -2732,3 +1802,8 @@ bool Camera::_isValid_rollingShutter(DWORD dwRolling)
 //================================================================================================
 //================================= ROLLING SHUTTER / end ========================================
 //================================================================================================
+#ifdef __linux__
+#include "PcoCameraLin.cpp"
+#else
+#include "PcoCameraWin.cpp"
+#endif

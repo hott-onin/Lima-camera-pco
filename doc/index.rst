@@ -11,34 +11,34 @@ PCO camera
 .. =======================================================================================
 .. =======================================================================================
 
-Intoduction
-```````````
+Introduction
+````````````
 
 .. =======================================================================================
 .. =======================================================================================
 
-- **PCO camera systems** 
+- **PCO camera systems**
 
- - PCO develops specialized fast and sensitive video camera systems, mainly for scientific applications; 
-   which covers digital camera systems with high dynamic range, high resolution, high speed and low noise. 
+ - PCO develops specialized fast and sensitive video camera systems, mainly for scientific applications;
+   which covers digital camera systems with high dynamic range, high resolution, high speed and low noise.
    `PCO home page <http://www.pco.de/>`_
- 
+
 - **Product overview and technical data of the PCO cameras supported in LIMA**
- 
- - **PCO.dimax:** 
-   High speed 12 bit CMOS camera with fast image rates of 1469 frames per second (fps) at full resolution of 1920 x 1080 pixel. 
+
+ - **PCO.dimax:**
+   High speed 12 bit CMOS camera with fast image rates of 1469 frames per second (fps) at full resolution of 1920 x 1080 pixel.
    `(tech data pcodimax) <http://www.pco.de/categories/high-speed-cameras/pcodimax-hd/>`_
- 
+
  - **PCO.edge:**
-   Extremely low noise sCMOS camera with fast frame rates (100 fps), wide dynamic range (1:27000), high quantum efficiency, 
+   Extremely low noise sCMOS camera with fast frame rates (100 fps), wide dynamic range (1:27000), high quantum efficiency,
    high resolution (2560 x 2160) and large field of view.
    `(tech data pcoedge) <http://www.pco.de/categories/scmos-cameras/pcoedge-42/>`_
- 
+
  - **PCO.2000:**
-   High resolution (2048 x 2048 pixel) and low noise 14bit CCD cooled camera system with internal image memory (camRAM), 
+   High resolution (2048 x 2048 pixel) and low noise 14bit CCD cooled camera system with internal image memory (camRAM),
    allows fast image recording with 160 MB/s. The available exposure times range from 500 ns to 49 days.
    `(tech data pco2000) <http://www.pco.de/categories/sensitive-cameras/pco2000/>`_
- 
+
  - **PCO.4000:**
    High resolution (4008 x 2672 pixel) and low noise 14bit CCD cooled camera system with internal image memory (camRAM),
    allows fast image recording with 128 MB/s. The available exposure times range from 5 us to 49 days.
@@ -50,7 +50,7 @@ Intoduction
  - **Cameralink HS:** used by **PCO.edge**
  - **USB3.0:** used by **PCO.edge**
  - **GigE:** used by **PCO.2000** and **PCO.4000**
- 
+
 
 - **Type of applications**
 
@@ -59,9 +59,6 @@ Intoduction
 - **OS supported**
 
  - **Win7 Professional** (english) 64 bits SP1.
-
-
-
 
 .. =======================================================================================
 .. =======================================================================================
@@ -72,7 +69,7 @@ Prerequisites
 .. =======================================================================================
 .. =======================================================================================
 
-- **Required software packages** 
+- **Required software packages**
 
  - **download links**
 
@@ -92,7 +89,7 @@ Prerequisites
 
   - `GIT download <http://code.google.com/p/msysgit/downloads/list>`_
 
- 
+
  - **md5 checksum and size of packges used (maybe not updated)**
 
 .. code-block:: sh
@@ -108,12 +105,12 @@ Prerequisites
 
 .. code-block:: sh
 
- CAMWARE v403_1 
+ CAMWARE v403_1
     a9f8b2e465b7702ff727ba349ef327e8     SW_CAMWAREWIN64_403_1.exe
- 
+
 .. code-block:: sh
 
- VC++ compiler 
+ VC++ compiler
     Microsoft Visual Studio 2008
     Version 9.0.30729.1 SP
     Microsoft .NET Framework
@@ -125,7 +122,7 @@ Prerequisites
 
 .. code-block:: sh
 
- Python 
+ Python
      8d10ff41492919ae93a989aba4963d14  numpy-MKL-1.8.1.win-amd64-py2.7.exe
      5a38820953d38db6210a90e58f85548d  PyTango-8.0.4.win-amd64-py2.7.exe
      b73f8753c76924bc7b75afaa6d304645  python-2.7.6.amd64.msi
@@ -145,11 +142,11 @@ Prerequisites
     38ba677d295b4b6c17368bb86b661103  FileZilla_3.22.1_win64-setup_bundled.exe
     0377ccd0a3283617d161f24d080fb105  Git-1.9.0-preview20140217.exe
     3cbd2488210b6e7b3e7fa1baf05022d4  MobaXterm_Setup_7.1.msi
- 
-- **Enviroment variables** 
 
- - **system variables** 
- 
+- **Enviroment variables**
+
+ - **system variables**
+
 .. code-block:: sh
 
  ===> add manually the python path (it is not set by the installation program)
@@ -160,38 +157,32 @@ Prerequisites
 
 ..
 
- - **user variables** 
+ - **user variables**
 
 .. code-block:: sh
 
     TANGO_HOST -> <host>:20000
 
+Installation & Module configuration
+```````````````````````````````````
 
-
-
-
-
-Module configuration
-````````````````````
-Configuration file **Lima/config.inc**
+Follow the generic instructions in :ref:`build_installation`. If using CMake directly, add the following flag:
 
 .. code-block:: sh
 
- ===> set these values to 1
-      COMPILE_CORE=1
-      COMPILE_PCO=1
+ -DLIMACAMERA_PCO=true
 
-See :ref:`Compilation`
+For the Tango server installation, refers to :ref:`tango_installation`.
 
 
 Post installation actions
 `````````````````````````
-- **enable/disable PCO logs** 
+- **enable/disable PCO logs**
 
 .. code-block:: sh
 
- ===> rename file extensions (C:\ProgramData\pco): 
-      .txt (disabled) / .log (enabled) ----+  
+ ===> rename file extensions (C:\ProgramData\pco):
+      .txt (disabled) / .log (enabled) ----+
                                    camware.log   <---- created by hand
                                   PCO_CDlg.log
                                   PCO_Conv.log
@@ -200,7 +191,7 @@ Post installation actions
 
 
 
-- **Command prompt console (Visual Studio)** 
+- **Command prompt console (Visual Studio)**
 
 .. code-block:: sh
 
@@ -208,7 +199,7 @@ Post installation actions
     > Microsoft Visual C++ 2008 Express Edition
       > Visual Studio Tools
         > Visual Studio 2008 Command Prompt
-        
+
 
 - **TODO**
 

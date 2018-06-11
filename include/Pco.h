@@ -80,9 +80,7 @@ DECLARE_HANDLE(HWND);
 
 #define _stricmp strcasecmp
 #define strcpy_s(d, l, s) strncpy( (d), (s), (l) )
-
-#define strncpy_s(d, s, l) strncpy( (d), (s), (l) )
-#define strncpy_s4(d, l , s , n) strncpy( (d), (s), (l) )
+#define strncpy_s(d, l , s , n) strncpy( (d), (s), (l) )
 
 #define VS_PLATFORM "osLinux"
 #define VS_CONFIGURATION x64
@@ -132,6 +130,7 @@ typedef struct __timeb64 TIME_USEC;
 
 
 #define DWORD_MAX 0xffffffff 
+#define INT_DWORD_MAX 4294967295
 
 #define ERR_SIZE	256
 #define ERRMSG_SIZE	(256+128)

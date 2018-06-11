@@ -73,7 +73,10 @@ void Camera::_pco_SetImageParameters(int &error){
 	int iLenParam = 0;
 	DWORD dwFlags = 0;
 
-	dwFlags = _isCameraType(Edge) ? 
+	int forcedFifo = 0;
+	getRecorderForcedFifo(forcedFifo);
+
+	dwFlags = (_isCameraType(Edge) || forcedFifo) ? 
 					IMAGEPARAMETERS_READ_WHILE_RECORDING :
 					IMAGEPARAMETERS_READ_FROM_SEGMENTS;
 
@@ -87,6 +90,10 @@ void Camera::_pco_SetImageParameters(int &error){
 
 	PCO_FN6(error, pcoFn,PCO_SetImageParameters, m_handle, wXres, wYres, dwFlags, param, iLenParam);
 
+	if(_getDebug(DBG_TRACE_FIFO))
+	{
+		printf("---TRACE - PCO_SetImageParameters dwFlags[0x%lx]\n", dwFlags);
+	}
 	if(error) 
 	{ 
 		DEB_ALWAYS() << "ERROR: \n" << DEB_VAR2(pcoFn, error);

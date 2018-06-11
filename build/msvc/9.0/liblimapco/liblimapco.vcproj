@@ -97,6 +97,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
 			>
 			<Tool
@@ -502,6 +503,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\src\PcoCameraLin.cpp"
+				>
+				<FileConfiguration
+					Name="Release|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\..\src\PcoCameraSdk.cpp"
 				>
 			</File>
@@ -520,6 +533,18 @@
 			<File
 				RelativePath="..\..\..\..\src\PcoCameraUtils.cpp"
 				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\src\PcoCameraWin.cpp"
+				>
+				<FileConfiguration
+					Name="Release|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\..\src\PcoDetInfoCtrlObj.cpp"
@@ -658,6 +683,10 @@
 			Name="doc"
 			>
 			<File
+				RelativePath="..\..\..\..\CMakeLists.txt"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\cpInstall"
 				>
 			</File>
@@ -686,11 +715,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\src\unused.txt"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\useSdk116"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\..\useSdk118"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\VERSION"
 				>
 			</File>
 			<File
@@ -735,6 +772,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\sip\PcoInterface.sip"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="bat"
+			>
+			<File
+				RelativePath="..\..\..\..\bat\lima_pco_ds2.bat"
 				>
 			</File>
 		</Filter>

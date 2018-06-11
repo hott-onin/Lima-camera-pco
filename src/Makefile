@@ -25,6 +25,7 @@ PCO_DIR = ..
 LIMA_DIR = $(PCO_DIR)/../..
 
 PCO_SDK_DIR = $(PCO_DIR)/sdkPcoLin
+PCO_SDK_WIN_DIR = $(PCO_DIR)/sdkPco
 PCO_SDK_LIB_DIR  = $(PCO_SDK_DIR)/pco_common/pco_lib
 
 SISO_DIR = $(SISODIR5)
@@ -44,17 +45,27 @@ PCO_INC = \
             -I$(PCO_DIR)/include \
 
 PCO_SDK_INC = \
+            -I$(PCO_SDK_DIR)/include \
             -I$(PCO_SDK_DIR) \
             -I$(PCO_SDK_DIR)/pco_common/pco_include \
             -I$(PCO_SDK_DIR)/pco_common/pco_classes \
             -I$(PCO_SDK_DIR)/pco_me4/pco_classes \
+            -I$(PCO_SDK_WIN_DIR)/include \
+
 
 LIBS_PCO_SDK = \
                 $(PCO_SDK_LIB_DIR)/libpcocam_me4.a \
-                $(PCO_SDK_LIB_DIR)/libpcoclhs.a \
-                $(PCO_SDK_LIB_DIR)/libpcodisp.a  \
                 $(PCO_SDK_LIB_DIR)/libpcofile.a  \
+                $(PCO_SDK_LIB_DIR)/libpcolog.a  \
                 $(PCO_SDK_LIB_DIR)/libreorderfunc.a
+
+#                $(PCO_SDK_LIB_DIR)/libpcoclhs.a \
+#                $(PCO_SDK_LIB_DIR)/libpcodisp.a  \
+
+#                $(PCO_SDK_LIB_DIR)/libpcocnv.a  \
+
+
+
 
 LDFLAGS += \
         -L$(SISO_LIB_DIR) \
@@ -76,19 +87,25 @@ CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread -g -D WITH_GIT_VERSION
 
 
 pco-objs :=  \
-            PcoHwEventCtrlObj.o  \
-            PcoDetInfoCtrlObj.o  \
-            PcoInterface.o  \
             PcoBinCtrlObj.o  \
-            PcoRoiCtrlObj.o  \
-            PcoSyncCtrlObj.o  \
+            PcoBufferCtrlObj.o  \
+            PcoCamera.o  \
+            PcoCameraSdk.o  \
+            PcoCameraSdkLin.o  \
             PcoCameraSip.o  \
             PcoCameraUtils.o  \
-            PcoCamera.o  \
-            PcoBufferCtrlObj.o  \
-            PcoCameraSdk.o  \
-            PcoCameraSdkAdd.o  \
-          
+            PcoDetInfoCtrlObj.o  \
+            PcoHwEventCtrlObj.o  \
+            PcoInterface.o  \
+            PcoRoiCtrlObj.o  \
+            PcoSyncCtrlObj.o  \
+            
+            
+#            PcoCameraSdkAdd.o  \
+
+
+#           PcoCameraLin.o  \
+           
 SRCS = $(pco-objs:.o=.cpp) 
 
 #----------------------------------------------------------------
@@ -96,7 +113,9 @@ SRCS = $(pco-objs:.o=.cpp)
 
 src:	all
 
-all:	Pco.o pco_test
+#all:	Pco.o pco_test
+
+all:	Pco.o 
 
 
 Pco.o:	$(pco-objs)
@@ -108,7 +127,7 @@ Pco.o:	$(pco-objs)
 
 clean:
 	rm -f *.o *.P $(pco-objs) *.map
-	cd .. ; setId
+	cd $(PCO_DIR) ; setId
 
 
 %.o : %.cpp
