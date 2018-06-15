@@ -8,7 +8,7 @@ namespace Pco
 %End
   public:
 
-        Camera(const char*);
+        Camera(const std::string&);
         ~Camera();
 
 
