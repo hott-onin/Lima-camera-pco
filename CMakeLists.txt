@@ -31,11 +31,20 @@ set(PCO_SDKLIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPcoLin" CACHE PATH "location 
 
 IF(WIN32)
     #Sources
-    SET(${NAME}_srcs src/PcoCamera.cpp src/PcoInterface.cpp src/PcoDetInfoCtrlObj.cpp
-	                    src/PcoSyncCtrlObj.cpp src/PcoRoiCtrlObj.cpp
-	                    src/PcoBufferCtrlObj.cpp src/PcoHwEventCtrlObj.cpp
-			    src/PcoCameraUtils.cpp src/PcoCameraSdk.cpp)
-
+    SET(${NAME}_srcs
+      src/PcoBinCtrlObj.cpp
+      src/PcoBufferCtrlObj.cpp
+      src/PcoCamera.cpp
+      src/PcoCameraSdk.cpp
+      src/PcoCameraSdkWin.cpp
+      src/PcoCameraSip.cpp
+      src/PcoCameraUtils.cpp
+      src/PcoDetInfoCtrlObj.cpp
+      src/PcoHwEventCtrlObj.cpp
+      src/PcoInterface.cpp
+      src/PcoRoiCtrlObj.cpp
+      src/PcoSyncCtrlObj.cpp
+    )
 
     ADD_LIBRARY(lima${NAME} SHARED ${${NAME}_srcs})
 
