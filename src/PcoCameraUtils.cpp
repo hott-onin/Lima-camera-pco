@@ -127,11 +127,17 @@ char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
 
 time_t getTimestamp() { return time(NULL); }
 
+
+
+
+
+
+
 //====================================================================
 //====================================================================
 //$Id: [Oct  8 2013 15:21:07] [Tue Oct  8 15:21:07 2013] (..\..\..\..\src\PcoCamera.cpp) $
 
-#define LEN_BUFF_DATE 128
+#define LEN_BUFF_DATE 1024
 #define TOKNR_DT 5
 
 
@@ -675,8 +681,14 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 		key = keys[ikey] = "testCmd";     
 		keys_desc[ikey++] = "DISABLED / debug tool";     
 		if(_stricmp(cmd, key) == 0){
+			// syntax: talk testCmd mode  0x123
 
-			if((tokNr >= 1) &&  (_stricmp(tok[1], "mode")==0)){
+
+
+			//------------------------------------------
+			// mode 0x1234
+			if((tokNr >= 1) &&  (_stricmp(tok[1], "mode")==0))
+			{
 				ptr += sprintf_s(ptr, ptrMax - ptr, "testCmdMode [0x%llx]",  m_pcoData->testCmdMode);
 				if(tokNr >= 2){
 					int nr;
@@ -684,7 +696,8 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 
 					nr = sscanf_s(tok[2], "0x%llx", &_testCmdMode);
 					
-					if(nr == 1) {
+					if(nr == 1) 
+					{
 						m_pcoData->testCmdMode = _testCmdMode;
 						ptr += sprintf_s(ptr, ptrMax - ptr, "   changed OK>  ");
 					} else {
@@ -695,10 +708,40 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 				return output;
 			}
 			
-			
+
+			//------------------------------------------
+			// str - __sprintfExt
+			if((tokNr >= 1) &&  (_stricmp(tok[1], "str")==0))
+			{
+				//unsigned long long _testCmdMode;
+				char *ptr1;
+				int idx = 5;
+
+				ptrMax = ptr+200;
+				
+				DEB_ALWAYS() << "entry  " << DEB_VAR1(ptr);             
+				ptr1 = __sprintfExt(ptr, ptrMax, "++++ dummy\n");
+				DEB_ALWAYS() << "entry1  " << DEB_VAR2(ptr, ptr1); 
+				
+				ptr = ptr1;
+				ptr = __sprintfExt(ptr, ptrMax, "++++++ [%d]\n", idx);
+				ptr = __sprintfExt(ptr, ptrMax, "++++++ [%s]\n", getTimestamp());
+				ptr = __sprintfExt(ptr, ptrMax, "++++++ [%g]\n", idx*0.01);
+				for(idx =0; idx <50; idx++) 
+				{
+					DEB_ALWAYS() << "entry x " << DEB_VAR1(idx);
+					ptr = __sprintfExt(ptr, ptrMax, "++++++ [%d] [%s] [%g]\n", idx, getTimestamp(), idx*0.01);
+				}
+				return output;
+			}
+
+
+
+
 			//--- test of close
 #ifndef __linux__
-			if((tokNr >= 1) &&  (_stricmp(tok[1], "close")==0)){
+			if((tokNr >= 1) &&  (_stricmp(tok[1], "close")==0))
+			{
 				int error;
 				//char *msg;
 
@@ -714,7 +757,8 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 #endif
 			
 			//--- test of callback   "testCmd cb"
-			if((tokNr >= 1) &&  (_stricmp(tok[1], "cb")==0)){
+			if((tokNr >= 1) &&  (_stricmp(tok[1], "cb")==0))
+			{
 				Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::Default, "test cb");
 				m_HwEventCtrlObj->reportEvent(ev);
 				ptr += sprintf_s(ptr, ptrMax - ptr, "%s> done\n", tok[1]);
@@ -722,7 +766,8 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			}
 
 			//--- test of sleep
-			if((tokNr == 2) &&  (_stricmp(tok[1], "time")==0)){
+			if((tokNr == 2) &&  (_stricmp(tok[1], "time")==0))
+			{
 				long long us;
 
 				long long usStart;
@@ -744,11 +789,11 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 
 
 
-
+			//------------------ testCmd not found
 			if(tokNr == 0) {
 				ptr += sprintf_s(ptr, ptrMax - ptr, "tokNr [%d] cmd [%s] No parameters", tokNr, cmd); 
 			} else {
-				ptr += sprintf_s(ptr, ptrMax - ptr, "tokNr [%d] cmd [%s]\n", tokNr, cmd); 
+				ptr += sprintf_s(ptr, ptrMax - ptr, "tokNr [%d] cmd [%s] UNKNOWN testCmd\n", tokNr, cmd); 
 				for(int i = 1; i<= tokNr; i++) {
 					ptr += sprintf_s(ptr, ptrMax - ptr, "tok [%d] [%s]\n", i, tok[i]); 
 				}
@@ -3192,3 +3237,49 @@ double usElapsedTimeTicsPerSec() {
 //==========================================================================================================
 
 
+char *Camera::__sprintfExt(char* ptr, char* ptrMax, const char* format, ...)
+{
+	DEB_MEMBER_FUNCT();
+
+	size_t nrMax = ptrMax - ptr;
+	int nr;
+
+	DEB_ALWAYS() << "ENTRY " << DEB_VAR3(nrMax, ptr, format);
+	if(nrMax <= 1)
+	{
+		*ptr = 0;
+		return ptr;
+	}
+
+	if(nrMax < 0)
+	{
+		*ptrMax = 0;
+		return ptrMax;
+	}
+
+	va_list args;
+	va_start (args, format);
+
+	DEB_ALWAYS() << "ENTRY 1 " << DEB_VAR3(nrMax, ptr, format);
+	nr = vsnprintf_s(ptr, nrMax, _TRUNCATE, format, args);
+	DEB_ALWAYS() << "ENTRY 2 " << DEB_VAR3(nr, ptr, format);
+
+
+
+	va_end (args);
+	
+	if(nr <= 0)
+	{
+		*ptr = 0;
+		return ptr;
+	}
+
+	return ptr + nr;
+
+
+
+}
+
+
+//==========================================================================================================
+//==========================================================================================================

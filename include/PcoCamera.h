@@ -1151,6 +1151,9 @@ namespace lima
 
 		void getLastImgFifo(int & val);
 
+		char *__sprintfExt(char* _ptr, char* _ptrMax, const char* format, ...);
+
+
 	}; // class camera
   } // namespace pco
 } // namespace lima
