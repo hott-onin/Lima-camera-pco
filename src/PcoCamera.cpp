@@ -75,13 +75,15 @@ const char * _timestamp_pcodetinfoctrlobj();
 const char * _timestamp_pcocamerautils();
 const char * _timestamp_pcoroictrlobj();
 
-char *_split_date(const char *s);
 
 char *str_trim_left(char *s);
 char *str_trim_right(char *s);
 char *str_trim(char *s) ;
 char *str_toupper(char *s);
 
+char *_split_date(const char *s) ;
+int __xlat_date(char *s1, char &ptrTo, int lenTo) ;
+char *_xlat_date(char *s1, char *s2, char *s3) ;
 
 
 

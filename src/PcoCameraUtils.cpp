@@ -61,8 +61,6 @@ using namespace lima::Pco;
 
 
 void print_hex_dump_buff(void *ptr_buff, size_t len);
-int __xlat_date(char *s1, char &ptrTo, int lenTo) ;
-char *_xlat_date(char *s1, char *s2, char *s3) ;
 
 //=========================================================================================================
 const char* _timestamp_pcocamerautils() {return ID_FILE_TIMESTAMP ;}
@@ -366,12 +364,12 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			_pco_GetImageTiming(frameTime, expTime, sysDelay, sysJitter, trigDelay );
 
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "frameTime %g  ",  frameTime);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "expTime %g  ",  expTime);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "sysDelay %g  ",  sysDelay);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "sysJitter %g  ",  sysJitter);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "trigDelay %g  ",  trigDelay);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "\n");
+			ptr = __sprintfExt(ptr, ptrMax, "frameTime %g  ",  frameTime);
+			ptr = __sprintfExt(ptr, ptrMax, "expTime %g  ",  expTime);
+			ptr = __sprintfExt(ptr, ptrMax, "sysDelay %g  ",  sysDelay);
+			ptr = __sprintfExt(ptr, ptrMax, "sysJitter %g  ",  sysJitter);
+			ptr = __sprintfExt(ptr, ptrMax, "trigDelay %g  ",  trigDelay);
+			ptr = __sprintfExt(ptr, ptrMax, "\n");
 
 			return output;
 		}
@@ -380,7 +378,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 		key = keys[ikey] = "cocRunTime";     
 		keys_desc[ikey++] = "(R) Camera Operation Code runtime covers the delay, exposure and readout time";
 		if(_stricmp(cmd, key) == 0){
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%g",  m_pcoData->cocRunTime);
+			ptr = __sprintfExt(ptr, ptrMax, "%g",  m_pcoData->cocRunTime);
 			return output;
 		}
 
@@ -388,7 +386,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 		key = keys[ikey] = "frameRate";     
 		keys_desc[ikey++] = "(R) max frame rate (calculated as 1/cocRunTime)";   
 		if(_stricmp(cmd, key) == 0){
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%g", m_pcoData->frameRate);
+			ptr = __sprintfExt(ptr, ptrMax, "%g", m_pcoData->frameRate);
 			return output;
 		}
 
@@ -458,18 +456,18 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			_pco_GetSizes(&_wArmWidth, &_wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
 
 			int sizeBytes = _wArmWidth * _wArmHeight * bytesPerPix;
-			ptr += sprintf_s(ptr, ptrMax - ptr, "IMAGE info:\n"
+			ptr = __sprintfExt(ptr, ptrMax, "IMAGE info:\n"
 			                                    "    X=[%d] Y=[%d] bytesPerPix=[%d] size=[%d B]\n",  
-				_wArmWidth,  _wArmHeight, bytesPerPix, sizeBytes);
+				(int) _wArmWidth,  (int) _wArmHeight, (int) bytesPerPix, (int) sizeBytes);
 			
-			ptr += sprintf_s(ptr, ptrMax - ptr, "PCO API allocated buffers:\n"
+			ptr = __sprintfExt(ptr, ptrMax, "PCO API allocated buffers:\n"
 												"    allocated=[%s] nrBuff=[%d] size=[%d B][%g MB] imgPerBuff[%d]\n", 
 				m_pcoData->bAllocatedBufferDone ? "TRUE" : "FALSE", 
 				m_pcoData->iAllocatedBufferNumber, 
-				m_pcoData->dwAllocatedBufferSize, m_pcoData->dwAllocatedBufferSize/1000000.,
-				m_pcoData->dwAllocatedBufferSize/sizeBytes);
+				(int) m_pcoData->dwAllocatedBufferSize, (double) (m_pcoData->dwAllocatedBufferSize/1000000.),
+				(int) (m_pcoData->dwAllocatedBufferSize/sizeBytes));
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "LIMA allocated buffers: \n"
+			ptr = __sprintfExt(ptr, ptrMax, "LIMA allocated buffers: \n"
 												"    nr of buffers=[%d] \n", 
 				m_pcoData->iAllocatedBufferNumberLima);
 
@@ -506,9 +504,9 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			DWORD lastImgRecorded = m_pcoData->traceAcq.nrImgRecorded;
 
 			if(!(_isCameraType(Dimax | Pco2k | Pco4k))) {
-				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", (int) -1);
+				ptr = __sprintfExt(ptr, ptrMax, "%d", (int) -1);
 			} else {
-				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", lastImgRecorded);
+				ptr = __sprintfExt(ptr, ptrMax, "%d", (int) lastImgRecorded);
 			}
 			return output;
 		}
@@ -520,7 +518,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			DWORD lastImgAcquired = m_pcoData->traceAcq.nrImgAcquired;
 
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", lastImgAcquired);
+			ptr = __sprintfExt(ptr, ptrMax, "%d", (int) lastImgAcquired);
 			return output;
 		}
 
@@ -545,24 +543,24 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 
 			ptr = __sprintfExt(ptr, ptrMax, "* ... testCmdMode [0x%llx]\n",  m_pcoData->testCmdMode);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* ... msExposure[%g] msDelay[%g]\n",
-				m_pcoData->traceAcq.sExposure * 1000.,
-				m_pcoData->traceAcq.sDelay * 1000.);
+				(double) (m_pcoData->traceAcq.sExposure * 1000.),
+				(double) (m_pcoData->traceAcq.sDelay * 1000.));
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* ... msLimaExposure[%g] Pco exposure[%d] base[%d]\n",
-				m_pcoData->traceAcq.dLimaExposure * 1000.,
+				(double) (m_pcoData->traceAcq.dLimaExposure * 1000.),
 				m_pcoData->traceAcq.iPcoExposure, 
 				m_pcoData->traceAcq.iPcoExposureBase);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* ... msLimaDelay[%g] Pco delay[%d] base[%d]\n",
-				m_pcoData->traceAcq.dLimaDelay * 1000.,
+				(double) (m_pcoData->traceAcq.dLimaDelay * 1000.),
 				m_pcoData->traceAcq.iPcoDelay, 
 				m_pcoData->traceAcq.iPcoDelayBase);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "* pcoBin horz[%d] vert[%d]\n",  
+			ptr = __sprintfExt(ptr, ptrMax, "* pcoBin horz[%d] vert[%d]\n",  
 					m_pcoData->traceAcq.iPcoBinHorz, 
 					m_pcoData->traceAcq.iPcoBinVert);
 
@@ -575,13 +573,13 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			Size size = limaRoi.getSize();			
 			unsigned int bytesPerPix; getBytesPerPixel(bytesPerPix);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "* limaRoi xy0[%d,%d] xy1[%d,%d] size[%d,%d]\n",  
+			ptr = __sprintfExt(ptr, ptrMax, "* limaRoi xy0[%d,%d] xy1[%d,%d] size[%d,%d]\n",  
 					top_left.x, top_left.y,
 					bot_right.x, bot_right.y,
 					size.getWidth(), size.getHeight());
 
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "* ... pcoRoi x[%d,%d] y[%d,%d]\n",  
+			ptr = __sprintfExt(ptr, ptrMax, "* ... pcoRoi x[%d,%d] y[%d,%d]\n",  
 					m_pcoData->traceAcq.iPcoRoiX0, 
 					m_pcoData->traceAcq.iPcoRoiX1, 
 					m_pcoData->traceAcq.iPcoRoiY0, 
@@ -594,36 +592,36 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			double totTime = m_pcoData->traceAcq.msXfer / 1000.;
 			double xferSpeed = mbTotSize / totTime;
 			double framesPerSec = m_pcoData->traceAcq.nrImgRequested / totTime;
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* ... imgSize[%lld B] totSize[%lld B][%g MB]\n",  
 				imgSize, totSize, mbTotSize);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* nrImgRequested[%d] nrImgAcquired[%d]\n",
 				m_pcoData->traceAcq.nrImgRequested,
 				m_pcoData->traceAcq.nrImgAcquired);
 
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* ... nrImgRequested0[%d] nrImgRecorded[%d] maxImgCount[%d]\n",
 				m_pcoData->traceAcq.nrImgRequested0,
-				m_pcoData->traceAcq.nrImgRecorded,
-				m_pcoData->traceAcq.maxImgCount);
+				(int) m_pcoData->traceAcq.nrImgRecorded,
+				(int) m_pcoData->traceAcq.maxImgCount);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr,	
+			ptr = __sprintfExt(ptr, ptrMax,	
 				"* limaTriggerMode[%s]\n",
 				m_pcoData->traceAcq.sLimaTriggerMode);
-			ptr += sprintf_s(ptr, ptrMax - ptr,	
+			ptr = __sprintfExt(ptr, ptrMax,	
 				"* ... pcoTriggerMode[%s] [%d]\n",
 				m_pcoData->traceAcq.sPcoTriggerMode,
 				m_pcoData->traceAcq.iPcoTriggerMode);
-			ptr += sprintf_s(ptr, ptrMax - ptr,	
+			ptr = __sprintfExt(ptr, ptrMax,	
 				"* ... pcoAcqMode[%s] [%d]\n",
 				m_pcoData->traceAcq.sPcoAcqMode,
 				m_pcoData->traceAcq.iPcoAcqMode);
 
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* msStartAcqStart[%ld]  msStartAcqEnd[%ld]\n",
 				m_pcoData->traceAcq.msStartAcqStart, m_pcoData->traceAcq.msStartAcqEnd);
 			
@@ -631,9 +629,9 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			for(int _i = 0; _i < LEN_TRACEACQ_TRHEAD; _i++){
 				const char *desc = m_pcoData->traceAcq.usTicks[_i].desc;
 				if(desc != NULL) {
-					ptr += sprintf_s(ptr, ptrMax - ptr, 
+					ptr = __sprintfExt(ptr, ptrMax, 
 						"* ... usTicks[%d][%5.3f] (ms)   (%s)\n", 
-						_i, m_pcoData->traceAcq.usTicks[_i].value/1000.,
+						_i, (double) (m_pcoData->traceAcq.usTicks[_i].value/1000.),
 						desc);
 			
 				}
@@ -641,36 +639,36 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 
 			_timet = m_pcoData->traceAcq.endRecordTimestamp;
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* msImgCoc[%.3g] fps[%.3g] msTout[%ld] msTotal[%ld]\n",
 				m_pcoData->traceAcq.msImgCoc, 
-				1000. / m_pcoData->traceAcq.msImgCoc,
+				(double) (1000. / m_pcoData->traceAcq.msImgCoc),
 				m_pcoData->traceAcq.msTout,
 				m_pcoData->traceAcq.msTotal);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* ... msRecordLoop[%ld] msRecord[%ld] endRecord[%s]\n",
 				m_pcoData->traceAcq.msRecordLoop,
 				m_pcoData->traceAcq.msRecord,
 				_timet ? getTimestamp(Iso, _timet) : "");
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* ... msXfer[%ld] endXfer[%s]\n",
 				m_pcoData->traceAcq.msXfer,
 				getTimestamp(Iso, m_pcoData->traceAcq.endXferTimestamp));
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* ... xferTimeTot[%g s] xferSpeed[%g MB/s][%g fps]\n",  
 				totTime, xferSpeed, framesPerSec);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"* ... checkImgNr pco[%d] lima[%d] diff[%d] order[%d]\n",  
 				m_pcoData->traceAcq.checkImgNrPco,
 				m_pcoData->traceAcq.checkImgNrLima,
 				m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima,
 				m_pcoData->traceAcq.checkImgNrOrder);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr = __sprintfExt(ptr, ptrMax, 
 				"%s\n", m_pcoData->traceAcq.msg);
 
 			return output;
@@ -811,7 +809,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			
 			_get_shutter_rolling_edge(dwRolling, error);
 			if(tokNr == 0) {
-				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", dwRolling);
+				ptr = __sprintfExt(ptr, ptrMax, "%d", (int) dwRolling);
 				return output;
 			}
 
@@ -825,7 +823,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			if(dwRollingNew != dwRolling){
 				_set_shutter_rolling_edge(dwRollingNew, error);
 			}
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", dwRollingNew);
+			ptr = __sprintfExt(ptr, ptrMax, "%d",(int)  dwRollingNew);
 			return output;
 		}
 
@@ -941,7 +939,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			
 			if(tokNr == 0) {
 				_pco_GetPixelRate(pixRate, pixRateNext, error);
-				ptr += sprintf_s(ptr, ptrMax - ptr, "%d", pixRateNext);
+				ptr = __sprintfExt(ptr, ptrMax, "%d",(int)  pixRateNext);
 				return output;
 			}
 
@@ -953,7 +951,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 				return output;
 			}
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", m_pcoData->dwPixelRateRequested);
+			ptr = __sprintfExt(ptr, ptrMax, "%d",(int)  m_pcoData->dwPixelRateRequested);
 			return output;
 		}
 
@@ -1115,7 +1113,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 				ptr = __sprintfExt(ptr, ptrMax, "SDK ERROR _pco_GetTimestampMode\n");
 				return output;
 			}
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%d   ", wTimeStampMode);
+			ptr = __sprintfExt(ptr, ptrMax, "%d   ",(int)  wTimeStampMode);
 
 			if((tokNr == 1)){
 				val = atoi(tok[1]);
@@ -1136,7 +1134,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 						ptr = __sprintfExt(ptr, ptrMax, "SDK ERROR _pco_GetTimestampMode\n");
 						return output;
 					}
-					ptr += sprintf_s(ptr, ptrMax - ptr, "%d   ", wTimeStampMode);
+					ptr = __sprintfExt(ptr, ptrMax, "%d   ",(int)  wTimeStampMode);
 				}
 			}
 			ptr = __sprintfExt(ptr, ptrMax, "\n");
@@ -1225,7 +1223,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 		key = keys[ikey] = "camSN";     
 		keys_desc[ikey++] = "(R) cam serial number";     
 		if(_stricmp(cmd, key) == 0){
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", _getCameraSerialNumber());
+			ptr = __sprintfExt(ptr, ptrMax, "%d",(int)  _getCameraSerialNumber());
 			return output;
 		}
 
@@ -1284,7 +1282,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 //			error = PcoCheckError(__LINE__, __FILE__, PCO_GetAcqEnblSignalStatus(m_handle, &wAcquEnableState));
 			_pco_GetAcqEnblSignalStatus(wAcqEnableState, error);
 			
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", wAcqEnableState);
+			ptr = __sprintfExt(ptr, ptrMax, "%d",(int)  wAcqEnableState);
 			
 			return output;
 		}
@@ -1607,7 +1605,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 				wMask = m_pcoData->stcPcoHWIOSignalDesc[iSignalNum].wSignalTypes;
 				if( ((nrBits = getNrBitsOn(wVal)) != 1) || ((wVal & wMask) != wVal))
 				{
-					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid Type[%d] nrBits[%d] mask[%d]", wVal, nrBits, wMask);
+					ptr = __sprintfExt(ptr, ptrMax, "ERROR invalid Type[%d] nrBits[%d] mask[%d]",(int)  wVal, nrBits, (int) wMask);
 					_pco_GetHWIOSignalAll(error);
 					return output;
 				}
@@ -1620,7 +1618,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 				wMask = m_pcoData->stcPcoHWIOSignalDesc[iSignalNum].wSignalPolarity;
 				if( ((nrBits = getNrBitsOn(wVal)) != 1) || ((wVal & wMask) != wVal))
 				{
-					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid Polarity[%d] nrBits[%d] mask[%d]", wVal, nrBits, wMask);
+					ptr = __sprintfExt(ptr, ptrMax, "ERROR invalid Polarity[%d] nrBits[%d] mask[%d]",(int)  wVal, nrBits, (int) wMask);
 					_pco_GetHWIOSignalAll(error);
 					return output;
 				}
@@ -1633,7 +1631,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 				wMask = m_pcoData->stcPcoHWIOSignalDesc[iSignalNum].wSignalFilter;
 				if( ((nrBits = getNrBitsOn(wVal)) != 1) || ((wVal & wMask) != wVal))
 				{
-					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid FilterSetting[%d] nrBits[%d] mask[%d]", wVal, nrBits, wMask);
+					ptr = __sprintfExt(ptr, ptrMax, "ERROR invalid FilterSetting[%d] nrBits[%d] mask[%d]", (int) wVal, nrBits,(int)  wMask);
 					_pco_GetHWIOSignalAll(error);
 					return output;
 				}
@@ -1653,7 +1651,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
                 
 				if( (iSelected > 3) || (cName==0))
 				{
-					ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR invalid Selected[%d]", iSelected);
+					ptr = __sprintfExt(ptr, ptrMax, "ERROR invalid Selected[%d]", iSelected);
 					_pco_GetHWIOSignalAll(error);
 					return output;
 				}
@@ -1664,11 +1662,11 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 			
 			if(error)
 			{
-				ptr += sprintf_s(ptr, ptrMax - ptr, "SDK error [%d]", error);
+				ptr = __sprintfExt(ptr, ptrMax, "SDK error [%d]", error);
 			} 
 			else
 			{
-				ptr += sprintf_s(ptr, ptrMax - ptr, "OK");
+				ptr = __sprintfExt(ptr, ptrMax, "OK");
 			}
 			
 			return output;
@@ -1699,17 +1697,17 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 			
 			GlobalMemoryStatusEx(&statex);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "               dwLength [%u]\n", statex.dwLength);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "           dwMemoryLoad [%u]\n", statex.dwMemoryLoad);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "           ullTotalPhys [%g GB][%llu]\n", statex.ullTotalPhys/gB, statex.ullTotalPhys);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "           ullAvailPhys [%g GB][%llu]\n", statex.ullAvailPhys/gB, statex.ullAvailPhys);
+			ptr = __sprintfExt(ptr, ptrMax, "               dwLength [%u]\n", (int) statex.dwLength);
+			ptr = __sprintfExt(ptr, ptrMax, "           dwMemoryLoad [%u]\n", (int) statex.dwMemoryLoad);
+			ptr = __sprintfExt(ptr, ptrMax, "           ullTotalPhys [%g GB][%llu]\n", (double)(statex.ullTotalPhys/gB), (long long unsigned) statex.ullTotalPhys);
+			ptr = __sprintfExt(ptr, ptrMax, "           ullAvailPhys [%g GB][%llu]\n", (double)(statex.ullAvailPhys/gB), (long long unsigned) statex.ullAvailPhys);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "       ullTotalPageFile [%g GB][%llu]\n", statex.ullTotalPageFile/gB, statex.ullTotalPageFile);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "       ullAvailPageFile [%g GB][%llu]\n", statex.ullAvailPageFile/gB, statex.ullAvailPageFile);
+			ptr = __sprintfExt(ptr, ptrMax, "       ullTotalPageFile [%g GB][%llu]\n", (double)(statex.ullTotalPageFile/gB), (long long unsigned) statex.ullTotalPageFile);
+			ptr = __sprintfExt(ptr, ptrMax, "       ullAvailPageFile [%g GB][%llu]\n", (double)(statex.ullAvailPageFile/gB), (long long unsigned) statex.ullAvailPageFile);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "        ullTotalVirtual [%g GB][%llu]\n", statex.ullTotalVirtual/gB, statex.ullTotalVirtual);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "        ullAvailVirtual [%g GB][%llu]\n", statex.ullAvailVirtual/gB, statex.ullAvailVirtual);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "ullAvailExtendedVirtual [%g GB][%llu]\n", statex.ullAvailExtendedVirtual/gB, statex.ullAvailExtendedVirtual);
+			ptr = __sprintfExt(ptr, ptrMax, "        ullTotalVirtual [%g GB][%llu]\n", (double)(statex.ullTotalVirtual/gB), (long long unsigned) statex.ullTotalVirtual);
+			ptr = __sprintfExt(ptr, ptrMax, "        ullAvailVirtual [%g GB][%llu]\n", (double)(statex.ullAvailVirtual/gB), (long long unsigned) statex.ullAvailVirtual);
+			ptr = __sprintfExt(ptr, ptrMax, "ullAvailExtendedVirtual [%g GB][%llu]\n", (double)(statex.ullAvailExtendedVirtual/gB), (long long unsigned) statex.ullAvailExtendedVirtual);
 
 
 			return output;
@@ -1722,7 +1720,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 		if(_stricmp(cmd, key) == 0){
 			char *comment = str_trim(cmdBuffAux + strlen(cmd));
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, _sprintComment(false, comment) );
+			ptr = __sprintfExt(ptr, ptrMax, _sprintComment(false, comment) );
 
 			DEB_ALWAYS() << output ;
 			return output;
@@ -1734,19 +1732,19 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 		if(_stricmp(cmd, key) == 0){
 			int error;
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "[" );
+			ptr = __sprintfExt(ptr, ptrMax, "[" );
 			_pco_GetInfoString(0, ptr, (int) (ptrMax - ptr), error);
 			ptr += strlen(ptr);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "] [" );
+			ptr = __sprintfExt(ptr, ptrMax, "] [" );
 			_pco_GetInfoString(1, ptr, (int) (ptrMax - ptr), error);
 			ptr += strlen(ptr);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "] [" );
+			ptr = __sprintfExt(ptr, ptrMax, "] [" );
 			_pco_GetInfoString(2, ptr, (int) (ptrMax - ptr), error);
 			ptr += strlen(ptr);
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "]" );
+			ptr = __sprintfExt(ptr, ptrMax, "]" );
 
 			return output;
 		}
@@ -1764,7 +1762,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
         release =  PCO_SDK_WIN_RELEASE;
 #endif    
 
-			ptr += sprintf_s(ptr, ptrMax - ptr, release );
+			ptr = __sprintfExt(ptr, ptrMax, release );
 
 			return output;
 		}
@@ -1800,7 +1798,7 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 			}
 
 			getRecorderForcedFifo(forced);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%d", forced);
+			ptr = __sprintfExt(ptr, ptrMax, "%d", forced);
 
 			return output;
 		}
@@ -1856,9 +1854,9 @@ used to select a different signal, e.g. Status Busy or Status Exposure.
 
 			for(i = 0; i < ikeyMax; i++) 
 			{
-				ptr += sprintf_s(ptr, ptrMax - ptr, "%*s - %s\n", -(int) len, keys[i], keys_desc[i]);
+				ptr = __sprintfExt(ptr, ptrMax, "%*s - %s\n", -(int) len, keys[i], keys_desc[i]);
 			}
-			ptr += sprintf_s(ptr, ptrMax - ptr, "--- nrCmds[%d][%d]\n", ikeyMax, NRCMDS);
+			ptr = __sprintfExt(ptr, ptrMax, "--- nrCmds[%d][%d]\n", ikeyMax,(int) NRCMDS);
 			return output;
 		}
 
@@ -2479,38 +2477,33 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 	//--------------- CAMERA TYPE
 	if(flag & CAMINFO_CAMERATYPE) {
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* camera type \n");
+		ptr = __sprintfExt(ptr, ptrMax, "* camera type \n");
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... cam_name[%s]\n", 
+		ptr = __sprintfExt(ptr, ptrMax, "* ... cam_name[%s]\n", 
 			_getCameraIdn());
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... dwSerialNumber[%d]\n", 
-			_getCameraSerialNumber());
+		ptr = __sprintfExt(ptr, ptrMax, "* ... dwSerialNumber[%d]\n", 
+			(int) _getCameraSerialNumber());
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... wCamType[0x%x] [%s]\n", 
-			_getCameraType(), _getCameraTypeStr()); 
+		ptr = __sprintfExt(ptr, ptrMax, "* ... wCamType[0x%x] [%s]\n", 
+			(int)_getCameraType(), _getCameraTypeStr()); 
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... wCamSubType[0x%x] [%s]\n", 
-			_getCameraSubType(), _getCameraSubTypeStr()); 
+		ptr = __sprintfExt(ptr, ptrMax, "* ... wCamSubType[0x%x] [%s]\n", 
+			(int)_getCameraSubType(), _getCameraSubTypeStr()); 
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... wInterfaceType[0x%x] [%s]\n", 
-			_getInterfaceType(), _getInterfaceTypeStr()); 
+		ptr = __sprintfExt(ptr, ptrMax, "* ... wInterfaceType[0x%x] [%s]\n", 
+			(int)_getInterfaceType(), _getInterfaceTypeStr()); 
 	
 	}
 	
 	//--------------- general info
 	if(flag & CAMINFO_GENERAL) {
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* general info \n");
+		ptr = __sprintfExt(ptr, ptrMax, "* general info \n");
 
-		
-		// OBSOLETE after sdk 120
-		//ptr += sprintf_s(ptr, ptrMax - ptr, "* ... GigE IP [%d.%d.%d.%d]\n", 
-		//	m_pcoData->ipField[0], m_pcoData->ipField[1], m_pcoData->ipField[2], m_pcoData->ipField[3]);
-		
 		double pixSizeX, pixSizeY;
 		_get_PixelSize(pixSizeX, pixSizeY);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... pixelSize (um) [%g,%g] \n",  pixSizeX, pixSizeY);
+		ptr = __sprintfExt(ptr, ptrMax, "* ... pixelSize (um) [%g,%g] \n",  pixSizeX, pixSizeY);
 	}
 			
 	//--------------- version
@@ -2541,16 +2534,16 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		DWORD dwPixRate, dwPixRateNext ; int error, i;
 		_pco_GetPixelRate(dwPixRate, dwPixRateNext, error);
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* pixelRate\n");
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... pixelRate[%d](%g MHz)\n", dwPixRate, dwPixRate/1000000.);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    pixelRateRequested[%d](%g MHz) \n", 	dwPixRateNext, dwPixRateNext/1000000.);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    valid pixelRates "); 
+		ptr = __sprintfExt(ptr, ptrMax, "* pixelRate\n");
+		ptr = __sprintfExt(ptr, ptrMax, "* ... pixelRate[%d](%g MHz)\n", (int)dwPixRate, (double) (dwPixRate/1000000.));
+		ptr = __sprintfExt(ptr, ptrMax, "* ...    pixelRateRequested[%d](%g MHz) \n", (int)	dwPixRateNext, (double) (dwPixRateNext/1000000.));
+		ptr = __sprintfExt(ptr, ptrMax, "* ...    valid pixelRates "); 
 		for(i=0; i<4; i++) 
 		{
 			dwPixRate = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
-			if(dwPixRate){ptr += sprintf_s(ptr, ptrMax - ptr, " [%d]",dwPixRate);}  
+			if(dwPixRate){ptr = __sprintfExt(ptr, ptrMax, " [%d]",(int)dwPixRate);}  
 		}	
-		ptr += sprintf_s(ptr, ptrMax - ptr, "\n");
+		ptr = __sprintfExt(ptr, ptrMax, "\n");
 	}
 
 
@@ -2563,7 +2556,7 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		m_sync->getExpTime(_exposure);
 		m_sync->getLatTime(_delay);
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, 
+		ptr = __sprintfExt(ptr, ptrMax, 
 			"... exp[%g ms][%g s] delay[%g ms][%g s]\n", 
 			_exposure*1.0e3,_exposure, 
 			_delay*1.0e3, _delay); 
@@ -2586,7 +2579,7 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		Point bot_right = limaRoi.getBottomRight();
 		Size size = limaRoi.getSize();			
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, 
+		ptr = __sprintfExt(ptr, ptrMax, 
 			"... roiLima XY0[%d,%d] XY1[%d,%d] size[%d,%d]\n",  
 			top_left.x, top_left.y,
 			bot_right.x, bot_right.y,
@@ -2595,7 +2588,7 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		int iFrames;
 		m_sync->getNbFrames(iFrames);
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, 
+		ptr = __sprintfExt(ptr, ptrMax, 
 			"... bin[%d,%d] nrFrames[%d] forcedFifo[%d]\n",  
 			binX, binY,
 			iFrames,
@@ -2608,20 +2601,20 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 	if(flag & CAMINFO_ROI)
 	{
 		int err;	
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* size, roi, ... \n");
+		ptr = __sprintfExt(ptr, ptrMax, "* size, roi, ... \n");
 		unsigned int maxWidth, maxHeight,Xstep, Ystep, xMinSize, yMinSize; 
 		getXYdescription(Xstep, Ystep, maxWidth, maxHeight, xMinSize, yMinSize); 
 		WORD _wArmWidth, _wArmHeight, _wMaxWidth, _wMaxHeight;
 		_pco_GetSizes(&_wArmWidth, &_wArmHeight, &_wMaxWidth, &_wMaxHeight, err);
 
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... maxWidth=[%d] maxHeight=[%d] \n",  maxWidth,  maxHeight);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    Xstep=[%d] Ystep=[%d] (PCO ROI steps)\n",  Xstep,  Ystep);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... xMinSize=[%d] yMinSize=[%d] \n",  xMinSize,  yMinSize);
+		ptr = __sprintfExt(ptr, ptrMax, "* ... maxWidth=[%d] maxHeight=[%d] \n",  maxWidth,  maxHeight);
+		ptr = __sprintfExt(ptr, ptrMax, "* ...    Xstep=[%d] Ystep=[%d] (PCO ROI steps)\n",  Xstep,  Ystep);
+		ptr = __sprintfExt(ptr, ptrMax, "* ... xMinSize=[%d] yMinSize=[%d] \n",  xMinSize,  yMinSize);
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... wXResActual=[%d] wYResActual=[%d] \n",  _wArmWidth,  _wArmHeight);
+		ptr = __sprintfExt(ptr, ptrMax, "* ... wXResActual=[%d] wYResActual=[%d] \n",  (int)_wArmWidth, (int) _wArmHeight);
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... wXResMax=[%d] wYResMax=[%d] \n",  _wMaxWidth,  _wMaxHeight);
+		ptr = __sprintfExt(ptr, ptrMax, "* ... wXResMax=[%d] wYResMax=[%d] \n", (int) _wMaxWidth,(int)  _wMaxHeight);
 
 
 		unsigned int x0,x1,y0,y1;
@@ -2632,14 +2625,14 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		_xlatRoi_lima2pco(limaRoi, x0,x1,y0,y1);
 		
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... roi X[%d,%d] Y[%d,%d] size[%d,%d]\n",  
+		ptr = __sprintfExt(ptr, ptrMax, "* ... roi X[%d,%d] Y[%d,%d] size[%d,%d]\n",  
 				x0, x1, y0, y1, x1-x0+1, y1-y0+1);
 
 		Point top_left = limaRoi.getTopLeft();
 		Point bot_right = limaRoi.getBottomRight();
 		Size size = limaRoi.getSize();			
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... roiLima XY0[%d,%d] XY1[%d,%d] size[%d,%d]\n",  
+		ptr = __sprintfExt(ptr, ptrMax, "* ... roiLima XY0[%d,%d] XY1[%d,%d] size[%d,%d]\n",  
 						top_left.x, top_left.y,
 						bot_right.x, bot_right.y,
 						size.getWidth(), size.getHeight());
@@ -2651,19 +2644,19 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		long long imgSizePix = size.getWidth()* size.getHeight();
 		long long imgSize = imgSizePix * bytesPerPix;
 		double imgSizeMb =  imgSize/(1024.*1024.);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... imgSize[%lld px][%lld B][%g MB] \n",  
+		ptr = __sprintfExt(ptr, ptrMax, "* ... imgSize[%lld px][%lld B][%g MB] \n",  
 				imgSizePix, imgSize, imgSizeMb);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* bitsPerPix[%d] bytesPerPix[%d] \n",  bitsPerPix,  bytesPerPix);
+		ptr = __sprintfExt(ptr, ptrMax, "* bitsPerPix[%d] bytesPerPix[%d] \n", (int) bitsPerPix,  bytesPerPix);
 
 		int iFrames;
 		m_sync->getNbFrames(iFrames);
 		double totalImgSizeMb =  imgSizeMb * iFrames;
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... m_sync->getNbFrames=[%d frames] totalSize[%g MB]\n", iFrames, totalImgSizeMb);
+		ptr = __sprintfExt(ptr, ptrMax, "* ... m_sync->getNbFrames=[%d frames] totalSize[%g MB]\n", iFrames, totalImgSizeMb);
 
 	}
 	//--------------------- exp, coc, ...
 	if(flag & CAMINFO_EXP){
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* exp, coc, ... \n");
+		ptr = __sprintfExt(ptr, ptrMax, "* exp, coc, ... \n");
 		double _exposure, _delay;
 		struct lima::HwSyncCtrlObj::ValidRangesType valid_ranges;
 		m_sync->getValidRanges(valid_ranges);
@@ -2673,22 +2666,22 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		DWORD _dwMinExposureStepDESC = m_pcoData->stcPcoDescription.dwMinExposureStepDESC;
 		DWORD _dwMinDelayStepDESC =	m_pcoData->stcPcoDescription.dwMinDelayStepDESC;
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... exp[%g ms][%g s] delay[%g ms][%g s]\n", 
+		ptr = __sprintfExt(ptr, ptrMax, "* ... exp[%g ms][%g s] delay[%g ms][%g s]\n", 
 			_exposure*1.0e3,_exposure, 
 			_delay*1.0e3, _delay); 
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    exp valid min[%g us] max[%g ms] step[%g us]\n", 
+		ptr = __sprintfExt(ptr, ptrMax, "* ...    exp valid min[%g us] max[%g ms] step[%g us]\n", 
 			valid_ranges.min_exp_time * 1.0e6, 
 			valid_ranges.max_exp_time * 1.0e3,
-			_dwMinExposureStepDESC * 1.0e-3  );
+			(double) (_dwMinExposureStepDESC * 1.0e-3)  );
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    delay valid min[%g us] max[%g ms] step[%g us]\n", 
+		ptr = __sprintfExt(ptr, ptrMax, "* ...    delay valid min[%g us] max[%g ms] step[%g us]\n", 
 			valid_ranges.min_lat_time * 1.0e6, 
 			valid_ranges.max_lat_time * 1.0e3,
-			_dwMinDelayStepDESC * 1.0e-3 );
+			(double) (_dwMinDelayStepDESC * 1.0e-3) );
 			
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ...    cocRunTime[%g] (s) frameRate[%g] (fps)\n",  
+		ptr = __sprintfExt(ptr, ptrMax, "* ...    cocRunTime[%g] (s) frameRate[%g] (fps)\n",  
 			m_pcoData->cocRunTime, m_pcoData->frameRate);
 			
 	}
@@ -2701,20 +2694,20 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		int segmentPco = m_pcoData->wActiveRamSegment;
 		int segmentArr = segmentPco -1;
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "*** DIMAX - 2k - 4k info \n");
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* pagesInRam[%d] pixPerPage[%d] bitsPerPix[%d] ramGB[%.3g] bytesPerPix[%d] imgGB[%.3g]\n",  
-			m_pcoData->dwRamSize, 
-			m_pcoData->wPixPerPage, 
-			bitsPerPix,
-			(1.0e-9 * m_pcoData->dwRamSize) * m_pcoData->wPixPerPage *  bitsPerPix / 8.0,
+		ptr = __sprintfExt(ptr, ptrMax, "*** DIMAX - 2k - 4k info \n");
+		ptr = __sprintfExt(ptr, ptrMax, "* pagesInRam[%d] pixPerPage[%d] bitsPerPix[%d] ramGB[%.3g] bytesPerPix[%d] imgGB[%.3g]\n",  
+			(int) m_pcoData->dwRamSize, 
+			(int) m_pcoData->wPixPerPage, 
+			(int) bitsPerPix,
+			(double) ((1.0e-9 * m_pcoData->dwRamSize) * m_pcoData->wPixPerPage *  bitsPerPix / 8.0),
 			bytesPerPix,
-			(1.0e-9 * m_pcoData->dwRamSize) * m_pcoData->wPixPerPage *  bytesPerPix);
+			(double) ((1.0e-9 * m_pcoData->dwRamSize) * m_pcoData->wPixPerPage *  bytesPerPix));
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* PcoActiveSegment=[%d]\n", segmentArr+1);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwMaxFramesInSegment[%d]=[%d frames]\n", segmentArr, m_pcoData->dwMaxFramesInSegment[segmentArr]);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwSegmentSize[%d]=[%d pages]\n", segmentArr, m_pcoData->dwSegmentSize[segmentArr]);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwValidImageCnt[%d]=[%d]\n", segmentArr, m_pcoData->dwValidImageCnt[segmentArr]);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* m_pcoData->dwMaxImageCnt[%d]=[%d]\n", segmentArr, m_pcoData->dwMaxImageCnt[segmentArr]);
+		ptr = __sprintfExt(ptr, ptrMax, "* PcoActiveSegment=[%d]\n", segmentArr+1);
+		ptr = __sprintfExt(ptr, ptrMax, "* m_pcoData->dwMaxFramesInSegment[%d]=[%d frames]\n", segmentArr,(int) m_pcoData->dwMaxFramesInSegment[segmentArr]);
+		ptr = __sprintfExt(ptr, ptrMax, "* m_pcoData->dwSegmentSize[%d]=[%d pages]\n", segmentArr, (int) m_pcoData->dwSegmentSize[segmentArr]);
+		ptr = __sprintfExt(ptr, ptrMax, "* m_pcoData->dwValidImageCnt[%d]=[%d]\n", segmentArr,(int)  m_pcoData->dwValidImageCnt[segmentArr]);
+		ptr = __sprintfExt(ptr, ptrMax, "* m_pcoData->dwMaxImageCnt[%d]=[%d]\n", segmentArr, (int) m_pcoData->dwMaxImageCnt[segmentArr]);
 
 
 		int err;
@@ -2724,21 +2717,21 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 		for(int iseg = 0; iseg <  PCO_MAXSEGMENTS; iseg++)
 		{
 			_stc = &m_pcoData->m_stcSegmentInfo[iseg];
-			ptr += sprintf_s(ptr, ptrMax - ptr, "* segmentInformation seg[%d][%d] err[%d]\n", iseg + 1, _stc->iSegId, _stc->iErr);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "*    bin[%d,%d] res[%d,%d] roiX[%d,%d] roiY[%d,%d]\n",
-				_stc->wBinHorz, _stc->wBinVert,
-				_stc->wXRes, _stc->wYRes,
-				_stc->wRoiX0, _stc->wRoiX1, 
-				_stc->wRoiY0, _stc->wRoiY1);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "*    validImgCount[%d] maxImgCount[%d]\n",
-				_stc->dwValidImageCnt,_stc->dwMaxImageCnt);
+			ptr = __sprintfExt(ptr, ptrMax, "* segmentInformation seg[%d][%d] err[%d]\n", iseg + 1, _stc->iSegId, _stc->iErr);
+			ptr = __sprintfExt(ptr, ptrMax, "*    bin[%d,%d] res[%d,%d] roiX[%d,%d] roiY[%d,%d]\n",
+				(int) _stc->wBinHorz, (int) _stc->wBinVert,
+				(int) _stc->wXRes, (int) _stc->wYRes,
+				(int) _stc->wRoiX0, (int) _stc->wRoiX1, 
+				(int) _stc->wRoiY0, (int) _stc->wRoiY1);
+			ptr = __sprintfExt(ptr, ptrMax, "*    validImgCount[%d] maxImgCount[%d]\n",
+				(int) _stc->dwValidImageCnt, (int) _stc->dwMaxImageCnt);
 		}
 
 		_pco_GetStorageMode_GetRecorderSubmode();
 				
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* mode[%s] storage_mode[%d] recorder_submode[%d]\n", 
-			m_pcoData->storage_str, m_pcoData->storage_mode, m_pcoData->recorder_submode);
-		ptr += sprintf_s(ptr, ptrMax - ptr, 
+		ptr = __sprintfExt(ptr, ptrMax, "* mode[%s] storage_mode[%d] recorder_submode[%d]\n", 
+			m_pcoData->storage_str, (int) m_pcoData->storage_mode,(int)  m_pcoData->recorder_submode);
+		ptr = __sprintfExt(ptr, ptrMax, 
 			"* Acq: rec[%ld] xfer[%ld] recNow[%ld] recTout[%ld] (ms) [%s]\n",
 			m_pcoData->msAcqRec, m_pcoData->msAcqXfer,  
 			m_pcoData->msAcqTnow, m_pcoData->msAcqTout, 
@@ -2752,31 +2745,31 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 
 	if(flag & CAMINFO_CAMERALINK) {
 		if (_isInterfaceType(ifCameralinkAll)){ 
-			ptr += sprintf_s(ptr, ptrMax - ptr, "*** CameraLink transfer parameters\n");
-			ptr += sprintf_s(ptr, ptrMax - ptr, "*  settings[%s]\n", m_pcoData->sClTransferParameterSettings);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "*  baudrate[%u] %g Kbps\n", m_pcoData->clTransferParam.baudrate, m_pcoData->clTransferParam.baudrate/1000.);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "*clock freq[%u] %g MHz\n", m_pcoData->clTransferParam.ClockFrequency, m_pcoData->clTransferParam.ClockFrequency/1000000.);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "*    CCline[%u]\n", m_pcoData->clTransferParam.CCline);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "*DataFormat[0x%x]\n", m_pcoData->clTransferParam.DataFormat);
-			ptr += sprintf_s(ptr, ptrMax - ptr, "*  Transmit[%u]\n", m_pcoData->clTransferParam.Transmit);
+			ptr = __sprintfExt(ptr, ptrMax, "*** CameraLink transfer parameters\n");
+			ptr = __sprintfExt(ptr, ptrMax, "*  settings[%s]\n", m_pcoData->sClTransferParameterSettings);
+			ptr = __sprintfExt(ptr, ptrMax, "*  baudrate[%u] %g Kbps\n", (int) m_pcoData->clTransferParam.baudrate, (double) (m_pcoData->clTransferParam.baudrate/1000.));
+			ptr = __sprintfExt(ptr, ptrMax, "*clock freq[%u] %g MHz\n",(int) m_pcoData->clTransferParam.ClockFrequency,(double)( m_pcoData->clTransferParam.ClockFrequency/1000000.));
+			ptr = __sprintfExt(ptr, ptrMax, "*    CCline[%u]\n", (int)m_pcoData->clTransferParam.CCline);
+			ptr = __sprintfExt(ptr, ptrMax, "*DataFormat[0x%x]\n",(int) m_pcoData->clTransferParam.DataFormat);
+			ptr = __sprintfExt(ptr, ptrMax, "*  Transmit[%u]\n", (int)m_pcoData->clTransferParam.Transmit);
 		} else {
-			ptr += sprintf_s(ptr, ptrMax - ptr, "*** CameraLink transfer parameters - NO CAMERALINK interface\n");
+			ptr = __sprintfExt(ptr, ptrMax, "*** CameraLink transfer parameters - NO CAMERALINK interface\n");
 		}
 	}
 
 	if(flag & CAMINFO_UNSORTED) {
-		ptr += sprintf_s(ptr, ptrMax - ptr, "*** unsorted parameters\n");
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* bMetaDataAllowed[%d] wMetaDataMode[%d] wMetaDataSize[%d] wMetaDataVersion[%d] \n",  
-			m_pcoData->bMetaDataAllowed, m_pcoData->wMetaDataMode, m_pcoData->wMetaDataSize,  m_pcoData->wMetaDataVersion);
+		ptr = __sprintfExt(ptr, ptrMax, "*** unsorted parameters\n");
+		ptr = __sprintfExt(ptr, ptrMax, "* bMetaDataAllowed[%d] wMetaDataMode[%d] wMetaDataSize[%d] wMetaDataVersion[%d] \n",  
+			(int)m_pcoData->bMetaDataAllowed, (int)m_pcoData->wMetaDataMode, (int)m_pcoData->wMetaDataSize,  (int)m_pcoData->wMetaDataVersion);
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* wLUT_Identifier[x%04x] wLUT_Parameter [x%04x]\n",
-			m_pcoData->wLUT_Identifier, m_pcoData->wLUT_Parameter);
+		ptr = __sprintfExt(ptr, ptrMax, "* wLUT_Identifier[x%04x] wLUT_Parameter [x%04x]\n",
+			(int)m_pcoData->wLUT_Identifier,(int) m_pcoData->wLUT_Parameter);
 
 		int alignment;
 		const char *res;
 		_pco_GetBitAlignment(alignment);
 		res = alignment == 0 ? "[0][MSB]" : "[1][LSB]";
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* data bit alignment%s\n", res);
+		ptr = __sprintfExt(ptr, ptrMax, "* data bit alignment%s\n", res);
 
 		WORD wTimeStampMode;
 		const char *mode;
@@ -2791,50 +2784,29 @@ char * Camera::_camInfo(char *ptr, char *ptrMax, long long int flag)
 			default: mode = "unknown"; break;
 		}
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* imageTimestampMode[%d][%s]\n", wTimeStampMode, mode);
+		ptr = __sprintfExt(ptr, ptrMax, "* imageTimestampMode[%d][%s]\n", (int) wTimeStampMode, mode);
 
 
 		_pco_GetTemperatureInfo(error);
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* temperature: CCD[%.1f]  CAM[%d]  PS[%d]\n", 
-			m_pcoData->temperature.sCcd/10., 
-			m_pcoData->temperature.sCam, 
-			m_pcoData->temperature.sPower);
+		ptr = __sprintfExt(ptr, ptrMax, "* temperature: CCD[%.1f]  CAM[%d]  PS[%d]\n", 
+			(double) (m_pcoData->temperature.sCcd/10.), 
+			(int) m_pcoData->temperature.sCam, 
+			(int) m_pcoData->temperature.sPower);
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "*    cooling: min[%d]  max[%d]  default[%d]  Setpoint[%d]\n",  
-			m_pcoData->temperature.sMinCoolSet, 
-			m_pcoData->temperature.sMaxCoolSet,
-			m_pcoData->temperature.sDefaultCoolSet,
-			m_pcoData->temperature.sSetpoint);
+		ptr = __sprintfExt(ptr, ptrMax, "*    cooling: min[%d]  max[%d]  default[%d]  Setpoint[%d]\n",  
+			(int) m_pcoData->temperature.sMinCoolSet, 
+			(int) m_pcoData->temperature.sMaxCoolSet,
+			(int) m_pcoData->temperature.sDefaultCoolSet,
+			(int) m_pcoData->temperature.sSetpoint);
 
 	}
-
-
-#if 0
-//--------------------------- TODO / NEED to use _snprintf_s and control of error!
-	int _nr;
-
-	for(int ii=1; ii <= 1000; ii++) {
-		_nr = _snprintf_s(ptr, ptrMax - ptr, _TRUNCATE, "************************************************************** %d\n",ii);
-		if(_nr < 0) {return ptr; } else { ptr += _nr; }
-	}
-
-	if(flag & CAMINFO_LOG) {
-		ptr += sprintf_s(ptr, ptrMax - ptr, "*** log \n");
-//------------------------------------ the function  m_log.c_str() FAILS!
-		_nr = _snprintf_s(ptr, ptrMax - ptr, _TRUNCATE, "%s\n", m_log.c_str());
-		if(_nr < 0) {return ptr; } else { ptr += _nr; }
-	}
-#endif
-
-
-
 
 
 	if(flag & CAMINFO_BLOCK) {
 		lgbuff = ptrMax - ptr;
 		int used = int((100. * (lgbuffmax - lgbuff))/lgbuffmax);
-		ptr += sprintf_s(ptr, ptrMax - ptr, "\n*** camInfo (buff free[%lld B] used[%d %%] size[%lld B]) [end]\n", lgbuff, used, lgbuffmax);
+		ptr = __sprintfExt(ptr, ptrMax, "\n*** camInfo (buff free[%lld B] used[%d %%] size[%lld B]) [end]\n", lgbuff, used, lgbuffmax);
 	}
 
 	return ptr;
@@ -3106,17 +3078,17 @@ void Camera::getRollingShutterInfo(std::string &o_sn)
 
 	if( !(bRS || bGL || bGR)) 
 	{
-		ptr += sprintf_s(ptr, ptrMax - ptr, "Rolling Shutter is not allowed");
+		ptr = __sprintfExt(ptr, ptrMax, "Rolling Shutter is not allowed");
 		o_sn = buff;
 		return;
 	}
 
 	getRollingShutter(val);
-	ptr += sprintf_s(ptr, ptrMax - ptr, "actual[%d] valid: ", val);
+	ptr = __sprintfExt(ptr, ptrMax, "actual[%d] valid: ", val);
 
-	if(bRS) ptr += sprintf_s(ptr, ptrMax - ptr, "rolling[%d] ", PCO_EDGE_SETUP_ROLLING_SHUTTER);
-	if(bGL) ptr += sprintf_s(ptr, ptrMax - ptr, "global[%d] ", PCO_EDGE_SETUP_GLOBAL_SHUTTER);
-	if(bGR) ptr += sprintf_s(ptr, ptrMax - ptr, "globalReset[%d] ",  PCO_EDGE_SETUP_GLOBAL_RESET);
+	if(bRS) ptr = __sprintfExt(ptr, ptrMax, "rolling[%d] ", (int) PCO_EDGE_SETUP_ROLLING_SHUTTER);
+	if(bGL) ptr = __sprintfExt(ptr, ptrMax, "global[%d] ",(int)  PCO_EDGE_SETUP_GLOBAL_SHUTTER);
+	if(bGR) ptr = __sprintfExt(ptr, ptrMax, "globalReset[%d] ", (int)  PCO_EDGE_SETUP_GLOBAL_RESET);
 	
 	o_sn = buff;
 	return;
