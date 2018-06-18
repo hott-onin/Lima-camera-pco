@@ -352,8 +352,22 @@ typedef struct {
 
 } STC_traceAcq;
 
+
+
+
+
+
+
 //================================================================
 //================================================================
+
+
+namespace lima
+{
+  namespace Pco
+  {
+	class Camera;
+
 
 #define SIZEARR_stcPcoHWIOSignal 10
 #define SIZESTR_PcoHWIOSignal 1024
@@ -503,7 +517,8 @@ struct stcPcoData
 	    time_t ts[DIM_ACTION_TIMESTAMP];
 	} action_timestamp;
 
-	stcPcoData();
+	stcPcoData(Camera *);
+	Camera *m_cam;
 
 
 	void traceAcqClean();
@@ -523,6 +538,8 @@ struct stcPcoData
 
 }; // struct stcPcoData
 
+} // Pco
+} // lima
 
 
 
@@ -1151,7 +1168,6 @@ namespace lima
 
 		void getLastImgFifo(int & val);
 
-		char *__sprintfExt(char* _ptr, char* _ptrMax, const char* format, ...);
 
 	}; // class camera
   } // namespace pco
@@ -1159,6 +1175,7 @@ namespace lima
 
 void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase);
 
+int __sprintfSExt(char* ptr, size_t nrMax, const char* format, ...);
 
 
 //================================================================

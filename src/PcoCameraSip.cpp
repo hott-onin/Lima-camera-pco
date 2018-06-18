@@ -230,7 +230,7 @@ void Camera::getLastError(std::string &o_sn)
 {
 	char *ptr = buff;
 	char *ptrMax = buff + sizeof(buff);
-	sprintf_s(ptr, ptrMax - ptr, "[x%08x] [%s]\n", 
+	__sprintfSExt(ptr, ptrMax-ptr, "[x%08x] [%s]\n", 
 				m_pcoData->pcoError, m_pcoData->pcoErrorMsg);
 	o_sn = buff;
 }
@@ -246,12 +246,12 @@ void Camera::getTraceAcq(std::string &o_sn)
 	time_t _timet;
 
 	if(0 && !(_isCameraType(Dimax | Pco2k | Pco4k))) {
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ERROR - only for DIMAX / 2K");
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "* ERROR - only for DIMAX / 2K");
 		o_sn = buff;
 		return;
 	}
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"\n"
 		"* fnId[%s] nrEvents[%d]\n"
 		"* ... fnIdXfer[%s]\n",
@@ -259,26 +259,26 @@ void Camera::getTraceAcq(std::string &o_sn)
 		m_pco_buffer_nrevents,
 		m_pcoData->traceAcq.fnIdXfer);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "* ... testCmdMode [0x%llx]\n",  m_pcoData->testCmdMode);
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "* ... testCmdMode [0x%llx]\n",  m_pcoData->testCmdMode);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* msExposure[%g] msDelay[%g]\n",
 		m_pcoData->traceAcq.sExposure * 1000.,
 		m_pcoData->traceAcq.sDelay * 1000.);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* ... msLimaExposure[%g] Pco exposure[%d] base[%d]\n",
 		m_pcoData->traceAcq.dLimaExposure * 1000.,
 		m_pcoData->traceAcq.iPcoExposure, 
 		m_pcoData->traceAcq.iPcoExposureBase);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* ... msLimaDelay[%g] Pco delay[%d] base[%d]\n",
 		m_pcoData->traceAcq.dLimaDelay * 1000.,
 		m_pcoData->traceAcq.iPcoDelay, 
 		m_pcoData->traceAcq.iPcoDelayBase);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "* pcoBin horz[%d] vert[%d]\n",  
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "* pcoBin horz[%d] vert[%d]\n",  
 			m_pcoData->traceAcq.iPcoBinHorz, 
 			m_pcoData->traceAcq.iPcoBinVert);
 
@@ -291,13 +291,13 @@ void Camera::getTraceAcq(std::string &o_sn)
 	Size size = limaRoi.getSize();			
 	unsigned int bytesPerPix; getBytesPerPixel(bytesPerPix);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "* limaRoi xy0[%d,%d] xy1[%d,%d] size[%d,%d]\n",  
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "* limaRoi xy0[%d,%d] xy1[%d,%d] size[%d,%d]\n",  
 			top_left.x, top_left.y,
 			bot_right.x, bot_right.y,
 			size.getWidth(), size.getHeight());
 
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "* ... pcoRoi x[%d,%d] y[%d,%d]\n",  
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "* ... pcoRoi x[%d,%d] y[%d,%d]\n",  
 			m_pcoData->traceAcq.iPcoRoiX0, 
 			m_pcoData->traceAcq.iPcoRoiX1, 
 			m_pcoData->traceAcq.iPcoRoiY0, 
@@ -310,36 +310,36 @@ void Camera::getTraceAcq(std::string &o_sn)
 	double totTime = m_pcoData->traceAcq.msXfer / 1000.;
 	double xferSpeed = mbTotSize / totTime;
 	double framesPerSec = m_pcoData->traceAcq.nrImgRequested / totTime;
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* ... imgSize[%lld B] totSize[%lld B][%g MB]\n",  
 		imgSize, totSize, mbTotSize);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* nrImgRequested[%d] nrImgAcquired[%d]\n",
 		m_pcoData->traceAcq.nrImgRequested,
 		m_pcoData->traceAcq.nrImgAcquired);
 
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* ... nrImgRequested0[%d] nrImgRecorded[%d] maxImgCount[%d]\n",
 		m_pcoData->traceAcq.nrImgRequested0,
 		m_pcoData->traceAcq.nrImgRecorded,
 		m_pcoData->traceAcq.maxImgCount);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr,	
+	ptr += __sprintfSExt(ptr, ptrMax-ptr,	
 		"* limaTriggerMode[%s]\n",
 		m_pcoData->traceAcq.sLimaTriggerMode);
-	ptr += sprintf_s(ptr, ptrMax - ptr,	
+	ptr += __sprintfSExt(ptr, ptrMax-ptr,	
 		"* ... pcoTriggerMode[%s] [%d]\n",
 		m_pcoData->traceAcq.sPcoTriggerMode,
 		m_pcoData->traceAcq.iPcoTriggerMode);
-	ptr += sprintf_s(ptr, ptrMax - ptr,	
+	ptr += __sprintfSExt(ptr, ptrMax-ptr,	
 		"* ... pcoAcqMode[%s] [%d]\n",
 		m_pcoData->traceAcq.sPcoAcqMode,
 		m_pcoData->traceAcq.iPcoAcqMode);
 
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* msStartAcqStart[%ld]  msStartAcqEnd[%ld]\n",
 		m_pcoData->traceAcq.msStartAcqStart, m_pcoData->traceAcq.msStartAcqEnd);
 	
@@ -347,7 +347,7 @@ void Camera::getTraceAcq(std::string &o_sn)
 	for(int _i = 0; _i < LEN_TRACEACQ_TRHEAD; _i++){
 		const char *desc = m_pcoData->traceAcq.usTicks[_i].desc;
 		if(desc != NULL) {
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 				"* ... usTicks[%d][%5.3f] (ms)   (%s)\n", 
 				_i, m_pcoData->traceAcq.usTicks[_i].value/1000.,
 				desc);
@@ -357,36 +357,36 @@ void Camera::getTraceAcq(std::string &o_sn)
 
 	_timet = m_pcoData->traceAcq.endRecordTimestamp;
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* msImgCoc[%.3g] fps[%.3g] msTout[%ld] msTotal[%ld]\n",
 		m_pcoData->traceAcq.msImgCoc, 
 		1000. / m_pcoData->traceAcq.msImgCoc,
 		m_pcoData->traceAcq.msTout,
 		m_pcoData->traceAcq.msTotal);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* ... msRecordLoop[%ld] msRecord[%ld] endRecord[%s]\n",
 		m_pcoData->traceAcq.msRecordLoop,
 		m_pcoData->traceAcq.msRecord,
 		_timet ? getTimestamp(Iso, _timet) : "");
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* ... msXfer[%ld] endXfer[%s]\n",
 		m_pcoData->traceAcq.msXfer,
 		getTimestamp(Iso, m_pcoData->traceAcq.endXferTimestamp));
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* ... xferTimeTot[%g s] xferSpeed[%g MB/s][%g fps]\n",  
 		totTime, xferSpeed, framesPerSec);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"* ... checkImgNr pco[%d] lima[%d] diff[%d] order[%d]\n",  
 		m_pcoData->traceAcq.checkImgNrPco,
 		m_pcoData->traceAcq.checkImgNrLima,
 		m_pcoData->traceAcq.checkImgNrPco -	m_pcoData->traceAcq.checkImgNrLima,
 		m_pcoData->traceAcq.checkImgNrOrder);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 		"%s\n", m_pcoData->traceAcq.msg);
 
 	o_sn = buff;
@@ -405,12 +405,12 @@ void Camera::getPixelRateValidValues(std::string &o_sn)
 		dwPixRate = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
 		if(dwPixRate){
 			nr++;
-			ptr += sprintf_s(ptr, ptrMax - ptr, "%d  ",dwPixRate);
+			ptr += __sprintfSExt(ptr, ptrMax-ptr, "%d  ",dwPixRate);
 		}  
 	}	
 
 	if(nr == 0)			
-		ptr += sprintf_s(ptr, ptrMax - ptr, "%d  ",nr);
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "%d  ",nr);
 
 	o_sn = buff;
 }
@@ -439,7 +439,7 @@ void Camera::getLastFixedRoi(std::string &o_sn)
 	y0 = limaRoi.getTopLeft().y - 1;
 	y1 = limaRoi.getBottomRight().y - 1;
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO ACTUAL X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "* roi PCO ACTUAL X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
 			x0, x1, y0, y1, x1-x0+1, y1-y0+1);
 
 	if(dt)
@@ -450,7 +450,7 @@ void Camera::getLastFixedRoi(std::string &o_sn)
 		y0 = limaRoi.getTopLeft().y - 1;
 		y1 = limaRoi.getBottomRight().y - 1;
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO REQUESTED X(%d,%d) Y(%d,%d) size(%d,%d) [%s]\n",  
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "* roi PCO REQUESTED X(%d,%d) Y(%d,%d) size(%d,%d) [%s]\n",  
 				x0, x1, y0, y1, x1-x0+1, y1-y0+1, getTimestamp(Iso, dt));
 
 		limaRoi = limaRoiFixed; 
@@ -459,12 +459,12 @@ void Camera::getLastFixedRoi(std::string &o_sn)
 		y0 = limaRoi.getTopLeft().y - 1;
 		y1 = limaRoi.getBottomRight().y - 1;
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO FIXED X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "* roi PCO FIXED X(%d,%d) Y(%d,%d) size(%d,%d)\n",  
 				x0, x1, y0, y1, x1-x0+1, y1-y0+1);
 	}
 	else
 	{
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* roi PCO FIXED - no roi fixed yet!\n");  
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "* roi PCO FIXED - no roi fixed yet!\n");  
 	
 	}
 
@@ -473,7 +473,7 @@ void Camera::getLastFixedRoi(std::string &o_sn)
 	getXYdescription(xSteps, ySteps, xMax, yMax, xMinSize, yMinSize); 
 	getRoiSymetrie(bSymX, bSymY );
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "* xySteps[%d,%d] xyMinSize[%d,%d] xyMaxSize[%d,%d] xySym[%d,%d]\n",  
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "* xySteps[%d,%d] xyMinSize[%d,%d] xyMaxSize[%d,%d] xySym[%d,%d]\n",  
 			xSteps, ySteps, xMinSize, yMinSize, xMax, yMax, bSymX, bSymY);
 
 
@@ -571,7 +571,7 @@ void Camera::getSdkRelease(std::string &o_sn)
     release =  PCO_SDK_WIN_RELEASE;
 #endif    
     
-	ptr += sprintf_s(ptr, ptrMax - ptr, release);
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, release);
 	
 	o_sn = buff;
 }
@@ -607,11 +607,11 @@ void Camera::getCameraNameEx(std::string &o_sn)
 	_pco_GetInfoString(0, ptr, (int) (ptrMax - ptr), error);
 	ptr += strlen(ptr);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "\nCamera name: " );
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "\nCamera name: " );
 	_pco_GetInfoString(1, ptr, (int) (ptrMax - ptr), error);
 	ptr += strlen(ptr);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "\nSensor: " );
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "\nSensor: " );
 	_pco_GetInfoString(2, ptr, (int) (ptrMax - ptr), error);
 	ptr += strlen(ptr);
 
@@ -674,8 +674,8 @@ void Camera::getCamerasFound(std::string &o_sn)
 	char *ptr = buff;
 	char *ptrMax = buff + sizeof(buff);
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "search:\n%s",m_pcoData->camerasFound);
-	ptr += sprintf_s(ptr, ptrMax - ptr, "opened:\n%s",_getCameraIdn());
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "search:\n%s",m_pcoData->camerasFound);
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "opened:\n%s",_getCameraIdn());
 
 	o_sn = buff;
 }
@@ -711,7 +711,7 @@ void Camera::getDebugInt(std::string &o_sn)
 	unsigned long long debugLevel;
 			
 	debugLevel = m_pcoData->debugLevel;
-	ptr += sprintf_s(ptr, ptrMax - ptr, "0x%llx (%lld)",  debugLevel, debugLevel);
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "0x%llx (%lld)",  debugLevel, debugLevel);
 
 	o_sn = buff;
 
@@ -739,9 +739,9 @@ void Camera::getDebugIntTypes(std::string &o_sn)
 	char *ptr = buff;
 	char *ptrMax = buff + sizeof(buff);
 			
-#define _PRINT_DBG( x )	ptr += sprintf_s(ptr, ptrMax - ptr, "%15s  0x%08x\n", #x, x ) 	
+#define _PRINT_DBG( x )	ptr += __sprintfSExt(ptr, ptrMax-ptr, "%15s  0x%08x\n", #x, x ) 	
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "\n");
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "\n");
 	_PRINT_DBG( DBG_BUFF ) ;
 	_PRINT_DBG( DBG_XFER2LIMA ) ;
 	_PRINT_DBG( DBG_LIMABUFF ) ;
@@ -826,11 +826,11 @@ void Camera::getBitAlignment(std::string &o_sn)
 
 	if(error)
 	{
-		ptr += sprintf_s(ptr, ptrMax - ptr, "ERROR");
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "ERROR");
 	}
 	else
 	{
-		ptr += sprintf_s(ptr, ptrMax - ptr, "%s(%d)", (alignment ? "LSB" : "MSB") , alignment);
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "%s(%d)", (alignment ? "LSB" : "MSB") , alignment);
 	}
 
 	o_sn = buff;

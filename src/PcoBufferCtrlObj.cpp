@@ -540,7 +540,7 @@ int BufferCtrlObj::_xferImag_buff2lima(DWORD &dwFrameIdx, int &bufIdx)
 	if(dbgWaitobj)
 	{
 		char msg[256];
-		sprintf_s(msg, sizeof(msg), "... PROCESS PCObuff[%d] TO LIMAbuff[%d] frame[%d]", bufIdx, lima_buffer_nb, dwFrameIdx);
+		__sprintfSExt(msg, sizeof(msg), "... PROCESS PCObuff[%d] TO LIMAbuff[%d] frame[%d]", bufIdx, lima_buffer_nb, dwFrameIdx);
 		DEB_ALWAYS() << msg;
 	}
 	m_pcoData->traceAcq.nrImgAcquired = dwFrameIdx;
@@ -714,7 +714,7 @@ int BufferCtrlObj::_xferImag()
 			if(dbgWaitobj)
 			{
 				char msg[512];
-				sprintf_s(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] recordState[%d] live[%d]", bufIdx, dwFrameFirst2assign, recording, live_mode);
+				__sprintfSExt(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] recordState[%d] live[%d]", bufIdx, dwFrameFirst2assign, recording, live_mode);
 				m_cam->m_tmpLog->add(msg);  DEB_ALWAYS() << msg;
 			}
 			if( (error = _assignImage2Buffer(
@@ -734,7 +734,7 @@ int BufferCtrlObj::_xferImag()
 
 				m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
 				char msg[128];
-				sprintf_s(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
+				__sprintfSExt(msg, sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
 				DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
 			}
 		}
@@ -776,7 +776,7 @@ int BufferCtrlObj::_xferImag()
 		if(dbgWaitobj)
 		{
 			char msg[256];
-			sprintf_s(msg,sizeof(msg),"... LOOP inside while dwFrameIdx[%d] <= dwRequestedFrames[%d]", dwFrameIdx, dwRequestedFrames);
+			__sprintfSExt(msg, sizeof(msg),"... LOOP inside while dwFrameIdx[%d] <= dwRequestedFrames[%d]", dwFrameIdx, dwRequestedFrames);
 			DEB_ALWAYS() <<  msg;
 		}
 
@@ -821,7 +821,7 @@ int BufferCtrlObj::_xferImag()
 		if(!found)
 		{
 			char msg[256];
-			sprintf_s(msg,sizeof(msg),"... ERROR - dwFrameIdx[%d] not found in the assigned buffers",dwFrameIdx);
+			__sprintfSExt(msg, sizeof(msg),"... ERROR - dwFrameIdx[%d] not found in the assigned buffers",dwFrameIdx);
 			DEB_ALWAYS() <<  msg;
 		}
 
@@ -884,7 +884,7 @@ int BufferCtrlObj::_xferImag()
 				if(dbgWaitobj)
 				{
 					char msg[256];
-					sprintf_s(msg,sizeof(msg),"... WAITOBJ [%d] found", eventRet); 
+					__sprintfSExt(msg, sizeof(msg),"... WAITOBJ [%d] found", eventRet); 
 					DEB_ALWAYS() << msg;
 				}
 			}
@@ -893,7 +893,7 @@ int BufferCtrlObj::_xferImag()
 			{
 				char msg[256];
 
-				sprintf_s(msg,sizeof(msg),
+				__sprintfSExt(msg, sizeof(msg),
 					"err[0x%lx] dwStatusDll[0x%lx] dwStatusDrv[0x%lx] \n"
 					"sBufNr[%d] WAITOBJ[%d] dwFrameIdx[%d] iLoopsPolled[%d] msTimeout[%d]\n",
 					errPco, dwStatusDll, dwStatusDrv, 
@@ -925,7 +925,7 @@ int BufferCtrlObj::_xferImag()
 		if(dbgWaitobj)
 		{
 			char msg[256];
-			sprintf_s(msg, sizeof(msg), "... EVENT FIRED buffNr[%d] dwBuffFrame[%d] dwFrameIdx[%d] dwStatusDll[0x%08lx] dwStatusDrv[0x%08lx] err[0x%x], iLoopsPolled[%d]", 
+			__sprintfSExt(msg, sizeof(msg), "... EVENT FIRED buffNr[%d] dwBuffFrame[%d] dwFrameIdx[%d] dwStatusDll[0x%08lx] dwStatusDrv[0x%08lx] err[0x%x], iLoopsPolled[%d]", 
 					sBufNr, dwBuffFrame, dwFrameIdx, dwStatusDll, dwStatusDrv, errPco, iLoopsPolled);
 			DEB_ALWAYS() << msg;
 		}
@@ -956,7 +956,7 @@ int BufferCtrlObj::_xferImag()
 				if(dbgWaitobj)
 				{
 					char msg[256];
-					sprintf_s(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] live[%d]", bufIdx, dwFrameFirst2assign, live_mode);
+					__sprintfSExt(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] live[%d]", bufIdx, dwFrameFirst2assign, live_mode);
 					DEB_ALWAYS() << msg;
 				}
 
@@ -981,7 +981,7 @@ int BufferCtrlObj::_xferImag()
 			if(dbgWaitobj)
 			{
 				char msg[256];
-				sprintf_s(msg, sizeof(msg), "... BYPASSED ASSIGN BUFFER[%d] dwFrameFirst2assign[%d] dwRequestedFrames[%d] live[%d]", 
+				__sprintfSExt(msg, sizeof(msg), "... BYPASSED ASSIGN BUFFER[%d] dwFrameFirst2assign[%d] dwRequestedFrames[%d] live[%d]", 
 					bufIdx, dwFrameFirst2assign, dwRequestedFrames, live_mode);
 				DEB_ALWAYS() << msg;
 			}
@@ -2270,7 +2270,7 @@ int BufferCtrlObj::_xferImagDoubleImage()
 			bufIdx = iEvent;
 			
 			if(dbgWaitobj){
-				sprintf_s(msg, RING_LOG_BUFFER_SIZE, "... ASSIGN BUFFER[%d] frame[%d]", bufIdx, dwPcoFrameFirst2assign);
+				__sprintfSExt(msg, RING_LOG_BUFFER_SIZE, "... ASSIGN BUFFER[%d] frame[%d]", bufIdx, dwPcoFrameFirst2assign);
 				m_cam->m_tmpLog->add(msg);  DEB_ALWAYS() << msg;
 			}
 
@@ -2384,7 +2384,7 @@ _RETRY:
 			m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
 			if((dwStatusDll != 0x80000000) || dwStatusDrv || errPco) 
 			{
-				sprintf_s(msg, sizeof(msg),"SDK ERROR got frame[%d / %d] bufIdx[%d] size[%ld] dest[%p] src[%p] \n"
+				__sprintfSExt(msg, sizeof(msg),"SDK ERROR got frame[%d / %d] bufIdx[%d] size[%ld] dest[%p] src[%p] \n"
 					"dwStatusDll[%08x] dwStatusDrv[%08x] errPco[%08x] err[%s]\n", 
 					dwPcoFrameIdx, dwPcoRequestedFrames, bufIdx,
 					size, ptrLimaBuffer, ptrPcoBuffer,
@@ -2533,7 +2533,7 @@ _RETRY_WAIT:
 				for(int _id = 0; _id<m_cam->m_pco_buffer_nrevents; _id++)
 				{
 					flag = m_allocBuff.bufferAssignedFrameFirst[_id] == dwPcoFrameIdx ? "***" : "   ";
-					ptr += sprintf_s(ptr, ptrMax - ptr, 
+					ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 						"\n%s [%d] pcoBuffNr[%d] ready[%d] limaFrame[%d] limaPtr[%p] limaPtr1[%p] pcoPtr[%p] limaSize[%d] pcoSize[%d]",
 						flag, _id,
 						m_allocBuff.pcoAllocBufferNr[_id],

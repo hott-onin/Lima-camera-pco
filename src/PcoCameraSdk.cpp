@@ -1485,7 +1485,7 @@ void Camera::_pco_GetTemperatureInfo(int &error){
 	if(error) return;
 	//PCO_THROW_OR_TRACE(error, "PCO_GetTemperature") ;
 
-	sprintf_s(msg, MSG_SIZE, "* temperature: CCD[%.1f]  CAM[%d]  PS[%d]\n", m_pcoData->temperature.sCcd/10., m_pcoData->temperature.sCam, m_pcoData->temperature.sPower);
+	__sprintfSExt(msg, MSG_SIZE, "* temperature: CCD[%.1f]  CAM[%d]  PS[%d]\n", m_pcoData->temperature.sCcd/10., m_pcoData->temperature.sCam, m_pcoData->temperature.sPower);
 	//DEB_TRACE() <<   msg;
 	m_log.append(msg);
 
@@ -1499,7 +1499,7 @@ void Camera::_pco_GetTemperatureInfo(int &error){
 	if ((m_pcoData->temperature.sMinCoolSet == 0) && (m_pcoData->temperature.sMaxCoolSet == 0)) // no cooled camera
 	{
 		m_pcoData->temperature.sSetpoint = 0;
-		sprintf_s(msg, MSG_SIZE, "*     cooling: NO cooled camera");
+		__sprintfSExt(msg, MSG_SIZE, "*     cooling: NO cooled camera");
 		m_log.append(msg);
 		return;
 	}
@@ -1507,7 +1507,7 @@ void Camera::_pco_GetTemperatureInfo(int &error){
 	error = PCO_GetCoolingSetpointTemperature( m_handle, &m_pcoData->temperature.sSetpoint);
 
 
-	sprintf_s(msg, MSG_SIZE, "*     cooling: min[%d] max[%d] default[%d] setpoint[%d]\n",  
+	__sprintfSExt(msg, MSG_SIZE, "*     cooling: min[%d] max[%d] default[%d] setpoint[%d]\n",  
 				m_pcoData->temperature.sMinCoolSet, 
 				m_pcoData->temperature.sMaxCoolSet, 
 				m_pcoData->temperature.sDefaultCoolSet, 
@@ -1529,10 +1529,10 @@ void Camera::_pco_GetTemperatureInfo(char *ptr, char *ptrMax, int &error)
 	// -- Print out current temperatures
 	error = PCO_GetTemperature(m_handle, &m_pcoData->temperature.sCcd, &m_pcoData->temperature.sCam, &m_pcoData->temperature.sPower);
 	if(error) {
-		ptr += sprintf_s(ptr, ptrMax - ptr, "[SDK error - getTemperature]"); 
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "[SDK error - getTemperature]"); 
 		return;
 	}
-	ptr += sprintf_s(ptr, ptrMax - ptr, "CCD[%.1f] CAM[%d] PS[%d]", 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "CCD[%.1f] CAM[%d] PS[%d]", 
 		m_pcoData->temperature.sCcd/10., 
 		m_pcoData->temperature.sCam, 
 		m_pcoData->temperature.sPower);
@@ -1546,17 +1546,17 @@ void Camera::_pco_GetTemperatureInfo(char *ptr, char *ptrMax, int &error)
 	if ((m_pcoData->temperature.sMinCoolSet == 0) && (m_pcoData->temperature.sMaxCoolSet == 0)) // no cooled camera
 	{
 		m_pcoData->temperature.sSetpoint = 0;
-		ptr += sprintf_s(ptr, ptrMax - ptr, " cooling: [NO cooled camera]");
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, " cooling: [NO cooled camera]");
 		return;
 	}
 
 	error = PCO_GetCoolingSetpointTemperature(m_handle, &m_pcoData->temperature.sSetpoint);
 	if(error) {
-		ptr += sprintf_s(ptr, ptrMax - ptr, " [SDK error - getSetpoint]"); 
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, " [SDK error - getSetpoint]"); 
 		return;
 	}
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, " cooling: min[%d] max[%d] default[%d] setpoint[%d]",  
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, " cooling: min[%d] max[%d] default[%d] setpoint[%d]",  
 				m_pcoData->temperature.sMinCoolSet, 
 				m_pcoData->temperature.sMaxCoolSet, 
 				m_pcoData->temperature.sDefaultCoolSet, 
@@ -1566,7 +1566,7 @@ void Camera::_pco_GetTemperatureInfo(char *ptr, char *ptrMax, int &error)
 
 #else
 	error = -1;
-	ptr += sprintf_s(ptr, ptrMax - ptr, "NOT IMPLEMENTED");
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "NOT IMPLEMENTED");
 
     return;
 #endif
@@ -1628,7 +1628,7 @@ void Camera::_pco_GetCameraType(int &error){
 		strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
 		errTot |= error;
 
-		sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s (%s) (I/F %s) (SN %d)", 
+		__sprintfSExt(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s (%s) (I/F %s) (SN %d)", 
 			_getCameraTypeStr(), 
 			_getCameraSubTypeStr(), 
 			_getInterfaceTypeStr(), 
@@ -1729,7 +1729,7 @@ void Camera::_pco_GetCameraType(int &error){
 	strcpy_s(m_pcoData->iface, INTERFACE_TYPE_SIZE, ptr);
 	errTot |= error;
 
-	sprintf_s(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s (IF %s) (SN %u)", 
+	__sprintfSExt(m_pcoData->camera_name, CAMERA_NAME_SIZE, "%s (IF %s) (SN %u)", 
 			m_pcoData->model, m_pcoData->iface, m_pcoData->dwSerialNumber);
 	DEB_ALWAYS() 
 		<< "\n   " <<  DEB_VAR1(m_pcoData->model)
@@ -2264,7 +2264,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
  
 #ifndef __linux__    // linux prep
 
-	struct stcPcoData _pcoData;
+	PCO_SC2_CL_TRANSFER_PARAM clTransferParam;
 	char msg[ERRMSG_SIZE + 1];
 	char *pcoFn;
 
@@ -2279,7 +2279,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
         _pco_GetTransferParameter(error);
 		PCO_THROW_OR_TRACE(error, "_pco_GetTransferParameter(") ;
 	
-		memcpy(&_pcoData.clTransferParam, &m_pcoData->clTransferParam,sizeof(PCO_SC2_CL_TRANSFER_PARAM));
+		memcpy(&clTransferParam, &m_pcoData->clTransferParam,sizeof(PCO_SC2_CL_TRANSFER_PARAM));
 	
 		m_pcoData->clTransferParam.baudrate = PCO_CL_BAUDRATE_115K2;
 
@@ -2379,12 +2379,14 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 			DEB_TRACE() << "PCO_SetTransferParameter (clTransferParam) " << info ;
 			PCO_FN3(error, pcoFn,PCO_SetTransferParameter,m_handle, &m_pcoData->clTransferParam, sizeof(m_pcoData->clTransferParam));
 			if(error){
-				sprintf_s(msg,ERRMSG_SIZE, "PCO_SetTransferParameter - baudrate[%d][%d] dataFormat[x%08x][x%08x] trasmit[%d][%d]",
-					_pcoData.clTransferParam.baudrate, m_pcoData->clTransferParam.baudrate,
-					_pcoData.clTransferParam.DataFormat, m_pcoData->clTransferParam.DataFormat,
-					_pcoData.clTransferParam.Transmit, m_pcoData->clTransferParam.Transmit);
+				__sprintfSExt(msg,ERRMSG_SIZE, "PCO_SetTransferParameter - baudrate[%d][%d] dataFormat[x%08x][x%08x] trasmit[%d][%d]",
+					clTransferParam.baudrate, m_pcoData->clTransferParam.baudrate,
+					clTransferParam.DataFormat, m_pcoData->clTransferParam.DataFormat,
+					clTransferParam.Transmit, m_pcoData->clTransferParam.Transmit);
 				throw LIMA_HW_EXC(Error, msg); 
 			} 
+
+
 			_armRequired(true);
 
 	//================================================================================================
@@ -2418,7 +2420,7 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
         lut = m_pcoData->wLUT_Identifier;
 
 
-    pbla += sprintf_s(pbla,myblamax - pbla, 
+    pbla += __sprintfSExt(pbla,myblamax-pbla, 
 		    " / width[%d][%d] height[%d][%d]", width, wXResMax, height, wYResMax);
 
     DEB_ALWAYS() << mybla;
@@ -2670,7 +2672,7 @@ void Camera::_pco_GetRoiInfo(char *buf_in, int size_in, int &err)
 
 
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 			"pco[x<%d,%d> y<%d,%d>] lima[<%d,%d>-<%dx%d>]",
 			x0, x1, 
 			y0, y1,
@@ -2736,7 +2738,7 @@ void Camera::_pco_GetBinningInfo(char *buf_in, int size_in, int &err)
 	binModeY = m_pcoData->stcPcoDescription.wBinVertSteppingDESC;
 #endif
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 			"bin[%d,%d] binMax[%d,%d] binStepMode[%d,%d][%s,%s]",
 			binX, binY, binMaxX, binMaxY,
 			binModeX, binModeY, 
@@ -2791,8 +2793,8 @@ void Camera::_pco_GetFirmwareInfo(char *buf_in, int size_in, int &err)
 	char *ptrMax = ptr + size_in;
 
 #ifndef __linux__
-	ptr += sprintf_s(ptr, ptrMax - ptr, "* firmware \n");
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* ... firmware dwHWVersion[%x]  dwFWVersion[%x] <- not used\n", 
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "* firmware \n");
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "* ... firmware dwHWVersion[%x]  dwFWVersion[%x] <- not used\n", 
 			m_pcoData->stcPcoCamType.dwHWVersion, 
 			m_pcoData->stcPcoCamType.dwFWVersion);
 		
@@ -2800,11 +2802,11 @@ void Camera::_pco_GetFirmwareInfo(char *buf_in, int size_in, int &err)
 		int nrDev, iDev;
 
 		nrDev=m_pcoData->stcPcoCamType.strHardwareVersion.BoardNum;
-		ptr += sprintf_s(ptr, ptrMax - ptr, "* Hardware_DESC device[%d]  szName          wBatchNo/wRevision   wVariant\n", nrDev);
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "* Hardware_DESC device[%d]  szName          wBatchNo/wRevision   wVariant\n", nrDev);
 		for(iDev = 0; iDev< nrDev; iDev++) {
 			PCO_SC2_Hardware_DESC *ptrhw;
 			ptrhw = &m_pcoData->stcPcoCamType.strHardwareVersion.Board[iDev];
-			ptr += sprintf_s(ptr, ptrMax - ptr, "* %20d      %-18s   %4d.%-4d    %4d\n", 
+			ptr += __sprintfSExt(ptr, ptrMax-ptr, "* %20d      %-18s   %4d.%-4d    %4d\n", 
 				iDev, 
 				ptrhw->szName,
 				ptrhw->wBatchNo,
@@ -2814,13 +2816,13 @@ void Camera::_pco_GetFirmwareInfo(char *buf_in, int size_in, int &err)
 		}
 
 		nrDev=m_pcoData->stcPcoCamType.strFirmwareVersion.DeviceNum;
-		ptr += sprintf_s(ptr, ptrMax - ptr, 
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 			"* Firmware_DESC device[%d]  szName          bMajorRev/Minor   wVariant\n", nrDev);
 
 		for(iDev = 0; iDev< nrDev; iDev++) {
 			PCO_SC2_Firmware_DESC *ptrfw;
 			ptrfw = &m_pcoData->stcPcoCamType.strFirmwareVersion.Device[iDev];
-			ptr += sprintf_s(ptr, ptrMax - ptr, "* %20d      %-18s   %4d.%-4d    %4d\n", 
+			ptr += __sprintfSExt(ptr, ptrMax-ptr, "* %20d      %-18s   %4d.%-4d    %4d\n", 
 				iDev,
 				ptrfw->szName,
 				ptrfw->bMajorRev,
@@ -2837,7 +2839,7 @@ void Camera::_pco_GetFirmwareInfo(char *buf_in, int size_in, int &err)
 		nrDev = (err == PCO_NOERROR) ? strFirmwareVersion.DeviceNum : 0;
 
 		if(nrDev > 0){
-			ptr += sprintf_s(ptr, ptrMax - ptr, 
+			ptr += __sprintfSExt(ptr, ptrMax-ptr, 
 				"* Firmware_DESC device[%d]  szName          bMajorRev/Minor   wVariant (PCO_GetFirmwareInfo)\n", 
 				nrDev);
 
@@ -2850,7 +2852,7 @@ void Camera::_pco_GetFirmwareInfo(char *buf_in, int size_in, int &err)
 				} // iCnt
 				
 				ptrfw = &strFirmwareVersion.Device[iCnt];
-				ptr += sprintf_s(ptr, ptrMax - ptr, "* %20d      %-18s   %4d.%-4d    %4d\n", 
+				ptr += __sprintfSExt(ptr, ptrMax-ptr, "* %20d      %-18s   %4d.%-4d    %4d\n", 
 					iDev, ptrfw->szName, ptrfw->bMajorRev, ptrfw->bMinorRev, ptrfw->wVariant);
 			} // for
 		} // if nrDev
@@ -2974,7 +2976,7 @@ void Camera::_pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax
     *wXResMax = m_pcoData->stcPcoDescription.wMaxHorzResStdDESC;
     *wYResMax = m_pcoData->stcPcoDescription.wMaxVertResStdDESC;
 
-	bla += sprintf_s(bla,myblamax - bla,
+	bla += __sprintfSExt(bla,myblamax-bla,
 	    "%s> resAct[%d][%d] resStdMax[%d][%d] resExtMax[%d][%d]",
 	    fnId,
 	    *wXResActual, *wYResActual, *wXResMax, *wYResMax,
@@ -3216,15 +3218,6 @@ void Camera::_pco_GetBufferStatus(SHORT sBufNr, DWORD* dwStatusDll,
 
 #else
 	err = PCO_GetBufferStatus(m_handle, sBufNr, dwStatusDll, dwStatusDrv);
-
-#if 0
-	if(_getDebug(DBG_WAITOBJ))
-	{
-		char msg[512];
-		sprintf_s(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, *dwStatusDll, *dwStatusDrv, err);
-		DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
-	}
-#endif
 
 	PCO_CHECK_ERROR(err, "PCO_GetBufferStatus");
 	if(err)
@@ -3874,7 +3867,7 @@ void Camera::_pco_OpenCameraSn(DWORD snRequested, int &err)
 
 		snList[iHandle] = _getCameraSerialNumber();
 
-		ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n",_getCameraIdn());
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "%s\n",_getCameraIdn());
 	}
 
 	DEB_ALWAYS() 

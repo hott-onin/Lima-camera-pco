@@ -146,14 +146,14 @@ void Camera::_pco_GetCameraInfo(int &error){
         char *ptr = validPixelRate;
         char *ptrMax = ptr + sizeof(validPixelRate);
         
-        ptr += sprintf_s(ptr, ptrMax - ptr, "validRates:");
+        ptr += __sprintfSExt(ptr, ptrMax - ptr, "validRates:");
         for(int i=0; i<4; i++) 
         {
             _dwPixRate = m_pcoData->stcPcoDescription.dwPixelRateDESC[i];
             if(_dwPixRate > 0) 
             {
 	            dwPixelRateValid[iPixelRateValidNr++] = _dwPixRate;
-		        ptr += sprintf_s(ptr, ptrMax - ptr, "  [%d]",_dwPixRate);
+		        ptr += __sprintfSExt(ptr, ptrMax - ptr, "  [%d]",_dwPixRate);
             }
 	        if(dwPixelRateMax < _dwPixRate){
 				        dwPixelRateMax = m_pcoData->dwPixelRateMax = _dwPixRate;
