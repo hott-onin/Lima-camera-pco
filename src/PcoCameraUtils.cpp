@@ -727,7 +727,51 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 				return output;
 			}
 
+			//------------------------------------------
+			// exc - exception - lima
+			if((tokNr >= 1) &&  (_stricmp(tok[1], "exc")==0))
+			{
+				Event *ev ;
+				if(tokNr < 2)
+				{
+					ptr += __sprintfSExt(ptr, ptrMax-ptr, 
+						"talk exc <idx>\n");
+					return output;
+				}
+				int idx = atoi(tok[2]);
 
+				switch(idx) 
+				{
+					case 1:
+						throw LIMA_EXC(Control, Error, "CTL / Error");
+						break;
+
+					case 2:
+						throw LIMA_EXC(CameraPlugin, InvalidValue, "CAM / InvValue");
+						break;
+
+					case 10:
+						ev = new Event(Hardware,Event::Fatal,Event::Camera,Event::CamFault, "EVENT");
+						_getPcoHwEventCtrlObj()->reportEvent(ev);
+						break;
+
+					case 11:
+						ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamNoMemory, "ERROR frames OUT OF RANGE");
+						_getPcoHwEventCtrlObj()->reportEvent(ev);
+
+						throw LIMA_EXC(CameraPlugin, InvalidValue, "ERROR frames OUT OF RANGE");
+						break;
+
+					default:
+						ptr += __sprintfSExt(ptr, ptrMax-ptr, 
+							"ignored\n");
+				}
+
+				ptr += __sprintfSExt(ptr, ptrMax-ptr, 
+					"\nEXIT\n");
+
+				return output;
+			}
 
 
 			//--- test of close

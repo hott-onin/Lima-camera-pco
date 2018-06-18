@@ -956,15 +956,17 @@ void Camera::startAcq()
 
 		if(bOutOfRange)
 		{
+			char msg[MSG1K];
+			__sprintfSExt(msg, sizeof(msg)-1,
+				"ERROR frames OUT OF RANGE ulRequestedFrames[%ld], ulFramesMaxInSegment[%ld], wDoubleImage[%d], forced[%d]",
+				ulRequestedFrames, ulFramesMaxInSegment, wDoubleImage, forced);
 
-			DEB_ALWAYS() << "\nERROR frames OUT OF RANGE " << DEB_VAR4(ulRequestedFrames, ulFramesMaxInSegment, wDoubleImage, forced);
-			{
-				Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamNoMemory, "ERROR frames OUT OF RANGE");
-				_getPcoHwEventCtrlObj()->reportEvent(ev);
-			}
-				m_sync->setStarted(false);
-				m_sync->setExposing(pcoAcqError);
-				return;
+			DEB_ALWAYS() << msg;
+			m_sync->setStarted(false);
+			m_sync->setExposing(pcoAcqError);
+
+			throw LIMA_EXC(CameraPlugin, InvalidValue, msg);
+			return;
 		}
 	}
 

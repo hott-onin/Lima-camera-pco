@@ -1,93 +1,4 @@
 
-2018/06/15 16:01:41 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-15_160135]
-  to: [/t/rhoms1/install-2018-06-15_160135]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/06/15 15:50:52 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-15_155046]
-  to: [/t/rhoms1/install-2018-06-15_155046]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/06/15 15:37:09 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-15_153704]
-  to: [/t/rhoms1/install-2018-06-15_153704]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/06/15 15:17:01 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-15_151655]
-  to: [/t/rhoms1/install-2018-06-15_151655]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/06/15 14:36:07 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-15_143601]
-  to: [/t/rhoms1/install-2018-06-15_143601]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/06/15 14:30:18 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-15_143012]
-  to: [/t/rhoms1/install-2018-06-15_143012]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/06/15 14:29:55 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-15_142949]
-  to: [/t/rhoms1/install-2018-06-15_142949]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/06/15 14:08:54 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-15_140850]
-  to: [/t/rhoms1/install-2018-06-15_140850]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/06/15 13:38:44 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-15_133838]
-  to: [/t/rhoms1/install-2018-06-15_133838]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/06/15 13:13:11 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-15_131305]
-  to: [/t/rhoms1/install-2018-06-15_131305]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/06/15 12:35:05 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-15_123458]
-  to: [/t/rhoms1/install-2018-06-15_123458]
-  to: [/t/rhoms1/install-beta]
-
-
-
 2018/06/15 12:33:26 ==========================================
 #define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
 #define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
@@ -98,40 +9,6 @@ from: [../../install/] and [./bat/]
 #define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/06/15 12:33:24] $"
 #define       TANGO_GIT_VERSION "$Id:     TANGO rev[2018-05-23 11:04:34 +0200] head[c209ba6][c209ba61ce1dfa3c9038543909978fc89082d365] ref[ (HEAD -> core-1.7, gitlab/core-1.7, github/core-1.7)] at [2018/06/15 12:33:24] $"
 #define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD -> master, github/master, github/HEAD)] at [2018/06/15 12:33:24] $"
-
-
-
-2018/05/22 18:55:50 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-05-22_185544]
-  to: [/t/rhoms1/install-2018-05-22_185544]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/05/22 17:51:04 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-05-22_175057]
-  to: [/t/rhoms1/install-2018-05-22_175057]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/05/22 14:42:50 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-05-22_144244]
-  to: [/t/rhoms1/install-2018-05-22_144244]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/05/22 12:53:48 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-05-22_125342]
-  to: [/t/rhoms1/install-2018-05-22_125342]
-  to: [/t/rhoms1/install-beta]
-
 
 
 2018/05/22 12:45:53 ==========================================
@@ -146,8 +23,6 @@ from: [../../install/] and [./bat/]
 #define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/05/22 12:45:52] $"
 
 
-
-
 2018/05/03 17:15:49 ==========================================
 #define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
 #define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
@@ -158,9 +33,6 @@ from: [../../install/] and [./bat/]
 #define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/05/03 17:15:48] $"
 #define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/05/03 17:15:48] $"
 #define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/05/03 17:15:48] $"
-
-
-
 
 2018/05/03 17:14:38 ==========================================
 #define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
@@ -173,9 +45,6 @@ from: [../../install/] and [./bat/]
 #define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/05/03 17:14:37] $"
 #define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/05/03 17:14:37] $"
 
-
-
-
 2018/05/03 16:32:40 ==========================================
 #define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
 #define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
@@ -186,16 +55,12 @@ from: [../../install/] and [./bat/]
 #define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/05/03 16:32:39] $"
 #define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/05/03 16:32:39] $"
 
-
-
 2018/04/27 15:13:12 ==========================================
 scp: copied local directory to segfs and /tmp_14_days:
 from: [../../install/] and [./bat/]
   to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-27_151306]
   to: [/t/rhoms1/install-2018-04-27_151306]
   to: [/t/rhoms1/install-beta]
-
-
 
 2018/04/27 15:10:20 ==========================================
 #define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
@@ -207,113 +72,6 @@ from: [../../install/] and [./bat/]
 #define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/04/27 15:10:19] $"
 #define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/04/27 15:10:19] $"
 
-
-
-2018/04/27 14:51:05 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-27_145059]
-  to: [/t/rhoms1/install-2018-04-27_145059]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/27 14:49:32 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-27_144926]
-  to: [/t/rhoms1/install-2018-04-27_144926]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/27 10:06:34 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-27_100628]
-  to: [/t/rhoms1/install-2018-04-27_100628]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/27 09:44:27 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-27_094422]
-  to: [/t/rhoms1/install-2018-04-27_094422]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/26 18:05:11 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-26_180505]
-  to: [/t/rhoms1/install-2018-04-26_180505]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/26 12:14:55 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-26_121449]
-  to: [/t/rhoms1/install-2018-04-26_121449]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/26 11:08:56 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-26_110849]
-  to: [/t/rhoms1/install-2018-04-26_110849]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/26 08:59:32 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-26_085926]
-  to: [/t/rhoms1/install-2018-04-26_085926]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/25 17:46:20 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-25_174614]
-  to: [/t/rhoms1/install-2018-04-25_174614]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/25 15:37:16 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-25_153709]
-  to: [/t/rhoms1/install-2018-04-25_153709]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/25 11:14:03 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-25_111358]
-  to: [/t/rhoms1/install-2018-04-25_111358]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/25 11:03:04 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-25_110258]
-  to: [/t/rhoms1/install-2018-04-25_110258]
-  to: [/t/rhoms1/install-beta]
-
-
-2018/04/23 19:43:26 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-23_194319]
-  to: [/t/rhoms1/install-2018-04-23_194319]
-  to: [/t/rhoms1/install-beta]
-
-
-
 2018/04/20 10:14:12 ==========================================
 #define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
 #define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
@@ -323,8 +81,6 @@ from: [../../install/] and [./bat/]
 #define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/04/20 10:14:10] $"
 #define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/04/20 10:14:10] $"
 #define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/04/20 10:14:10] $"
-
-
 
 2018/04/18 18:34:59 ==========================================
 #define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
