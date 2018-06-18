@@ -269,15 +269,13 @@ const char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &
 
 #define BUFFER_LEN 256
 #define BUFFVERSION_LEN ( MSG8K )
-stcPcoData::stcPcoData(Camera *cam){
+stcPcoData::stcPcoData(){
 
 	char *ptr, *ptrMax;
 	int i;
 	char buff[BUFFER_LEN+1];
 	
 	memset(this, 0, sizeof(struct stcPcoData));
-
-	m_cam = cam;
 
 	version = new char[BUFFVERSION_LEN];
 	if(!version)

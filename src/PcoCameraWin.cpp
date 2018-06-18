@@ -49,7 +49,7 @@ Camera::Camera(const char *params) :
 	if(m_tmpLog == NULL)
 		throw LIMA_HW_EXC(Error, "m_tmpLog > creation error");
 
-	m_pcoData =new stcPcoData(this);
+	m_pcoData =new stcPcoData();
 	if(m_pcoData == NULL)
 		throw LIMA_HW_EXC(Error, "m_pcoData > creation error");
 
