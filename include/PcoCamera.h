@@ -706,7 +706,7 @@ namespace lima
 
         void getCameraName(std::string& name);
 
-        const char *talk(const char *cmd);
+        const char *talk(const std::string& cmd);
         const char *_talk(const char *cmd, char *output, int lg);
 
 

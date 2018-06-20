@@ -264,14 +264,14 @@ void stcPcoData::traceMsg(char *s){
 }
 
 static char buff[BUFF_INFO_SIZE +16];
-const char *Camera::talk(const char *cmd){
+const char *Camera::talk(const std::string& cmd){
 	DEB_MEMBER_FUNCT();
 
 	static char buff[BUFF_INFO_SIZE +16];
-	sprintf_s(buff, BUFF_INFO_SIZE, "talk> %s", cmd);
+	sprintf_s(buff, BUFF_INFO_SIZE, "talk> %s", cmd.c_str());
 	m_msgLog->add(buff);
 
-	return _talk(cmd, buff, BUFF_INFO_SIZE);
+	return _talk(cmd.c_str(), buff, BUFF_INFO_SIZE);
 }
 
 #define NRTOK 10
