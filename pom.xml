@@ -54,12 +54,21 @@
                 <artifactId>freehep-nar-plugin</artifactId>
                 <configuration>
                     <cpp>
-                        <sourceDirectory>src</sourceDirectory>
+                        <sourceDirectory>${project.basedir}</sourceDirectory>
+                        <includes>
+                            <include>src/*.cpp</include>
+                        </includes>
                         <includePaths>
                             <includePath>include</includePath>
                             <includePath>sdkPco/include</includePath>
                             <includePath>sdkPco</includePath>
                         </includePaths>
+                        
+                        <excludes>
+                            <exclude>src/PcoCameraWin.cpp</exclude> <!-- will be included by PcoCamera.cpp -->
+                            <exclude>src/PcoCameraLin.cpp</exclude>	
+                            <exclude>src/PcoCameraSdkLin.cpp</exclude>                              
+                        </excludes>
 
                         <defines>
                             <define>LIBLIMAPCO_EXPORTS</define>
@@ -69,7 +78,6 @@
                             <define>_USRDLL</define>
                             <!-- <define>_WIN32_WINNT=_WIN32_WINNT_WS03</define> --> <!-- Windows XP SP2 -->
                             <define>_WIN32_WINNT=_WIN32_WINNT_WIN7</define> <!-- Windows 7 -->
-                            <define>WITH_MAVEN_COMPILATION</define>
                         </defines>
                     </cpp>
                     <linker>
