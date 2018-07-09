@@ -130,7 +130,7 @@ void _pco_acq_thread_dimax(void *argin) {
 	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
 
 	char _msg[LEN_MSG + 1];
-    sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
+    __sprintfSExt(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
 	m_cam->_traceMsg(_msg);
 
 	m_cam->_sprintComment(true, fnId, "[ENTRY]");
@@ -203,7 +203,7 @@ void _pco_acq_thread_dimax(void *argin) {
 		if( (dwPcoRequestedFrames > _dwPcoMaxImageCnt) ){
 			nb_frames_fixed = true;
 			
-			sprintf_s(msgErr,LEN_ERROR_MSG, 
+			__sprintfSExt(msgErr,LEN_ERROR_MSG, 
 				"=== %s [%d]> ERROR INVALID NR FRAMES fixed nb_frames[%d] _dwPcoMaxImageCnt[%d]", 
 				fnId, __LINE__, dwPcoRequestedFrames, _dwPcoMaxImageCnt);
 			printf("%s\n", msgErr);
@@ -338,7 +338,7 @@ void _pco_acq_thread_dimax(void *argin) {
 	m_pcoData->traceAcq.endXferTimestamp = m_pcoData->msAcqXferTimestamp = getTimestamp();
 
 
-	sprintf_s(_msg, LEN_MSG, "%s [%d]> [EXIT] imgRecorded[%d] coc[%g] recLoopTime[%ld] "
+	__sprintfSExt(_msg, LEN_MSG, "%s [%d]> [EXIT] imgRecorded[%d] coc[%g] recLoopTime[%ld] "
 			"tout[(%ld) 0(%ld)] rec[%ld] xfer[%ld] all[%ld](ms)\n", 
 			fnId, __LINE__, _dwPcoValidImageCnt, msPerFrame, msNowRecordLoop, timeout, timeout0, msRecord, msXfer, msTotal);
 	m_cam->_traceMsg(_msg);
@@ -437,7 +437,7 @@ void _pco_acq_thread_dimax_trig_single(void *argin) {
 		if( ((DWORD) nb_frames > _dwMaxImageCnt) ){
 			nb_frames_fixed = true;
 			
-			sprintf_s(msgErr,LEN_ERROR_MSG, 
+			__sprintfSExt(msgErr,LEN_ERROR_MSG, 
 				"=== %s [%d]> ERROR INVALID NR FRAMES fixed nb_frames[%d] _dwMaxImageCnt[%d]", 
 				fnId, __LINE__, nb_frames, _dwMaxImageCnt);
 			printf("%s\n", msgErr);
@@ -585,7 +585,7 @@ void _pco_acq_thread_edge(void *argin) {
 	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
 
 	char _msg[LEN_MSG + 1];
-	sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
+	__sprintfSExt(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
 	m_cam->_traceMsg(_msg);
 
 	m_cam->_sprintComment(true, fnId, "[ENTRY]");
@@ -625,7 +625,7 @@ void _pco_acq_thread_edge(void *argin) {
 
 
 	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
-	sprintf_s(_msg, LEN_MSG, "%s> [EXIT] xfer[%ld] (ms) status[%s]\n", 
+	__sprintfSExt(_msg, LEN_MSG, "%s> [EXIT] xfer[%ld] (ms) status[%s]\n", 
 			fnId, msXfer, sPcoAcqStatus[status]);
 	m_cam->_traceMsg(_msg);
 
@@ -664,7 +664,7 @@ void _pco_acq_thread_dimax_live(void *argin) {
 	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
 
 	char _msg[LEN_MSG + 1];
-    sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
+    __sprintfSExt(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
 	m_cam->_traceMsg(_msg);
 
 	struct stcPcoData *m_pcoData = m_cam->_getPcoData();
@@ -698,7 +698,7 @@ void _pco_acq_thread_dimax_live(void *argin) {
 	// dimax xfer time
 	m_pcoData->msAcqXfer = msXfer = msElapsedTime(tStart);
 	m_pcoData->msAcqXferTimestamp = getTimestamp();
-	sprintf_s(_msg, LEN_MSG, "%s> [EXIT] xfer[%ld] (ms) status[%s]\n", 
+	__sprintfSExt(_msg, LEN_MSG, "%s> [EXIT] xfer[%ld] (ms) status[%s]\n", 
 			fnId, msXfer, sPcoAcqStatus[status]);
 	m_cam->_traceMsg(_msg);
 
@@ -718,7 +718,7 @@ void _pco_acq_thread_ringBuffer(void *argin) {
 	BufferCtrlObj* m_buffer = m_cam->_getBufferCtrlObj();
 
 	char _msg[LEN_MSG + 1];
-	sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
+	__sprintfSExt(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
 	m_cam->_traceMsg(_msg);
 
 	m_cam->_sprintComment(true, fnId, "[ENTRY]");
@@ -787,7 +787,7 @@ void _pco_acq_thread_ringBuffer(void *argin) {
 	usElapsedTimeSet(usStart);
 
 	if(error) {
-		sprintf_s(_msg, LEN_MSG, "%s> [%d]> ERROR %s", fnId, __LINE__, msg);
+		__sprintfSExt(_msg, LEN_MSG, "%s> [%d]> ERROR %s", fnId, __LINE__, msg);
 		m_cam->_traceMsg(_msg);
 		//throw LIMA_HW_EXC(Error, "_pco_SetRecordingState");
 	}
@@ -803,7 +803,7 @@ void _pco_acq_thread_ringBuffer(void *argin) {
 		m_pcoData->msAcqXferTimestamp = 
 		getTimestamp();
 
-	sprintf_s(_msg, LEN_MSG, "%s> EXIT xfer[%ld] (ms) status[%s]", 
+	__sprintfSExt(_msg, LEN_MSG, "%s> EXIT xfer[%ld] (ms) status[%s]", 
 			fnId, msXfer, sPcoAcqStatus[status]);
 	m_cam->_traceMsg(_msg);
 
@@ -857,7 +857,7 @@ void _pco_shutter_thread_edge(void *argin) {
 	//SyncCtrlObj* m_sync = m_cam->_getSyncCtrlObj();
 
 	char _msg[LEN_MSG + 1];
-	sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
+	__sprintfSExt(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
 	m_cam->_traceMsg(_msg);
 
 	m_cam->_sprintComment(true, fnId, "[ENTRY]");
@@ -865,7 +865,7 @@ void _pco_shutter_thread_edge(void *argin) {
 	m_cam->_pco_set_shutter_rolling_edge(error);
 
 
-	sprintf_s(_msg, LEN_MSG, "%s> [EXIT]", fnId);
+	__sprintfSExt(_msg, LEN_MSG, "%s> [EXIT]", fnId);
 	m_cam->_traceMsg(_msg);
 
 	//m_sync->setStarted(false); // to test
@@ -956,15 +956,17 @@ void Camera::startAcq()
 
 		if(bOutOfRange)
 		{
+			char msg[MSG1K];
+			__sprintfSExt(msg, sizeof(msg)-1,
+				"ERROR frames OUT OF RANGE ulRequestedFrames[%ld], ulFramesMaxInSegment[%ld], wDoubleImage[%d], forced[%d]",
+				ulRequestedFrames, ulFramesMaxInSegment, wDoubleImage, forced);
 
-			DEB_ALWAYS() << "\nERROR frames OUT OF RANGE " << DEB_VAR4(ulRequestedFrames, ulFramesMaxInSegment, wDoubleImage, forced);
-			{
-				Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamNoMemory, "ERROR frames OUT OF RANGE");
-				_getPcoHwEventCtrlObj()->reportEvent(ev);
-			}
-				m_sync->setStarted(false);
-				m_sync->setExposing(pcoAcqError);
-				return;
+			DEB_ALWAYS() << msg;
+			m_sync->setStarted(false);
+			m_sync->setExposing(pcoAcqError);
+
+			throw LIMA_EXC(CameraPlugin, InvalidValue, msg);
+			return;
 		}
 	}
 

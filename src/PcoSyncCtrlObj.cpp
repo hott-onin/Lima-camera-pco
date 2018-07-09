@@ -625,7 +625,8 @@ void SyncCtrlObj::getStatus(HwInterface::StatusType& status)
 			  status.acq = AcqRunning;
 			  status.det = DetIdle;
 			  break;
-
+  
+			case pcoAcqRecordStop:
 			case pcoAcqRecordTimeout:
 			case pcoAcqWaitTimeout:
 			case pcoAcqWaitError:

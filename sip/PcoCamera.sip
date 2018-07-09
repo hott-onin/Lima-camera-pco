@@ -107,6 +107,13 @@ namespace Pco
 
 		void getNrEvents(int & val /Out/);
 		void setNrEvents(int val);
+		
+		void getRecorderStopRequest(int & val /Out/);
+		void setRecorderStopRequest(int val);
+		
+		void getLastImgFifo(int & val /Out/);
+
+
 
   };
 };
