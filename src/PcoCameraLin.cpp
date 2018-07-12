@@ -803,7 +803,7 @@ Camera::_AcqThread::~_AcqThread()
 //=========================================================================================================
 //=========================================================================================================
 
-Camera::Camera(const char *params) 
+Camera::Camera(const std::string& camPar)
 {
 	//DEF_FNID;
 	DEB_CONSTRUCTOR();
@@ -850,7 +850,7 @@ Camera::Camera(const char *params)
 
 
 	// properties: params 
-	paramsInit(params);
+	paramsInit(camPar.c_str());
 
 	char *value;
 	const char  *key;

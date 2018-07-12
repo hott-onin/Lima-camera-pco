@@ -661,7 +661,7 @@ namespace lima
 
       DEB_CLASS_NAMESPC(DebModCamera,"Camera","Pco");
       public:
-        Camera(const char *camPar);
+        Camera(const std::string& camPar);
         ~Camera();
 
 		enum Status {Fault,Ready,Exposure,Readout,Latency,Config};
@@ -706,7 +706,7 @@ namespace lima
 
         void getCameraName(std::string& name);
 
-        const char *talk(const char *cmd);
+        const char *talk(const std::string& cmd);
         const char *_talk(const char *cmd, char *output, int lg);
 
 

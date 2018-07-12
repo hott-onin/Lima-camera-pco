@@ -2831,7 +2831,7 @@ void Camera::_pco_GetFirmwareInfo(char *buf_in, int size_in, int &err)
 
 		PCO_FW_Vers strFirmwareVersion;
 		WORD wblock = 0;
-		int iCnt, err;
+		int iCnt;
 //		err =  PCO_GetFirmwareInfo(m_handle, wblock++, &strFirmwareVersion);
 		err =  PCO_GetFirmwareInfo(m_handle, wblock++, &strFirmwareVersion);
 		nrDev = (err == PCO_NOERROR) ? strFirmwareVersion.DeviceNum : 0;
