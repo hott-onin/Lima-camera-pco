@@ -334,7 +334,7 @@ int BufferCtrlObj::_xferImag()
 				if(m_cam->_getDebug(DBG_WAITOBJ))
 				{
 					char msg[512];
-					sprintf_s(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] recordState[%d] live[%d]", bufIdx, dwFrameFirst2assign, recording, live_mode);
+					__sprintfSExt(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] recordState[%d] live[%d]", bufIdx, dwFrameFirst2assign, recording, live_mode);
 					m_cam->m_tmpLog->add(msg);  DEB_ALWAYS() << msg;
 				}
 
@@ -356,7 +356,7 @@ int BufferCtrlObj::_xferImag()
 
 					m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
 					char msg[128];
-					sprintf_s(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
+					__sprintfSExt(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
 					DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
 
 				}
@@ -439,7 +439,7 @@ _RETRY:
 			if(m_cam->_getDebug(DBG_WAITOBJ))
 			{
 				char msg[256];
-				sprintf_s(msg,sizeof(msg),"buffNr[%d] dwBuffFrame[%d] dwFrameIdx[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", 
+				__sprintfSExt(msg,sizeof(msg),"buffNr[%d] dwBuffFrame[%d] dwFrameIdx[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", 
 					sBufNr, dwBuffFrame, dwFrameIdx, dwStatusDll, dwStatusDrv, errPco);
 				DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
             }
@@ -460,7 +460,7 @@ _RETRY:
 			if(m_cam->_getDebug(DBG_WAITOBJ))
 			{
 				char msg[512];
-				sprintf_s(msg, sizeof(msg), "... PROCESS PCObuff[%d] TO LIMAbuff[%d] frame[%d]", bufIdx, lima_buffer_nb, dwFrameIdx);
+				__sprintfSExt(msg, sizeof(msg), "... PROCESS PCObuff[%d] TO LIMAbuff[%d] frame[%d]", bufIdx, lima_buffer_nb, dwFrameIdx);
 				DEB_ALWAYS() << msg;
 			}
 			m_pcoData->traceAcq.nrImgAcquired = dwFrameIdx;
@@ -483,14 +483,14 @@ _RETRY:
             if(m_cam->_getDebug(DBG_WAITOBJ))
 			{
 				char msg[128];
-				sprintf_s(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
+				__sprintfSExt(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
 				DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
             }
 
 //			if((dwStatusDll != 0x80000000) || dwStatusDrv || errPco) {
 			if(0) {
 				char msg[MSG1K];
-				sprintf_s(msg,MSG1K,"SDK ERROR got frame[%d / %d] bufIdx[%d] size[%ld] dest[%p] src[%p] \n"
+				__sprintfSExt(msg,MSG1K,"SDK ERROR got frame[%d / %d] bufIdx[%d] size[%ld] dest[%p] src[%p] \n"
 					"dwStatusDll[%08x] dwStatusDrv[%08x] errPco[%08x] err[%s]\n", 
 					dwFrameIdx, dwRequestedFrames, bufIdx,
 					size, ptrDest, ptrSrc,
@@ -546,7 +546,7 @@ _RETRY:
 			{
 				char msg[128];
 				//ResetEvent(m_allocBuff.bufferAllocEvent[bufIdx]);
-				sprintf_s(msg, sizeof(msg), "... RESETING BUFFER BUFFER[%d] frame[%d] live[%d]", bufIdx, dwFrameFirst2assign, live_mode);
+				__sprintfSExt(msg, sizeof(msg), "... RESETING BUFFER BUFFER[%d] frame[%d] live[%d]", bufIdx, dwFrameFirst2assign, live_mode);
 				DEB_ALWAYS() << msg;
 			}
 			else
@@ -555,7 +555,7 @@ _RETRY:
 				{
 					if(m_cam->_getDebug(DBG_WAITOBJ))
 					{
-						sprintf_s(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] live[%d]", bufIdx, dwFrameFirst2assign, live_mode);
+						__sprintfSExt(msg, sizeof(msg), "... ASSIGN BUFFER[%d] frame[%d] live[%d]", bufIdx, dwFrameFirst2assign, live_mode);
 						m_cam->m_tmpLog->add(msg);  DEB_ALWAYS() << msg;
 					}
 					
@@ -574,7 +574,7 @@ _RETRY:
 
 						m_cam->_pco_GetBufferStatus(sBufNr, &dwStatusDll, &dwStatusDrv,errPco);
 						char msg[128];
-						sprintf_s(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
+						__sprintfSExt(msg,sizeof(msg),"buffNr[%d] dwStatusDll[%08lx] dwStatusDrv[%08lx] err[%x]", sBufNr, dwStatusDll, dwStatusDrv, errPco);
 						DEB_ALWAYS() << "... PCO_GetBufferStatus: " << msg;
 					}
 
@@ -662,7 +662,7 @@ _RETRY_WAIT:
 				for(int _id = 0; _id<m_cam->m_pco_buffer_nrevents; _id++)
 				{
 					flag = m_allocBuff.bufferAssignedFrameFirst[_id] == dwFrameIdx ? "***" : "   ";
-					ptr += sprintf_s(ptr, ptrMax - ptr, 
+					ptr += __sprintfSExt(ptr, ptrMax - ptr, 
 						"\n%s [%d] pcoBuffNr[%d] ready[%d] limaFrame[%d] limaPtr[%p] pcoPtr[%p] limaSize[%d] pcoSize[%d]",
 						flag, _id,
 						m_allocBuff.pcoAllocBufferNr[_id],

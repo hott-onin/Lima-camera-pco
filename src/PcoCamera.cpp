@@ -75,13 +75,15 @@ const char * _timestamp_pcodetinfoctrlobj();
 const char * _timestamp_pcocamerautils();
 const char * _timestamp_pcoroictrlobj();
 
-char *_split_date(const char *s);
 
 char *str_trim_left(char *s);
 char *str_trim_right(char *s);
 char *str_trim(char *s) ;
 char *str_toupper(char *s);
 
+char *_split_date(const char *s) ;
+int __xlat_date(char *s1, char &ptrTo, int lenTo) ;
+char *_xlat_date(char *s1, char *s2, char *s3) ;
 
 
 
@@ -99,7 +101,7 @@ const char* _timestamp_pcocamera() {return ID_FILE_TIMESTAMP ;}
 
 char * _timestamp_gitversion(char *buffVersion, int len)
 {
-	sprintf_s(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
+	__sprintfSExt(buffVersion, len, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n", 
 				 PCO_GIT_VERSION,
 				 PCO_SDK_VERSION,
 				 PROCLIB_GIT_VERSION,
@@ -208,7 +210,7 @@ const char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &
 	case InterfaceType: stc = interfaceType; errTable = "interfaceType" ;  break;
 
     default:
-  		sprintf_s(buff, BUFF_XLAT_SIZE, "UNKNOWN XLAT TABLE [%d]", table);
+  		__sprintfSExt(buff, BUFF_XLAT_SIZE, "UNKNOWN XLAT TABLE [%d]", table);
   		err = 1;
 	  	return buff;
   }
@@ -245,7 +247,7 @@ const char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &
 
 		if(ptr)
 		{
-			sprintf_s(buff, BUFF_XLAT_SIZE, "subType DIMAX %s code [0x%04x]", ptr, code);
+			__sprintfSExt(buff, BUFF_XLAT_SIZE, "subType DIMAX %s code [0x%04x]", ptr, code);
 			err = 0;
 			return buff;
 	
@@ -254,7 +256,7 @@ const char * Camera::_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &
 
 	
 	{
-		sprintf_s(buff, BUFF_XLAT_SIZE, "UNKNOWN %s code [0x%04x]", errTable, code);
+		__sprintfSExt(buff, BUFF_XLAT_SIZE, "UNKNOWN %s code [0x%04x]", errTable, code);
 		err = 1;
 		return buff;
 	}
@@ -284,32 +286,32 @@ stcPcoData::stcPcoData(){
 	ptr = version; *ptr = 0;
 	ptrMax = ptr + BUFFVERSION_LEN - 1;
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "\n");
-	ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n", _split_date(_timestamp_pcocamera()));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n", _split_date(_timestamp_pcosyncctrlobj()));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n", _split_date(_timestamp_pcointerface()));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n", _split_date(_timestamp_pcobufferctrlobj()));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n", _split_date(_timestamp_pcodetinfoctrlobj()));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n", _split_date(_timestamp_pcocamerautils()));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n", _split_date(_timestamp_pcoroictrlobj()));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "\n");
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "%s\n", _split_date(_timestamp_pcocamera()));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "%s\n", _split_date(_timestamp_pcosyncctrlobj()));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "%s\n", _split_date(_timestamp_pcointerface()));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "%s\n", _split_date(_timestamp_pcobufferctrlobj()));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "%s\n", _split_date(_timestamp_pcodetinfoctrlobj()));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "%s\n", _split_date(_timestamp_pcocamerautils()));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "%s\n", _split_date(_timestamp_pcoroictrlobj()));
 
 #ifdef WITH_GIT_VERSION
 	char buffVersion[BUFFVERSION_LEN+1];
-	ptr += sprintf_s(ptr, ptrMax - ptr, "%s\n", _timestamp_gitversion(buffVersion, BUFFVERSION_LEN));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "%s\n", _timestamp_gitversion(buffVersion, BUFFVERSION_LEN));
 #endif
 
-	ptr += sprintf_s(ptr, ptrMax - ptr, "       timestamp: %s\n", getTimestamp(Iso));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "   computer name: %s\n", _getComputerName(buff, BUFFER_LEN));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "       user name: %s\n", _getUserName(buff, BUFFER_LEN));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "VS configuration: %s\n", _getVSconfiguration(buff, BUFFER_LEN));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "       timestamp: %s\n", getTimestamp(Iso));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "   computer name: %s\n", _getComputerName(buff, BUFFER_LEN));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "       user name: %s\n", _getUserName(buff, BUFFER_LEN));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "VS configuration: %s\n", _getVSconfiguration(buff, BUFFER_LEN));
 	
 #ifndef __linux__
-	ptr += sprintf_s(ptr, ptrMax - ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_cam.dll"));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "                  %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_cl_me4.dll"));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "                  %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_clhs.dll"));
-	ptr += sprintf_s(ptr, ptrMax - ptr, "    lima pco dll: %s\n", _getDllPath(FILE_PCO_DLL, buff, BUFFER_LEN));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_cam.dll"));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "                  %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_cl_me4.dll"));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "                  %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_clhs.dll"));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "    lima pco dll: %s\n", _getDllPath(FILE_PCO_DLL, buff, BUFFER_LEN));
 #else
-	ptr += sprintf_s(ptr, ptrMax - ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_cam.dll"));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_cam.dll"));
 #endif
 
 
@@ -522,7 +524,7 @@ void Camera::_init(){
 	_armRequired(true);
 
 	m_log.clear();
-	sprintf_s(msg, sizeof(msg), "*** Pco log %s\n", getTimestamp(Iso));
+	__sprintfSExt(msg, sizeof(msg), "*** Pco log %s\n", getTimestamp(Iso));
 	m_log.append(msg);
 
 	DEB_TRACE() <<_getDllPath(FILE_PCO_DLL, msg, sizeof(msg));
@@ -618,11 +620,11 @@ void Camera::_init(){
 	WORD bitsPerPix;
 	getBitsPerPixel(bitsPerPix);
 
-	sprintf_s(msg, MSG_SIZE, "* CCD Size = X[%d] * Y[%d] (%d bits)\n", maxWidth, maxHeight, bitsPerPix);
+	__sprintfSExt(msg, MSG_SIZE, "* CCD Size = X[%d] * Y[%d] (%d bits)\n", maxWidth, maxHeight, bitsPerPix);
 	DEB_TRACE() <<   msg;
 	m_log.append(msg);
 	
-	sprintf_s(msg, MSG_SIZE, "* ROI Steps = x:%d, y:%d\n", maxwidth_step, maxheight_step);
+	__sprintfSExt(msg, MSG_SIZE, "* ROI Steps = x:%d, y:%d\n", maxwidth_step, maxheight_step);
 	DEB_TRACE() <<   msg;
 	m_log.append(msg);
 
@@ -637,7 +639,7 @@ void Camera::_init(){
 	else if(_isCameraType(Edge)) _init_edge();
 	else {
 		char msg[MSG_SIZE+1];
-		sprintf_s(msg, MSG_SIZE, "Camera type not supported! [x%04x]", _getCameraType());
+		__sprintfSExt(msg, MSG_SIZE, "Camera type not supported! [x%04x]", _getCameraType());
 		DEB_ALWAYS() <<  msg;
 
 		throw LIMA_HW_EXC(Error, msg);
@@ -690,7 +692,7 @@ void  Camera::_init_dimax() {
 		m_pcoData->dwRamSize = ramSize;     // nr of pages of the ram
 		m_pcoData->wPixPerPage = pageSize;    // nr of pixels of the page
 
-		sprintf_s(msg, MSG_SIZE, "* ramPages[%d] pixPerPage[%d] bitsPerPix[%d]\n",  
+		__sprintfSExt(msg, MSG_SIZE, "* ramPages[%d] pixPerPage[%d] bitsPerPix[%d]\n",  
 				m_pcoData->dwRamSize, m_pcoData->wPixPerPage, bitsPerPix);
 		DEB_TRACE() <<   msg;
 		m_log.append(msg);
@@ -698,7 +700,7 @@ void  Camera::_init_dimax() {
 		double nrBytes = (double) m_pcoData->dwRamSize  * (double) m_pcoData->wPixPerPage * 
 			(double)bitsPerPix / 9.; // 8 bits data + 1 bit CRC -> 9
 		
-		sprintf_s(msg, MSG_SIZE, "* camMemorySize [%lld B] [%g GB]\n",  
+		__sprintfSExt(msg, MSG_SIZE, "* camMemorySize [%lld B] [%g GB]\n",  
 				(long long int) nrBytes, nrBytes/GIGABYTE);
 		DEB_TRACE() <<   msg;
 		m_log.append(msg);
@@ -715,7 +717,7 @@ void  Camera::_init_dimax() {
 			segmentPco = segmentArr +1;		// PCO segment (1 ... 4)
 			m_pcoData->dwSegmentSize[segmentArr] = segSize[segmentArr];
 
-			sprintf_s(msg, MSG_SIZE, "* segment[%d] number of pages[%d]\n", segmentPco,m_pcoData->dwSegmentSize[segmentArr]);
+			__sprintfSExt(msg, MSG_SIZE, "* segment[%d] number of pages[%d]\n", segmentPco,m_pcoData->dwSegmentSize[segmentArr]);
 			DEB_TRACE() <<   msg;
 			m_log.append(msg);
 
@@ -731,7 +733,7 @@ void  Camera::_init_dimax() {
 			m_pcoData->dwValidImageCnt[segmentArr] = _dwValidImageCnt;
 			m_pcoData->dwMaxImageCnt[segmentArr] = _dwMaxImageCnt;
 
-			sprintf_s(msg, MSG_SIZE, "* segment[%d] nr images [%d]  max imag [%d]\n", segmentPco, _dwValidImageCnt,  _dwMaxImageCnt);
+			__sprintfSExt(msg, MSG_SIZE, "* segment[%d] nr images [%d]  max imag [%d]\n", segmentPco, _dwValidImageCnt,  _dwMaxImageCnt);
 			DEB_TRACE() <<   msg;
 			m_log.append(msg);
 
@@ -747,7 +749,7 @@ void  Camera::_init_dimax() {
 			m_pcoData->dwSegmentSize[0] += m_pcoData->dwSegmentSize[segmentArr];
 			m_pcoData->dwSegmentSize[segmentArr] = 0;
 		}
-		sprintf_s(msg, MSG_SIZE, "* m_pcoData->dwSegmentSize0 [%d]  m_pcoData->dwRamSize [%d]\n", m_pcoData->dwSegmentSize[0], m_pcoData->dwRamSize);
+		__sprintfSExt(msg, MSG_SIZE, "* m_pcoData->dwSegmentSize0 [%d]  m_pcoData->dwRamSize [%d]\n", m_pcoData->dwSegmentSize[0], m_pcoData->dwRamSize);
 		DEB_TRACE() <<   msg;
 		m_log.append(msg);
 
@@ -1147,9 +1149,9 @@ int Camera::PcoCheckError(int line, const char *file, int err, const char *fn, c
 	char *msg;
 	size_t lg;
 
-	sprintf_s(tmpMsg,LEN_TMP_MSG,"PCOfn[%s] file[%s] line[%d]", fn, file,line);
+	__sprintfSExt(tmpMsg,LEN_TMP_MSG,"PCOfn[%s] file[%s] line[%d]", fn, file,line);
 	if (err != 0) {
-		sprintf_s(tmpMsg1,LEN_TMP_MSG,"ERROR - PCOfn[%s]", fn);
+		__sprintfSExt(tmpMsg1,LEN_TMP_MSG,"ERROR - PCOfn[%s]", fn);
 		msgLog(tmpMsg);
 
 		DWORD dwErr = err;
@@ -1160,7 +1162,7 @@ int Camera::PcoCheckError(int line, const char *file, int err, const char *fn, c
 		PCO_GetErrorText(dwErr, msg, ERR_SIZE-14);
         
 		lg = strlen(msg);
-		sprintf_s(msg+lg,ERR_SIZE - lg, " [%s][%d]", file, line);
+		__sprintfSExt(msg+lg,ERR_SIZE - lg, " [%s][%d]", file, line);
 
 		if(err & PCO_ERROR_IS_WARNING) {
 			DEB_WARNING() << fnId << ": --- WARNING - IGNORED --- " << DEB_VAR1(m_pcoData->pcoErrorMsg);
@@ -1188,7 +1190,7 @@ char* Camera::_PcoCheckError(int line, const char *file, int err, int &error, co
 	msg = m_pcoData->pcoErrorMsg;
 
 	if (err != 0) {
-		sprintf_s(tmpMsg,LEN_TMP_MSG,"ERROR %s (%d)", fn, line);
+		__sprintfSExt(tmpMsg,LEN_TMP_MSG,"ERROR %s (%d)", fn, line);
 		
 		PCO_GetErrorText(err, lastErrorMsg, ERR_SIZE-14);
 		//strncpy_s(msg, ERR_SIZE, lastErrorMsg, _TRUNCATE);
@@ -1196,7 +1198,7 @@ char* Camera::_PcoCheckError(int line, const char *file, int err, int &error, co
 
 
 		lg = strlen(msg);
-		sprintf_s(msg+lg,ERR_SIZE - lg, " [%s][%d]", file, line);
+		__sprintfSExt(msg+lg,ERR_SIZE - lg, " [%s][%d]", file, line);
 
 		return lastErrorMsg;
 	}
@@ -1370,7 +1372,7 @@ bool Camera::_isCameraType(unsigned long long tp){
 		case CAMERATYPE_PCO_DIMAX_STD: 
 		case CAMERATYPE_PCO_DIMAX_TV:
 		case CAMERATYPE_PCO_DIMAX_CS:
-			if(tp & Dimax) {DEB_TRACE() << "Dimax [exit] "; return TRUE;}
+			if(tp & (Dimax | camRAM)) {DEB_TRACE() << "Dimax [exit] "; return TRUE;}
 			switch(wCameraSubtype >> 8)
 			{
 				case 0x20:
@@ -1402,10 +1404,10 @@ bool Camera::_isCameraType(unsigned long long tp){
 			return !!(tp & (EdgeRolling | Edge));
 
 		case CAMERATYPE_PCO2000:
-			return !!(tp & Pco2k) ;
+			return !!(tp & (Pco2k | camRAM)) ;
 
 		case CAMERATYPE_PCO4000:
-			return !!(tp & Pco4k) ;
+			return !!(tp & (Pco4k | camRAM)) ;
 
 		default:
 			break;
@@ -1735,7 +1737,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	}
 
 	msg = msgBuff;
-	sprintf_s(msg, MSG_SIZE, "[Change ROLLING SHUTTER from [%d] to [%d]]", 
+	__sprintfSExt(msg, MSG_SIZE, "[Change ROLLING SHUTTER from [%d] to [%d]]", 
 		m_dwSetup[0]==PCO_EDGE_SETUP_ROLLING_SHUTTER, dwRollingShRequested==PCO_EDGE_SETUP_ROLLING_SHUTTER);
 
 	DEB_TRACE() << "Change in ROLLING SHUTTER " << DEB_VAR2(dwRollingShNow, dwRollingShRequested);
@@ -1771,7 +1773,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	m_handle = 0;
 	
 	msg = msgBuff;
-	sprintf_s(msg, MSG_SIZE, "[Sleep %d ms]", sleepMs);
+	__sprintfSExt(msg, MSG_SIZE, "[Sleep %d ms]", sleepMs);
 	DEB_TRACE() << fnId << " " << msg;
 	::Sleep(sleepMs);
 

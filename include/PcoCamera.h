@@ -307,6 +307,7 @@ struct stcLongLongStr
 typedef struct {
 		DWORD nrImgRecorded;
 		DWORD maxImgCount;
+		int lastImgFifo;
 		int nrImgRequested;
 		int nrImgRequested0;
 		int nrImgAcquired;
@@ -351,177 +352,26 @@ typedef struct {
 
 } STC_traceAcq;
 
+
+
+
+
+
+
 //================================================================
 //================================================================
 
-#define SIZEARR_stcPcoHWIOSignal 10
-#define SIZESTR_PcoHWIOSignal 1024
-struct stcPcoData 
+
+namespace lima
 {
-	PCO_General stcPcoGeneral;
-	PCO_CameraType	stcPcoCamType;
-	PCO_Sensor stcPcoSensor;
-	
-//================================================================
-// LINUX / WIN
-//================================================================
-#ifndef __linux__
-	PCO_Description	stcPcoDescription;	/* camera description structure */
-	PCO_Signal stcPcoHWIOSignal[SIZEARR_stcPcoHWIOSignal];
-	PCO_Single_Signal_Desc stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
-
-#else
-	PCO_Description	stcPcoDescriptionWin;	/* camera description structure */
-	SC2_Camera_Description_Response	stcPcoDescription;	/* camera description structure */
-	
-	SC2_Camera_Description_Response stcPcoDesc1;
-    	SC2_Camera_Description_2_Response stcPcoDesc2;
-	PCO_SignalLinux stcPcoHWIOSignal[SIZEARR_stcPcoHWIOSignal];
-	SC2_Get_HW_IO_Signal_Descriptor_Response stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
-	char sPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal][SIZESTR_PcoHWIOSignal+1];
-#endif
-//================================================================
-//================================================================
-
-	const char *sClTransferParameterSettings;
-
-
-	PCO_Timing stcPcoTiming;
-	PCO_Storage stcPcoStorage;
-	PCO_Recording stcPcoRecording;
+  namespace Pco
+  {
+	class Camera;
 
 
 
-	WORD wNrPcoHWIOSignal0;
-	WORD wNrPcoHWIOSignal;
-	unsigned long long debugLevel;
-	unsigned long long testCmdMode;
-	BYTE ipField[4];
-
-#define PARAMS_NR 20
-#define PARAMS_LEN_TOKEN (31)
-#define PARAMS_LEN_BUFF (PARAMS_NR * (PARAMS_LEN_TOKEN +1))
-	struct stcParams {
-		char *ptrKey[PARAMS_NR];
-		char *ptrValue[PARAMS_NR];
-		int nr;
-		char buff[PARAMS_LEN_BUFF+1];
-	} params;
-
-	DWORD dwPixelRateMax;
-
-	char model[MODEL_TYPE_SIZE+1];
-	char modelSubType[MODEL_TYPE_SIZE+1];
-	char iface[INTERFACE_TYPE_SIZE+1];
-	char nameCamIf[LEN_DESCRIPTION_NAME];
-	char nameCam[LEN_DESCRIPTION_NAME];
-	char nameSensor[LEN_DESCRIPTION_NAME];
-	
-	//int	interface_type;
-
-	PCO_SC2_CL_TRANSFER_PARAM clTransferParam;
-	int pcoError;
-    char pcoErrorMsg[ERR_SIZE+1];
-
-	double	cocRunTime;		/* cam operation code - delay & exposure time & readout in s*/
-	double	frameRate;
-
-    WORD    wActiveRamSegment;				/* active ram segment */
-
-  	//WORD		m_acq_mode;
-  	bool		bExtTrigEnabled;
-  	WORD		storage_mode;
-  	WORD		recorder_submode;
-	const char * storage_str;
-	unsigned long	frames_per_buffer; 
-    DWORD   dwRamSize;
-    WORD    wPixPerPage;
-    DWORD   dwMaxFramesInSegment[4];
-    DWORD   dwSegmentSize[4];
-
-	struct stcSegmentInfo m_stcSegmentInfo[PCO_MAXSEGMENTS];
-
-    DWORD   dwValidImageCnt[4];
-    DWORD   dwMaxImageCnt[4];
-
-	WORD	wRoiX0Now, wRoiY0Now, wRoiX1Now, wRoiY1Now;
-
-	WORD wCamType;
-	DWORD dwSerialNumber;
-	WORD wIfType;
-
-	char	camera_name0[CAMERA_NAME_SIZE];
-	char	camera_name_if[CAMERA_NAME_SIZE];
-	char	camera_name[CAMERA_NAME_SIZE];
-	char	sensor_name[CAMERA_NAME_SIZE];
-    char		sensor_type[64];
-    
-    WORD    wNowADC, wNumADC;
-    unsigned int    maxwidth_step, maxheight_step;
-
-    struct stcTemp temperature;
-
-	WORD bMetaDataAllowed, wMetaDataMode, wMetaDataSize, wMetaDataVersion;
-	
-	long msAcqRec, msAcqXfer, msAcqTout, msAcqTnow, msAcqAll;
-	time_t msAcqRecTimestamp, msAcqXferTimestamp, msAcqToutTimestamp, msAcqTnowTimestamp;
-
-	STC_traceAcq traceAcq;
-
-	DWORD dwPixelRate, dwPixelRateRequested;
-	double fTransferRateMHzMax;
-
-	WORD wLUT_Identifier, wLUT_Parameter;
-
-	DWORD dwAllocatedBufferSize;
-	int iAllocatedBufferNumber;
-	int iAllocatedBufferNumberLima;
-	bool bAllocatedBufferDone;
-	DWORD dwRollingShutter;
-
-	char *version;
-
-	double min_exp_time, min_exp_time_err, step_exp_time;
-	double max_exp_time, max_exp_time_err;
-	double min_lat_time, min_lat_time_err, step_lat_time;
-	double max_lat_time, max_lat_time_err;
-	
-	WORD wBitAlignment; // 0 = MSB (left) alignment
-	
-	struct 
-	{
-	    time_t 
-	        constructor,
-	        startAcq,
-	        stopAcq;
-	} timestamps;
-	            
-
-	struct 
-	{
-	    time_t ts[DIM_ACTION_TIMESTAMP];
-	} action_timestamp;
-
-	stcPcoData();
-
-
-	void traceAcqClean();
-	void traceMsg(char *s);
-
-	int testForceFrameFirst0;
-	bool pcoLogActive;
-
-	int acqTimeoutRetry; // max nr of timeout during acq (wait for mult obj)
-
-	bool params_xMinSize;
-	bool params_ignoreMaxImages;
-
-	char camerasFound[MSG1K];
-
-	long reserved[32];
-
-}; // struct stcPcoData
-
+} // Pco
+} // lima
 
 
 
@@ -552,6 +402,7 @@ enum enumPcoFamily {
 	DimaxHS1			= 1<<9,
 	DimaxHS2			= 1<<10,
 	DimaxHS4			= 1<<11,
+	camRAM				= 1<<12,
 };
 
 enum enumInterfaceTypes 
@@ -617,6 +468,12 @@ enum enumTraceAcqId
     
     
 };
+
+#define SIZEARR_stcPcoHWIOSignal 10
+#define SIZESTR_PcoHWIOSignal 1024
+#define PARAMS_NR 20
+#define PARAMS_LEN_TOKEN (31)
+#define PARAMS_LEN_BUFF (PARAMS_NR * (PARAMS_LEN_TOKEN +1))
     
 namespace lima
 {
@@ -626,6 +483,156 @@ namespace lima
     class SyncCtrlObj;
     class VideoCtrlObj;
 	class Camera;
+
+	//--------------------------------------- stcPcoData
+	struct stcPcoData 
+	{
+		PCO_General stcPcoGeneral;
+		PCO_CameraType	stcPcoCamType;
+		PCO_Sensor stcPcoSensor;
+		
+#ifndef __linux__
+		PCO_Description	stcPcoDescription;	/* camera description structure */
+		PCO_Signal stcPcoHWIOSignal[SIZEARR_stcPcoHWIOSignal];
+		PCO_Single_Signal_Desc stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
+#else
+		PCO_Description	stcPcoDescriptionWin;	/* camera description structure */
+		SC2_Camera_Description_Response	stcPcoDescription;	/* camera description structure */
+		
+		SC2_Camera_Description_Response stcPcoDesc1;
+    		SC2_Camera_Description_2_Response stcPcoDesc2;
+		PCO_SignalLinux stcPcoHWIOSignal[SIZEARR_stcPcoHWIOSignal];
+		SC2_Get_HW_IO_Signal_Descriptor_Response stcPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal];
+		char sPcoHWIOSignalDesc[SIZEARR_stcPcoHWIOSignal][SIZESTR_PcoHWIOSignal+1];
+#endif
+
+		const char *sClTransferParameterSettings;
+
+		PCO_Timing stcPcoTiming;
+		PCO_Storage stcPcoStorage;
+		PCO_Recording stcPcoRecording;
+
+		WORD wNrPcoHWIOSignal0;
+		WORD wNrPcoHWIOSignal;
+		unsigned long long debugLevel;
+		unsigned long long testCmdMode;
+		BYTE ipField[4];
+
+		struct stcParams {
+			char *ptrKey[PARAMS_NR];
+			char *ptrValue[PARAMS_NR];
+			int nr;
+			char buff[PARAMS_LEN_BUFF+1];
+		} params;
+
+		DWORD dwPixelRateMax;
+
+		char model[MODEL_TYPE_SIZE+1];
+		char modelSubType[MODEL_TYPE_SIZE+1];
+		char iface[INTERFACE_TYPE_SIZE+1];
+		char nameCamIf[LEN_DESCRIPTION_NAME];
+		char nameCam[LEN_DESCRIPTION_NAME];
+		char nameSensor[LEN_DESCRIPTION_NAME];
+		
+		PCO_SC2_CL_TRANSFER_PARAM clTransferParam;
+		int pcoError;
+		char pcoErrorMsg[ERR_SIZE+1];
+
+		double	cocRunTime;		/* cam operation code - delay & exposure time & readout in s*/
+		double	frameRate;
+
+		WORD    wActiveRamSegment;				/* active ram segment */
+
+  		bool		bExtTrigEnabled;
+  		WORD		storage_mode;
+  		WORD		recorder_submode;
+		const char * storage_str;
+		unsigned long	frames_per_buffer; 
+		DWORD   dwRamSize;
+		WORD    wPixPerPage;
+		DWORD   dwMaxFramesInSegment[4];
+		DWORD   dwSegmentSize[4];
+
+		struct stcSegmentInfo m_stcSegmentInfo[PCO_MAXSEGMENTS];
+
+		DWORD   dwValidImageCnt[4];
+		DWORD   dwMaxImageCnt[4];
+
+		WORD	wRoiX0Now, wRoiY0Now, wRoiX1Now, wRoiY1Now;
+
+		WORD wCamType;
+		DWORD dwSerialNumber;
+		WORD wIfType;
+
+		char	camera_name0[CAMERA_NAME_SIZE];
+		char	camera_name_if[CAMERA_NAME_SIZE];
+		char	camera_name[CAMERA_NAME_SIZE];
+		char	sensor_name[CAMERA_NAME_SIZE];
+		char		sensor_type[64];
+	    
+		WORD    wNowADC, wNumADC;
+		unsigned int    maxwidth_step, maxheight_step;
+
+		struct stcTemp temperature;
+
+		WORD bMetaDataAllowed, wMetaDataMode, wMetaDataSize, wMetaDataVersion;
+		
+		long msAcqRec, msAcqXfer, msAcqTout, msAcqTnow, msAcqAll;
+		time_t msAcqRecTimestamp, msAcqXferTimestamp, msAcqToutTimestamp, msAcqTnowTimestamp;
+
+		STC_traceAcq traceAcq;
+
+		DWORD dwPixelRate, dwPixelRateRequested;
+		double fTransferRateMHzMax;
+
+		WORD wLUT_Identifier, wLUT_Parameter;
+
+		DWORD dwAllocatedBufferSize;
+		int iAllocatedBufferNumber;
+		int iAllocatedBufferNumberLima;
+		bool bAllocatedBufferDone;
+		DWORD dwRollingShutter;
+
+		char *version;
+
+		double min_exp_time, min_exp_time_err, step_exp_time;
+		double max_exp_time, max_exp_time_err;
+		double min_lat_time, min_lat_time_err, step_lat_time;
+		double max_lat_time, max_lat_time_err;
+		
+		WORD wBitAlignment; // 0 = MSB (left) alignment
+		
+		struct 
+		{
+			time_t 
+				constructor,
+				startAcq,
+				stopAcq;
+		} timestamps;
+
+		struct 
+		{
+			time_t ts[DIM_ACTION_TIMESTAMP];
+		} action_timestamp;
+
+		stcPcoData();
+
+		void traceAcqClean();
+		void traceMsg(char *s);
+
+		int testForceFrameFirst0;
+		bool pcoLogActive;
+
+		int acqTimeoutRetry; // max nr of timeout during acq (wait for mult obj)
+
+		bool params_xMinSize;
+		bool params_ignoreMaxImages;
+
+		char camerasFound[MSG1K];
+
+		long reserved[32];
+
+	}; // struct stcPcoData
 
 	//--------------------------------------- class CehckImgNr
 	class CheckImgNr 
@@ -645,7 +652,7 @@ namespace lima
 			int pcoImgNrOrder;
 			int pcoImgNrLast;
 			int alignmentShift;
-	};
+	}; // class CheckImgNr
 
 
 	//--------------------------------------- class Camera
@@ -670,26 +677,20 @@ namespace lima
 		void 	startAcq();
 		void	reset(int reset_level);
 
-//================================================================
-// LINUX
-//================================================================
 #ifdef __linux__
-  	CPco_com *camera;
-  	CPco_grab_cl_me4* grabber;
-    CPco_Log *mylog;
+	  	CPco_com *camera;
+  		CPco_grab_cl_me4* grabber;
+		CPco_Log *mylog;
 
         void    stopAcq();
         void    _stopAcq(bool waitForThread);
 #endif
-//================================================================
-//================================================================
 
 		// ----- BIN
 		void setBin(const Bin& aBin);
 		void getBin(Bin& aBin);
 		void checkBin(Bin& aBin);
 		// -----
-
 
 		HANDLE& getHandle() {return m_handle;}
 
@@ -713,7 +714,6 @@ namespace lima
         unsigned long _pco_GetNumberOfImagesInSegment_MaxCalc(int segmentPco);
 
 		unsigned long	pcoGetFramesPerBuffer() { return m_pcoData->frames_per_buffer; }
-
 
 		PcoHwEventCtrlObj *_getPcoHwEventCtrlObj() {return m_HwEventCtrlObj;}
 		BufferCtrlObj* _getBufferCtrlObj() { return m_buffer;}
@@ -756,16 +756,11 @@ namespace lima
 
 		Cond m_cond;
 
-//================================================================
-// LINUX
-//================================================================
 #ifdef __linux__
         class _AcqThread;
         friend class _AcqThread;
-	_AcqThread*                   m_acq_thread;
+		_AcqThread*                   m_acq_thread;
 #endif    
-//================================================================
-//================================================================
         volatile bool               m_wait_flag;
         volatile bool               m_quit;
         volatile bool               m_thread_running;
@@ -788,6 +783,8 @@ namespace lima
 		int m_pco_buffer_nrevents;
 
 		bool bRecorderForcedFifo;
+		int iRecorderStopRequest;
+
 		//----------------------------------
 
         Camera::Status m_status;
@@ -809,7 +806,6 @@ namespace lima
         DWORD dwPixelRateMax;
         int iPixelRateValidNr;
         
-        
         //------------- linux sdk
 
         int PcoCheckError(int line, const char *file, int err, const char *fn = "***", const char *comments = "");
@@ -818,8 +814,6 @@ namespace lima
 
 
 		void _presetPixelRate(DWORD &pixRate, int &error);
-
-
 		void _get_shutter_rolling_edge(DWORD &dwRolling, int &error);
 		void _set_shutter_rolling_edge(DWORD dwRolling, int &error);
 
@@ -827,16 +821,11 @@ namespace lima
 		void _init_edge();
 		void _init_dimax();
 
-
 		void _pco_SetPixelRate(int &error);
 		//char *_pco_SetPixelRate(int &error);
 
-
-
 		bool _isValid_pixelRate(DWORD dwPixelRate);
 		bool _isValid_rollingShutter(DWORD dwRollingShutter);
-		
-
 
 		void getRoiSymetrie(bool &bSymX, bool &bSymY );
 		void _get_logLastFixedRoi(Roi &requested_roi, Roi &fixed_roi, time_t & dt);
@@ -877,33 +866,25 @@ namespace lima
 
 		DWORD _getCameraSerialNumber()  ;
 
-
 		const char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
 		const char *xlatCode2Str(int code, struct stcXlatCode2Str *stc);
 
 		bool _getCameraState(long long flag);
 		void _setCameraState(long long flag, bool val);
-//================================================================
-// WIN
-//================================================================
+
 #ifndef __linux__
 		bool _isRunAfterAssign();
 #endif
-//================================================================
-//================================================================
+
 		bool _isCapsDesc(int caps);
        	void _pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &err);
 
 		void _pco_GetGeneralCapsDESC(DWORD &capsDesc1, int &err);
 
-
 //----
 		void _pco_SetCameraToCurrentTime(int &error);
 		void _pco_SetCamLinkSetImageParameters(int &error);
 
-//================================================================
-// LINUX
-//================================================================
 #ifdef __linux__
 		void _pco_GetLut(int &err);
 		void _pco_Open_Cam(int &err);
@@ -911,16 +892,11 @@ namespace lima
 		void _pco_GetCameraInfo(int &error);
  		void _pco_ResetSettingsToDefault(int &err);
 #endif
-//================================================================
-//================================================================
-
    		void _pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error); 
 		void _pco_SetTransferParameter_SetActiveLookupTable_win(int &error);
  		void _pco_SetTransferParameter_SetActiveLookupTable(int &error);
 	 
-		
-		
-	  public:
+		public:
 		//----------- attributes
 
 		void getAcqTimeoutRetry(int &val);
@@ -1051,14 +1027,9 @@ namespace lima
 
 		void dummySip();
 
-//================================================================
-// LINUX
-//================================================================
 #ifdef __linux__
         void _waitForRecording(int nrFrames, DWORD &_dwValidImageCnt, DWORD &_dwMaxImageCnt, int &error) ;
 #endif
-//================================================================
-//================================================================
 		//----
 		void _pco_GetInfoString(int infotype, char *buf_in, int size_in, int &error);
 		void _pco_GetBinning(Bin &bin, int &err);
@@ -1099,7 +1070,6 @@ namespace lima
         void _pco_AddBufferEx(DWORD dw1stImage, DWORD dwLastImage,
             SHORT sBufNr, WORD wXRes, WORD wYRes, WORD wBitPerPixel, int &err);
 
-
         //----
 		void _pco_RebootCamera(int &err);
 		void _pco_OpenCamera(int &err);
@@ -1110,8 +1080,6 @@ namespace lima
 		void _pco_SetTimeouts(void *buf_in, unsigned int size_in, int &err);
 		void _pco_GetCameraRamSegmentSize(DWORD* dwRamSegSize, int &err);
 		void _pco_SetCameraRamSegmentSize(DWORD* dwRamSegSize, int &err);
-
-
 
 		void _pco_OpenCameraSn(DWORD sn, int &err);
 		void _pco_GetCameraTypeOnly(int &err);
@@ -1140,11 +1108,21 @@ namespace lima
 		void getNrEvents(int & val);
 		void setNrEvents(int val);
 
+		void getRecorderStopRequest(int & val);
+		void setRecorderStopRequest(int val);
+		int _getRecorderStopRequest();
+		int _setRecorderStopRequest(int val);
+
+		void getLastImgFifo(int & val);
+
+
 	}; // class camera
   } // namespace pco
 } // namespace lima
 
 void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase);
+
+int __sprintfSExt(char* ptr, size_t nrMax, const char* format, ...);
 
 
 

@@ -274,7 +274,7 @@ the preprocessor change these values to strings:
 
 then we can use in:
 
-	sprintf_s(infoBuff, bufCharCount, "platform[%s] configuration[%s]",  
+	__sprintfSExt(infoBuff, bufCharCount, "platform[%s] configuration[%s]",  
 		VS_PLATFORM,
 		VS_CONFIGURATION); 
 

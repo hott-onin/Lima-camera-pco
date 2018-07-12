@@ -973,7 +973,7 @@ void Camera::_waitForRecording(int nrFrames, DWORD &_dwValidImageCnt, DWORD &_dw
 
 
 	char _msg[LEN_MSG + 1];
-    sprintf_s(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
+    __sprintfSExt(_msg, LEN_MSG, "%s> [ENTRY]", fnId);
 	_traceMsg(_msg);
 
 	m_pcoData->traceAcq.fnId = fnId;
@@ -1039,7 +1039,7 @@ void Camera::_waitForRecording(int nrFrames, DWORD &_dwValidImageCnt, DWORD &_dw
 		if( ((DWORD) nb_frames > _dwMaxImageCnt) ){
 			nb_frames_fixed = true;
 			
-			sprintf_s(msgErr,LEN_ERROR_MSG, 
+			__sprintfSExt(msgErr,LEN_ERROR_MSG, 
 				"=== %s [%d]> ERROR INVALID NR FRAMES fixed nb_frames[%d] _dwMaxImageCnt[%d]", 
 				fnId, __LINE__, nb_frames, _dwMaxImageCnt);
 			printf("%s\n", msgErr);
@@ -1150,7 +1150,7 @@ void Camera::_waitForRecording(int nrFrames, DWORD &_dwValidImageCnt, DWORD &_dw
 	m_pcoData->traceAcq.endXferTimestamp = m_pcoData->msAcqXferTimestamp = getTimestamp();
 
 
-	sprintf_s(_msg, LEN_MSG, "%s [%d]> [EXIT] imgRecorded[%d] coc[%g] recLoopTime[%ld] "
+	__sprintfSExt(_msg, LEN_MSG, "%s [%d]> [EXIT] imgRecorded[%d] coc[%g] recLoopTime[%ld] "
 			"tout[(%ld) 0(%ld)] rec[%ld] xfer[%ld] all[%ld](ms)\n", 
 			fnId, __LINE__, _dwValidImageCnt, msPerFrame, msNowRecordLoop, timeout, timeout0, msRecord, msXfer, msTotal);
 	_traceMsg(_msg);
