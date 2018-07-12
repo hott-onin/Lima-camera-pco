@@ -8,14 +8,14 @@ namespace Pco
 %End
   public:
 
-        Camera(const char*);
+        Camera(const std::string&);
         ~Camera();
 
 
         void 	startAcq();
         void	reset(int);
 
-        const char *talk(const char *cmd);
+        const char *talk(const std::string& cmd);
 
         int getNbAcquiredFrames();
 

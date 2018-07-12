@@ -24,7 +24,7 @@
 //=========================================================================================================
 //=========================================================================================================
 
-Camera::Camera(const char *params) :
+Camera::Camera(const std::string& camPar) :
 	m_cam_connected(false),
 	m_acq_frame_nb(1),
 	m_sync(NULL),
@@ -58,7 +58,7 @@ Camera::Camera(const char *params) :
 
 
 	// properties: params 
-	paramsInit(params);
+	paramsInit(camPar.c_str());
 
 	char *value;
 	const char  *key;

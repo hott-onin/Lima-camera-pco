@@ -31,11 +31,20 @@ set(PCO_SDKLIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPcoLin" CACHE PATH "location 
 
 IF(WIN32)
     #Sources
-    SET(${NAME}_srcs src/PcoCamera.cpp src/PcoInterface.cpp src/PcoDetInfoCtrlObj.cpp
-	                    src/PcoSyncCtrlObj.cpp src/PcoRoiCtrlObj.cpp
-	                    src/PcoBufferCtrlObj.cpp src/PcoHwEventCtrlObj.cpp
-			    src/PcoCameraUtils.cpp src/PcoCameraSdk.cpp)
-
+    SET(${NAME}_srcs
+      src/PcoBinCtrlObj.cpp
+      src/PcoBufferCtrlObj.cpp
+      src/PcoCamera.cpp
+      src/PcoCameraSdk.cpp
+      src/PcoCameraSdkWin.cpp
+      src/PcoCameraSip.cpp
+      src/PcoCameraUtils.cpp
+      src/PcoDetInfoCtrlObj.cpp
+      src/PcoHwEventCtrlObj.cpp
+      src/PcoInterface.cpp
+      src/PcoRoiCtrlObj.cpp
+      src/PcoSyncCtrlObj.cpp
+    )
 
     ADD_LIBRARY(lima${NAME} SHARED ${${NAME}_srcs})
 
@@ -50,8 +59,6 @@ IF(WIN32)
     TARGET_LINK_LIBRARIES(lima${NAME} ${PCO_LIB_CAM})
 
     limatools_set_library_soversion(lima${NAME} "VERSION")
-    SET_TARGET_PROPERTIES(lima${NAME} PROPERTIES PREFIX "lib")
-    INSTALL(TARGETS lima${NAME} DESTINATION lib)
 
     IF(LIMA_ENABLE_PYTHON)
         limatools_run_sip_for_camera(${NAME})
@@ -126,14 +133,13 @@ if(UNIX)
 
     limatools_set_library_soversion(lima${NAME} "VERSION")
 
-    install(TARGETS lima${NAME} LIBRARY DESTINATION lib)
-
-
     if(LIMA_ENABLE_PYTHON)
         limatools_run_sip_for_camera(${NAME})
         install(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco")
     endif()
 endif()
+
+limatools_set_install_libdir(lima${NAME})
 
 #============================================================================
 #============================================================================

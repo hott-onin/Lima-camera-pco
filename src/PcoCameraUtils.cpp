@@ -135,7 +135,8 @@ time_t getTimestamp() { return time(NULL); }
 //====================================================================
 //$Id: [Oct  8 2013 15:21:07] [Tue Oct  8 15:21:07 2013] (..\..\..\..\src\PcoCamera.cpp) $
 
-#define LEN_BUFF_DATE 1024
+#define LEN_BUFF_DATE 128
+#define LEN_BUFF_PATH 260 //Same as MAX_PATH under Windows
 #define TOKNR_DT 5
 
 
@@ -175,9 +176,9 @@ int __xlat_date(char *s1, char &ptrTo, int lenTo) {
 }
 
 char *_xlat_date(char *s1, char *s2, char *s3) {
-	static char buff[LEN_BUFF_DATE+1];
+	static char buff[2 * LEN_BUFF_DATE + LEN_BUFF_PATH];
 	char *ptr = buff;
-	char *ptrMax = buff + LEN_BUFF_DATE;
+	char *ptrMax = buff + sizeof(buff) - 1;
 
 	ptr += __sprintfSExt(ptr, ptrMax-ptr, "$Id: comp[");
 	ptr += __xlat_date(s1, *ptr, (int) (ptrMax - ptr));
@@ -267,14 +268,14 @@ void stcPcoData::traceMsg(char *s){
 }
 
 static char buff[BUFF_INFO_SIZE +16];
-const char *Camera::talk(const char *cmd){
+const char *Camera::talk(const std::string& cmd){
 	DEB_MEMBER_FUNCT();
 
 	static char buff[BUFF_INFO_SIZE +16];
-	__sprintfSExt(buff, BUFF_INFO_SIZE, "talk> %s", cmd);
+	__sprintfSExt(buff, BUFF_INFO_SIZE, "talk> %s", cmd.c_str());
 	m_msgLog->add(buff);
 
-	return _talk(cmd, buff, BUFF_INFO_SIZE);
+	return _talk(cmd.c_str(), buff, BUFF_INFO_SIZE);
 }
 
 #define NRTOK 10
