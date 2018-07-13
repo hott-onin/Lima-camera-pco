@@ -782,8 +782,9 @@ namespace lima
 
 		int m_pco_buffer_nrevents;
 
-		bool bRecorderForcedFifo;
-		int iRecorderStopRequest;
+		bool m_bRecorderForcedFifo;
+		int m_iRecorderStopRequest;
+		int m_iPcoAcqMode;
 
 		//----------------------------------
 

@@ -849,32 +849,9 @@ int BufferCtrlObj::_xferImag()
 				FALSE,								// wait for any object
 				msTimeout);							// ms wait timeout
 
-
 			//GetPendingBuffer(hCamera, &ipending);// <--- This can indicate that more than one buffer is ready
 			// If this returns 3 in ipending, everyting is fine and you keep the pace.
 			
-#if 0
-			switch (eventRet) { 
-        case WAIT_OBJECT_0 + 0: 
-				printf("--- WAIT_OBJECT_0 + 0 / event[%d]\n", eventRet);
-				break;
-		case WAIT_OBJECT_0 + 1: 
-				printf("--- WAIT_OBJECT_0 + 1 / event[%d]\n", eventRet);
-				break;
-        case WAIT_OBJECT_0 + 2: 
-				printf("--- WAIT_OBJECT_0 + 2 / event[%d]\n", eventRet);
-				break;
-        case WAIT_OBJECT_0 + 3: 
-				printf("--- WAIT_OBJECT_0 + 3 / event[%d]\n", eventRet);
-				break;
-        case WAIT_TIMEOUT: 
-				printf("--- WAIT_TIMEOUT / event[%d]\n", eventRet);
-				break;
-		default: 
-				printf("--- DEFAULT / event[%d]\n", eventRet);
-				break;
-    }
-#endif
 			if((eventRet >= eventMin) && (eventRet <= eventMax))
 			{
 				if(dbgTraceFifo)
@@ -892,7 +869,6 @@ int BufferCtrlObj::_xferImag()
 			if ((errPco != 0) || (dwStatusDrv != 0))
 			{
 				char msg[256];
-
 				__sprintfSExt(msg, sizeof(msg),
 					"err[0x%lx] dwStatusDll[0x%lx] dwStatusDrv[0x%lx] \n"
 					"sBufNr[%d] WAITOBJ[%d] dwFrameIdx[%d] iLoopsPolled[%d] msTimeout[%d]\n",
@@ -913,10 +889,6 @@ int BufferCtrlObj::_xferImag()
 		{
 			printf("---TRACE iLoopsPolled[%d] dwStatusDll[0x%lx] sBufNr[%d] dwFrameIdx[%d]\n", iLoopsPolled, dwStatusDll, sBufNr, dwFrameIdx);
 		}		
-
-
-
-
 
 		// -----------------------------------------------------------------------------------------
 		// ---------------------------------- sBufNr was fired

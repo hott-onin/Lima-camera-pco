@@ -872,14 +872,14 @@ void Camera::setRecorderForcedFifo(int val)
 {
 	DEB_MEMBER_FUNCT();
 
-	bRecorderForcedFifo = !! val;
+	m_bRecorderForcedFifo = !! val;
 
 }
 
 void Camera::getRecorderForcedFifo(int &val) 
 {
 	DEB_MEMBER_FUNCT();
-	val = bRecorderForcedFifo;
+	val = m_bRecorderForcedFifo;
 
 }
 //====================================================================
@@ -938,7 +938,7 @@ void Camera::getRecorderStopRequest(int &val)
 int Camera::_getRecorderStopRequest() 
 {
 	DEB_MEMBER_FUNCT();
-	return iRecorderStopRequest;
+	return m_iRecorderStopRequest;
 
 }
 
@@ -946,7 +946,7 @@ int Camera::_setRecorderStopRequest(int val)
 {
 	DEB_MEMBER_FUNCT();
 
-	return (iRecorderStopRequest = val);
+	return (m_iRecorderStopRequest = val);
 
 }
 //====================================================================

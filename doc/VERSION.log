@@ -1,4 +1,18 @@
 
+
+2018/07/13 10:20:30 ==========================================
+#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
+#define        PCO_LIMA_VERSION "$Id:   PCOLIMA [1.7.7] $"
+#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-07-12 14:47:34 +0200] head[fe27cd4][fe27cd47b3d69fae33d7e4b32c3a6096a0a988f4] ref[ (HEAD -> master, gitrh/master, gitlab/master, github/master, github/HEAD)] at [2018/07/13 10:20:28] $"
+#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-05-23 12:18:49 +0200] head[31a027d1][31a027d1269c578dcfd371ed39fb2ab50672bd41] ref[ (HEAD -> core-1.7, tag: pco-1.7.7, gitlab/core-1.7, github/core-1.7)] at [2018/07/13 10:20:28] $"
+#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/07/13 10:20:28] $"
+#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/07/13 10:20:28] $"
+#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2018-05-23 11:04:34 +0200] head[c209ba6][c209ba61ce1dfa3c9038543909978fc89082d365] ref[ (HEAD -> core-1.7, gitlab/core-1.7, github/core-1.7)] at [2018/07/13 10:20:28] $"
+#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD -> master, github/master, github/HEAD)] at [2018/07/13 10:20:28] $"
+
+
+
 2018/06/19 09:52:35 ==========================================
 scp: copied local directory to segfs and /tmp_14_days:
 from: [../../install/] and [./bat/]

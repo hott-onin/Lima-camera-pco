@@ -5,6 +5,91 @@
 #===================================================
 
 #===================================================
+# 2018/04/24 / RecorderForcedFifo
+#   requested by Solei
+#===================================================
+
+- with RAMCAM family, make and acq with more frames than allowed
+  the memory size
+  
+void Camera::setRecorderForcedFifo(int val) ; 
+void Camera::getRecorderForcedFifo(int &val) ;
+
+when this special mode is set the cam the live mode is set
+and the nr of img is set (Nr > maxNrImgInBuffer)
+
+live mode -> assign buffer 1rst img = last img = 0
+             "last img acquired"
+             
+NOTE:
+- if the readout time is higher than the acq time
+  some img will be lost
+  sdk return the LAST image acquired
+
+implemented in 
+int BufferCtrlObj::_xferImag()
+
+procedure:
+- set recorderForcedFifo to 1
+- set the nr of images (Nr > maxNrImgInBuffer)
+- make the acq at frame rate not higer than allowed by the readout
+
+tested by Solei OK
+
+
+#===================================================
+# 2016/01/20 / implement a trig start sequence in pco-dimax
+#
+#   https://jira.esrf.fr/browse/SID27-67
+#   https://jira.esrf.fr/browse/SID19-169
+#===================================================
+pco / properties
+  params    trigSingleMulti=1
+            -> m_extTrigSingle_eq_Multi 
+
+case ExtTrigSingle:
+  trig (at ACQ ENABLE) starts a sequence of int trigger (dimax only)
+    the cam is acquiring with int trigger in ring buffer
+    when cam receive a trig at ACQ ENABLE, it continues
+    acquiring images and STOP after N images
+    the last N images saved in the ram, can retrive from 1 .. N
+    
+  //   StorageMode 0 - record mode
+  //   RecorderSubmode 1 - ring buffer
+  //   Triggermode 0 - auto
+  //   Acquiremode 0 - auto / ignored
+  
+=== prepareAcq
+
+	// ------- set Record Stop Event (used for dimax for ExtTrigSingle)
+	if(_isCameraType(Dimax)) {
+		if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) {
+			wRecordStopEventMode = 0x0002;    // record stop by edge at the <acq. enbl.>
+			dwRecordStopDelayImages = iRequestedFrames;
+			_pco_SetRecordStopEvent(wRecordStopEventMode, dwRecordStopDelayImages, error);
+		}
+	}  
+
+    if(_isCameraType(Dimax | Pco4k | Pco2k)) {
+        if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) 
+		{
+			mode = RecRing;
+		} 
+
+=== startAcq
+		if((iRequestedFrames > 0 ) && (forcedFifo == 0) ){
+			if((trig_mode  == ExtTrigSingle) ) {
+				_beginthread( _pco_acq_thread_dimax_trig_single, 0, (void*) this);
+				
+				
+=== checkTrigMode
+	switch(trig_mode){
+		case ExtTrigSingle:
+			if ((m_cam->_isCameraType(Dimax)) || m_extTrigSingle_eq_Multi) return true ;
+				break;
+		
+
+#===================================================
 #========= 2017/09/22 / lima patch for buff realloc
 #===================================================
 lima tag - tango-camera-pco-1.7.5

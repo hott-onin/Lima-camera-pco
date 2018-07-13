@@ -32,7 +32,8 @@ Camera::Camera(const std::string& camPar) :
 	m_handle(NULL),
 	m_Roi_lastFixed_time(0),
 	m_pco_buffer_nrevents(PCO_BUFFER_NREVENTS),
-	bRecorderForcedFifo(false)
+	m_iPcoAcqMode(0),
+	m_bRecorderForcedFifo(false)
 {
 	DEF_FNID;
 	DEB_CONSTRUCTOR();
