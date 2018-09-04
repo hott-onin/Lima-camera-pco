@@ -2393,19 +2393,35 @@ void Camera::_pco_SetTransferParameter_SetActiveLookupTable(int &error){
 	// PCO_SetActiveLookupTable
 	//================================================================================================
 
-	if(doLut) {
+
+	if(doLut && !_isInterfaceType(ifCameralinkHS) ) 
+	{
 		WORD _wLUT_Identifier, _wLUT_Parameter;
 
-		PCO_FN3(error, pcoFn,PCO_GetActiveLookupTable, m_handle, &_wLUT_Identifier, &_wLUT_Parameter);
-	    PCO_THROW_OR_TRACE(error, pcoFn) ;
+		error = PCO_GetActiveLookupTable(m_handle, &_wLUT_Identifier, &_wLUT_Parameter);
+        PCO_CHECK_ERROR(error, "PCO_GetActiveLookupTable");
+		if(error)
+		{
+			DEB_ALWAYS() << "ERROR - PCO_GetActiveLookupTable";
+		}
 
 		if(_wLUT_Identifier != m_pcoData->wLUT_Identifier) {
-			PCO_FN3(error, pcoFn,PCO_SetActiveLookupTable, m_handle, &m_pcoData->wLUT_Identifier, &m_pcoData->wLUT_Parameter);
-		    PCO_THROW_OR_TRACE(error, pcoFn) ;
+
+			error = PCO_SetActiveLookupTable(m_handle, &m_pcoData->wLUT_Identifier, &m_pcoData->wLUT_Parameter);
+	        PCO_CHECK_ERROR(error, "PCO_SetActiveLookupTable");
+			if(error)
+			{
+				DEB_ALWAYS() << "ERROR - PCO_SetActiveLookupTable";
+			}
+
 			_armRequired(true);
 
-			PCO_FN3(error, pcoFn,PCO_GetActiveLookupTable, m_handle, &m_pcoData->wLUT_Identifier, &m_pcoData->wLUT_Parameter);
-		    PCO_THROW_OR_TRACE(error, pcoFn) ;
+			error =PCO_GetActiveLookupTable(m_handle, &m_pcoData->wLUT_Identifier, &m_pcoData->wLUT_Parameter);
+			PCO_CHECK_ERROR(error, "PCO_GetActiveLookupTable");
+			if(error)
+			{
+				DEB_ALWAYS() << "ERROR - PCO_GetActiveLookupTable";
+			}
 		}
 	}
 
