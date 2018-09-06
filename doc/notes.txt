@@ -7,6 +7,7 @@
 #===================================================
 # 2018/09/04 / upgrade of the firmware of pco edge hs (bm05)
 #  new fw for CLHS doesn't allow LUT functions
+#  fixed -> bypass LUT functions for CLHS
 #===================================================
 
 $Id: comp[2017/07/12 09:24:19] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoCamera.cpp] $
@@ -16,16 +17,12 @@ $Id: comp[2017/07/12 09:14:28] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoBuf
 $Id: comp[2017/07/12 09:14:20] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoDetInfoCtrlObj.cpp] $
 $Id: comp[2017/07/12 09:14:21] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoCameraUtils.cpp] $
 $Id: comp[2017/07/12 09:14:16] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoRoiCtrlObj.cpp] $
-$Id:       PCO rev[2017-07-12 08:15:38 +0200] head[eae3c10][eae3c108127ae99d6f68747a3240179147fa42f8] ref[ (HEAD, gitrh/pco-dev02, pco-dev02)] at [2017/07/
-12 09:22:50] $
+$Id:       PCO rev[2017-07-12 08:15:38 +0200] head[eae3c10][eae3c108127ae99d6f68747a3240179147fa42f8] ref[ (HEAD, gitrh/pco-dev02, pco-dev02)] at [2017/07/12 09:22:50] $
 $Id:    PCOSDK [1.20] $
 $Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD)] at [2017/07/12 09:22:50] $
-$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [
-2017/07/12 09:22:50] $
-$Id:      LIMA rev[2017-07-07 11:15:03 +0200] head[cb35d0f][cb35d0f3a77e09381c5e149d3463d28dd7870067] ref[ (HEAD, tag: tango-camera-pco-1.7.5, github/core-
-1.7, core-1.7)] at [2017/07/12 09:22:50] $
-$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, github/master, github/HEAD, master)] at [
-2017/07/12 09:22:50] $
+$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/07/12 09:22:50] $
+$Id:      LIMA rev[2017-07-07 11:15:03 +0200] head[cb35d0f][cb35d0f3a77e09381c5e149d3463d28dd7870067] ref[ (HEAD, tag: tango-camera-pco-1.7.5, github/core-1.7, core-1.7)] at [2017/07/12 09:22:50] $
+$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/07/12 09:22:50] $
 $Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2017/07/12 09:22:50] $
 
        timestamp: 2018/09/04 15:15:27
@@ -52,13 +49,30 @@ Error[0x80031020][Firmware error 80031020 at device 'SC2 Main uP': Command/data 
 #  new fw for CLHS doesn't allow LUT functions
 #===================================================
 
+shorcut:
+   %comspec% /k ""C:\blissadm\Lima\pco\bat\lima_pco_ds2.bat"" install-beta edgehs 160.103.125.104
 
-C:\blissadm\pco\install-beta>tree /F /A
+"install folders" dir --->  C:\blissadm\Lima\pco
+            "bat" dir --->  C:\blissadm\Lima\pco\bat  (copied from the "install file"
 
-|   INSTALL_VERSION.txt
-|   sip.pyd
-|
-+---bat
+C:\blissadm\Lima\pco>tree /F /A
++---bat                    <---- this file is a copy of the distributed in "install"
+|       lima_pco_ds.bat                                            |
+|       lima_pco_ds2.bat                                           |
+|       logsbackup.bat                                             |
+|       logsoff.bat                                                |
+|       logson.bat                                                 | 
+                                                                   | 
+                                                                   | 
+                                                                   | 
+                                                                   | 
+C:\blissadm\Lima\pco\install-beta>tree /F /A                       |
+                                                                   | 
+                                                                   | 
+|   INSTALL_VERSION.txt                                            |
+|   sip.pyd                                                        |
+|                                                                  | 
++---bat                    <---------------------------------------
 |       lima_pco_ds.bat
 |       lima_pco_ds2.bat
 |       logsbackup.bat
@@ -75,6 +89,7 @@ C:\blissadm\pco\install-beta>tree /F /A
     |   limacore.pyd
     |   limapco.pyd
     |   Pco.py
+    |   Pco.pyc
     |   processlib.pyd
     |   SC2_Cam.dll
     |   sc2_clhs.dll            ---> copied from sc2_clhs_v1.3.32.dll 
@@ -85,7 +100,9 @@ C:\blissadm\pco\install-beta>tree /F /A
     |
     \---Server
         |   AttrHelper.py
+        |   AttrHelper.pyc
         |   EnvHelper.py
+        |   EnvHelper.pyc
         |   LimaCCDs.py
         |   __init__.py
         |
