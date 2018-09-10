@@ -1,48 +1,35 @@
 
-2018/09/04 16:57:26 ==========================================
+2018/09/10 11:23:19 ==========================================
 scp: copied local directory to segfs and /tmp_14_days:
 from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-09-04_165718]
-  to: [/t/rhoms1/install-2018-09-04_165718]
+  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-09-10_112312]
+  to: [/t/rhoms1/install-2018-09-10_112312]
   to: [/t/rhoms1/install-beta]
 
-
-
-2018/09/04 16:43:09 ==========================================
+2018/09/10 10:38:20 ==========================================
 #define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
 #define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
 #define        PCO_LIMA_VERSION "$Id:   PCOLIMA [1.7.7] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-07-13 16:17:08 +0200] head[b66fa1d][b66fa1d82ec7e0732d10096eb0d31c7de137c4c7] ref[ (HEAD -> wip01, github/wip01)] at [2018/09/04 16:43:08] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-05-23 12:18:49 +0200] head[31a027d1][31a027d1269c578dcfd371ed39fb2ab50672bd41] ref[ (HEAD -> core-1.7, tag: pco-1.7.7, gitlab/core-1.7, github/core-1.7)] at [2018/09/04 16:43:08] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/09/04 16:43:08] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/09/04 16:43:08] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2018-05-23 11:04:34 +0200] head[c209ba6][c209ba61ce1dfa3c9038543909978fc89082d365] ref[ (HEAD -> core-1.7, gitlab/core-1.7, github/core-1.7)] at [2018/09/04 16:43:08] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD -> master, github/master, github/HEAD)] at [2018/09/04 16:43:08] $"
+#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-09-06 17:45:37 +0200] head[5bef1ab][5bef1ab42fa1b4ee694188a167501d51b854f173] ref[ (HEAD -> master, gitrh/wip01, gitlab/wip01, github/wip01, wip01)] at [2018/09/10 10:38:18] $"
+#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-05-23 12:18:49 +0200] head[31a027d1][31a027d1269c578dcfd371ed39fb2ab50672bd41] ref[ (HEAD -> core-1.7, tag: pco-1.7.7, gitlab/core-1.7, github/core-1.7)] at [2018/09/10 10:38:18] $"
+#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/09/10 10:38:18] $"
+#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/09/10 10:38:18] $"
+#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2018-05-23 11:04:34 +0200] head[c209ba6][c209ba61ce1dfa3c9038543909978fc89082d365] ref[ (HEAD -> core-1.7, gitlab/core-1.7, github/core-1.7)] at [2018/09/10 10:38:18] $"
+#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD -> master, github/master, github/HEAD)] at [2018/09/10 10:38:18] $"
 
 
-
-
-2018/07/13 10:20:30 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define        PCO_LIMA_VERSION "$Id:   PCOLIMA [1.7.7] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-07-12 14:47:34 +0200] head[fe27cd4][fe27cd47b3d69fae33d7e4b32c3a6096a0a988f4] ref[ (HEAD -> master, gitrh/master, gitlab/master, github/master, github/HEAD)] at [2018/07/13 10:20:28] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-05-23 12:18:49 +0200] head[31a027d1][31a027d1269c578dcfd371ed39fb2ab50672bd41] ref[ (HEAD -> core-1.7, tag: pco-1.7.7, gitlab/core-1.7, github/core-1.7)] at [2018/07/13 10:20:28] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/07/13 10:20:28] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/07/13 10:20:28] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2018-05-23 11:04:34 +0200] head[c209ba6][c209ba61ce1dfa3c9038543909978fc89082d365] ref[ (HEAD -> core-1.7, gitlab/core-1.7, github/core-1.7)] at [2018/07/13 10:20:28] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD -> master, github/master, github/HEAD)] at [2018/07/13 10:20:28] $"
-
-
-
-2018/06/19 09:52:35 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-06-19_095229]
-  to: [/t/rhoms1/install-2018-06-19_095229]
-  to: [/t/rhoms1/install-beta]
-
-
+#========= recent log
+- new FW of CLHS doesn't allow LUT calls / fixed
+- Merge branch 'wip-stop-rec' into 'master'
+- minor sprintfSExt
+- Fix the talk() backdoor for Python 3
+- lima exception / acqStart / frames out of range
+- Makes the _xlat_date buff bigger to handle longer path
+- Use str::string instead of const char* makes things easier for python 3
+- Use limatools_set_install_libdir() to have dll installed in bin folder (conda convention)
+- Update CMakeLists and fix error reported by msvc 14.1
+- [WIP] stop recording / fifo - tmp save
+==================
 
 2018/06/18 15:32:33 ==========================================
 #define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
@@ -54,218 +41,6 @@ from: [../../install/] and [./bat/]
 #define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/06/18 15:32:33] $"
 #define       TANGO_GIT_VERSION "$Id:     TANGO rev[2018-05-23 11:04:34 +0200] head[c209ba6][c209ba61ce1dfa3c9038543909978fc89082d365] ref[ (HEAD -> core-1.7, gitlab/core-1.7, github/core-1.7)] at [2018/06/18 15:32:33] $"
 #define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD -> master, github/master, github/HEAD)] at [2018/06/18 15:32:33] $"
-
-
-
-2018/06/15 12:33:26 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define        PCO_LIMA_VERSION "$Id:   PCOLIMA [1.7.7] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-05-28 17:48:13 +0200] head[5fcc1a2][5fcc1a2a83ccb84855a909a8a2ce8fbc336af28d] ref[ (HEAD -> wip-stop-rec, gitrh/wip-stop-rec)] at [2018/06/15 12:33:24] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-05-23 12:18:49 +0200] head[31a027d1][31a027d1269c578dcfd371ed39fb2ab50672bd41] ref[ (HEAD -> core-1.7, tag: pco-1.7.7, gitlab/core-1.7, github/core-1.7)] at [2018/06/15 12:33:24] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/06/15 12:33:24] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/06/15 12:33:24] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2018-05-23 11:04:34 +0200] head[c209ba6][c209ba61ce1dfa3c9038543909978fc89082d365] ref[ (HEAD -> core-1.7, gitlab/core-1.7, github/core-1.7)] at [2018/06/15 12:33:24] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD -> master, github/master, github/HEAD)] at [2018/06/15 12:33:24] $"
-
-
-2018/05/22 12:45:53 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define        PCO_LIMA_VERSION "$Id:   PCOLIMA [1.7.6] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-05-22 12:02:12 +0200] head[5509342][55093425dcd51c3d13a102244f84757dc5880844] ref[ (HEAD -> master, gitrh/master, gitlab/master, github/master, github/HEAD)] at [2018/05/22 12:45:52] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-23 10:31:23 +0100] head[46f705a0][46f705a08107f412521673f2f6d49660a78f28ba] ref[ (HEAD -> core-1.7, tag: pco-1.7.6, gitlab/core-1.7, github/core-1.7)] at [2018/05/22 12:45:52] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/05/22 12:45:52] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/05/22 12:45:52] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2018-03-26 09:12:15 +0200] head[a4796ad][a4796ad5cdbf86135aa6835790396b0529c0204c] ref[ (HEAD -> master, github/master, github/HEAD)] at [2018/05/22 12:45:52] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/05/22 12:45:52] $"
-
-
-2018/05/03 17:15:49 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define        PCO_LIMA_VERSION "$Id:   PCOLIMA [1.7.6] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-04-27 15:11:10 +0200] head[310378b][310378be84eb6dd6e9e49c3bfa5021ac9bccc110] ref[ (HEAD -> wip-forced-fifo, gitrh/wip-forced-fifo, github/wip-forced-fifo)] at [2018/05/03 17:15:48] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-23 10:31:23 +0100] head[46f705a0][46f705a08107f412521673f2f6d49660a78f28ba] ref[ (HEAD -> core-1.7, tag: pco-1.7.6, github/core-1.7)] at [2018/05/03 17:15:48] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/05/03 17:15:48] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/05/03 17:15:48] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/05/03 17:15:48] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/05/03 17:15:48] $"
-
-2018/05/03 17:14:38 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define        PCO_LIMA_VERSION "$Id:   PCOLIMA 1.7.6 $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-04-27 15:11:10 +0200] head[310378b][310378be84eb6dd6e9e49c3bfa5021ac9bccc110] ref[ (HEAD -> wip-forced-fifo, gitrh/wip-forced-fifo, github/wip-forced-fifo)] at [2018/05/03 17:14:37] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-23 10:31:23 +0100] head[46f705a0][46f705a08107f412521673f2f6d49660a78f28ba] ref[ (HEAD -> core-1.7, tag: pco-1.7.6, github/core-1.7)] at [2018/05/03 17:14:37] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/05/03 17:14:37] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/05/03 17:14:37] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/05/03 17:14:37] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/05/03 17:14:37] $"
-
-2018/05/03 16:32:40 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-04-27 15:11:10 +0200] head[310378b][310378be84eb6dd6e9e49c3bfa5021ac9bccc110] ref[ (HEAD -> wip-forced-fifo, gitrh/wip-forced-fifo, github/wip-forced-fifo)] at [2018/05/03 16:32:39] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-23 10:31:23 +0100] head[46f705a0][46f705a08107f412521673f2f6d49660a78f28ba] ref[ (HEAD -> core-1.7, tag: pco-1.7.6, github/core-1.7)] at [2018/05/03 16:32:39] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/05/03 16:32:39] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/05/03 16:32:39] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/05/03 16:32:39] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/05/03 16:32:39] $"
-
-2018/04/27 15:13:12 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-04-27_151306]
-  to: [/t/rhoms1/install-2018-04-27_151306]
-  to: [/t/rhoms1/install-beta]
-
-2018/04/27 15:10:20 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-04-26 16:39:41 +0200] head[08e3c5b][08e3c5b6c854ec04fc1854701d44cff696a9fb3d] ref[ (HEAD -> wip-forced-fifo, gitrh/wip-forced-fifo, github/wip-forced-fifo)] at [2018/04/27 15:10:19] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-23 10:31:23 +0100] head[46f705a0][46f705a08107f412521673f2f6d49660a78f28ba] ref[ (HEAD -> core-1.7, tag: pco-1.7.6, github/core-1.7)] at [2018/04/27 15:10:19] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/04/27 15:10:19] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/04/27 15:10:19] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/04/27 15:10:19] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/04/27 15:10:19] $"
-
-2018/04/20 10:14:12 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-04-19 18:23:04 +0200] head[e38001b][e38001b6588e024994d80c46db2fee85ff382802] ref[ (HEAD -> wip-forced-fifo, gitrh/wip-forced-fifo, github/wip-forced-fifo)] at [2018/04/20 10:14:10] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-23 10:31:23 +0100] head[46f705a0][46f705a08107f412521673f2f6d49660a78f28ba] ref[ (HEAD -> core-1.7, tag: pco-1.7.6, github/core-1.7)] at [2018/04/20 10:14:10] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/04/20 10:14:10] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/04/20 10:14:10] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/04/20 10:14:10] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/04/20 10:14:10] $"
-
-2018/04/18 18:34:59 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-04-18 18:31:49 +0200] head[c02684f][c02684f9d6d2536097cc0865f0e6a1af0fe639cd] ref[ (HEAD -> wip-forced-fifo, gitrh/wip-forced-fifo)] at [2018/04/18 18:34:57] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-23 10:31:23 +0100] head[46f705a0][46f705a08107f412521673f2f6d49660a78f28ba] ref[ (HEAD -> core-1.7, tag: pco-1.7.6, github/core-1.7)] at [2018/04/18 18:34:57] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/04/18 18:34:57] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/04/18 18:34:57] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/04/18 18:34:57] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/04/18 18:34:57] $"
-
-
-2018/04/10 13:14:37 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-04-09 15:53:42 +0200] head[c3d04d3][c3d04d30a22a96bd9fab1c416ef91f9810f49ff3] ref[ (HEAD -> wip-forced-fifo, master)] at [2018/04/10 13:14:31] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-23 10:31:23 +0100] head[46f705a0][46f705a08107f412521673f2f6d49660a78f28ba] ref[ (HEAD -> core-1.7, tag: pco-1.7.6, github/core-1.7)] at [2018/04/10 13:14:31] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-10-25 16:10:40 +0200] head[0fb65c4][0fb65c45b4dee5367a2e26d963c6821900bd4abb] ref[ (HEAD -> master)] at [2018/04/10 13:14:31] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD -> master, github/master, github/HEAD)] at [2018/04/10 13:14:31] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/04/10 13:14:31] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/04/10 13:14:31] $"
-
-
-
-
-2018/03/23 08:52:21 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-03-22 18:30:59 +0100] head[bf540b5][bf540b55683592c463d93926eb8c0e83e0990a88] ref[ (HEAD -> master, gitrh/master)] at [2018/03/23 08:52:20] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2017-11-29 11:17:58 +0100] head[3fff9079][3fff90797f193a001182a4a8cbb6a2eaf72c0dce] ref[ (HEAD -> core-1.7, tag: pco-1.7.5)] at [2018/03/23 08:52:20] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2017-10-25 16:10:40 +0200] head[0fb65c4][0fb65c45b4dee5367a2e26d963c6821900bd4abb] ref[ (HEAD -> master)] at [2018/03/23 08:52:20] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD -> master, github/master, github/HEAD)] at [2018/03/23 08:52:20] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-11-29 15:42:18 +0100] head[de8c345][de8c345f0880619950b5e2892ac2bd9b08e2fe2a] ref[ (HEAD -> master)] at [2018/03/23 08:52:20] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2018/03/23 08:52:20] $"
-
-
-
-
-2018/03/22 18:24:20 ==========================================
-#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-03-22 18:19:02 +0100] head[b403263][b403263e9330e559cb05c21321569c5c9ee6144e] ref[ (HEAD, gitrh/master, master)] at [2018/03/22 18:24:20] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-09 11:18:03 +0100] head[64899dc][64899dcec88e4bea23b7dfff668b88fd50d2575d] ref[ (HEAD, gitlab/core-1.7, github/core-1.7, core-1.7)] at [2018/03/22 18:24:20] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/03/22 18:24:20] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:24:20] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, tango-camera-pco-1.7.5)] at [2018/03/22 18:24:20] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:24:20] $"
-
-
-
-
-2018/03/22 18:23:11 ==========================================
-#define    PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define    PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-03-22 18:19:02 +0100] head[b403263][b403263e9330e559cb05c21321569c5c9ee6144e] ref[ (HEAD, gitrh/master, master)] at [2018/03/22 18:23:11] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-09 11:18:03 +0100] head[64899dc][64899dcec88e4bea23b7dfff668b88fd50d2575d] ref[ (HEAD, gitlab/core-1.7, github/core-1.7, core-1.7)] at [2018/03/22 18:23:11] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/03/22 18:23:11] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:23:11] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, tango-camera-pco-1.7.5)] at [2018/03/22 18:23:11] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:23:11] $"
-
-
-
-
-2018/03/22 18:23:06 ==========================================
-#define    PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define    PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-03-22 18:19:02 +0100] head[b403263][b403263e9330e559cb05c21321569c5c9ee6144e] ref[ (HEAD, gitrh/master, master)] at [2018/03/22 18:23:06] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-09 11:18:03 +0100] head[64899dc][64899dcec88e4bea23b7dfff668b88fd50d2575d] ref[ (HEAD, gitlab/core-1.7, github/core-1.7, core-1.7)] at [2018/03/22 18:23:06] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/03/22 18:23:06] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:23:06] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, tango-camera-pco-1.7.5)] at [2018/03/22 18:23:06] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:23:06] $"
-
-
-
-
-2018/03/22 18:19:54 ==========================================
-#define        PCO_SDK_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define        PCO_SDK_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-03-22 18:19:02 +0100] head[b403263][b403263e9330e559cb05c21321569c5c9ee6144e] ref[ (HEAD, gitrh/master, master)] at [2018/03/22 18:19:54] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-09 11:18:03 +0100] head[64899dc][64899dcec88e4bea23b7dfff668b88fd50d2575d] ref[ (HEAD, gitlab/core-1.7, github/core-1.7, core-1.7)] at [2018/03/22 18:19:54] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/03/22 18:19:54] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:19:54] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, tango-camera-pco-1.7.5)] at [2018/03/22 18:19:54] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:19:54] $"
-
-
-
-
-2018/03/22 18:16:39 ==========================================
-#define        PCO_SDK_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
-#define        PCO_SDK_VERSION "$Id: PCOSDK_WIN [1.20] $"
-#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-03-21 18:02:26 +0100] head[e1e2ae9][e1e2ae9f6e40325af097bcaf136edb3aefee922c] ref[ (HEAD, gitrh/master, master)] at [2018/03/22 18:16:39] $"
-#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-09 11:18:03 +0100] head[64899dc][64899dcec88e4bea23b7dfff668b88fd50d2575d] ref[ (HEAD, gitlab/core-1.7, github/core-1.7, core-1.7)] at [2018/03/22 18:16:39] $"
-#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/03/22 18:16:39] $"
-#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:16:39] $"
-#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, tango-camera-pco-1.7.5)] at [2018/03/22 18:16:39] $"
-#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:16:39] $"
-
-
-
-
-2018/03/22 18:15:00 ==========================================
-#define        PCO_SDK_VERSION "$Id:    PCOSDK_LIN [pcoDev.1.1.14] $"
-#define        PCO_SDK_VERSION "$Id:    PCOSDK_WIN [1.20] $"
-#define        PCO_GIT_VERSION "$Id:       PCO rev[2018-03-21 18:02:26 +0100] head[e1e2ae9][e1e2ae9f6e40325af097bcaf136edb3aefee922c] ref[ (HEAD, gitrh/master, master)] at [2018/03/22 18:15:00] $"
-#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-09 11:18:03 +0100] head[64899dc][64899dcec88e4bea23b7dfff668b88fd50d2575d] ref[ (HEAD, gitlab/core-1.7, github/core-1.7, core-1.7)] at [2018/03/22 18:15:00] $"
-#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/03/22 18:15:00] $"
-#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:15:00] $"
-#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, tango-camera-pco-1.7.5)] at [2018/03/22 18:15:00] $"
-#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:15:00] $"
-
-
-
-
-2018/03/22 18:12:37 ==========================================
-#define        PCO_SDK_VERSION "$Id:    PCOSDK [pcoDev.1.1.14] $"
-#define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
-#define        PCO_GIT_VERSION "$Id:       PCO rev[2018-03-21 18:02:26 +0100] head[e1e2ae9][e1e2ae9f6e40325af097bcaf136edb3aefee922c] ref[ (HEAD, gitrh/master, master)] at [2018/03/22 18:12:37] $"
-#define       LIMA_GIT_VERSION "$Id:      LIMA rev[2018-03-09 11:18:03 +0100] head[64899dc][64899dcec88e4bea23b7dfff668b88fd50d2575d] ref[ (HEAD, gitlab/core-1.7, github/core-1.7, core-1.7)] at [2018/03/22 18:12:37] $"
-#define    PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/03/22 18:12:37] $"
-#define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:12:37] $"
-#define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, tango-camera-pco-1.7.5)] at [2018/03/22 18:12:37] $"
-#define       SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:12:37] $"
-
-
 
 
 2018/03/22 18:02:49 ==========================================
