@@ -68,7 +68,13 @@ typedef struct
   WORD   wEXPOSURE_TIME_BASE;        // timebase ns/us/ms for following exposure time
   DWORD  dwEXPOSURE_TIME;            // exposure time in ns/us/ms  according to timebase
   DWORD  dwFRAMERATE_MILLIHZ;        // framerate in mHz, 0 if unknown or not
-  SHORT  sSENSOR_TEMPERATURE;        // current sensor temperature in 0.1 centigrade, 0x8000 if not known
+
+  SHORT  sSENSOR_TEMPERATURE;        // current sensor temperature in centigrade, 0x8000 if not known
+
+                                     // Note: Description changed 27.06.2017: Now centigrades, which
+                                     //       is current implementation in pco.dimax. This is 
+                                     //       different from the PCO_GetTemperature command which
+                                     //       provides the sensor temperature in 10th of degrees!
   // 30
   WORD   wIMAGE_SIZE_X;              // actual size of image in x direction (horizontal)
   WORD   wIMAGE_SIZE_Y;              // actual size of image in y direction (vertical)

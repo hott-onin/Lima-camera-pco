@@ -312,7 +312,7 @@ typedef struct
   WORD        wPatternTypeDESC;        // Pattern type of color chip
                                        // 1: Bayer pattern RGB
   WORD        wDummy1;                 // former DSNU correction mode             // 240
-  WORD        wDummy2;                 //
+  WORD        wDummy2;                 // 
   WORD        wNumCoolingSetpoints;    //
   DWORD       dwGeneralCapsDESC1;      // General capabilities:
                                        // Bit 0: Noisefilter available
@@ -524,12 +524,20 @@ typedef struct
   WORD        wSize;                   // Sizeof this struct
   WORD        wTimeBaseDelay;          // Timebase delay 0:ns, 1:µs, 2:ms
   WORD        wTimeBaseExposure;       // Timebase expos 0:ns, 1:µs, 2:ms
-  WORD        ZZwAlignDummy1;                                             // 8
-  DWORD       ZZdwDummy0[2];           // removed single entry for dwDelay and dwExposure // 16
+  WORD        wCMOSParameter;          // Line Time mode: 0: off 1: on    // 8
+  DWORD       dwCMOSDelayLines;        // See next line
+  DWORD       dwCMOSExposureLines;     // Delay and Exposure lines for lightsheet // 16
   DWORD       dwDelayTable[PCO_MAXDELEXPTABLE];// Delay table             // 80
-  DWORD       ZZdwDummy1[114];                                            // 536
+  DWORD       ZZdwDummy1[110];                                            // 524
+  DWORD       dwCMOSLineTimeMin;       // Minimum line time in ns
+  DWORD       dwCMOSLineTimeMax;       // Maximum line time in ms         // 532
+  DWORD       dwCMOSLineTime;          // Current line time value         // 536
+  WORD        wCMOSTimeBase;           // Current time base for line time
+  WORD        wZZDummy4;
   DWORD       dwExposureTable[PCO_MAXDELEXPTABLE];// Exposure table       // 600
-  DWORD       ZZdwDummy2[112];                                            // 1048
+  DWORD       ZZdwDummy2[110];                                            // 1040
+  DWORD       dwCMOSFlags;             // Flags indicating the option, whether it is possible to LS-Mode with slow/fast scan, etc.
+  DWORD       ZZdwDummy3;
   WORD        wTriggerMode;            // Trigger mode                    // 1050
                                        // 0: auto, 1: software trg, 2:extern 3: extern exp. ctrl
   WORD        wForceTrigger;           // Force trigger (Auto reset flag!)
@@ -541,10 +549,10 @@ typedef struct
   DWORD       dwFPSExposureTime;       // Resulting exposure time in FPS mode // 1068
 
   WORD        wModulationMode;         // Mode for modulation (0 = modulation off, 1 = modulation on) // 1070
-  WORD        wCameraSynchMode;        // Camera synchronisation mode (0 = off, 1 = master, 2 = slave)
+  WORD        wCameraSynchMode;        // Camera synchronization mode (0 = off, 1 = master, 2 = slave)
   DWORD       dwPeriodicalTime;        // Periodical time (unit depending on timebase) for modulation // 1076
   WORD        wTimeBasePeriodical;     // timebase for periodical time for modulation  0 -> ns, 1 -> µs, 2 -> ms
-  WORD        ZZwAlignDummy3;
+  WORD        ZZwDummy3;
   DWORD       dwNumberOfExposures;     // Number of exposures during modulation // 1084
   LONG        lMonitorOffset;          // Monitor offset value in ns      // 1088
   PCO_Signal  strSignal[NUM_MAX_SIGNALS];// Signal settings               // 2288
@@ -703,10 +711,11 @@ typedef struct
 #define APIMANAGEMENTFLAG_SOFTROI_MASK  0xFEFE
 #define APIMANAGEMENTFLAG_SOFTROI       0x0001 // Soft ROI is active
 #define APIMANAGEMENTFLAG_SOFTROI_RESET 0x0100 // Reset Soft ROI to default camera ROI
+#define APIMANAGEMENTFLAG_LINE_TIMING   0x0002 // Line timing is available
 
 typedef struct
 {
-  WORD          wSize;                 // Sizeof this struct
+  WORD          wSize;                 // Size of this struct
   WORD          wCameraNum;            // Current number of camera
   HANDLE        hCamera;               // Handle of the device
   WORD          wTakenFlag;            // Flags to show whether the device is taken or not. // 10
@@ -752,7 +761,131 @@ typedef struct
   WORD              ZZwDummy[40];
 } PCO_Camera;                          // 17404
 
- 
+
+/////////////////////////////////////////////////////////////////////
+/////// End: PCO_Camera structure definitions ///////////////////////
+/////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////
+/////// User Interface and Lens Control defines and structures //////
+/////////////////////////////////////////////////////////////////////
+
+ typedef struct
+{
+  WORD        wSize;
+  WORD        wZZDummy1;
+  WORD        wInterfaceID;          // number/ID of interface/device = 0, 1 to number of interfaces - 1
+  WORD        wNumberOfInterfaces;   // total number of user interfaces/devices in the camera 
+  WORD        wInterfaceType;        // type of interface (UART, UART unidirectional, USART, SPI, I2C, ...)
+  BYTE        bBitsPerWord[4];       // any of 7, 8, 9, end of list with 0, remaining filled with 0 // 14
+  DWORD       dwFrequency[12];       // possible baudrates/frequencies from low to high, 0 = end of list //50
+  DWORD       dwInterfaceOptions;    // optional settings for interface (e.g. parity, unidirectional, ...)
+  WORD        wInterfaceEnabled;     // enable/disable/autodisable/powersave/.... interface 
+  DWORD       dwAllowedEquipment;    // flags for allowed accessories/equipment e.g. LensCtrlBirger (for CW) 
+  WORD        wHandshakeType;        // bit mask, see below
+  WORD        wTxBufferMaxSize;      // transmit buffer size, might be 0, in that case send function must wait until all bytes are sent!
+  WORD        wRxBufferMaxSize;      // receive buffer size, might be 0, in that case send function must wait until all bytes are received! 
+  WORD        wTxBufferFree;         // actual number of bytes which can be written to tx buffer, -1 for not applicable
+  WORD        wRxBufferAvail;        // actual number of bytes which can be read from rx buffer, -1 for not applicable // 70
+  WORD        wRFU[4];               // reserved for future use, camera will return 0, until they are defined. // 78
+  WORD        wZZDummy2[25];         // reserved for future use. // 128
+}PCO_UserInterfaceInfo;
+
+typedef struct
+{
+  WORD        wSize;
+  WORD        wZZDummy1;
+  WORD        wInterfaceID;          // number/ID of selected interface/device = 0, 1 to number of interfaces - 1
+  BYTE        bInterfaceEnable;      // 1 = enable / 0 = disable interface
+  BYTE        bClearBuffers;         // 0x00 = do nothing, 0x01 clear rx buffer, 0x02 clear tx buffer, 0x03 clear rx and tx buffer
+  DWORD       dwFrequency;           // selected frequency/bit rate // 12
+  BYTE        bBitsPerWord;          // any of 7, 8, 9
+  BYTE        bReserved;             // alignment filler, that following WORDs and DWORDs are aligned 
+  WORD        wHandshakeType;        // any value of bitmask defined below, interface specific
+  DWORD       dwInterfaceOptions;    // optional settings for interface (e.g. unidirectional, ...) // 20
+  WORD        wRFU[4];               // reserved for future use, set to 0! // 28
+  WORD        wZZDummy2[18];         // reserved for future use. // 64
+}PCO_UserInterfaceSettings;
+
+
+typedef struct
+{
+  WORD wSize;
+  WORD wHardwareVersion;               // Hardware version queried by 'hv'
+  WORD wBootloaderVersion;             // Bootloader version queried by 'bv'
+  WORD wSerialNumber;                  // Serial number queried by 'sn'
+
+  BYTE bLibraryIdentity[48];           // Full library identity string queried by 'lv'
+  DWORD dwLENSType;                    // This identifies the type of the lens control (Birger = 15872)
+  DWORD dwStatusFlags;                 // LENSCONTROL_STATUS...
+  DWORD dwInitCounter;                 // Counts number of inits in order to reflect lens changes
+                                       // F numbers queried by 'da':
+  DWORD dwFNumberMinimum;              // Min aperture as f/ * 10
+  DWORD dwFNumberNumStops;             // Number of stops; Min aperture as f/ * 10
+  DWORD dwFNumberMaximum;              // Max aperture as f/ * 10
+                                       // Zoom range queried by 'dz':
+  DWORD dwZoomRangeMin;                // Min zoom position
+  DWORD dwZoomRangeMax;                // Max zoom position
+  DWORD dwZoomPos;                     // Not used, set to zero
+  DWORD dwLastZoomPos;                 // Last zoom position queried by 'gs'
+  DWORD dwApertures[50];               // Possible aperture values in f/ * 10
+  DWORD dwFocalLength;                 // Last focal length got from lens by 'lc';
+
+  LONG  lFocusMin;                     // Focus range minimum; Usually 0
+  LONG  lFocusMax;                     // Focus range maximum; Usually 16383
+  LONG  lFocusCurr;                    // Focus position 0...16383
+  LONG  lFocusLastCurr;                // Last current focus position
+  WORD  wAperturePos;                  // Current aperture position
+  WORD  wLastAperturePos;              // Last current aperture position
+  DWORD dwfLastAperturePos;            // Last aperture position as f/ * 10
+}PCO_LensControlParameters;
+
+#define LENSCONTROL_LENSTYPE_NONE         0
+#define LENSCONTROL_TYPE_BIRGER           0x00B189E8 // Used for identification of LENS type
+
+#define LENSCONTROL_STATUS_LA_CMD_DONE    0x00000001 // Indicates command 'la' was sent to lens
+#define LENSCONTROL_STATUS_LENSPRESENT    0x00000002 // Indicates presence of a lens
+#define LENSCONTROL_STATUS_NOAPERTURE     0x00000004 // No aperture settings are possible
+#define LENSCONTROL_STATUS_MANUALFOCUS    0x00000008 // No focus settings are possible
+#define LENSCONTROL_STATUS_WAITINGFORLENS 0x00000010 // Birger is here, but no lens
+
+#define LENSCONTROL_IN_LENSVALUE_RELATIVE 0x00001000 // Set focus relative to current position
+
+#define LENSCONTROL_OUT_LENSHITSTOP       0x00100000 // Focus movement hit a stop position
+#define LENSCONTROL_OUT_LENSWASCHANGED    0x00200000 // Last focus or aperture movement caused a change 
+#define LENSCONTROL_OUT_ZOOMHASCHANGED    0x00400000 // Focal length of lens has changed
+
+
+typedef struct
+{
+  WORD        wSize;
+  PCO_UserInterfaceInfo *pstrUserInterfaceInfo;
+  PCO_UserInterfaceSettings* pstrUserInterfaceSettings;
+  PCO_LensControlParameters* pstrLensControlParameters;
+  HANDLE                     hCamera;
+}PCO_LensControl;
+
+
+typedef struct  
+{
+  WORD wCommand;
+  WORD wResult;
+  WORD wType;  // 0: bytes, 1: words, 2: shorts, 3: dwords, 4: longs
+  // wType tells about the union array which must be used to get the values
+  union 
+  {
+    BYTE bArray[128];
+    WORD wArray[64];
+    SHORT sArray[64];
+    DWORD dwArray[32];
+    LONG lArray[32];
+  };
+}PCO_Birger;
+
+/////////////////////////////////////////////////////////////////////
+/////// User Interface and Lens Control defines and structures //////
+/////////////////////////////////////////////////////////////////////
+
 #endif // SC2_STRUCTURES_H
 
 
