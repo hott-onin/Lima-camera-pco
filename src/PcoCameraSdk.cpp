@@ -1388,12 +1388,12 @@ unsigned long Camera::_pco_GetNumberOfImagesInSegment_MaxCalc(int segmentPco)
 
 
 		if(!_isCameraType(Dimax | Pco2k | Pco4k)) {
-            DEB_ALWAYS() << "ERROR camera not valid for this function: " << _getCameraType();
+            //DEB_WARNING() << "ERROR camera not valid for this function: " << _getCameraType();
 			return 0;
 		}
 
 		if((segmentPco <1) ||(segmentPco > PCO_MAXSEGMENTS)) {
-            DEB_ALWAYS() << "ERROR in the segment: " << DEB_VAR1(segmentPco);
+            DEB_ALWAYS() << "ERROR invalid segment: " << DEB_VAR1(segmentPco);
 			return 0;
 		}
 

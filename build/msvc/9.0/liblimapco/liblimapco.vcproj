@@ -719,6 +719,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\doc\test_py.txt"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\src\unused.txt"
 				>
 			</File>

@@ -875,7 +875,7 @@ int BufferCtrlObj::_xferImag()
 					errPco, dwStatusDll, dwStatusDrv, 
 					sBufNr, eventRet, dwFrameIdx, iLoopsPolled, msTimeout);
 				
-				DEB_ALWAYS() 
+				DEB_WARNING() 
 					<<"\n" << msg 
 					<< m_cam->_PcoCheckError(__LINE__, __FILE__, dwStatusDrv, error)
 					<< m_cam->_sprintComment(false, fnId, "[PCO_GetBufferStatus]", "[ERROR]");
