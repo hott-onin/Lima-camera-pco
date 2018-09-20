@@ -268,7 +268,7 @@ void stcPcoData::traceMsg(char *s){
 }
 
 static char buff[BUFF_INFO_SIZE +16];
-const char *Camera::talk(const std::string& cmd){
+std::string Camera::talk(const std::string& cmd){
 	DEB_MEMBER_FUNCT();
 
 	static char buff[BUFF_INFO_SIZE +16];

@@ -15,7 +15,7 @@ namespace Pco
         void 	startAcq();
         void	reset(int);
 
-        const char *talk(const std::string& cmd);
+        std::string talk(const std::string& cmd);
 
         int getNbAcquiredFrames();
 
