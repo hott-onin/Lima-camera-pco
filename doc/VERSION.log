@@ -1,18 +1,19 @@
 
-2018/09/10 15:43:44 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-09-10_154337]
-  to: [/t/rhoms1/install-2018-09-10_154337]
-  to: [/t/rhoms1/install-beta]
+2018/09/14 13:26:40 ==========================================
+#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.23] $"
+#define        PCO_LIMA_VERSION "$Id:   PCOLIMA [1.7.7] $"
+#define         PCO_GIT_VERSION "$Id:       PCO rev[2018-09-13 16:17:30 +0200] head[96e106d][96e106d65fb51be39a49990e6d00cb4d3eb7089a] ref[ (HEAD -> master, gitrh/master, gitlab/master, github/master, github/HEAD)] at [2018/09/14 13:26:38] $"
+#define        LIMA_GIT_VERSION "$Id:      LIMA rev[2018-09-10 16:04:44 +0200] head[9127a24a][9127a24a52ff5863b7ce03f39198fa4e643b9ebc] ref[ (HEAD -> core-1.7, gitlab/core-1.7, github/core-1.7)] at [2018/09/14 13:26:38] $"
+#define     PROCLIB_GIT_VERSION "$Id:   PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD)] at [2018/09/14 13:26:38] $"
+#define   LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/09/14 13:26:38] $"
+#define       TANGO_GIT_VERSION "$Id:     TANGO rev[2018-05-23 11:04:34 +0200] head[c209ba6][c209ba61ce1dfa3c9038543909978fc89082d365] ref[ (HEAD -> core-1.7, gitlab/core-1.7, github/core-1.7)] at [2018/09/14 13:26:38] $"
+#define        SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD -> master)] at [2018/09/14 13:26:38] $"
 
+    minor / disable some warning errors - docs
+    upgrade windows sdk 1.20 to 1.23 (fixed Pco_errt.h)
+    minor: updated new directory structure (server) / tested new FW of CLHS / included as default the last CLHS dll
 
-2018/09/10 11:23:19 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2018-09-10_112312]
-  to: [/t/rhoms1/install-2018-09-10_112312]
-  to: [/t/rhoms1/install-beta]
 
 2018/09/10 10:38:20 ==========================================
 #define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
@@ -59,15 +60,6 @@ from: [../../install/] and [./bat/]
 #define  LIBCONFIG_GIT_VERSION "$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:02:49] $"
 #define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, tango-camera-pco-1.7.5)] at [2018/03/22 18:02:49] $"
 #define       SPEC_GIT_VERSION "$Id:      SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, github/master, github/HEAD, master)] at [2018/03/22 18:02:49] $"
-
-
-
-2017/11/29 10:19:24 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-11-29_101918]
-  to: [/t/rhoms1/install-2017-11-29_101918]
-  to: [/t/rhoms1/install-beta]
 
 
 
@@ -122,14 +114,6 @@ cb35d0f3a77e09381c5e149d3463d28dd7870067
 Merge branch Hardware buffer realloc
 move to core-1.7.5
 
-
-
-2017/07/12 09:25:47 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-07-12_092544]
-  to: [/t/rhoms1/install-2017-07-12_092544]
-  to: [/t/rhoms1/install-beta]
 
 
 
@@ -187,17 +171,6 @@ from: [../../install/] and [./bat/]
 
 
 
-
-
-
-2017/07/05 15:45:35 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-07-05_154533]
-  to: [/t/rhoms1/install-2017-07-05_154533]
-  to: [/t/rhoms1/install-beta]
-
-
 2017/07/05 13:50:38 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
 #define        PCO_GIT_VERSION "$Id:       PCO rev[2017-07-05 13:42:59 +0200] head[4a16b5f][4a16b5fe3ed678672ec511d09123dd54967d8bc3] ref[ (HEAD, pco-win64-1.703-dev)] at [2017/07/05 13:50:36] $"
@@ -229,14 +202,6 @@ from: [../../install/] and [./bat/]
 
 
 
-2017/06/27 14:32:04 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-27_143158]
-  to: [/t/rhoms1/install-2017-06-27_143158]
-  to: [/t/rhoms1/install-beta]
-
-
 
 2017/06/27 14:31:05 ==========================================
 #define        PCO_SDK_VERSION "$Id:    PCOSDK [1.20] $"
@@ -256,22 +221,6 @@ from: [../../install/] and [./bat/]
     - sync with linux
 
 
-2017/06/27 13:47:15 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-27_134708]
-  to: [/t/rhoms1/install-2017-06-27_134708]
-  to: [/t/rhoms1/install-beta]
-
-
-
-2017/06/19 22:39:57 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-19_223950]
-  to: [/t/rhoms1/install-2017-06-19_223950]
-  to: [/t/rhoms1/install-beta]
-
 
 
 2017/06/19 22:38:54 ==========================================
@@ -283,24 +232,6 @@ from: [../../install/] and [./bat/]
 #define      TANGO_GIT_VERSION "$Id:     TANGO rev[2017-04-13 20:38:53 +0200] head[bdd9338][bdd93380f4e832ac81429d6602ad7b1e92092dcf] ref[ (HEAD, master)] at [2017/06/19 22:38:52] $"
 #define       SPEC_GIT_VERSION "$Id:      SPEC rev[2017-02-06 15:52:58 +0100] head[bc5f7e2][bc5f7e2eec76bc6134d8cee9b1ba03480cd3c91e] ref[ (HEAD, master)] at [2017/06/19 22:38:52] $"
 
-
-
-2017/06/19 18:50:03 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-19_184956]
-  to: [/t/rhoms1/install-2017-06-19_184956]
-  to: [/t/rhoms1/install-beta]
-
-
-
-
-2017/06/15 13:57:20 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2017-06-15_135714]
-  to: [/t/rhoms1/install-2017-06-15_135714]
-  to: [/t/rhoms1/install-beta]
 
 
 
@@ -862,12 +793,6 @@ upgrade sdk118 to sdk120
 #define      TANGO_GIT_VERSION "$Id:     TANGO rev[2016-06-02 14:44:15 +0200] head[479c51e][479c51e847021563cdca895d6a213ca98cf43ec4] ref[ (HEAD, github/master, github/HEAD, master)] at [2016/06/03 18:50:43] $"
 #define       SPEC_GIT_VERSION "$Id:      SPEC rev[2016-05-19 13:58:33 +0200] head[a5b9be5][a5b9be5efd7916a28cf0ab06fcc6f17e19194605] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2016/06/03 18:50:43] $"
 
-2016/06/03 17:48:13 ==========================================
-scp: copied local directory to segfs and /tmp_14_days:
-from: [../../install/] and [./bat/]
-  to: [blissadm@lid00a:/segfs/bliss/projects/LIMA/build/depot_win/win_vc9/pco/install-2016-06-03_174800]
-  to: [/t/rhoms1/install-2016-06-03_174800]
-  to: [/t/rhoms1/install-beta]
 
 - temp save
 - extraction of the imgNr and date/time from the timestamp of the image

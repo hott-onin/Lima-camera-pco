@@ -51,7 +51,7 @@ from Lima import Core
 from Lima import Pco as PcoAcq
 from Lima.Server import AttrHelper
 
-VERSION_ATT ="20171128"
+VERSION_ATT ="20180522"
 
 RESET_CLOSE_INTERFACE	= 100
 
@@ -96,6 +96,7 @@ class Pco(PyTango.Device_4Impl):
 											'pixelRate': 'PixelRate',
 											'pixelRateInfo': 'PixelRateInfo',
 											'pixelRateValidValues': 'PixelRateValidValues',
+											'recorderForcedFifo': 'RecorderForcedFifo',
 											'roiInfo': 'RoiInfo',
 											'roiLastFixed': 'LastFixedRoi',
 											'rollingShutter': 'RollingShutter',
@@ -480,6 +481,16 @@ class PcoClass(PyTango.DeviceClass):
              'format': '%s',
              'description': 'pixel rate valid values in Hz'
              }],
+
+         'recorderForcedFifo':	  
+         [[PyTango.DevLong,
+           PyTango.SCALAR,
+           PyTango.READ_WRITE],
+           {
+             'unit': 'N/A',
+             'format': '%ld',
+             'description': 'forced fifo mode for recording cams'
+           }],
 
          'roiInfo':	  
          [[PyTango.DevString,

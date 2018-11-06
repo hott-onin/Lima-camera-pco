@@ -12,8 +12,6 @@ from Lima import Pco
 #=====================================================
 
 
-
-
 #setFormatFlags(0x31) -> dateTime function fileLine
 #setFormatFlags(0x30) ->          function fileLine
 
@@ -27,7 +25,10 @@ Core.DebParams.setFormatFlags(Core.DebFmtFileLine)
 Core.DebParams.setModuleFlags(Core.DebModCamera)
 Core.DebParams.setTypeFlags(Core.DebTypeAlways)
 
+camera = Pco.Camera('sn = 451;testMode = 4;configEnable;testValue = 5.7;')
 cam = Pco.Camera("")
+
+
 ifc = Pco.Interface(cam)
 ct  = Core.CtControl(ifc)
 acq = ct.acquisition()
