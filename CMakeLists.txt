@@ -5,142 +5,208 @@
 #  European Synchrotron Radiation Facility
 #  BP 220, Grenoble 38043
 #  FRANCE
-# 
+#
 #  Contact: lima@esrf.fr
-# 
+#
 #  This is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 3 of the License, or
 #  (at your option) any later version.
-# 
+#
 #  This software is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-set(NAME "pco")
-set(PCO_SDKWIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPco" CACHE PATH "location of pco sdk-win")
-set(PCO_SDKLIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPcoLin" CACHE PATH "location of pco sdk-lin")
+cmake_minimum_required(VERSION 3.1)
 
-#============================================================================
-#============================================================================
+project(pco)
 
-IF(WIN32)
-    #Sources
-    SET(${NAME}_srcs
-      src/PcoBinCtrlObj.cpp
-      src/PcoBufferCtrlObj.cpp
-      src/PcoCamera.cpp
-      src/PcoCameraSdk.cpp
-      src/PcoCameraSdkWin.cpp
-      src/PcoCameraSip.cpp
-      src/PcoCameraUtils.cpp
-      src/PcoDetInfoCtrlObj.cpp
-      src/PcoHwEventCtrlObj.cpp
-      src/PcoInterface.cpp
-      src/PcoRoiCtrlObj.cpp
-      src/PcoSyncCtrlObj.cpp
-    )
+set(NAME "pco") # This is used by LimaTools
 
-    ADD_LIBRARY(lima${NAME} SHARED ${${NAME}_srcs})
+# Include additional modules that are used inconditionnaly
+include(GNUInstallDirs)
+include(GenerateExportHeader)
 
-    TARGET_INCLUDE_DIRECTORIES(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-    TARGET_INCLUDE_DIRECTORIES(lima${NAME} PUBLIC "${PCO_SDKWIN_DIR}/include")
-    TARGET_INCLUDE_DIRECTORIES(lima${NAME} PUBLIC "${PCO_SDKWIN_DIR}")
-
-    #LIBRARY
-    FIND_LIBRARY(PCO_LIB_CAM SC2_Cam ${PCO_SDKWIN_DIR}/lib64)
-
-    TARGET_LINK_LIBRARIES(lima${NAME} limacore)
-    TARGET_LINK_LIBRARIES(lima${NAME} ${PCO_LIB_CAM})
-
-    limatools_set_library_soversion(lima${NAME} "VERSION")
-
-    IF(LIMA_ENABLE_PYTHON)
-        limatools_run_sip_for_camera(${NAME})
-        INSTALL(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco")
-    ENDIF()
-ENDIF()
-
-#============================================================================
-#============================================================================
-if(UNIX)
-
-    #Current location of linux sdk, on the branch linux_dev.v123 the 09/06/17
-    set(PCO_SDK_LIB_DIR "${PCO_SDKLIN_DIR}/pco_common/pco_lib" CACHE PATH "location of pco sdklib-lin")
-
-    #set(SISO_LIB_DIR "${SISODIR5}/lib64" CACHE PATH "sisolib")
-    set(SISO_LIB_DIR "/opt/SiliconSoftware/Runtime5.2.2/lib64" CACHE PATH "sisolib")
-
-    #Sources
-    set(${NAME}_srcs 
-        src/PcoBinCtrlObj.cpp  
-        src/PcoBufferCtrlObj.cpp  
-        src/PcoCamera.cpp  
-        src/PcoCameraSdk.cpp  
-        src/PcoCameraSdkLin.cpp  
-        src/PcoCameraSip.cpp  
-        src/PcoCameraUtils.cpp  
-        src/PcoDetInfoCtrlObj.cpp  
-        src/PcoHwEventCtrlObj.cpp  
-        src/PcoInterface.cpp  
-        src/PcoRoiCtrlObj.cpp  
-        src/PcoSyncCtrlObj.cpp  
-    )
-
-    add_library(lima${NAME} SHARED ${${NAME}_srcs})
-
-    target_include_directories(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-    target_include_directories(lima${NAME} PUBLIC "${PCO_SDKLIN_DIR}/include")
-    target_include_directories(lima${NAME} PUBLIC "${PCO_SDKWIN_DIR}/include")
-
-    #LIBRARIES
-#	libfglib5.so => /opt/SiliconSoftware/Runtime5.2.2/lib/libfglib5.so (0x00007f4c7459e000)
-#	libclsersis.so => /opt/SiliconSoftware/Runtime5.2.2/lib/libclsersis.so (0x00007f4c74496000)
-#	libhaprt.so => /opt/SiliconSoftware/Runtime5.2.2/lib/libhaprt.so (0x00007f4c7435f000)
-
-#    link_directories(${SISO_LIB_DIR})
-
-    # ----- find_library
-    find_library(PCO_CAM_ME4_LIB pcocam_me4 ${PCO_SDK_LIB_DIR})
-    find_library(PCO_FILE_LIB pcofile ${PCO_SDK_LIB_DIR})
-    find_library(PCO_LOG_LIB pcolog ${PCO_SDK_LIB_DIR})
-    find_library(PCO_FUNC_LIB reorderfunc ${PCO_SDK_LIB_DIR})
-  
-    find_library(SISO_LIB_FGLIB5 fglib5 ${SISO_LIB_DIR})
-    find_library(SISO_LIB_CLSERSIS clsersis ${SISO_LIB_DIR})
-    find_library(SISO_LIB_HAPRT haprt ${SISO_LIB_DIR})
-
-    find_library(PCO_PTHREAD_LIB pthread)
-
-    # ----- target_link_libraries
-    target_link_libraries(lima${NAME} limacore)
-
-    target_link_libraries(lima${NAME} ${PCO_CAM_ME4_LIB})
-    target_link_libraries(lima${NAME} ${PCO_FILE_LIB})
-    target_link_libraries(lima${NAME} ${PCO_LOG_LIB})
-    target_link_libraries(lima${NAME} ${PCO_FUNC_LIB})
-
-    target_link_libraries(lima${NAME} ${SISO_LIB_FGLIB5})
-    target_link_libraries(lima${NAME} ${SISO_LIB_CLSERSIS})
-    target_link_libraries(lima${NAME} ${SISO_LIB_HAPRT})
-    
-    target_link_libraries(lima${NAME} ${PCO_PTHREAD_LIB})
-
-    limatools_set_library_soversion(lima${NAME} "VERSION")
-
-    if(LIMA_ENABLE_PYTHON)
-        limatools_run_sip_for_camera(${NAME})
-        install(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco")
-    endif()
+# If conda build, always set lib dir to 'lib'
+if($ENV{CONDA_BUILD})
+  set(CMAKE_INSTALL_LIBDIR "lib")
 endif()
 
-limatools_set_install_libdir(lima${NAME})
+# Set lower / upper case project names
+string(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UPPER)
+string(TOLOWER "${PROJECT_NAME}" PROJECT_NAME_LOWER)
 
-#============================================================================
-#============================================================================
+# Set targets export name (used by lima and dependencies)
+set(TARGETS_EXPORT_NAME "${PROJECT_NAME_LOWER}-targets")
+#set(namespace "${PROJECT_NAME}::")
 
+# Check if project is being used directly or via add_subdirectory
+set(CAMERA_MASTER_PROJECT OFF)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(CAMERA_MASTER_PROJECT ON)
+endif()
+
+if (CAMERA_MASTER_PROJECT)
+  find_package(Lima REQUIRED)
+endif()
+
+# CMake additional macros
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${LIMA_CMAKE_INCLUDE_DIRS} ${CMAKE_MODULE_PATH})
+
+# Set version
+include(project_version)
+
+# Enable python binding code compilation using sip generator
+option(CAMERA_ENABLE_PYTHON "compile python binding code?" LIMA_ENABLE_PYTHON)
+
+if (CAMERA_ENABLE_PYTHON)
+  # Find python interpreter and libs
+  find_package(PythonInterp)
+  find_package(PythonLibs)
+  if(${PYTHONINTERP_FOUND})
+    # python site-packages folder
+    execute_process(
+      COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print (get_python_lib())"
+      OUTPUT_VARIABLE _PYTHON_SITE_PACKAGES_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
+
+  set(PYTHON_SITE_PACKAGES_DIR ${_PYTHON_SITE_PACKAGES_DIR} CACHE PATH "where should python modules be installed?")
+
+  find_package(SIP REQUIRED)
+  include(SIPMacros)
+  if(WIN32)
+    set(SIP_TAGS WIN32_PLATFORM)
+  elseif(UNIX)
+    set(SIP_TAGS POSIX_PLATFORM)
+  endif(WIN32)
+  set(SIP_EXTRA_OPTIONS -e -g)
+
+  find_package(NumPy REQUIRED)
+endif()
+
+find_package(Pco REQUIRED)
+
+file(GLOB_RECURSE PCO_INCS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
+
+IF(WIN32)
+  add_library(pco SHARED
+    src/PcoBinCtrlObj.cpp
+    src/PcoBufferCtrlObj.cpp
+    src/PcoCamera.cpp
+    src/PcoCameraSdk.cpp
+    src/PcoCameraSdkWin.cpp
+    src/PcoCameraSip.cpp
+    src/PcoCameraUtils.cpp
+    src/PcoDetInfoCtrlObj.cpp
+    src/PcoHwEventCtrlObj.cpp
+    src/PcoInterface.cpp
+    src/PcoRoiCtrlObj.cpp
+    src/PcoSyncCtrlObj.cpp
+    ${PCO_INCS}
+  )
+else()
+  add_library(pco SHARED
+    src/PcoBinCtrlObj.cpp
+    src/PcoBufferCtrlObj.cpp
+    src/PcoCamera.cpp
+    src/PcoCameraSdk.cpp
+    src/PcoCameraSdkLin.cpp
+    src/PcoCameraSip.cpp
+    src/PcoCameraUtils.cpp
+    src/PcoDetInfoCtrlObj.cpp
+    src/PcoHwEventCtrlObj.cpp
+    src/PcoInterface.cpp
+    src/PcoRoiCtrlObj.cpp
+    src/PcoSyncCtrlObj.cpp
+    ${PCO_INCS}
+  )
+endif()
+
+# Generate export macros
+generate_export_header(pco)
+
+# Add dependencies
+target_include_directories(pco
+    PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"           # For export header
+    PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
+
+# Set version and output name
+set_target_properties(pco PROPERTIES
+  OUTPUT_NAME "lima${PROJECT_NAME_LOWER}"
+  VERSION "${PROJECT_VERSION}"
+  SOVERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}")
+
+target_link_libraries(pco PUBLIC limacore)
+
+target_compile_definitions(pco PUBLIC ${PCO_DEFINITIONS})
+
+target_include_directories(pco PUBLIC $<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}>)
+
+target_link_libraries(pco PUBLIC ${PCO_LIBRARIES})
+
+if(WIN32)
+  target_compile_definitions(pco
+    PRIVATE pco_EXPORTS
+    PUBLIC NOMINMAX)
+  set_target_properties(pco PROPERTIES PREFIX "lib" IMPORT_PREFIX "lib")
+endif()
+
+# Binding code for python
+if(CAMERA_ENABLE_PYTHON)
+  include(LimaTools)
+  limatools_run_sip_for_camera(pco)
+endif()
+
+# Generate and install package config file and version
+if(CAMERA_MASTER_PROJECT)
+    set(PROJECT_LIBRARIES pco)
+    set(SIP_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/sip/lima)
+    set(CMAKE_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/cmake/lima)
+    include(package_config)
+endif()
+
+## Installation
+
+install(
+  TARGETS pco
+  EXPORT "${TARGETS_EXPORT_NAME}"
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}   # import library
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}   # .so files are libraries
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}   # .dll files are binaries
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}  # this does not actually install anything (but used by downstream projects)
+)
+
+install(
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  COMPONENT devel
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  FILES_MATCHING PATTERN "*.h"
+)
+
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/project_version.h
+    ${PROJECT_BINARY_DIR}/pco_export.h
+  COMPONENT devel
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+if(CAMERA_ENABLE_PYTHON)
+  install(
+    FILES python/__init__.py
+    DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco"
+  )
+endif()
+
+## Tests
+if(CAMERA_ENABLE_TESTS)
+    enable_testing()
+    #add_subdirectory(test)
+endif()
