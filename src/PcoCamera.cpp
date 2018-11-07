@@ -108,8 +108,7 @@ char * _timestamp_gitversion(char *buffVersion, int len)
 				 LIBCONFIG_GIT_VERSION,
 				 LIMA_GIT_VERSION,
 				 TANGO_GIT_VERSION,
-				 SPEC_GIT_VERSION,
-				 PCO_LIMA_VERSION
+				 SPEC_GIT_VERSION
 				 );
 	return buffVersion;
 }
