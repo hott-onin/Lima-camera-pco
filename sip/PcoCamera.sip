@@ -113,9 +113,7 @@ namespace Pco
 		
 		void getLastImgFifo(int & val /Out/);
 
-
-
+	private:
+		Camera(const Pco::Camera&);
   };
 };
-
-
