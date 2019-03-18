@@ -16,22 +16,40 @@ LOG="./doc/VERSION.log"
 
 DT=`date +"%Y/%m/%d %H:%M:%S"`
 
-PCOREV=`git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
-LIMAREV=`cd ../.. ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
-PROCLIBREV=`cd ../../third-party/Processlib ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
-LIBCONFIGREV=`cd ../../third-party/libconfig ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
-TANGOREV=`cd ../../applications/tango/python ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
-SPECREV=`cd ../../applications/spec ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
+DIR="./"
+PCOREV=`cd ${DIR} ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
+PCOPATH=`cd ${DIR} ; pwd`
+
+DIR="../.."
+LIMAREV=`cd ${DIR} ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
+LIMAPATH=`cd ${DIR} ; pwd`
+
+DIR="../../third-party/Processlib"
+PROCLIBREV=`cd ${DIR} ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
+PROCLIBPATH=`cd ${DIR} ; pwd`
+
+DIR="../../third-party/libconfig"
+LIBCONFIGREV=`cd ${DIR} ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
+LIBCONFIPATH=`cd ${DIR} ; pwd`
+
+DIR="../../applications/tango/python"
+TANGOREV=`cd ${DIR} ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
+TANGOPATH=`cd ${DIR} ; pwd`
+
+DIR="../../applications/spec"
+SPECREV=`cd ${DIR} ; git log -n 1 --date=iso --format=format:"rev[%ad] head[%h][%H] ref[%d]" HEAD || echo "ERROR"`
+SPECPATH=`cd ${DIR} ; pwd`
 
 {
 head -1 ${SDK_WIN_H}
 head -1 ${SDK_LIN_H}
-echo "#define         PCO_GIT_VERSION \"\$Id:       PCO ${PCOREV} at [${DT}] \$\"" 
-echo "#define        LIMA_GIT_VERSION \"\$Id:      LIMA ${LIMAREV} at [${DT}] \$\"" 
-echo "#define     PROCLIB_GIT_VERSION \"\$Id:   PROCLIB ${PROCLIBREV} at [${DT}] \$\"" 
-echo "#define   LIBCONFIG_GIT_VERSION \"\$Id: LIBCONFIG ${LIBCONFIGREV} at [${DT}] \$\"" 
-echo "#define       TANGO_GIT_VERSION \"\$Id:     TANGO ${TANGOREV} at [${DT}] \$\"" 
-echo "#define        SPEC_GIT_VERSION \"\$Id:      SPEC ${SPECREV} at [${DT}] \$\"" 
+echo "#define        PCO_GIT_VERSION \"\$Id:       PCO ${PCOREV} at [${DT}] [${PCOPATH}] \$\"" 
+echo "#define       LIMA_GIT_VERSION \"\$Id:      LIMA ${LIMAREV} at [${DT}] [${LIMAPATH}] \$\"" 
+echo "#define    PROCLIB_GIT_VERSION \"\$Id:   PROCLIB ${PROCLIBREV} at [${DT}] [${PROCLIBPATH}] \$\"" 
+echo "#define  LIBCONFIG_GIT_VERSION \"\$Id: LIBCONFIG ${LIBCONFIGREV} at [${DT}] [${LIBCONFIGPATH}] \$\"" 
+echo "#define      TANGO_GIT_VERSION \"\$Id:     TANGO ${TANGOREV} at [${DT}] [${TANGOPATH}] \$\"" 
+echo "#define       SPEC_GIT_VERSION \"\$Id:      SPEC ${SPECREV} at [${DT}] [${SPECPATH}] \$\"" 
+
 } > ${FILE}
 
 cat ${FILE}
