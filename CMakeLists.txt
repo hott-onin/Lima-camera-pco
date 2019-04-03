@@ -1,25 +1,25 @@
 ###########################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-#  Copyright (C) : 2009-2017
-#  European Synchrotron Radiation Facility
-#  BP 220, Grenoble 38043
-#  FRANCE
+# Copyright (C) : 2009-2017
+# European Synchrotron Radiation Facility
+# CS40220 38043 Grenoble Cedex 9
+# FRANCE
 #
-#  Contact: lima@esrf.fr
+# Contact: lima@esrf.fr
 #
-#  This is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 3 of the License, or
-#  (at your option) any later version.
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
 #
-#  This software is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
 cmake_minimum_required(VERSION 3.1)
@@ -95,6 +95,8 @@ find_package(Pco REQUIRED)
 
 file(GLOB_RECURSE PCO_INCS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
+# Library definition
+
 IF(WIN32)
   add_library(pco SHARED
     src/PcoBinCtrlObj.cpp
@@ -132,6 +134,12 @@ endif()
 # Generate export macros
 generate_export_header(pco)
 
+# Set version and output name
+set_target_properties(pco PROPERTIES
+  OUTPUT_NAME "lima${PROJECT_NAME_LOWER}"
+  VERSION "${PROJECT_VERSION}"
+  SOVERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}")
+
 # Add dependencies
 target_include_directories(pco
     PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
@@ -139,19 +147,14 @@ target_include_directories(pco
     PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-# Set version and output name
-set_target_properties(pco PROPERTIES
-  OUTPUT_NAME "lima${PROJECT_NAME_LOWER}"
-  VERSION "${PROJECT_VERSION}"
-  SOVERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}")
 
 target_link_libraries(pco PUBLIC limacore)
 
-target_compile_definitions(pco PUBLIC ${PCO_DEFINITIONS})
+#target_compile_definitions(pco PUBLIC ${PCO_DEFINITIONS})
 
-target_include_directories(pco PUBLIC $<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}>)
+#target_include_directories(pco PUBLIC $<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}>)
 
-target_link_libraries(pco PUBLIC ${PCO_LIBRARIES})
+#target_link_libraries(pco PUBLIC ${PCO_LIBRARIES})
 
 if(WIN32)
   target_compile_definitions(pco
@@ -168,10 +171,10 @@ endif()
 
 # Generate and install package config file and version
 if(CAMERA_MASTER_PROJECT)
-    set(PROJECT_LIBRARIES pco)
-    set(SIP_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/sip/lima)
-    set(CMAKE_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/cmake/lima)
-    include(package_config)
+  set (PROJECT_LIBRARIES pco)
+  set(SIP_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/sip/lima)
+  set(CMAKE_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/cmake/lima)
+  include(package_config)
 endif()
 
 ## Installation
