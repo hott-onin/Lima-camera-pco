@@ -107,24 +107,24 @@ char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
 		st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
 #else
         struct timespec tickNow = {0,0};
+        time_t timeRaw;
+        struct tm * timeInfo;
+
         clock_gettime(CLOCK_REALTIME, &tickNow); 
-        time_t rawtime;
-        struct tm * timeinfo;
+        time (&timeRaw);
 
-        time (&rawtime);
-        timeinfo = localtime(&rawtime);
+        timeInfo = localtime(&timeRaw);
 
-        __sprintfSExt(timeline, sizeof(timeline),"%4d/%02d/%02d %02d:%02d:%02d.%03d",
-            timeinfo->tm_year+1900,
-            timeinfo->tm_mon+1,
-            timeinfo->tm_mday,
-            timeinfo->tm_hour,
-            timeinfo->tm_min,
-            timeinfo->tm_sec,
-            (int)(tickNow.tv_nsec/1000000)
+        __sprintfSExt(timeline, sizeof(timeline),
+            "%4d/%02d/%02d %02d:%02d:%02d.%03d",
+            timeInfo->tm_year+1900,
+            timeInfo->tm_mon+1,
+            timeInfo->tm_mday,
+            timeInfo->tm_hour,
+            timeInfo->tm_min,
+            timeInfo->tm_sec,
+            int((tickNow.tv_nsec/1000000))
             );
-        
-//		__sprintfSExt(timeline, sizeof(timeline),"getTimestamp IsoMilliSec: LINUX - not defined");
 #endif
 		return timeline;
 	}

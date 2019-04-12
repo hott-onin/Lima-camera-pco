@@ -3418,12 +3418,9 @@ void Camera::_pco_ResetLib(int &err)
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() << "INFO: function does NOT exists in linux [" << fnId << "]";
     return;
-
 #else
-
-
 	err = PCO_ResetLib();
 
 	PCO_CHECK_ERROR(err, fnId);
