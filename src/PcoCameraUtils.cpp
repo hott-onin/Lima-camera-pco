@@ -106,7 +106,25 @@ char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
 		st.wYear, st.wMonth, st.wDay,
 		st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
 #else
-		__sprintfSExt(timeline, sizeof(timeline),"getTimestamp IsoMilliSec: LINUX - not defined");
+        struct timespec tickNow = {0,0};
+        clock_gettime(CLOCK_REALTIME, &tickNow); 
+        time_t rawtime;
+        struct tm * timeinfo;
+
+        time (&rawtime);
+        timeinfo = localtime(&rawtime);
+
+        __sprintfSExt(timeline, sizeof(timeline),"%4d/%02d/%02d %02d:%02d:%02d.%03d",
+            timeinfo->tm_year+1900,
+            timeinfo->tm_mon+1,
+            timeinfo->tm_mday,
+            timeinfo->tm_hour,
+            timeinfo->tm_min,
+            timeinfo->tm_sec,
+            (int)(tickNow.tv_nsec/1000000)
+            );
+        
+//		__sprintfSExt(timeline, sizeof(timeline),"getTimestamp IsoMilliSec: LINUX - not defined");
 #endif
 		return timeline;
 	}
@@ -3273,9 +3291,9 @@ int __sprintfSExt(char* ptr, size_t nrMax, const char* format, ...)
 
 #ifdef __linux__
     // int vsnprintf(char*, size_t, const char*, __va_list_tag*)
-	nr = vsnprintf(ptr, nrMax, format, args);
+    nr = vsnprintf(ptr, nrMax, format, args);
 #else
-	nr = vsnprintf_s(ptr, nrMax, _TRUNCATE, format, args);
+    nr = vsnprintf_s(ptr, nrMax, _TRUNCATE, format, args);
 #endif
 
 	va_end (args);
@@ -3303,9 +3321,9 @@ const char * _getEnviroment(const char *env)
 {
  
 #ifndef __linux__
-	return "_getEnviroment: WIN - not defined";
+    return "_getEnviroment: WIN - not defined";
 #else
-	return std::getenv(env);
+    return std::getenv(env);
 #endif
 
 }
@@ -3314,21 +3332,21 @@ const char * _getEnviroment(const char *env)
 //====================================================================
 const char * _getOs()
 {
-	static char os[256];
- 
+    static char os[256];
+
 #ifndef __linux__
-	return "WINDOWS";
+    return "WINDOWS";
 #else
     struct utsname buff;
     int err, nr;
-    
+
     err = uname(&buff);
-    
-	nr = snprintf(os, sizeof(os), 
+
+    nr = snprintf(os, sizeof(os), 
         "os[%s] rel[%s] ver[%s] mach[%s]", 
-        &buff.sysname[0], &buff.release[0], &buff.version[0], &buff.machine[0]);
- 
-	return os;
+        buff.sysname, buff.release, buff.version, buff.machine);
+
+    return os;
 #endif
 
 }
