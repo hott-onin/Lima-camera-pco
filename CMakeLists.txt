@@ -150,11 +150,9 @@ target_include_directories(pco
 
 target_link_libraries(pco PUBLIC limacore)
 
-#target_compile_definitions(pco PUBLIC ${PCO_DEFINITIONS})
-
-#target_include_directories(pco PUBLIC $<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}>)
-
-#target_link_libraries(pco PUBLIC ${PCO_LIBRARIES})
+target_compile_definitions(pco PUBLIC ${PCO_DEFINITIONS})
+target_include_directories(pco PUBLIC $<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}>)
+target_link_libraries(pco PUBLIC ${PCO_LIBRARIES})
 
 if(WIN32)
   target_compile_definitions(pco
@@ -205,8 +203,17 @@ install(
 
 if(LIMA_ENABLE_PYTHON)
   install(
-    FILES python/__init__.py
+    FILES 
+      python/__init__.py
     DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco"
+  )
+endif()
+
+if(LIMA_ENABLE_PYTANGO_SERVER)
+  install(
+    FILES 
+      tango/Pco.py
+    DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Server/camera"
   )
 endif()
 
