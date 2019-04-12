@@ -22,6 +22,10 @@
 ###########################################################################
 **************************************************************************/
 
+#ifdef __linux__
+#include <sys/utsname.h>
+#endif
+
 #ifndef __linux__
 #include <windows.h>
 #include <tchar.h>
@@ -94,11 +98,16 @@ char *getTimestamp(timestampFmt fmtIdx, time_t xtime) {
 
 	if((xtime == 0) && (fmtIdx==IsoMilliSec))
 	{
+
+#ifndef __linux__
 		SYSTEMTIME st;
 		GetLocalTime(&st);
 		__sprintfSExt(timeline, sizeof(timeline),"%4d/%02d/%02d %02d:%02d:%02d.%03d",
 		st.wYear, st.wMonth, st.wDay,
 		st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+#else
+		__sprintfSExt(timeline, sizeof(timeline),"getTimestamp IsoMilliSec: LINUX - not defined");
+#endif
 		return timeline;
 	}
 
@@ -3262,7 +3271,12 @@ int __sprintfSExt(char* ptr, size_t nrMax, const char* format, ...)
 	va_list args;
 	va_start (args, format);
 
+#ifdef __linux__
+    // int vsnprintf(char*, size_t, const char*, __va_list_tag*)
+	nr = vsnprintf(ptr, nrMax, format, args);
+#else
 	nr = vsnprintf_s(ptr, nrMax, _TRUNCATE, format, args);
+#endif
 
 	va_end (args);
 	
@@ -3283,6 +3297,43 @@ int __sprintfSExt(char* ptr, size_t nrMax, const char* format, ...)
 	return 0;
 }
 
+//====================================================================
+//====================================================================
+const char * _getEnviroment(const char *env)
+{
+ 
+#ifndef __linux__
+	return "_getEnviroment: WIN - not defined";
+#else
+	return std::getenv(env);
+#endif
+
+}
+
+//====================================================================
+//====================================================================
+const char * _getOs()
+{
+	static char os[256];
+ 
+#ifndef __linux__
+	return "WINDOWS";
+#else
+    struct utsname buff;
+    int err, nr;
+    
+    err = uname(&buff);
+    
+	nr = snprintf(os, sizeof(os), 
+        "os[%s] rel[%s] ver[%s] mach[%s]", 
+        &buff.sysname[0], &buff.release[0], &buff.version[0], &buff.machine[0]);
+ 
+	return os;
+#endif
+
+}
+
 
 //==========================================================================================================
 //==========================================================================================================
+

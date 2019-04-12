@@ -301,9 +301,11 @@ stcPcoData::stcPcoData(){
 
 	ptr += __sprintfSExt(ptr, ptrMax-ptr, "       timestamp: %s\n", getTimestamp(Iso));
 	ptr += __sprintfSExt(ptr, ptrMax-ptr, "   computer name: %s\n", _getComputerName(buff, BUFFER_LEN));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "              OS: %s\n", _getOs());
 	ptr += __sprintfSExt(ptr, ptrMax-ptr, "       user name: %s\n", _getUserName(buff, BUFFER_LEN));
 	ptr += __sprintfSExt(ptr, ptrMax-ptr, "VS configuration: %s\n", _getVSconfiguration(buff, BUFFER_LEN));
-	
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "        SISO dir: %s\n", _getEnviroment("SISODIR5"));
+
 #ifndef __linux__
 	ptr += __sprintfSExt(ptr, ptrMax-ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_cam.dll"));
 	ptr += __sprintfSExt(ptr, ptrMax-ptr, "                  %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_cl_me4.dll"));
