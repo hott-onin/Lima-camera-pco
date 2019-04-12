@@ -95,21 +95,26 @@ const char* _timestamp_pcocamera() {return ID_FILE_TIMESTAMP ;}
 #ifdef WITH_GIT_VERSION
 #include "PcoGitVersion.h"
 
-#ifndef PCO_SDK_VERSION
-#define PCO_SDK_VERSION "sdkVersion - not set"
-#endif
 
 char * _timestamp_gitversion(char *buffVersion, int len)
 {
+    
+    
 	__sprintfSExt(buffVersion, len,  
 				 PCO_GIT_VERSION "\n"
-				 PCO_SDK_VERSION "\n"
 				 PROCLIB_GIT_VERSION "\n"
 				 LIBCONFIG_GIT_VERSION "\n"
 				 LIMA_GIT_VERSION "\n"
 				 TANGO_GIT_VERSION "\n"
 				 SPEC_GIT_VERSION "\n"
-				 );
+
+#ifndef __linux__
+                PCO_SDK_WIN_VERSION  "\n"
+#else
+                PCO_SDK_LIN_VERSION  "\n"
+#endif
+
+    );
 	return buffVersion;
 }
 #endif
@@ -312,7 +317,7 @@ stcPcoData::stcPcoData(){
 	ptr += __sprintfSExt(ptr, ptrMax-ptr, "                  %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_clhs.dll"));
 	ptr += __sprintfSExt(ptr, ptrMax-ptr, "    lima pco dll: %s\n", _getDllPath(FILE_PCO_DLL, buff, BUFFER_LEN));
 #else
-	ptr += __sprintfSExt(ptr, ptrMax-ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, (char *) "sc2_cam.dll"));
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, " PCO SDK version: %s\n", _getPcoSdkVersion(buff, BUFFER_LEN, NULL));
 #endif
 
 

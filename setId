@@ -10,8 +10,8 @@
 #======================================================================
 
 FILE="./include/PcoGitVersion.h"
-SDK_LIN_H="./sdkPco/PcoSdkVersion.h"
-SDK_WIN_H="./sdkPcoLin/include/PcoSdkVersion.h"
+SDK_WIN_H="./sdkPco/PcoSdkVersion.h"
+SDK_LIN_H="./sdkPcoLin/include/PcoSdkVersion.h"
 LOG="./doc/VERSION.log"
 
 DT=`date +"%Y/%m/%d %H:%M:%S"`
