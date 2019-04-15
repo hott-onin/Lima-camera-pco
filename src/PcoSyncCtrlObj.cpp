@@ -595,7 +595,7 @@ void SyncCtrlObj::stopAcq(bool clearQueue)
 	lock.unlock();
 	_stopRequestOut = _getRequestStop(_nrStop);
 
-	DEB_TRACE() << fnId << " [exit]" << ": " << DEB_VAR5(_started, _stopRequestIn, _stopRequestOut, _nrStop, resWait);
+	DEB_ALWAYS() << fnId << " [exit]" << ": " << DEB_VAR5(_started, _stopRequestIn, _stopRequestOut, _nrStop, resWait);
 }
 //=========================================================================================================
 //=========================================================================================================
@@ -654,7 +654,8 @@ void SyncCtrlObj::getStatus(HwInterface::StatusType& status)
 //=========================================================================================================
 int SyncCtrlObj::_getRequestStop(int &nrStop)
 { 
-	nrStop = m_requestStopRetry;
+   	nrStop = m_requestStopRetry;
+
 	return m_requestStop;
 }
 
@@ -677,7 +678,7 @@ void SyncCtrlObj::_setRequestStop(int requestStop)
 				break;
 
 	}
-	DEB_TRACE() 
+	DEB_ALWAYS() 
 		<< DEB_VAR4(m_requestStop0, m_requestStop, m_requestStopRetry, requestStop);
 
 }
