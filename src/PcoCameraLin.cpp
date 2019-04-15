@@ -321,14 +321,13 @@ void Camera::_AcqThread::threadFunctionDimax()
 
     		usElapsedTimeSet(usStart);
     		                        
-//            err = camera-> pco _ReadImagesFromSegment(wActSeg,pcoFrameNr,pcoFrameNr);
-//            err=grabber->Get_Framebuffer_adr(pcoBuffIdx,&pcoBuffPtr);
+            //err = camera-> pco _ReadImagesFromSegment(wActSeg,pcoFrameNr,pcoFrameNr);
+            //err=grabber->Get_Framebuffer_adr(pcoBuffIdx,&pcoBuffPtr);
  
             {
- //               grabber->Extract_Image(limaBuffPtr,pcoBuffPtr,width,height);
+                //grabber->Extract_Image(limaBuffPtr,pcoBuffPtr,width,height);
                 //DWORD Get_Image ( WORD Segment, DWORD ImageNr, void * adr )
-    
-  //   		    DEB_ALWAYS() << DEB_VAR3(wActSeg, pcoFrameNr, limaBuffPtr);
+                //DEB_ALWAYS() << DEB_VAR3(wActSeg, pcoFrameNr, limaBuffPtr);
 
                 m_cam.grabber->Get_Image(wActSeg, pcoFrameNr, limaBuffPtr );
                 PCO_CHECK_ERROR1(err, "Get_Image");
@@ -381,9 +380,10 @@ void Camera::_AcqThread::threadFunctionDimax()
        		usElapsedTimeSet(usStart);
 
             if((limaFrameNr % 100) == 0)
+            {
                 printf("pcoFrameNr [%d] diff[%d]\r",pcoFrameNr,pcoFrameNrTimestamp-pcoFrameNr);
-            //    printf("\n");
-
+                //printf("\n");
+            }
             ++limaFrameNr;
 
             int _nrStop;
@@ -485,7 +485,6 @@ void Camera::_AcqThread::threadFunctionEdge()
 
     AutoMutex aLock(m_cam.m_cond.mutex());
     //StdBufferCbMgr& buffer_mgr = m_cam.m_buffer_ctrl_obj.getBuffer();
-
     //StdBufferCbMgr& buffer_mgr = m_buffer->getBuffer();
 
     int nb_allocated_buffers;
@@ -600,7 +599,7 @@ void Camera::_AcqThread::threadFunctionEdge()
             m_cam.m_wait_flag = true;
         }       
         
-        bool bAbort = false;
+        bool bAbort = false; Event::Severity abortSeverity = Event::Error;
 
         while(  !m_cam.m_wait_flag && 
                 continueAcq && 
@@ -723,9 +722,10 @@ void Camera::_AcqThread::threadFunctionEdge()
        		usElapsedTimeSet(usStart);
 
             if((limaFrameNr % 100) == 0)
+            {
                 printf("pcoFrameNr [%d] diff[%d]\r",pcoFrameNr,pcoFrameNrTimestamp-pcoFrameNr);
-            //    printf("\n");
-
+                //printf("\n");
+            }
             ++limaFrameNr;
             
             int _nrStop;
@@ -735,7 +735,7 @@ void Camera::_AcqThread::threadFunctionEdge()
                 //m_sync->_setRequestStop(stopNone);
                 continueAcq = false;        
                 m_cam.m_wait_flag = true;
-                bAbort = true;
+                bAbort = true; abortSeverity = Event::Warning;
             }
         
         } // while  nb_frames, continue, wait
@@ -789,7 +789,7 @@ void Camera::_AcqThread::threadFunctionEdge()
         {
             DEB_ALWAYS() << _msgAbort;
             {
-                Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::Default, _msgAbort);
+                Event *ev = new Event(Hardware,abortSeverity,Event::Camera,Event::Default, _msgAbort);
                 m_cam._getPcoHwEventCtrlObj()->reportEvent(ev);
 			}
         }
@@ -852,12 +852,9 @@ Camera::Camera(const std::string& camPar)
     m_quit = false;
     m_wait_flag = true;
     
-
 	//delay_time = exp_time = 0;
-	
-
-	
 	//int error=0;
+
 	m_config = TRUE;
 	DebParams::checkInit();
 
@@ -878,7 +875,6 @@ Camera::Camera(const std::string& camPar)
 
 	m_checkImgNr = new CheckImgNr(this);
 
-
 	// properties: params 
 	paramsInit(camPar.c_str());
 
@@ -894,15 +890,13 @@ Camera::Camera(const std::string& camPar)
 
     
 	/***
-	key = "test";
-	key = "withConfig";
-	key = "testMode";
-	key = "debugPco";
+        key = "test";
+        key = "withConfig";
+        key = "testMode";
+        key = "debugPco";
 	***/
 	key = "extValue";
 	ret = paramsGet(key, value);
-
-
 
     DEB_ALWAYS()  << "setting the log" ;
 
@@ -930,13 +924,6 @@ Camera::Camera(const std::string& camPar)
 	    printf("+++++++++++++++++++++++++++++++++ log [NO LOGS]\n");
     }
 
-
-    
-        
-	
-
-
-
     m_pcoData->testCmdMode = 0;
     //paramsGet("testMode", m_pcoData->testCmdMode);
     paramsGet("testMode", value);
@@ -963,8 +950,6 @@ Camera::Camera(const std::string& camPar)
 	_setStatus(Camera::Ready,true);
 
     DEB_ALWAYS() << "constructor exit";
-
-
 }
 
 //=========================================================================================================
@@ -977,7 +962,6 @@ Camera::~Camera()
     delete m_acq_thread;
     m_acq_thread = NULL;
 
-
 	m_cam_connected = false;
 
 	reset(RESET_CLOSE_INTERFACE);
@@ -988,7 +972,6 @@ Camera::~Camera()
 //==========================================================================================================
 // 2017/05/16
 //==========================================================================================================
-
 
 //==========================================================================================================
 //==========================================================================================================
@@ -1412,11 +1395,7 @@ void Camera::dummySip()
 
 //==========================================================================================================
 //==========================================================================================================
-void _pco_acq_thread_dimax(void *argin) { ;}
-void _pco_acq_thread_dimax_trig_single(void *argin) { ;}
-void _pco_acq_thread_edge(void *argin) { ;}
-void _pco_acq_thread_dimax_live(void *argin) { ;}
-void _pco_acq_thread_ringBuffer(void *argin) { ;}
+
 void Camera::_set_shutter_rolling_edge(DWORD dwRolling, int &error)
 {
 	DEB_MEMBER_FUNCT();

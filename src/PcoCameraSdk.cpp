@@ -4020,4 +4020,3 @@ void Camera::_pco_GetCameraMinSizeCalc(WORD& wMinSizeHorz, WORD& wMinSizeVert)
 }
 
 
-

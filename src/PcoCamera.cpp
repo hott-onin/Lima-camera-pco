@@ -59,14 +59,7 @@ using namespace lima::Pco;
 //const char *timebaseUnits[] = {"ns", "us", "ms"};
 
 //char *_checkLogFiles();
-void _pco_acq_thread_dimax(void *argin);
-void _pco_acq_thread_dimax_trig_single(void *argin);
 
-void _pco_acq_thread_dimax_live(void *argin);
-void _pco_acq_thread_ringBuffer(void *argin);
-
-void _pco_acq_thread_edge(void *argin);
-void _pco_shutter_thread_edge(void *argin);
 
 const char * _timestamp_pcosyncctrlobj();
 const char * _timestamp_pcointerface();
