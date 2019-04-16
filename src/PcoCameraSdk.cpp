@@ -684,7 +684,7 @@ void Camera::_pco_GetCDIMode(WORD &wCDIMode, int &err)
 	pcoErr = PCO_GetCDIMode(m_handle, &wCDIMode);
 #else
 	wCDIMode = 0;
-	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+	DEB_ALWAYS() <<   NOT_IMPLEMENTED ;
     pcoErr = -1;
 #endif
 
@@ -721,7 +721,7 @@ void Camera::_pco_SetCDIMode(WORD wCDIMode, int &err)
 #ifndef __linux__
 	pcoErr = PCO_SetCDIMode(m_handle, wCDIMode);
 #else
-	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+	DEB_ALWAYS() <<   NOT_IMPLEMENTED ;
     pcoErr = -1;
 #endif
 
@@ -753,7 +753,7 @@ void Camera::_pco_GetDoubleImageMode(WORD &wDoubleImage, int &err)
 	pcoErr = PCO_GetDoubleImageMode(m_handle, &wDoubleImage);
 #else
 	wDoubleImage = 0;
-	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+	DEB_ALWAYS() <<   NOT_IMPLEMENTED ;
     pcoErr = -1;
 #endif
 
@@ -790,7 +790,7 @@ void Camera::_pco_SetDoubleImageMode(WORD wDoubleImage, int &err)
 #ifndef __linux__
 	pcoErr = PCO_SetDoubleImageMode(m_handle, wDoubleImage);
 #else
-	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+	DEB_ALWAYS() <<   NOT_IMPLEMENTED ;
     pcoErr = -1;
 #endif
 
@@ -900,7 +900,7 @@ void Camera::_pco_GetSegmentInfo(int &err)
 
 	}
 #else
-	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+	DEB_ALWAYS() <<   NOT_IMPLEMENTED ;
     pcoErr = -1;
 	err |= pcoErr;
 #endif
@@ -995,7 +995,7 @@ void Camera::_pco_GetCoolingSetpointTemperature(int &val, int &error)
 #else
 	error = -1;
 
-	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+	DEB_ALWAYS() <<   NOT_IMPLEMENTED ;
 
 	val = 0;
 	return;
@@ -1035,7 +1035,7 @@ void Camera::_pco_SetCoolingSetpointTemperature(int val, int &error)
 #else
 	error = -1;
 
-	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+	DEB_ALWAYS() <<   NOT_IMPLEMENTED ;
 
 
 	return;
@@ -1078,7 +1078,7 @@ void Camera::_pco_GetInfoString(int infotype, char *buf_in, int size_in, int &er
 #else
 	error = -1;
 	*buf_in = 0;
-	DEB_ALWAYS() << "ERROR - NOT IMPLEMENTED!" ;
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED  ;
 
 #endif
 
@@ -1207,7 +1207,7 @@ void Camera::_pco_SetCamLinkSetImageParameters(int &error){
     } // switch
 
 #else
-	DEB_ALWAYS() << "ERROR - NOT IMPLEMENTED!" ;
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED  ;
 	error = -1;
 #endif
 	return;
@@ -1566,7 +1566,7 @@ void Camera::_pco_GetTemperatureInfo(char *ptr, char *ptrMax, int &error)
 
 #else
 	error = -1;
-	ptr += __sprintfSExt(ptr, ptrMax-ptr, "NOT IMPLEMENTED");
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, NOT_IMPLEMENTED );
 
     return;
 #endif
@@ -3132,7 +3132,7 @@ void Camera::_pco_FreeBuffer(int bufIdx, int &err)
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3162,7 +3162,7 @@ void Camera::_pco_AllocateBuffer(SHORT* sBufNr, DWORD dwSize,
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3192,7 +3192,7 @@ void Camera::_pco_GetImageEx(WORD wSegment, DWORD dw1stImage,
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3229,7 +3229,7 @@ void Camera::_pco_GetBufferStatus(SHORT sBufNr, DWORD* dwStatusDll,
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3259,7 +3259,7 @@ void Camera::_pco_AddBufferExtern(HANDLE hEvent, WORD wActSeg,
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3288,7 +3288,7 @@ void Camera::_pco_AddBufferEx(DWORD dw1stImage, DWORD dwLastImage,
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3316,7 +3316,7 @@ void Camera::_pco_RebootCamera(int &err)
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3346,7 +3346,7 @@ void Camera::_pco_OpenCamera(int &err)
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3388,7 +3388,7 @@ void Camera::_pco_GetCameraRamSize(DWORD &dwRamSize, WORD&wPageSizeint, int &err
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3444,7 +3444,7 @@ void Camera::_pco_GetCameraSetup(WORD& wType, DWORD& dwSetup, WORD& wLen, int &e
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3486,7 +3486,7 @@ void Camera::_pco_SetCameraSetup(WORD wType, DWORD& dwSetup, WORD wLen, int &err
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3529,7 +3529,7 @@ void Camera::_pco_SetTimeouts(void *buf_in, unsigned int size_in, int &err)
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3582,7 +3582,7 @@ void Camera::_pco_GetCameraRamSegmentSize(DWORD* dwRamSegSize, int &err)
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3632,7 +3632,7 @@ void Camera::_pco_SetCameraRamSegmentSize(DWORD* dwRamSegSize, int &err)
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3807,7 +3807,7 @@ void Camera::_pco_FillStructures(int &err)
 	err |= PCO_CHECK_ERROR(pcoErr, "PCO_GetStorageStruct");
 
 #else
-	DEB_ALWAYS() <<  "ERROR / TODO / NOT IMPLEMENTED YET";
+	DEB_ALWAYS() <<   NOT_IMPLEMENTED ;
     err = -1;
 #endif
 
@@ -3832,7 +3832,7 @@ void Camera::_pco_OpenCameraSn(DWORD snRequested, int &err)
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3933,7 +3933,7 @@ void Camera::_pco_GetCameraTypeOnly(int &err)
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else

@@ -33,6 +33,12 @@
 #endif
 
 #ifdef __linux__
+#define NOT_IMPLEMENTED "NOT IMPLEMENTED IN LINUX"
+#else
+#define NOT_IMPLEMENTED "NOT IMPLEMENTED IN WINDOWS"
+#endif
+
+#ifdef __linux__
 
 #include <defs.h>
 

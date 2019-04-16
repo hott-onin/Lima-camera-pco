@@ -1399,7 +1399,7 @@ void Camera::dummySip()
 void Camera::_set_shutter_rolling_edge(DWORD dwRolling, int &error)
 {
 	DEB_MEMBER_FUNCT();
-	DEB_ALWAYS() << "NOT IMPLEMENTED IN LINUX";
+	DEB_ALWAYS() << NOT_IMPLEMENTED ;
 }
 void _pco_shutter_thread_edge(void *argin) { ;}
 
