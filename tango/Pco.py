@@ -42,6 +42,10 @@
 #=============================================================================
 # 2016/06/02 - property params
 #    split between 1 param (str) and more params (class 'PyTango._PyTango.StdStringVector')
+# 2019/04/08 
+#    property params / convert str -> bytes (python3)
+#    talk cmd & calls / convert str -> bytes (python3)
+#    sync with master
 #=============================================================================
 
 
@@ -51,7 +55,11 @@ from Lima import Core
 from Lima import Pco as PcoAcq
 from Lima.Server import AttrHelper
 
-VERSION_ATT ="20180522"
+#VERSION_ATT ="20180522"
+#VERSION_ATT ="20190402"
+# linux / server version
+#VERSION_ATT ="20190405"
+VERSION_ATT ="tango/Pco.py: 2019/04/08"
 
 RESET_CLOSE_INTERFACE	= 100
 
@@ -68,49 +76,49 @@ class Pco(PyTango.Device_4Impl):
         #self._Pco__Rollingshutter = { "only for EDGE": "-1", "GLOBAL": "0", "ROLLING":"1" }    
 
         self.__Attribute2FunctionBase = {
-											'acqTimeoutRetry': 'AcqTimeoutRetry',
-											'adc': 'Adc',
-											'adcMax': 'AdcMax',
-											'binInfo': 'BinningInfo',
-											'bitAlignment': 'BitAlignment',
-											'bytesPerPixel': 'BytesPerPixel',
-											'camInfo': 'CamInfo',
-											'camName': 'CameraName',
-											'camNameBase': 'CameraNameBase',
-											'camNameEx': 'CameraNameEx',
-											'camType': 'CamType',
-											'cdiMode': 'CDIMode',
-											'clXferPar': 'ClTransferParam',
-											'cocRunTime': 'CocRunTime',
-											'coolingTemperature': 'CoolingTemperature',
-											'doubleImageMode': 'DoubleImageMode',
-											'firmwareInfo': 'FirmwareInfo',
-											'frameRate': 'FrameRate',
-											'info': 'CamInfo',
-											'lastError': 'LastError',
-											'lastImgAcquired': 'LastImgAcquired',
-											'lastImgRecorded': 'LastImgRecorded',
-											'logMsg': 'MsgLog',
-											'logPcoEnabled': 'PcoLogsEnabled',
-											'maxNbImages': 'MaxNbImages',
-											'pixelRate': 'PixelRate',
-											'pixelRateInfo': 'PixelRateInfo',
-											'pixelRateValidValues': 'PixelRateValidValues',
-											'recorderForcedFifo': 'RecorderForcedFifo',
-											'roiInfo': 'RoiInfo',
-											'roiLastFixed': 'LastFixedRoi',
-											'rollingShutter': 'RollingShutter',
-											'rollingShutterInfo': 'RollingShutterInfo',
-											'temperatureInfo': 'TemperatureInfo',
-											'traceAcq': 'TraceAcq',
-											'version': 'Version',
-											'versionSdk': 'SdkRelease',
-											'camerasFound': 'CamerasFound',
-											'debugInt': 'DebugInt',
-											'debugIntTypes': 'DebugIntTypes',
-											'test': 'Test',
-											'timestampMode': 'TimestampMode',
-                                            }
+            'acqTimeoutRetry': 'AcqTimeoutRetry',
+            'adc': 'Adc',
+            'adcMax': 'AdcMax',
+            'binInfo': 'BinningInfo',
+            'bitAlignment': 'BitAlignment',
+            'bytesPerPixel': 'BytesPerPixel',
+            'camInfo': 'CamInfo',
+            'camName': 'CameraName',
+            'camNameBase': 'CameraNameBase',
+            'camNameEx': 'CameraNameEx',
+            'camType': 'CamType',
+            'cdiMode': 'CDIMode',
+            'clXferPar': 'ClTransferParam',
+            'cocRunTime': 'CocRunTime',
+            'coolingTemperature': 'CoolingTemperature',
+            'doubleImageMode': 'DoubleImageMode',
+            'firmwareInfo': 'FirmwareInfo',
+            'frameRate': 'FrameRate',
+            'info': 'CamInfo',
+            'lastError': 'LastError',
+            'lastImgAcquired': 'LastImgAcquired',
+            'lastImgRecorded': 'LastImgRecorded',
+            'logMsg': 'MsgLog',
+            'logPcoEnabled': 'PcoLogsEnabled',
+            'maxNbImages': 'MaxNbImages',
+            'pixelRate': 'PixelRate',
+            'pixelRateInfo': 'PixelRateInfo',
+            'pixelRateValidValues': 'PixelRateValidValues',
+            'recorderForcedFifo': 'RecorderForcedFifo',
+            'roiInfo': 'RoiInfo',
+            'roiLastFixed': 'LastFixedRoi',
+            'rollingShutter': 'RollingShutter',
+            'rollingShutterInfo': 'RollingShutterInfo',
+            'temperatureInfo': 'TemperatureInfo',
+            'traceAcq': 'TraceAcq',
+            'version': 'Version',
+            'versionSdk': 'SdkRelease',
+            'camerasFound': 'CamerasFound',
+            'debugInt': 'DebugInt',
+            'debugIntTypes': 'DebugIntTypes',
+            'test': 'Test',
+            'timestampMode': 'TimestampMode',
+            }
         
         
         self.init_device()
@@ -152,7 +160,7 @@ class Pco(PyTango.Device_4Impl):
 
     @Core.DEB_MEMBER_FUNCT
     def talk(self, argin):
-        val= _PcoCam.talk(argin)
+        val= _PcoCam.talk(argin.encode())
         return val
 
 #==================================================================
@@ -676,6 +684,11 @@ def get_control(debug_control = "0",
         # <class 'PyTango._PyTango.StdStringVector'>
         paramsIn = "".join("%s;" % (x,) for x in params)
 
+    bParamsIn = paramsIn.encode()
+    # bParamsIn -> bytes
+    #   <class 'bytes'>
+    #   b'bitAlignment = MSB;trigSingleMulti=1;'
+
     print ("============= Properties =============")
     print ("         keys:", keys)
     print ("       params:", params)
@@ -698,7 +711,7 @@ def get_control(debug_control = "0",
 
 
     if _PcoCam is None:
-        _PcoCam = PcoAcq.Camera(paramsIn)
+        _PcoCam = PcoAcq.Camera(bParamsIn)
         _PcoInterface = PcoAcq.Interface(_PcoCam)
         _PcoControl = Core.CtControl(_PcoInterface)
         memFactor0 = _PcoControl.buffer().getMaxMemory()
