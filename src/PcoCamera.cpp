@@ -442,6 +442,8 @@ void Camera::_init(){
 	int error=0;
 
 #ifdef __linux__
+    // ----- linux [begin]
+    
 	UNUSED const char *pcoFn;
 
 	//-------------------- linux
@@ -515,7 +517,9 @@ void Camera::_init(){
     // 0x08: "Falling edge active"
 	_pco_initHWIOSignal(0, 0x04, iErr);
 
+    // ----- linux [end]
 #else
+    // ----- windows [begin]
 
 	char msg[MSG4K + 1];
 
@@ -652,6 +656,8 @@ void Camera::_init(){
 		throw LIMA_HW_EXC(Error, "Camera not found!");
 
 	_pco_initHWIOSignal(0, 0x4, error);
+
+    // ----- windows [end]
 #endif
 
 	_pco_SetCameraToCurrentTime(error);
@@ -1265,10 +1271,10 @@ bool Camera::_isValid_pixelRate(DWORD dwPixelRate){
 
 	if(dwPixelRate > 0) 
 		for(int i = 0; i < 4; i++) {			
-			if(dwPixelRate == m_pcoData->stcPcoDescription.dwPixelRateDESC[i]) return TRUE;
+			if(dwPixelRate == m_pcoData->stcPcoDescription.dwPixelRateDESC[i]) return true;
 		}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -1371,23 +1377,23 @@ bool Camera::_isCameraType(unsigned long long tp){
 		case CAMERATYPE_PCO_DIMAX_STD: 
 		case CAMERATYPE_PCO_DIMAX_TV:
 		case CAMERATYPE_PCO_DIMAX_CS:
-			if(tp & (Dimax | camRAM)) {DEB_TRACE() << "Dimax [exit] "; return TRUE;}
+			if(tp & (Dimax | camRAM)) {DEB_TRACE() << "Dimax [exit] "; return true;}
 			switch(wCameraSubtype >> 8)
 			{
 				case 0x20:
-					if(tp & (DimaxHS1 | DimaxHS)) {DEB_TRACE() << "DimaxHS1 / HS [exit] "; return TRUE;}
+					if(tp & (DimaxHS1 | DimaxHS)) {DEB_TRACE() << "DimaxHS1 / HS [exit] "; return true;}
 					break;
 				case 0x21:
-					if(tp & (DimaxHS2 | DimaxHS)) {DEB_TRACE() << "DimaxHS2 / HS [exit] "; return TRUE;}
+					if(tp & (DimaxHS2 | DimaxHS)) {DEB_TRACE() << "DimaxHS2 / HS [exit] "; return true;}
 					break;
 				case 0x23:
-					if(tp & (DimaxHS4 | DimaxHS)) {DEB_TRACE() << "DimaxHS4 / HS [exit] "; return TRUE;}
+					if(tp & (DimaxHS4 | DimaxHS)) {DEB_TRACE() << "DimaxHS4 / HS [exit] "; return true;}
 					break;
 				default:
 					break;
 			}
-			DEB_TRACE() << "Dimax SUBTYPE NONE FALSE [exit] ";
-			return FALSE;
+			DEB_TRACE() << "Dimax SUBTYPE NONE false [exit] ";
+			return false;
 
 		case CAMERATYPE_PCO_EDGE_GL:
 			return !!(tp & (EdgeGL | Edge));
@@ -1413,7 +1419,7 @@ bool Camera::_isCameraType(unsigned long long tp){
 	}
 		
 
-	return FALSE;
+	return false;
 }
 
 
@@ -1451,7 +1457,7 @@ bool Camera::_isInterfaceType(int tp)
 			return !!(tp & (ifCoaxpress));
 
 		default:
-			return FALSE;
+			return false;
 
 	}
 		
@@ -1629,7 +1635,7 @@ void Camera::_setActionTimestamp(int action)
 void Camera::getStatus(Camera::Status& status)
 {
     DEB_MEMBER_FUNCT();
-    AutoMutex aLock(m_cond.mutex());
+    //AutoMutex aLock(m_cond.mutex());
     status = m_status;
     DEB_RETURN() << DEB_VAR1(DEB_HEX(status));
 }
@@ -1639,9 +1645,13 @@ void Camera::getStatus(Camera::Status& status)
 void Camera::_setStatus(Camera::Status status,bool force)
 {
     DEB_MEMBER_FUNCT();
+	DEF_FNID;
+
     AutoMutex aLock(m_cond.mutex());
+
     if(force || m_status != Camera::Fault)
         m_status = status;
+        
     m_cond.broadcast();
     aLock.unlock();
 }
@@ -1694,7 +1704,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 
 	DEB_TRACE() << fnId << " [entry - edge] ";
 
-	m_config = TRUE;
+	m_config = true;
 
 	// DWORD m_dwSetup[10];
 	// WORD m_wLen = 10;
@@ -1721,7 +1731,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	if(error)
 	{
 		DEB_ALWAYS() << fnId << " [ERROR PCO_GetCameraSetup] " << msg;
-		m_config = FALSE;
+		m_config = false;
 		return;
 	}
 
@@ -1731,7 +1741,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	
 	if(m_dwSetup[0] == dwRollingShRequested) { 
 		DEB_TRACE() << "exit NO Change in ROLLING SHUTTER " << DEB_VAR2(dwRollingShNow, dwRollingShRequested);
-		m_config = FALSE;
+		m_config = false;
 		return;
 	}
 
@@ -1753,7 +1763,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 	if(error)
 	{
 		DEB_ALWAYS() << fnId << " [ERROR PCO_SetCameraSetup] " << cmsg;
-		m_config = FALSE;
+		m_config = false;
 		return;
 	}
 
@@ -1780,7 +1790,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error){
 
 	DEB_TRACE() << fnId << " [exit] ";
 
-	m_config = FALSE;
+	m_config = false;
 	return;
 
 }
@@ -1796,7 +1806,7 @@ bool Camera::_isValid_rollingShutter(DWORD dwRolling)
 		case PCO_EDGE_SETUP_ROLLING_SHUTTER: return _isCapsDesc(capsRollingShutter);   // 1
 		case PCO_EDGE_SETUP_GLOBAL_SHUTTER: return _isCapsDesc(capsGlobalShutter) ;    // 2
 		case PCO_EDGE_SETUP_GLOBAL_RESET: return _isCapsDesc(capsGlobalResetShutter) ; //4
-		default: return FALSE;
+		default: return false;
 	}
 
 }

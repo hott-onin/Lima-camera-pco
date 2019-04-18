@@ -960,3 +960,177 @@ void Camera::getLastImgFifo(int &val)
 	val = m_pcoData->traceAcq.lastImgFifo;
 
 }
+
+//====================================================================
+// SIP - attrib / EDGE - rolling shutter
+//====================================================================
+
+void Camera::getRollingShutter(int &val)
+{
+	int error;
+	DWORD dwRolling;
+
+	if(!_isCameraType(Edge)) 
+	{
+		val = -1;
+		return;
+	} 
+	_get_shutter_rolling_edge(dwRolling, error);
+	val = dwRolling;
+
+}
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+// GeneralCaps1-Bits
+//    NO_GLOBAL_SHUTTER 0x00080000 Global shutter operation mode not available
+//    GLOBAL_RESET_MODE 0x00100000 Global reset operation mode not available
+
+void Camera::setRollingShutter(int val)
+{
+	DEB_MEMBER_FUNCT();
+
+	int error;
+	DWORD dwRolling, dwRollingNew;
+
+	dwRollingNew = (DWORD) val;
+
+	if(!_isValid_rollingShutter(dwRollingNew))
+	{
+		DEB_ALWAYS() << "ERROR requested Rolling Shutter not allowed " << DEB_VAR1(dwRollingNew);
+		error = -1;
+		return;
+	}
+
+	_get_shutter_rolling_edge(dwRolling, error);
+			
+
+    // different modules for lin & win
+    //   lin -> activate thread Camera::_AcqThread::threadFunction_SwitchEdge()
+    //   win -> activate thread _pco_shutter_thread_edge
+    //          -> m_cam->_pco_set_shutter_rolling_edge
+	if(dwRollingNew != dwRolling){
+		_set_shutter_rolling_edge(dwRollingNew, error);
+	}
+}
+
+
+void Camera::setRollingShutterStr(std::string &i_sn) 
+{
+	DEB_MEMBER_FUNCT();
+
+	const char *strIn = i_sn.c_str();
+	int _val;
+
+	if( (_stricmp(strIn, "1") == 0) || (_stricmp(strIn, "RS") == 0) )
+	{
+		_val = 1;
+	}
+	else if( (_stricmp(strIn, "2") == 0) || (_stricmp(strIn, "GS") == 0) )
+	{
+		_val = 2;
+	}
+	else if( (_stricmp(strIn, "4") == 0) || (_stricmp(strIn, "GR") == 0) )
+	{
+		_val = 4;
+	}
+	else
+	{
+		DEB_ALWAYS() << "ERROR requested Rolling Shutter not allowed " << DEB_VAR1(strIn);
+		return;
+	}
+
+    setRollingShutter(_val);
+}
+
+
+//---------------------------------------------------------------------
+//---------------------------------------------------------------------
+
+void Camera::getRollingShutterInfo(std::string &o_sn) 
+{
+	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+    const char *sId;
+    
+	int val;
+
+	bool bRS = _isCapsDesc(capsRollingShutter);
+    bool bGL = _isCapsDesc(capsGlobalShutter);
+    bool bGR = _isCapsDesc(capsGlobalResetShutter);
+
+	if( !(bRS || bGL || bGR)) 
+	{
+		ptr += __sprintfSExt(ptr, ptrMax-ptr, "Rolling Shutter is not allowed");
+		o_sn = buff;
+		return;
+	}
+
+	getRollingShutter(val);
+    switch(val)
+    {
+        case 1: sId = "RS" ; break;
+        case 2: sId = "GS" ; break;
+        case 4: sId = "GR" ; break;
+        default: sId = "ERROR" ; break;
+    }
+
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "actual[%d][%S] validValues: ", val);
+
+	if(bRS) ptr += __sprintfSExt(ptr, ptrMax-ptr, "rolling[%d][RS] ", (int) PCO_EDGE_SETUP_ROLLING_SHUTTER);
+	if(bGL) ptr += __sprintfSExt(ptr, ptrMax-ptr, "global[%d][GS] ",(int)  PCO_EDGE_SETUP_GLOBAL_SHUTTER);
+	if(bGR) ptr += __sprintfSExt(ptr, ptrMax-ptr, "globalReset[%d][GR] ", (int)  PCO_EDGE_SETUP_GLOBAL_RESET);
+	
+	o_sn = buff;
+	return;
+}
+
+
+//=================================================================================================
+//=================================================================================================
+
+void Camera::getGeneralCAPS1(std::string &o_sn) 
+{
+   //error = camera->PCO_GetCameraDescription(&m_pcoData->stcPcoDescription);
+ 	char *ptr = buff;
+	char *ptrMax = buff + sizeof(buff);
+  
+    DWORD dwGeneralCaps1 = m_pcoData->stcPcoDescription.dwGeneralCaps1; 
+    DWORD dwVal;
+    
+    int nib[8];
+    int i, j;
+    
+    dwVal = dwGeneralCaps1;
+    
+    for(i = 0; i<8 ; i++)
+    {
+        nib[i] = (dwVal & 0xF);
+        dwVal >>= 4;
+    }
+
+    
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "CAPS1: %08X\n", dwGeneralCaps1);
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "(hex): ");
+    for(i = 7; i>=0 ; i--)
+    {
+        ptr += __sprintfSExt(ptr, ptrMax-ptr, "%5X", nib[i]);
+    }
+    ptr += __sprintfSExt(ptr, ptrMax-ptr, "\n");
+    
+
+	ptr += __sprintfSExt(ptr, ptrMax-ptr, "(bin): ");
+    for(i = 7; i>=0 ; i--)
+    {
+        ptr += __sprintfSExt(ptr, ptrMax-ptr, " ");
+        for(j = 3; j>=0 ; j--)
+        {
+            ptr += __sprintfSExt(ptr, ptrMax-ptr, "%1d", ((1 << j) & nib[i]) ? 1 : 0);
+        }
+    }
+    ptr += __sprintfSExt(ptr, ptrMax-ptr, "\n");
+    
+
+	o_sn = buff;
+
+}

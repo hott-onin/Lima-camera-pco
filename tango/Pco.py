@@ -46,6 +46,8 @@
 #    property params / convert str -> bytes (python3)
 #    talk cmd & calls / convert str -> bytes (python3)
 #    sync with master
+# 2019/04/18 
+#    new att
 #=============================================================================
 
 
@@ -59,7 +61,8 @@ from Lima.Server import AttrHelper
 #VERSION_ATT ="20190402"
 # linux / server version
 #VERSION_ATT ="20190405"
-VERSION_ATT ="tango/Pco.py: 2019/04/08"
+#VERSION_ATT ="tango/Pco.py: 2019/04/08"
+VERSION_ATT ="tango/Pco.py: 2019/04/18"
 
 RESET_CLOSE_INTERFACE	= 100
 
@@ -118,6 +121,9 @@ class Pco(PyTango.Device_4Impl):
             'debugIntTypes': 'DebugIntTypes',
             'test': 'Test',
             'timestampMode': 'TimestampMode',
+            'generalCAPS1': 'GeneralCAPS1',
+            'rollingShutterStr': 'RollingShutterStr',
+
             }
         
         
@@ -641,7 +647,25 @@ class PcoClass(PyTango.DeviceClass):
              'description': 'timestamp mode'
 			}],
 
+         'generalCAPS1':	  
+         [[PyTango.DevString,
+           PyTango.SCALAR,
+           PyTango.READ],
+           {
+             'unit': 'N/A',
+             'format': '%s',
+             'description': 'general CAPS1 bits'
+             }],
 
+         'rollingShutterStr':	  
+         [[PyTango.DevString,
+           PyTango.SCALAR,
+           PyTango.WRITE],
+           {
+             'unit': 'N/A',
+             'format': '%s',
+             'description': 'set rolling shutter'
+             }],
 
         }
 

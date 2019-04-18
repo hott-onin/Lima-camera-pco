@@ -52,7 +52,7 @@ Camera::Camera(const std::string& camPar) :
 	DEB_CONSTRUCTOR();
 
 	int error=0;
-	m_config = TRUE;
+	m_config = true;
 	DebParams::checkInit();
 
 	
@@ -110,7 +110,7 @@ Camera::Camera(const std::string& camPar) :
 	//m_bin.changed = Invalid;
 	
 	_init();
-	m_config = FALSE;
+	m_config = false;
 	_setActionTimestamp(tsConstructor);
 }
 

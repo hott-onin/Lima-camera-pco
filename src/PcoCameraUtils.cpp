@@ -277,6 +277,22 @@ char *str_toupper(char *s) {
 	return s;
 }
 
+//=========================================================================================================
+//=========================================================================================================
+void Camera::Sleep_ms(unsigned int time_ms) //time in ms
+{
+
+#ifdef __linux__
+
+    useconds_t time_us = time_ms * 1000;
+    usleep(time_us);
+
+#else
+
+    ::Sleep(time_ms);
+
+#endif
+}
 
 //=========================================================================================================
 //=========================================================================================================
@@ -294,6 +310,8 @@ void stcPcoData::traceMsg(char *s){
 	snprintf(ptr, LEN_TRACEACQ_MSG - lg,"%s> %s", dt, s);
 }
 
+//=========================================================================================================
+//=========================================================================================================
 static char buff[BUFF_INFO_SIZE +16];
 std::string Camera::talk(const std::string& cmd){
 	DEB_MEMBER_FUNCT();
@@ -490,7 +508,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg){
 			
 			ptr += __sprintfSExt(ptr, ptrMax-ptr, "PCO API allocated buffers:\n"
 												"    allocated=[%s] nrBuff=[%d] size=[%d B][%g MB] imgPerBuff[%d]\n", 
-				m_pcoData->bAllocatedBufferDone ? "TRUE" : "FALSE", 
+				m_pcoData->bAllocatedBufferDone ? "true" : "false", 
 				m_pcoData->iAllocatedBufferNumber, 
 				(int) m_pcoData->dwAllocatedBufferSize, (double) (m_pcoData->dwAllocatedBufferSize/1000000.),
 				(int) (m_pcoData->dwAllocatedBufferSize/sizeBytes));
@@ -3097,78 +3115,6 @@ int _get_time_from_imageTimestamp(void *buf,int shift,SYSTEMTIME *st)
 //====================================================================
 //====================================================================
 
-void Camera::getRollingShutter(int &val)
-{
-	int error;
-	DWORD dwRolling;
-
-	if(!_isCameraType(Edge)) 
-	{
-		val = -1;
-		return;
-	} 
-	_get_shutter_rolling_edge(dwRolling, error);
-	val = dwRolling;
-
-}
-
-
-void Camera::setRollingShutter(int val)
-{
-	DEB_MEMBER_FUNCT();
-
-	int error;
-	DWORD dwRolling, dwRollingNew;
-
-	dwRollingNew = (DWORD) val;
-
-	if(!_isValid_rollingShutter(dwRollingNew))
-	{
-		DEB_ALWAYS() << "ERROR requested Rolling Shutter not allowed " << DEB_VAR1(dwRollingNew);
-		error = -1;
-		return;
-	}
-
-	_get_shutter_rolling_edge(dwRolling, error);
-			
-
-	if(dwRollingNew != dwRolling){
-		_set_shutter_rolling_edge(dwRollingNew, error);
-	}
-}
-
-
-void Camera::getRollingShutterInfo(std::string &o_sn) 
-{
-	char *ptr = buff;
-	char *ptrMax = buff + sizeof(buff);
-	int val;
-
-	bool bRS = _isCapsDesc(capsRollingShutter);
-    bool bGL = _isCapsDesc(capsGlobalShutter);
-    bool bGR = _isCapsDesc(capsGlobalResetShutter);
-
-	if( !(bRS || bGL || bGR)) 
-	{
-		ptr += __sprintfSExt(ptr, ptrMax-ptr, "Rolling Shutter is not allowed");
-		o_sn = buff;
-		return;
-	}
-
-	getRollingShutter(val);
-	ptr += __sprintfSExt(ptr, ptrMax-ptr, "actual[%d] valid: ", val);
-
-	if(bRS) ptr += __sprintfSExt(ptr, ptrMax-ptr, "rolling[%d] ", (int) PCO_EDGE_SETUP_ROLLING_SHUTTER);
-	if(bGL) ptr += __sprintfSExt(ptr, ptrMax-ptr, "global[%d] ",(int)  PCO_EDGE_SETUP_GLOBAL_SHUTTER);
-	if(bGR) ptr += __sprintfSExt(ptr, ptrMax-ptr, "globalReset[%d] ", (int)  PCO_EDGE_SETUP_GLOBAL_RESET);
-	
-	o_sn = buff;
-	return;
-}
-
-
-//=================================================================================================
-//=================================================================================================
 
 void usElapsedTimeSet(long long &us0) {
 

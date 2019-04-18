@@ -80,6 +80,7 @@ namespace Pco
 		void getRollingShutter(int & val /Out/);    // rollingShutter
 		void setRollingShutter(int val);
 		void getRollingShutterInfo(std::string &o_sn /Out/) ;       // rollingShutterInfo
+        void setRollingShutterStr(std::string &i_sn); // rollingShutter string
 
 		void getTemperatureInfo(std::string &o_sn /Out/);
 
@@ -112,6 +113,8 @@ namespace Pco
 		void setRecorderStopRequest(int val);
 		
 		void getLastImgFifo(int & val /Out/);
+        
+        void getGeneralCAPS1(std::string &o_sn  /Out/);
 
 	private:
 		Camera(const Pco::Camera&);

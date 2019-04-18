@@ -841,12 +841,12 @@ int BufferCtrlObj::_xferImag()
 			if((m_sync->_getRequestStop(_nrStop) == stopRequest) && (_nrStop > MAX_NR_STOP)) {goto _EXIT_STOP;}
 
 			//Sleep(msTimeout);
-			int eventRet; // = WaitForMultipleObjects(2, &events[0], FALSE, 10);
+			int eventRet; // = WaitForMultipleObjects(2, &events[0], false, 10);
 
 			eventRet = WaitForMultipleObjects( 
 				nrEvents,							// number of objects in array
 				m_allocBuff.bufferAllocEvent,		// array of objects
-				FALSE,								// wait for any object
+				false,								// wait for any object
 				msTimeout);							// ms wait timeout
 
 			//GetPendingBuffer(hCamera, &ipending);// <--- This can indicate that more than one buffer is ready
@@ -1931,8 +1931,8 @@ void BufferCtrlObj::_pcoAllocBuffers(bool max) {
 		 // Create two event objects
 		   m_allocBuff.bufferAllocEvent[bufIdx] = CreateEvent( 
 				NULL,   // default security attributes
-				TRUE,  // auto-reset event object = FALSE / manual reset = TRUE
-				FALSE,  // initial state is nonsignaled
+				true,  // auto-reset event object = false / manual reset = true
+				false,  // initial state is nonsignaled
 				NULL);  // unnamed object
 
 			if (!m_allocBuff.bufferAllocEvent[bufIdx]) 
@@ -2455,7 +2455,7 @@ _RETRY_WAIT:
 		dwEvent = WaitForMultipleObjects( 
 			m_cam->m_pco_buffer_nrevents,           // number of objects in array
 			m_allocBuff.bufferAllocEvent,     // array of objects
-			FALSE,       // wait for any object
+			false,       // wait for any object
 			EVENT_WAIT_TMOUT_MS);       // ms wait
 
     // The return value indicates which event is signaled

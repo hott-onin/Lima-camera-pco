@@ -686,24 +686,24 @@ namespace lima
         void    _stopAcq(bool waitForThread);
 #endif
 
-		// ----- BIN
-		void setBin(const Bin& aBin);
-		void getBin(Bin& aBin);
-		void checkBin(Bin& aBin);
-		// -----
+        // ----- BIN
+        void setBin(const Bin& aBin);
+        void getBin(Bin& aBin);
+        void checkBin(Bin& aBin);
+        // -----
 
-		HANDLE& getHandle() {return m_handle;}
+        HANDLE& getHandle() {return m_handle;}
 
-		//void getMaxWidthHeight(DWORD &xMax, DWORD &yMax);
-		void getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax);
-		
-		void getXYsteps(unsigned int &xSteps, unsigned int &ySteps);
-		void getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsigned int &xMax, unsigned int &yMax, unsigned int &xMinSize, unsigned int &yMinSize); 
+        //void getMaxWidthHeight(DWORD &xMax, DWORD &yMax);
+        void getMaxWidthHeight(unsigned int &xMax, unsigned int &yMax);
 
-		void getBytesPerPixel(unsigned int& pixbytes);
-		void getBitsPerPixel(WORD& pixbits);
+        void getXYsteps(unsigned int &xSteps, unsigned int &ySteps);
+        void getXYdescription(unsigned int &xSteps, unsigned int &ySteps, unsigned int &xMax, unsigned int &yMax, unsigned int &xMinSize, unsigned int &yMinSize); 
 
-		int getNbAcquiredFrames() const {return m_acq_frame_nb;}
+        void getBytesPerPixel(unsigned int& pixbytes);
+        void getBitsPerPixel(WORD& pixbits);
+
+        int getNbAcquiredFrames() const {return m_acq_frame_nb;}
 
         void getCameraName(std::string& name);
 
@@ -713,80 +713,89 @@ namespace lima
 
         unsigned long _pco_GetNumberOfImagesInSegment_MaxCalc(int segmentPco);
 
-		unsigned long	pcoGetFramesPerBuffer() { return m_pcoData->frames_per_buffer; }
+        unsigned long	pcoGetFramesPerBuffer() { return m_pcoData->frames_per_buffer; }
 
-		PcoHwEventCtrlObj *_getPcoHwEventCtrlObj() {return m_HwEventCtrlObj;}
-		BufferCtrlObj* _getBufferCtrlObj() { return m_buffer;}
-		SyncCtrlObj*	_getSyncCtrlObj() { return m_sync;}
-		struct stcPcoData * _getPcoData() {return  m_pcoData; }
-		
-		char* _PcoCheckError(int line, const char *file, int err, int&error, const char *fn = "***") ;
-		int pcoGetError() {return m_pcoData->pcoError;}
+        PcoHwEventCtrlObj *_getPcoHwEventCtrlObj() {return m_HwEventCtrlObj;}
+        BufferCtrlObj* _getBufferCtrlObj() { return m_buffer;}
+        SyncCtrlObj*	_getSyncCtrlObj() { return m_sync;}
+        struct stcPcoData * _getPcoData() {return  m_pcoData; }
 
-		int dumpRecordedImages(int &nrImages, int &error);
+        char* _PcoCheckError(int line, const char *file, int err, int&error, const char *fn = "***") ;
+        int pcoGetError() {return m_pcoData->pcoError;}
 
-		bool _isCameraType(unsigned long long tp);
-		bool _isInterfaceType(int tp);
-		bool _isConfig(){return m_config; };
-		void _pco_set_shutter_rolling_edge(int &error);
-		void msgLog(const char *s);
-		bool _getIsArmed() {return m_isArmed; };
-		void _armRequired(bool armRequiered){m_isArmed = !armRequiered;};
-		void _traceMsg(char *s);
-		
-		void paramsInit(const char *str);
+        int dumpRecordedImages(int &nrImages, int &error);
 
-		bool paramsGet(const char *key, char *&value);
-		time_t _getActionTimestamp(int action);
-		void _setActionTimestamp(int action);
+        bool _isCameraType(unsigned long long tp);
+        bool _isInterfaceType(int tp);
+        bool _isConfig(){return m_config; };
+        void _pco_set_shutter_rolling_edge(int &error);
+        void msgLog(const char *s);
+        bool _getIsArmed() {return m_isArmed; };
+        void _armRequired(bool armRequiered){m_isArmed = !armRequiered;};
+        void _traceMsg(char *s);
 
-	private:
-		PcoHwEventCtrlObj *m_HwEventCtrlObj;
-		SyncCtrlObj*	m_sync;
-		BufferCtrlObj*  m_buffer;
+        void paramsInit(const char *str);
+
+        bool paramsGet(const char *key, char *&value);
+        time_t _getActionTimestamp(int action);
+        void _setActionTimestamp(int action);
+
+    private:
+        PcoHwEventCtrlObj *m_HwEventCtrlObj;
+        SyncCtrlObj*	m_sync;
+        BufferCtrlObj*  m_buffer;
         HANDLE	m_handle;				/* handle of opened camera */
 
-		std::string m_log;
+        std::string m_log;
         //char pcoErrorMsg[ERR_SIZE+1];
 
 
-		struct stcPcoData *m_pcoData;
+        struct stcPcoData *m_pcoData;
 
         bool m_cam_connected;
 
-		Cond m_cond;
+        Cond m_cond;
 
 #ifdef __linux__
+        enum threadType {threadAcq = 1, threadSw};
+
         class _AcqThread;
         friend class _AcqThread;
-		_AcqThread*                   m_acq_thread;
+        _AcqThread*                   m_acq_threadAcq;
+        _AcqThread*                   m_acq_threadSw;
 #endif    
         volatile bool               m_wait_flag;
         volatile bool               m_quit;
         volatile bool               m_thread_running;
-	
-		int m_pcoError;
 
-		Roi m_Roi_lastFixed_hw;
-		Roi m_Roi_lastFixed_requested;
-		time_t m_Roi_lastFixed_time;
+        volatile bool               m_wait_flag_rolling;
+        volatile bool               m_quit_rolling;
+        volatile bool               m_thread_running_rolling;
 
-		
-		//struct stcSize m_size;
 
-		int		m_acq_frame_nb;
-		bool m_config;
 
-		bool m_isArmed;
-		long long m_state;
+        int m_pcoError;
 
-		int m_pco_buffer_nrevents;
+        Roi m_Roi_lastFixed_hw;
+        Roi m_Roi_lastFixed_requested;
+        time_t m_Roi_lastFixed_time;
 
-		bool m_bRecorderForcedFifo;
-		int m_iRecorderStopRequest;
-		int m_iPcoAcqMode;
 
-		//----------------------------------
+        //struct stcSize m_size;
+
+        int		m_acq_frame_nb;
+        bool m_config;
+
+        bool m_isArmed;
+        long long m_state;
+
+        int m_pco_buffer_nrevents;
+
+        bool m_bRecorderForcedFifo;
+        int m_iRecorderStopRequest;
+        int m_iPcoAcqMode;
+
+        //----------------------------------
 
         Camera::Status m_status;
 
@@ -799,237 +808,239 @@ namespace lima
         WORD wLutActive,wLutParam;
         int board;
 
-        
+        DWORD m_dwRollingShutterNew;
+
+
         PCO_SC2_CL_TRANSFER_PARAM clpar;
 
         DWORD dwPixelRateActual;
         DWORD dwPixelRateValid[4];
         DWORD dwPixelRateMax;
         int iPixelRateValidNr;
-        
+
         //------------- linux sdk
 
         int PcoCheckError(int line, const char *file, int err, const char *fn = "***", const char *comments = "");
 
-		void _allocBuffer();
+        void _allocBuffer();
 
 
-		void _presetPixelRate(DWORD &pixRate, int &error);
-		void _get_shutter_rolling_edge(DWORD &dwRolling, int &error);
-		void _set_shutter_rolling_edge(DWORD dwRolling, int &error);
+        void _presetPixelRate(DWORD &pixRate, int &error);
+        void _get_shutter_rolling_edge(DWORD &dwRolling, int &error);
+        void _set_shutter_rolling_edge(DWORD dwRolling, int &error);
 
-		void _init();
-		void _init_edge();
-		void _init_dimax();
+        void _init();
+        void _init_edge();
+        void _init_dimax();
 
-		void _pco_SetPixelRate(int &error);
-		//char *_pco_SetPixelRate(int &error);
+        void _pco_SetPixelRate(int &error);
+        //char *_pco_SetPixelRate(int &error);
 
-		bool _isValid_pixelRate(DWORD dwPixelRate);
-		bool _isValid_rollingShutter(DWORD dwRollingShutter);
+        bool _isValid_pixelRate(DWORD dwPixelRate);
+        bool _isValid_rollingShutter(DWORD dwRollingShutter);
 
-		void getRoiSymetrie(bool &bSymX, bool &bSymY );
-		void _get_logLastFixedRoi(Roi &requested_roi, Roi &fixed_roi, time_t & dt);
-		void _set_logLastFixedRoi(const Roi &requested_roi, const Roi &fixed_roi);
-		
-		int _checkValidRoi(const Roi &new_roi, Roi &fixed_roi);
-		int _fixValidRoi(unsigned int &x0, unsigned int &x1, unsigned int xMax, unsigned int xSteps, unsigned int xMinSize, bool bSymX);
+        void getRoiSymetrie(bool &bSymX, bool &bSymY );
+        void _get_logLastFixedRoi(Roi &requested_roi, Roi &fixed_roi, time_t & dt);
+        void _set_logLastFixedRoi(const Roi &requested_roi, const Roi &fixed_roi);
 
-		void _get_MaxRoi(Roi &roi);
-		void _get_RoiSize(Size& roi_size);
+        int _checkValidRoi(const Roi &new_roi, Roi &fixed_roi);
+        int _fixValidRoi(unsigned int &x0, unsigned int &x1, unsigned int xMax, unsigned int xSteps, unsigned int xMinSize, bool bSymX);
 
-		void _get_ImageType(ImageType& image_type);
-		void _get_PixelSize(double& x_size,double &y_size);
-		void _get_XYsteps(Point &xy_steps);
-		void _set_ImageType(ImageType curr_image_type);
-		void _get_DetectorType(std::string& det_type);
-		void _get_MaxImageSize(Size& max_image_size);
-		unsigned long long _getDebug(unsigned long long mask);
+        void _get_MaxRoi(Roi &roi);
+        void _get_RoiSize(Size& roi_size);
 
-		ringLog *m_msgLog;
-		ringLog *m_tmpLog;
-		
-		CheckImgNr *m_checkImgNr;
-		char *mybla, *myblamax;
-		char *mytalk, *mytalkmax;
-		
-		const char *_checkLogFiles(bool firstCall = false);
-		char *_camInfo(char *ptr, char *ptrMax, long long int flag);
+        void _get_ImageType(ImageType& image_type);
+        void _get_PixelSize(double& x_size,double &y_size);
+        void _get_XYsteps(Point &xy_steps);
+        void _set_ImageType(ImageType curr_image_type);
+        void _get_DetectorType(std::string& det_type);
+        void _get_MaxImageSize(Size& max_image_size);
+        unsigned long long _getDebug(unsigned long long mask);
 
-		WORD _getInterfaceType();
-		const char *_getInterfaceTypeStr();
+        ringLog *m_msgLog;
+        ringLog *m_tmpLog;
 
-		WORD _getCameraType();
-		const char *_getCameraTypeStr();
+        CheckImgNr *m_checkImgNr;
+        char *mybla, *myblamax;
+        char *mytalk, *mytalkmax;
 
-		WORD _getCameraSubType()  ;
-		const char *_getCameraSubTypeStr();
+        const char *_checkLogFiles(bool firstCall = false);
+        char *_camInfo(char *ptr, char *ptrMax, long long int flag);
 
-		DWORD _getCameraSerialNumber()  ;
+        WORD _getInterfaceType();
+        const char *_getInterfaceTypeStr();
 
-		const char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
-		const char *xlatCode2Str(int code, struct stcXlatCode2Str *stc);
+        WORD _getCameraType();
+        const char *_getCameraTypeStr();
 
-		bool _getCameraState(long long flag);
-		void _setCameraState(long long flag, bool val);
+        WORD _getCameraSubType()  ;
+        const char *_getCameraSubTypeStr();
+
+        DWORD _getCameraSerialNumber()  ;
+
+        const char *_xlatPcoCode2Str(int code, enumTblXlatCode2Str table, int &err);
+        const char *xlatCode2Str(int code, struct stcXlatCode2Str *stc);
+
+        bool _getCameraState(long long flag);
+        void _setCameraState(long long flag, bool val);
 
 #ifndef __linux__
-		bool _isRunAfterAssign();
+        bool _isRunAfterAssign();
 #endif
 
-		bool _isCapsDesc(int caps);
-       	void _pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &err);
+        bool _isCapsDesc(int caps);
+        void _pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &err);
 
-		void _pco_GetGeneralCapsDESC(DWORD &capsDesc1, int &err);
+        void _pco_GetGeneralCapsDESC(DWORD &capsDesc1, int &err);
 
 //----
-		void _pco_SetCameraToCurrentTime(int &error);
-		void _pco_SetCamLinkSetImageParameters(int &error);
+        void _pco_SetCameraToCurrentTime(int &error);
+        void _pco_SetCamLinkSetImageParameters(int &error);
 
 #ifdef __linux__
-		void _pco_GetLut(int &err);
-		void _pco_Open_Cam(int &err);
- 		void _pco_Open_Grab(int &err);
-		void _pco_GetCameraInfo(int &error);
- 		void _pco_ResetSettingsToDefault(int &err);
+        void _pco_GetLut(int &err);
+        void _pco_Open_Cam(int &err);
+        void _pco_Open_Grab(int &err);
+        void _pco_GetCameraInfo(int &error);
+        void _pco_ResetSettingsToDefault(int &err);
 #endif
-   		void _pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error); 
-		void _pco_SetTransferParameter_SetActiveLookupTable_win(int &error);
- 		void _pco_SetTransferParameter_SetActiveLookupTable(int &error);
-	 
-		public:
-		//----------- attributes
+        void _pco_GetSizes( WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,WORD *wYResMax, int &error); 
+        void _pco_SetTransferParameter_SetActiveLookupTable_win(int &error);
+        void _pco_SetTransferParameter_SetActiveLookupTable(int &error);
 
-		void getAcqTimeoutRetry(int &val);
-		void setAcqTimeoutRetry(int val);
+    public:
+        //----------- attributes
 
-		void getAdc(int &val);
+        void getAcqTimeoutRetry(int &val);
+        void setAcqTimeoutRetry(int val);
+
+        void getAdc(int &val);
         void setAdc(int val);
         void getAdcMax(int &val);
-		
-		void getCamInfo(std::string &o_sn) ;
-		void getCamType(std::string &o_sn) ;
-		void getVersion(std::string &o_sn) ;
-		void getPixelRateInfo(std::string &o_sn) ;
-	
-		void getClTransferParam(std::string &o_sn) ;
-		void getLastError(std::string &o_sn) ;
-		void getTraceAcq(std::string &o_sn) ;
-		void getPixelRateValidValues(std::string &o_sn) ;
+
+        void getCamInfo(std::string &o_sn) ;
+        void getCamType(std::string &o_sn) ;
+        void getVersion(std::string &o_sn) ;
+        void getPixelRateInfo(std::string &o_sn) ;
+
+        void getClTransferParam(std::string &o_sn) ;
+        void getLastError(std::string &o_sn) ;
+        void getTraceAcq(std::string &o_sn) ;
+        void getPixelRateValidValues(std::string &o_sn) ;
 
 
-		void getCocRunTime(double &coc);
-		void getFrameRate(double &framerate);
-		
-		void getLastImgRecorded(unsigned long & img);
-		void getLastImgAcquired(unsigned long & img);
+        void getCocRunTime(double &coc);
+        void getFrameRate(double &framerate);
+
+        void getLastImgRecorded(unsigned long & img);
+        void getLastImgAcquired(unsigned long & img);
 
         void getMaxNbImages(unsigned long & nr);
-		void getPcoLogsEnabled(int & enabled);
+        void getPcoLogsEnabled(int & enabled);
 
-		void getRollingShutterInfo(std::string &o_sn) ;
+        void getLastFixedRoi(std::string &o_sn);
 
-		void getLastFixedRoi(std::string &o_sn);
+        void getPixelRate(int & val);
+        void setPixelRate(int val);
 
-		void getPixelRate(int & val);
-		void setPixelRate(int val);
+        void getRollingShutterInfo(std::string &o_sn) ;
+        void getRollingShutter(int & val);
+        void setRollingShutter(int val);
+        void setRollingShutterStr(std::string &i_sn); 
 
-		void getRollingShutter(int & val);
-		void setRollingShutter(int val);
-		
-		void getCDIMode(int & val);
-		void setCDIMode(int val);
+        void getCDIMode(int & val);
+        void setCDIMode(int val);
 
-		void getTemperatureInfo(std::string &o_sn);
-		void getCoolingTemperature(int &val);
-		void setCoolingTemperature(int val);
+        void getTemperatureInfo(std::string &o_sn);
+        void getCoolingTemperature(int &val);
+        void setCoolingTemperature(int val);
 
-		void getSdkRelease(std::string &o_sn) ;
-		void getCameraNameEx(std::string &o_sn) ;
-		void getCameraNameBase(std::string &o_sn) ;
+        void getSdkRelease(std::string &o_sn) ;
+        void getCameraNameEx(std::string &o_sn) ;
+        void getCameraNameBase(std::string &o_sn) ;
 
-		void getBinningInfo(std::string &o_sn);
-		void getFirmwareInfo(std::string &o_sn);
-		void getRoiInfo(std::string &o_sn); 
+        void getBinningInfo(std::string &o_sn);
+        void getFirmwareInfo(std::string &o_sn);
+        void getRoiInfo(std::string &o_sn); 
 
-		void getMsgLog(std::string &o_sn);
-	
-		//--------------------------------------
+        void getMsgLog(std::string &o_sn);
 
-
-	public:		//----------- pco sdk functions
-		void _pco_GetActiveRamSegment(WORD &, int &); // {return m_pcoData->wActiveRamSegment;}
-
-		const char *_pco_SetRecordingState(int state, int &error);
-
-		void _pco_SetTriggerMode_SetAcquireMode(int &error);
-		void _pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode, int &error);
-		int _pco_GetStorageMode_GetRecorderSubmode();
-		
-		void _pco_SetDelayExposureTime(int &error, int ph=0);
-		void _pco_SetImageParameters(int &error);
-
-		void _pco_GetCameraType(int &error);
-		//char *_pco_GetTemperatureInfo(int &error);
-		void _pco_GetTemperatureInfo(int &error);
-		void _pco_GetTemperatureInfo(char *ptr, char *ptrMax, int &error);
-		void _pco_GetCoolingSetpointTemperature(int &val, int &error);
-		void _pco_SetCoolingSetpointTemperature(int val, int &error);
-		
-		bool _isCooledCamera();
-
-		void _pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error);
-		//char *_pco_SetCameraSetup(DWORD dwSetup, int &error);
+        //--------------------------------------
 
 
-		void _pco_SetMetaDataMode(WORD wMetaDataMode, int &error);
+    public:		//----------- pco sdk functions
+        void _pco_GetActiveRamSegment(WORD &, int &); // {return m_pcoData->wActiveRamSegment;}
 
-		void _pco_GetHWIOSignalAll(int &error);
-		void _pco_SetHWIOSignal(int sigNum, int &error);
+        const char *_pco_SetRecordingState(int state, int &error);
 
-		void _pco_initHWIOSignal(int mode, WORD wVar, int &error);   // TODO sync
+        void _pco_SetTriggerMode_SetAcquireMode(int &error);
+        void _pco_SetStorageMode_SetRecorderSubmode(enumPcoStorageMode, int &error);
+        int _pco_GetStorageMode_GetRecorderSubmode();
 
- 		void _setStatus(Camera::Status status,bool force);
-		void getStatus(Camera::Status& status);
+        void _pco_SetDelayExposureTime(int &error, int ph=0);
+        void _pco_SetImageParameters(int &error);
 
+        void _pco_GetCameraType(int &error);
+        //char *_pco_GetTemperatureInfo(int &error);
+        void _pco_GetTemperatureInfo(int &error);
+        void _pco_GetTemperatureInfo(char *ptr, char *ptrMax, int &error);
+        void _pco_GetCoolingSetpointTemperature(int &val, int &error);
+        void _pco_SetCoolingSetpointTemperature(int val, int &error);
 
-	public:
-		int _pco_GetADCOperation(int &adc_working, int &adc_max);
-		int _pco_SetADCOperation(int adc_new, int &adc_working);
-		int _pco_GetImageTiming(double &frameTime, double &expTime, double &sysDelay, double &sysJitter, double &trigDelay );
-		int _pco_GetBitAlignment(int &alignment);
-		int _pco_SetBitAlignment(int alignment);
+        bool _isCooledCamera();
 
-		void _pco_SetTimestampMode(WORD mode, int &err);
-		void _pco_GetTimestampMode(WORD &mode, int &err);
-		void _pco_GetTransferParameter(int &err);
-
-		double pcoGetCocRunTime();
-		double pcoGetFrameRate();
- 		void _pco_GetCameraMinSizeCalc(WORD& wMinSizeHorz, WORD& wMinSizeVert);
-
-		void _pco_GetCOCRuntime(int &err);
- 		
- 		void _pco_GetSegmentInfo(int &err);
+        void _pco_GetPixelRate(DWORD &pixRate, DWORD &pixRateNext, int &error);
+        //char *_pco_SetCameraSetup(DWORD dwSetup, int &error);
 
 
-		void _pco_GetNumberOfImagesInSegment(WORD wSegment, DWORD& dwValidImageCnt, DWORD& dwMaxImageCnt, int &err);
-		
-		void _pco_GetCDIMode(WORD &wCDIMode, int &err);
-		void _pco_SetCDIMode(WORD wCDIMode, int &err);
+        void _pco_SetMetaDataMode(WORD wMetaDataMode, int &error);
 
-		void _pco_GetDoubleImageMode(WORD &wDoubleImage, int &err);
-		void _pco_SetDoubleImageMode(WORD wDoubleImage, int &err);
+        void _pco_GetHWIOSignalAll(int &error);
+        void _pco_SetHWIOSignal(int sigNum, int &error);
 
-		void _pco_FillStructures(int &err);
-		void _pco_CloseCamera(int &err);
+        void _pco_initHWIOSignal(int mode, WORD wVar, int &error);   // TODO sync
 
-		WORD _pco_GetRecordingState(int &err);
+        void _setStatus(Camera::Status status,bool force);
+        void getStatus(Camera::Status& status);
 
-		void dummySip();
+
+    public:
+        int _pco_GetADCOperation(int &adc_working, int &adc_max);
+        int _pco_SetADCOperation(int adc_new, int &adc_working);
+        int _pco_GetImageTiming(double &frameTime, double &expTime, double &sysDelay, double &sysJitter, double &trigDelay );
+        int _pco_GetBitAlignment(int &alignment);
+        int _pco_SetBitAlignment(int alignment);
+
+        void _pco_SetTimestampMode(WORD mode, int &err);
+        void _pco_GetTimestampMode(WORD &mode, int &err);
+        void _pco_GetTransferParameter(int &err);
+
+        double pcoGetCocRunTime();
+        double pcoGetFrameRate();
+        void _pco_GetCameraMinSizeCalc(WORD& wMinSizeHorz, WORD& wMinSizeVert);
+
+        void _pco_GetCOCRuntime(int &err);
+
+        void _pco_GetSegmentInfo(int &err);
+
+
+        void _pco_GetNumberOfImagesInSegment(WORD wSegment, DWORD& dwValidImageCnt, DWORD& dwMaxImageCnt, int &err);
+
+        void _pco_GetCDIMode(WORD &wCDIMode, int &err);
+        void _pco_SetCDIMode(WORD wCDIMode, int &err);
+
+        void _pco_GetDoubleImageMode(WORD &wDoubleImage, int &err);
+        void _pco_SetDoubleImageMode(WORD wDoubleImage, int &err);
+
+        void _pco_FillStructures(int &err);
+        void _pco_CloseCamera(int &err);
+
+        WORD _pco_GetRecordingState(int &err);
+
+        void dummySip();
 
 #ifdef __linux__
-        void _waitForRecording(int nrFrames, DWORD &_dwValidImageCnt, DWORD &_dwMaxImageCnt, int &error) ;
+    void _waitForRecording(int nrFrames, DWORD &_dwValidImageCnt, DWORD &_dwMaxImageCnt, int &error) ;
 #endif
 		//----
 		void _pco_GetInfoString(int infotype, char *buf_in, int size_in, int &error);
@@ -1116,7 +1127,9 @@ namespace lima
 
 		void getLastImgFifo(int & val);
 
-
+        void Sleep_ms(unsigned int time_ms);
+        
+        void getGeneralCAPS1(std::string &o_sn);
 	}; // class camera
   } // namespace pco
 } // namespace lima

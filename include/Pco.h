@@ -79,6 +79,11 @@ DECLARE_HANDLE(HWND);
 #endif
 
 
+#define WAITMS_1S       1000
+#define WAITMS_100MS     100
+#define WAITMS_10MS       10
+#define WAITMS_1MS         1
+
 
 //#define sprintf_s(buffer, buffer_size, stringbuffer, ...) (snprintf(buffer, buffer_size, stringbuffer, __VA_ARGS__))
 
@@ -211,6 +216,7 @@ typedef int tPvErr;
 }
 
 #define PCO_CHECK_ERROR(er, fn)   (PcoCheckError(__LINE__, __FILE__, ( er ) , ( fn ) ))
+#define PCO_CHECK_ERROR_CAM(er, fn)   (m_cam.PcoCheckError(__LINE__, __FILE__, ( er ) , ( fn ) ))
 
 #ifndef __linux__
 

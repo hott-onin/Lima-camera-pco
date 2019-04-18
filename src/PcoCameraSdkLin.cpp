@@ -268,7 +268,11 @@ void Camera::_pco_Open_Cam(int &err)
     {
         delete camera;
         camera = NULL;
-        THROW_HW_ERROR(Error) ;
+        
+        const char *msg = "FATAL can NOT open the camera!!!";
+        DEB_ALWAYS()  << msg;
+        THROW_FATAL(Hardware, Error) << msg;
+        
     }
     
     DEB_ALWAYS()  << "After open Camera" ;
@@ -307,22 +311,26 @@ void Camera::_pco_Open_Grab(int &err)
     }
     else
     {
-        DEB_ALWAYS()  << "FATAL Wrong camera for this application";
         camera->Close_Cam();
         delete camera;
         camera = NULL;
         grabber = NULL;
-        THROW_HW_ERROR(Error) ;
+
+        const char *msg = "FATAL Wrong camera for this application";
+        DEB_ALWAYS()  << msg;
+        THROW_FATAL(Hardware, Error) << msg;
     }
 
-    if(!grabber)
+   if(!grabber)
     {
-        DEB_ALWAYS()  << "FATAL new grabber creation";
         camera->Close_Cam();
         delete camera;
         camera = NULL;
         grabber = NULL;
-        THROW_HW_ERROR(Error) ;
+
+        const char *msg = "FATAL new grabber creation";
+        DEB_ALWAYS()  << msg;
+        THROW_FATAL(Hardware, Error) << msg;
     }
 
     grabber->SetLog(mylog);
@@ -340,8 +348,10 @@ void Camera::_pco_Open_Grab(int &err)
         camera->Close_Cam();
         delete camera;
         camera = NULL;
-        DEB_ALWAYS()  << "FATAL Open_Grabber, close application";
-        THROW_HW_ERROR(Error) ;
+
+        const char *msg = "FATAL Open_Grabber, close application";
+        DEB_ALWAYS()  << msg;
+        THROW_FATAL(Hardware, Error) << msg;
     }
 
     return;

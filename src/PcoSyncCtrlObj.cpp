@@ -167,12 +167,12 @@ void SyncCtrlObj::xlatLimaTrigMode2Pco(
 // - 0x0000 = [auto] - all images taken are stored
 
 // - 0x0001 = [external] - the external control input <acq enbl> is a static enable signal of
-//            images. If this input is TRUE (level depending on the DIP switch), exposure triggers are
-//            accepted and images are taken. If this signal is set FALSE, all exposure triggers are
+//            images. If this input is true (level depending on the DIP switch), exposure triggers are
+//            accepted and images are taken. If this signal is set false, all exposure triggers are
 //            ignored and the sensor readout is stopped.
 
 // - 0x0002 = [external] - the external control input <acq enbl> is a dynamic frame start
-//            signal. If this input has got a rising edge TRUE (level depending on the DIP switch), a
+//            signal. If this input has got a rising edge true (level depending on the DIP switch), a
 //            frame will be started with modulation mode. This is only available with modulation mode
 //            enabled (see camera description).
 

@@ -584,7 +584,7 @@ bool Camera::_isCapsDesc(int caps)
 	if(error)
 	{
 		DEB_ALWAYS() << "ERROR - _pco_GetGeneralCapsDESC";
-		return FALSE;
+		return false;
 	}
 #else
 	_dwCaps1 = m_pcoData->stcPcoDescription.dwGeneralCaps1;
@@ -633,7 +633,7 @@ bool Camera::_isCapsDesc(int caps)
 			return !(_dwCaps1 & BIT8);
 
 		default:
-			return FALSE;
+			return false;
 	}
 
 }
@@ -3054,12 +3054,12 @@ void Camera::_pco_SetDelayExposureTime(int &error, int ph){
     m_sync->getLatTime(_delay);
 	double _delay0 = _delay;
 
-	doIt = TRUE;
+	doIt = true;
 	
 	ph = 0;
 	
 	if(ph != 0){ 
-		doIt = FALSE;
+		doIt = false;
 
 		WORD _wArmWidth, _wArmHeight, _wMaxWidth, _wMaxHeight;
 		_pco_GetSizes(&_wArmWidth, &_wArmHeight, &_wMaxWidth, &_wMaxHeight, error);
@@ -3072,7 +3072,7 @@ void Camera::_pco_SetDelayExposureTime(int &error, int ph){
 			printf("--- %s>period[%g] -> cocRunTime[%g]\n", fnId, period , m_pcoData->cocRunTime);
 			if(period > m_pcoData->cocRunTime) {
 				_delay += period - m_pcoData->cocRunTime;
-				doIt = TRUE;
+				doIt = true;
 				printf("--- %s> delay forced [%g] -> [%g]\n", fnId, _delay0, _delay);
 			}
 		}
@@ -3316,7 +3316,11 @@ void Camera::_pco_RebootCamera(int &err)
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
+
+	err = camera->PCO_RebootCamera();
+    PCO_CHECK_ERROR(err, "PCO_RebootCamera");
+
+	//DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
     return;
 
 #else
@@ -3444,7 +3448,53 @@ void Camera::_pco_GetCameraSetup(WORD& wType, DWORD& dwSetup, WORD& wLen, int &e
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
+
+/// \brief Request the current camera setup
+/// \anchor PCO_GetCameraSetup
+/// 
+/// This function is used to query the current operation mode of the camera. Some cameras can work at different
+/// operation modes with different descriptor settings.\n
+/// pco.edge:\n
+/// To get the current shutter mode input index setup_id must be set to 0.\n
+/// current shutter mode is returned in setup_flag[0]
+///  - 0x00000001 = Rolling Shutter
+///  - 0x00000002 = Global Shutter
+///  - 0x00000004 = Global Reset 
+///
+/// \param setup_id Identification code for selected setup type. 
+/// \param setup_flag Pointer to a DWORD array to get the current setup flags. If set to NULL in input only 
+/// the array length is returned.
+/// - On input this variable can be set to NULL, then only array length is filled with correct value. 
+/// - On output the array is filled with the available information for the selected setup_id
+/// \param length Pointer to a WORD variable
+/// - On input to indicate the length of the Setup_flag array in DWORDs.
+/// - On output the length of the setup_flag array in DWORDS
+/// \return Error code or PCO_NOERROR on success
+///
+DWORD PCO_GetCameraSetup(WORD setup_id, DWORD *setup_flag, WORD *length);
+
+// DWORD PCO_GetCameraSetup(WORD *setup_id, DWORD *setup_flag, WORD *length);
+// DWORD PCO_SetCameraSetup(WORD setup_id, DWORD *setup_flag,WORD length);
+//  setup_flag[0]=PCO_EDGE_SETUP_ROLLING_SHUTTER;
+//    setup_flag[1]=0;
+//    setup_flag[2]=0;
+//    setup_flag[3]=0;
+
+    //WORD setup_id=0;
+    //int err = 0;
+    //DWORD setup_flag[4];
+    //WORD  length=sizeof(setup_flag);
+
+    DWORD dwErr=PCO_NOERROR;
+    wType = 0;
+    
+    //dwErr = camera->PCO_SetCameraSetup(setup_id, setup_flag, length);    WORD setup_id=0;
+    dwErr = camera->PCO_GetCameraSetup(wType, &dwSetup, &wLen);    
+    err=dwErr;
+    PCO_CHECK_ERROR(err, "PCO_GetCameraSetup");
+
+	DEB_ALWAYS() <<  fnId << " " << DEB_VAR2(wType, wLen);;
+
     return;
 
 #else
@@ -3486,7 +3536,33 @@ void Camera::_pco_SetCameraSetup(WORD wType, DWORD& dwSetup, WORD wLen, int &err
 	err = 0;
 
 #ifdef __linux__
-	DEB_ALWAYS() <<  NOT_IMPLEMENTED ;
+/// \brief Sets the camera setup structure (see camera specific structures)
+/// \anchor PCO_SetCameraSetup
+/// 
+/// pco.edge:\n
+/// To get the current shutter mode input index setup_id must be set to 0.\n
+/// current shutter mode is returned in setup_flag[0]
+///  - 0x00000001 = Rolling Shutter
+///  - 0x00000002 = Global Shutter
+///  - 0x00000004 = Global Reset 
+/// When camera is set to a new shuttermode uit must be reinitialized by calling one of the reboot functions.
+/// After rebooting, camera description must be read again see \ref  PCO_GetCameraDescription.
+///
+/// \param setup_id Identification code for selected setup type. 
+/// \param setup_flag Flags to be set for the selected setup type.
+/// \param length Number of valid DWORDs in setup_flag array.
+/// \return Error code or PCO_NOERROR on success
+///
+// DWORD PCO_SetCameraSetup(WORD setup_id, DWORD *setup_flag,WORD length);
+
+    DWORD dwErr=PCO_NOERROR;
+    wType = 0;
+
+    dwErr = camera->PCO_SetCameraSetup(wType, &dwSetup, wLen);
+    err=dwErr;
+    PCO_CHECK_ERROR(err, "PCO_SetCameraSetup");
+
+	DEB_ALWAYS() <<  fnId << " " << DEB_VAR2(wType, wLen);;
     return;
 
 #else
