@@ -26,12 +26,14 @@
 #include "PcoCamera.h"
 #include "PcoHwEventCtrlObj.h"
 
-
 using namespace lima;
 using namespace lima::Pco;
 
 //=========================================================================================================
-const char* _timestamp_pcohweventctrlobj() {return ID_FILE_TIMESTAMP ;}
+const char *_timestamp_pcohweventctrlobj()
+{
+    return ID_FILE_TIMESTAMP;
+}
 //=========================================================================================================
 
 //=========================================================================================================
@@ -39,9 +41,8 @@ const char* _timestamp_pcohweventctrlobj() {return ID_FILE_TIMESTAMP ;}
 
 PcoHwEventCtrlObj::PcoHwEventCtrlObj()
 {
-	DEB_CONSTRUCTOR();
+    DEB_CONSTRUCTOR();
 }
-
 
 #if 0
 PcoHwEventCtrlObj::PcoHwEventCtrlObj(Camera *cam):

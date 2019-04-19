@@ -115,6 +115,9 @@ namespace Pco
 		void getLastImgFifo(int & val /Out/);
         
         void getGeneralCAPS1(std::string &o_sn  /Out/);
+ 
+        void getParamsInfo(std::string &o_sn /Out/);
+
 
 	private:
 		Camera(const Pco::Camera&);

@@ -30,27 +30,27 @@
 
 namespace lima
 {
-  namespace Pco
-  {
-    class Camera;
-    class DLL_EXPORT  RoiCtrlObj : public HwRoiCtrlObj
+    namespace Pco
     {
-      DEB_CLASS_NAMESPC(DebModCamera, "RoiCtrlObj","Pco");
+        class Camera;
+        class DLL_EXPORT RoiCtrlObj : public HwRoiCtrlObj
+        {
+            DEB_CLASS_NAMESPC(DebModCamera, "RoiCtrlObj", "Pco");
 
-    public:
-      RoiCtrlObj(Camera*);
-      virtual ~RoiCtrlObj();
+          public:
+            RoiCtrlObj(Camera *);
+            virtual ~RoiCtrlObj();
 
-      virtual void setRoi(const Roi& set_roi);
-      virtual void getRoi(Roi& hw_roi);
-      virtual void checkRoi(const Roi& set_roi, Roi& hw_roi);
+            virtual void setRoi(const Roi &set_roi);
+            virtual void getRoi(Roi &hw_roi);
+            virtual void checkRoi(const Roi &set_roi, Roi &hw_roi);
 
-    private:
-      Camera* 			m_cam;
-      HANDLE& 		m_handle;
-    };
+          private:
+            Camera *m_cam;
+            HANDLE &m_handle;
+        };
 
-  } // namespace Pco
+    } // namespace Pco
 } // namespace lima
 
 #endif // PCOROICTRLOBJ_H

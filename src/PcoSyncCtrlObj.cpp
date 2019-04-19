@@ -32,41 +32,35 @@ using namespace lima;
 using namespace lima::Pco;
 
 //=========================================================================================================
-const char* _timestamp_pcosyncctrlobj() {return ID_FILE_TIMESTAMP ;}
-//=========================================================================================================
-
-//=========================================================================================================
-//=========================================================================================================
-SyncCtrlObj::SyncCtrlObj(Camera *cam,BufferCtrlObj *buffer) :
-  m_exp_time(0.),
-  m_lat_time(0.),
-
-  m_cam(cam),
-  m_handle(cam->getHandle()),
-  m_trig_mode(IntTrig),
-  m_buffer(buffer),
-  m_nb_frames(1),
-  m_nb_acq_frames(0),
-  m_started(false),
-  m_exposing(pcoAcqIdle),
-  m_pcoData(cam->_getPcoData())
+const char *_timestamp_pcosyncctrlobj()
 {
-  DEB_CONSTRUCTOR();
+    return ID_FILE_TIMESTAMP;
+}
+//=========================================================================================================
+
+//=========================================================================================================
+//=========================================================================================================
+SyncCtrlObj::SyncCtrlObj(Camera *cam, BufferCtrlObj *buffer)
+    : m_exp_time(0.), m_lat_time(0.),
+
+      m_cam(cam), m_handle(cam->getHandle()), m_trig_mode(IntTrig),
+      m_buffer(buffer), m_nb_frames(1), m_nb_acq_frames(0), m_started(false),
+      m_exposing(pcoAcqIdle), m_pcoData(cam->_getPcoData())
+{
+    DEB_CONSTRUCTOR();
     _setRequestStop(stopNone);
-	bool ret;
-	char *value;
-	
-	ret = cam->paramsGet("trigSingleMulti", value);
-	m_extTrigSingle_eq_Multi = ret && (!!atoi(value));
+    bool ret;
+    char *value;
 
-
+    ret = cam->paramsGet("trigSingleMulti", value);
+    m_extTrigSingle_eq_Multi = ret && (!!atoi(value));
 }
 
 //=========================================================================================================
 //=========================================================================================================
 SyncCtrlObj::~SyncCtrlObj()
 {
-  DEB_DESTRUCTOR();
+    DEB_DESTRUCTOR();
 }
 
 //=========================================================================================================
@@ -74,237 +68,226 @@ SyncCtrlObj::~SyncCtrlObj()
 
 /******************************************************************************
 enum TrigMode {
-	IntTrig,IntTrigMult,
-	ExtTrigSingle, ExtTrigMult,
-	ExtGate, ExtStartStop, ExtTrigReadout,
+        IntTrig,IntTrigMult,
+        ExtTrigSingle, ExtTrigMult,
+        ExtGate, ExtStartStop, ExtTrigReadout,
 };
 ******************************************************************************/
 
 bool SyncCtrlObj::checkTrigMode(TrigMode trig_mode)
 {
-	DEB_MEMBER_FUNCT();
-	DEB_PARAM() << DEB_VAR1(trig_mode);
+    DEB_MEMBER_FUNCT();
+    DEB_PARAM() << DEB_VAR1(trig_mode);
 
-	switch(trig_mode){
+    switch (trig_mode)
+    {
+        case IntTrig:
+        case ExtTrigMult:
+        case ExtGate:
+            return true;
 
-		case IntTrig:
-		case ExtTrigMult:
-		case ExtGate:
-			return true;
+        case ExtTrigSingle:
+            if ((m_cam->_isCameraType(Dimax)) || m_extTrigSingle_eq_Multi)
+                return true;
+            break;
 
-		case ExtTrigSingle:
-			if ((m_cam->_isCameraType(Dimax)) || m_extTrigSingle_eq_Multi) return true ;
-				break;
-		
-		case IntTrigMult:
-		case ExtStartStop:
-		case ExtTrigReadout:
-		default: 
-			break;
-	}
+        case IntTrigMult:
+        case ExtStartStop:
+        case ExtTrigReadout:
+        default:
+            break;
+    }
 
-	//DEB_TRACE() << "<Trig mode not allowed>  " << DEB_VAR1(trig_mode);
-	return false;
+    // DEB_TRACE() << "<Trig mode not allowed>  " << DEB_VAR1(trig_mode);
+    return false;
 }
 
 //=========================================================================================================
 //=========================================================================================================
 void SyncCtrlObj::setTrigMode(TrigMode trig_mode)
 {
-	DEB_MEMBER_FUNCT();
-	DEB_PARAM() << DEB_VAR1(trig_mode);
+    DEB_MEMBER_FUNCT();
+    DEB_PARAM() << DEB_VAR1(trig_mode);
 
+    if (!checkTrigMode(trig_mode))
+    {
+        throw LIMA_HW_EXC(NotSupported, "Trigger type not supported");
+    }
 
-	if(!checkTrigMode(trig_mode)){
-		throw LIMA_HW_EXC(NotSupported,"Trigger type not supported");
-	}
-
-	m_trig_mode = trig_mode;
+    m_trig_mode = trig_mode;
 }
 
 //=========================================================================================================
 //=========================================================================================================
 void SyncCtrlObj::getTrigMode(TrigMode &trig_mode)
 {
-  trig_mode = m_trig_mode;
+    trig_mode = m_trig_mode;
 }
 
 //=========================================================================================================
 //=========================================================================================================
 /******************************************************************************
 enum TrigMode {
-	IntTrig,IntTrigMult,
-	ExtTrigSingle, ExtTrigMult,
-	ExtGate, ExtStartStop, ExtTrigReadout,
+        IntTrig,IntTrigMult,
+        ExtTrigSingle, ExtTrigMult,
+        ExtGate, ExtStartStop, ExtTrigReadout,
 };
 ******************************************************************************/
 
-
-void SyncCtrlObj::xlatLimaTrigMode2Pco(
-        lima::TrigMode limaTrigMode, WORD &pcoTrigMode, WORD &pcoAcqMode, bool &extTrig, int &err)
+void SyncCtrlObj::xlatLimaTrigMode2Pco(lima::TrigMode limaTrigMode,
+                                       WORD &pcoTrigMode, WORD &pcoAcqMode,
+                                       bool &extTrig, int &err)
 {
-	DEB_MEMBER_FUNCT();
+    DEB_MEMBER_FUNCT();
     DEF_FNID;
 
-	const char *sLimaTriggerMode = "invalid";
+    const char *sLimaTriggerMode = "invalid";
 
-	const char *sPcoTriggerMode = "invalid";
-	WORD _pcoTrigMode = 0;
+    const char *sPcoTriggerMode = "invalid";
+    WORD _pcoTrigMode = 0;
 
-	const char *sPcoAcqMode = "invalid";
-	WORD _pcoAcqMode = 0;
-	bool ext_trig;
+    const char *sPcoAcqMode = "invalid";
+    WORD _pcoAcqMode = 0;
+    bool ext_trig;
     err = -1;
 
+    if (!checkTrigMode(limaTrigMode))
+    {
+        throw LIMA_HW_EXC(NotSupported, "Trigger type not supported");
+    }
 
+    // · acquire mode to be selected:
+    // - 0x0000 = [auto] - all images taken are stored
 
-	if(!checkTrigMode(limaTrigMode)){
-		throw LIMA_HW_EXC(NotSupported,"Trigger type not supported");
-	}
+    // - 0x0001 = [external] - the external control input <acq enbl> is a static
+    // enable signal of
+    //            images. If this input is true (level depending on the DIP
+    //            switch), exposure triggers are accepted and images are taken.
+    //            If this signal is set false, all exposure triggers are ignored
+    //            and the sensor readout is stopped.
 
+    // - 0x0002 = [external] - the external control input <acq enbl> is a
+    // dynamic frame start
+    //            signal. If this input has got a rising edge true (level
+    //            depending on the DIP switch), a frame will be started with
+    //            modulation mode. This is only available with modulation mode
+    //            enabled (see camera description).
 
-// · acquire mode to be selected:
-// - 0x0000 = [auto] - all images taken are stored
+    switch (limaTrigMode)
+    {
+            //  TRIG MODE PCO = 0x0000
+            // A new image exposure is automatically started best possible
+            // compared to the readout of an image. If a CCD is used and the
+            // images are taken in a sequence, then exposures and sensor readout
+            // are started simultaneously. Signals at the trigger input (<exp
+            // trig>) are irrelevant.
 
-// - 0x0001 = [external] - the external control input <acq enbl> is a static enable signal of
-//            images. If this input is true (level depending on the DIP switch), exposure triggers are
-//            accepted and images are taken. If this signal is set false, all exposure triggers are
-//            ignored and the sensor readout is stopped.
+        case IntTrig: // 0 SOFT (spec)
+            sLimaTriggerMode = "IntTrig";
 
-// - 0x0002 = [external] - the external control input <acq enbl> is a dynamic frame start
-//            signal. If this input has got a rising edge true (level depending on the DIP switch), a
-//            frame will be started with modulation mode. This is only available with modulation mode
-//            enabled (see camera description).
+            sPcoTriggerMode = "auto";
+            ext_trig = false;
+            _pcoTrigMode = 0x0000; // 0 = SOFT (spec)
 
+            sPcoAcqMode = "acqEnbl_Ignored";
+            pcoAcqMode = 0x0000;
+            break;
 
+        case ExtTrigSingle:
+            // trig (at ACQ ENABLE) starts a sequence of int trigger (dimax
+            // only)
+            //   StorageMode 0 - record mode
+            //   RecorderSubmode 1 - ring buffer
+            //   Triggermode 0 - auto
+            //   Acquiremode 0 - auto / ignored
 
-    switch( limaTrigMode)	{
+            sLimaTriggerMode = "ExtTrigSingle";
 
-			//  TRIG MODE PCO = 0x0000
-			// A new image exposure is automatically started best possible compared to
-			// the readout of an image. If a CCD is used and the images are taken in a
-			// sequence, then exposures and sensor readout are started simultaneously.
-			// Signals at the trigger input (<exp trig>) are irrelevant.
+            sPcoTriggerMode = "auto";
+            ext_trig = true;
+            _pcoTrigMode = 0x0000;
 
+            sPcoAcqMode = "acqEnbl_Ignored";
+            pcoAcqMode = 0x0000;
+            break;
 
-		case IntTrig: // 0 SOFT (spec)
-			sLimaTriggerMode = "IntTrig";
+            // TRIG MODE PCO = 0x0002
+            // A delay / exposure sequence is started at the RISING or FALLING
+            // edge (depending on the DIP switch setting) of the trigger input
+            // (<exp trig>).
+        // case IntTrigMult: return 0x0002;   // 1 = START (spec)
+        case ExtTrigMult:
+            sLimaTriggerMode = "ExtTrigMult";
 
-			sPcoTriggerMode = "auto";
-			ext_trig = false;
-			_pcoTrigMode= 0x0000;  // 0 = SOFT (spec)
+            sPcoTriggerMode = "startExposure";
+            ext_trig = true;
+            _pcoTrigMode = 0x0002; // 1 = START (spec)
 
-			sPcoAcqMode = "acqEnbl_Ignored";
-			pcoAcqMode= 0x0000;
-			break;
+            sPcoAcqMode = "acqEnbl_Ignored";
+            pcoAcqMode = 0x0000;
+            break;
 
+            // TRIG MODE PCO = 0x0003
+            // The exposure time is defined by the pulse length at the trigger
+            // input(<exp trig>). The delay and exposure time values defined by
+            // the set/request delay and exposure command are ineffective.
+            // (Exposure time length control is also possible for double image
+            // mode; exposure time of the second image is given by the readout
+            // time of the first image.)
+        case ExtGate: // 2 GATE (spec)
+            sLimaTriggerMode = "ExtGate";
 
+            sPcoTriggerMode = "extGate";
+            ext_trig = true;
+            _pcoTrigMode = 0x0003; // 2 = GATE (spec)
 
-		case ExtTrigSingle:
-			// trig (at ACQ ENABLE) starts a sequence of int trigger (dimax only)
-			//   StorageMode 0 - record mode
-			//   RecorderSubmode 1 - ring buffer
-			//   Triggermode 0 - auto
-			//   Acquiremode 0 - auto / ignored
-
-			sLimaTriggerMode = "ExtTrigSingle";
-
-			sPcoTriggerMode = "auto";
-			ext_trig = true;
-			_pcoTrigMode= 0x0000;
-
-			sPcoAcqMode = "acqEnbl_Ignored";
-			pcoAcqMode= 0x0000;
-			break;
-
-
-
-			// TRIG MODE PCO = 0x0002
-			// A delay / exposure sequence is started at the RISING or FALLING edge
-			// (depending on the DIP switch setting) of the trigger input (<exp trig>).
-		//case IntTrigMult: return 0x0002;   // 1 = START (spec)
-		case ExtTrigMult: 
-			sLimaTriggerMode = "ExtTrigMult";
-
-			sPcoTriggerMode = "startExposure";
-			ext_trig = true;
-			_pcoTrigMode= 0x0002;   // 1 = START (spec)
-
-			sPcoAcqMode = "acqEnbl_Ignored";
-			pcoAcqMode= 0x0000;
-			break;
-
-
-			// TRIG MODE PCO = 0x0003
-			// The exposure time is defined by the pulse length at the trigger
-			// input(<exp trig>). The delay and exposure time values defined by the
-			// set/request delay and exposure command are ineffective. (Exposure
-			// time length control is also possible for double image mode; exposure
-			// time of the second image is given by the readout time of the first image.)
-		case ExtGate:  // 2 GATE (spec)
-			sLimaTriggerMode = "ExtGate";
-
-			sPcoTriggerMode = "extGate";
-			ext_trig = true;
-			_pcoTrigMode= 0x0003;  // 2 = GATE (spec)
-
-
-			//case IntTrigMult: // 1 START (spec)
+            // case IntTrigMult: // 1 START (spec)
 
 #ifdef DISABLE_ACQ_ENBL_SIGNAL
-			sPcoAcqMode = "acqEnbl_Ignored";
-			pcoAcqMode= 0x0000;
+            sPcoAcqMode = "acqEnbl_Ignored";
+            pcoAcqMode = 0x0000;
 #else
-			pcoAcqMode= 0x0001;
-			sPcoAcqMode = "acqEnbl_TrigAccepted";
+            pcoAcqMode = 0x0001;
+            sPcoAcqMode = "acqEnbl_TrigAccepted";
 #endif
-			break;
+            break;
 
+            //			pcoAcqMode= 0x0002;
+            //			sPcoAcqMode = "acqEnbl_startModulationMode";
 
-//			pcoAcqMode= 0x0002;
-//			sPcoAcqMode = "acqEnbl_startModulationMode";
+        default:
+            throw LIMA_HW_EXC(NotSupported, "Invalid value");
+    }
 
+    m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
 
-
-
-	  default:
-		 throw LIMA_HW_EXC(NotSupported,"Invalid value");
-
-	}
-
-
-
-	m_pcoData->traceAcq.sLimaTriggerMode = sLimaTriggerMode;
-
-	m_pcoData->traceAcq.iPcoTriggerMode = _pcoTrigMode;
-	m_pcoData->traceAcq.sPcoTriggerMode = sPcoTriggerMode;
-	m_pcoData->traceAcq.iPcoAcqMode = pcoAcqMode;
-	m_pcoData->traceAcq.sPcoAcqMode = sPcoAcqMode;
-	m_pcoData->traceAcq.iPcoAcqMode = pcoAcqMode;
-	m_pcoData->traceAcq.sPcoAcqMode = sPcoAcqMode;
+    m_pcoData->traceAcq.iPcoTriggerMode = _pcoTrigMode;
+    m_pcoData->traceAcq.sPcoTriggerMode = sPcoTriggerMode;
+    m_pcoData->traceAcq.iPcoAcqMode = pcoAcqMode;
+    m_pcoData->traceAcq.sPcoAcqMode = sPcoAcqMode;
+    m_pcoData->traceAcq.iPcoAcqMode = pcoAcqMode;
+    m_pcoData->traceAcq.sPcoAcqMode = sPcoAcqMode;
 
     err = 0;
     pcoTrigMode = _pcoTrigMode;
     pcoAcqMode = _pcoAcqMode;
-	extTrig = ext_trig;
-	DEB_ALWAYS() 
-	    << "\n ... " << DEB_VAR1(sLimaTriggerMode)
-	    << "\n ... " << DEB_VAR3(sPcoTriggerMode, pcoTrigMode, extTrig)
-	    << "\n ... " << DEB_VAR2(sPcoAcqMode, pcoAcqMode);
+    extTrig = ext_trig;
+    DEB_ALWAYS() << "\n ... " << DEB_VAR1(sLimaTriggerMode) << "\n ... "
+                 << DEB_VAR3(sPcoTriggerMode, pcoTrigMode, extTrig) << "\n ... "
+                 << DEB_VAR2(sPcoAcqMode, pcoAcqMode);
 
-	return ;
-
+    return;
 }
 
 //=========================================================================================================
 //=========================================================================================================
 void SyncCtrlObj::setExpTime(double exp_time)
 {
-	DEB_MEMBER_FUNCT();
+    DEB_MEMBER_FUNCT();
 
-	ValidRangesType valid_ranges;
-  getValidRanges(valid_ranges);
-  double diff;
+    ValidRangesType valid_ranges;
+    getValidRanges(valid_ranges);
+    double diff;
 
 #if 0
   char buff[LEN_DUMP];
@@ -323,364 +306,370 @@ void SyncCtrlObj::setExpTime(double exp_time)
 
 #endif
 
+    if ((exp_time >= m_pcoData->min_exp_time) &&
+        (exp_time <= m_pcoData->max_exp_time))
+    {
+        m_exp_time = exp_time;
+        return;
+    }
 
-	if ((exp_time >= m_pcoData->min_exp_time) && (exp_time <= m_pcoData->max_exp_time))	{
-		m_exp_time = exp_time;
-		return;
-	}
+    if (exp_time < m_pcoData->min_exp_time_err)
+    {
+        diff = exp_time - valid_ranges.min_exp_time;
+        DEB_ALWAYS() << "Exposure time out of range (exp < min): "
+                     << DEB_VAR3(diff, exp_time, valid_ranges.min_exp_time);
+        THROW_HW_ERROR(NotSupported) << "Exposure time out of range";
+    }
 
-	if (exp_time < m_pcoData->min_exp_time_err){
-	  diff = exp_time - valid_ranges.min_exp_time;
-	  DEB_ALWAYS() << "Exposure time out of range (exp < min): "
-		<< DEB_VAR3(diff, exp_time, valid_ranges.min_exp_time);
-	  THROW_HW_ERROR(NotSupported) << "Exposure time out of range" ;
-	}
+    if (exp_time > m_pcoData->max_exp_time_err)
+    {
+        diff = exp_time - valid_ranges.max_exp_time;
+        DEB_ALWAYS() << "Exposure time out of range (exp > max): "
+                     << DEB_VAR3(diff, exp_time, valid_ranges.max_exp_time);
+        THROW_HW_ERROR(NotSupported) << "Exposure time out of range";
+    }
 
-	if (exp_time > m_pcoData->max_exp_time_err){ 
-		diff = exp_time - valid_ranges.max_exp_time;
-		DEB_ALWAYS() << "Exposure time out of range (exp > max): "
-			<< DEB_VAR3(diff, exp_time, valid_ranges.max_exp_time);
-		THROW_HW_ERROR(NotSupported) << "Exposure time out of range" ;
-	}
+    if (exp_time < m_pcoData->min_exp_time)
+    {
+        m_exp_time = m_pcoData->min_exp_time;
+        DEB_TRACE() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
+        return;
+    }
 
-	if (exp_time < m_pcoData->min_exp_time){
-		m_exp_time = m_pcoData->min_exp_time;
-		DEB_TRACE() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
-		return;
-	}
-
-	m_exp_time = m_pcoData->max_exp_time;
-	DEB_TRACE() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
-	return;
+    m_exp_time = m_pcoData->max_exp_time;
+    DEB_TRACE() << "Exp time fixed " << DEB_VAR2(m_exp_time, exp_time);
+    return;
 }
 
 //=========================================================================================================
 //=========================================================================================================
 void SyncCtrlObj::getExpTime(double &exp_time)
 {
-  DEB_MEMBER_FUNCT();
+    DEB_MEMBER_FUNCT();
 
-  ValidRangesType valid_ranges;
-  getValidRanges(valid_ranges);
-  
-  if (m_exp_time < m_pcoData->min_exp_time) m_exp_time = m_pcoData->min_exp_time;
-  else if (m_exp_time > m_pcoData->max_exp_time) m_exp_time = m_pcoData->max_exp_time;
-  
+    ValidRangesType valid_ranges;
+    getValidRanges(valid_ranges);
 
-  exp_time = m_exp_time;
-  DEB_RETURN() << DEB_VAR1(exp_time);
+    if (m_exp_time < m_pcoData->min_exp_time)
+        m_exp_time = m_pcoData->min_exp_time;
+    else if (m_exp_time > m_pcoData->max_exp_time)
+        m_exp_time = m_pcoData->max_exp_time;
+
+    exp_time = m_exp_time;
+    DEB_RETURN() << DEB_VAR1(exp_time);
 }
 
 //=========================================================================================================
 //=========================================================================================================
-void SyncCtrlObj::setLatTime(double  lat_time)
+void SyncCtrlObj::setLatTime(double lat_time)
 {
-  DEB_MEMBER_FUNCT();
-  // latency time -> delay
+    DEB_MEMBER_FUNCT();
+    // latency time -> delay
 
-  m_lat_time = lat_time;
-  DEB_PARAM() << DEB_VAR2(m_lat_time, lat_time);
+    m_lat_time = lat_time;
+    DEB_PARAM() << DEB_VAR2(m_lat_time, lat_time);
 }
 
 //=========================================================================================================
 //=========================================================================================================
-void SyncCtrlObj::getLatTime(double& lat_time)
+void SyncCtrlObj::getLatTime(double &lat_time)
 {
-  DEB_MEMBER_FUNCT();
+    DEB_MEMBER_FUNCT();
 
-  lat_time = m_lat_time;		// latency time -> delay
-  DEB_PARAM() << DEB_VAR2(m_lat_time, lat_time);
+    lat_time = m_lat_time; // latency time -> delay
+    DEB_PARAM() << DEB_VAR2(m_lat_time, lat_time);
 }
 
 //=========================================================================================================
 //=========================================================================================================
-void SyncCtrlObj::setNbFrames(int  nb_frames)
+void SyncCtrlObj::setNbFrames(int nb_frames)
 {
-  DEB_MEMBER_FUNCT();
-  DEB_PARAM() << DEB_VAR1(nb_frames);
+    DEB_MEMBER_FUNCT();
+    DEB_PARAM() << DEB_VAR1(nb_frames);
 
-  m_nb_frames = nb_frames;
+    m_nb_frames = nb_frames;
 }
 
 //=========================================================================================================
 //=========================================================================================================
-void SyncCtrlObj::getNbFrames(int& nb_frames)
+void SyncCtrlObj::getNbFrames(int &nb_frames)
 {
-  nb_frames = m_nb_frames;
+    nb_frames = m_nb_frames;
 }
 
 //=========================================================================================================
 //=========================================================================================================
 // these two functions calls the upper ones get/setNbFrames
-void SyncCtrlObj::setNbHwFrames(int  nb_frames)
+void SyncCtrlObj::setNbHwFrames(int nb_frames)
 {
-  setNbFrames(nb_frames);
+    setNbFrames(nb_frames);
 }
 
 //=========================================================================================================
 //=========================================================================================================
-void SyncCtrlObj::getNbHwFrames(int& nb_frames)
+void SyncCtrlObj::getNbHwFrames(int &nb_frames)
 {
-  getNbFrames(nb_frames);
+    getNbFrames(nb_frames);
 }
 
 //=========================================================================================================
 //=========================================================================================================
-void SyncCtrlObj::getValidRanges(ValidRangesType& valid_ranges)
+void SyncCtrlObj::getValidRanges(ValidRangesType &valid_ranges)
 {
+    m_pcoData->step_exp_time =
+        (m_pcoData->stcPcoDescription.dwMinExposureStepDESC) *
+        NANO; // step exposure time in ns
 
+    m_pcoData->min_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureDESC) *
+                              NANO; // Minimum exposure time in ns
+    valid_ranges.min_exp_time = m_pcoData->min_exp_time_err =
+        m_pcoData->min_exp_time - m_pcoData->step_exp_time;
 
-	m_pcoData->step_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureStepDESC) * NANO ;	//step exposure time in ns
-	
-	m_pcoData->min_exp_time = (m_pcoData->stcPcoDescription.dwMinExposureDESC) * NANO ;	//Minimum exposure time in ns
-	valid_ranges.min_exp_time = m_pcoData->min_exp_time_err = m_pcoData->min_exp_time - m_pcoData->step_exp_time ;	
+    m_pcoData->max_exp_time = (m_pcoData->stcPcoDescription.dwMaxExposureDESC) *
+                              MILI; // Maximum exposure time in ms
+    valid_ranges.max_exp_time = m_pcoData->max_exp_time_err =
+        m_pcoData->max_exp_time + m_pcoData->step_exp_time;
 
-	m_pcoData->max_exp_time = (m_pcoData->stcPcoDescription.dwMaxExposureDESC) * MILI ;   // Maximum exposure time in ms  
-	valid_ranges.max_exp_time = m_pcoData->max_exp_time_err = m_pcoData->max_exp_time + m_pcoData->step_exp_time ;	
+    m_pcoData->step_lat_time =
+        (m_pcoData->stcPcoDescription.dwMinDelayStepDESC) *
+        NANO; // step delay time in ns
 
+    m_pcoData->min_lat_time = (m_pcoData->stcPcoDescription.dwMinDelayDESC) *
+                              NANO; // Minimum delay time in ns
+    valid_ranges.min_lat_time = m_pcoData->min_lat_time_err =
+        (m_pcoData->min_lat_time < m_pcoData->step_lat_time)
+            ? m_pcoData->min_lat_time
+            : m_pcoData->min_lat_time - m_pcoData->step_lat_time;
 
-	m_pcoData->step_lat_time = (m_pcoData->stcPcoDescription.dwMinDelayStepDESC) * NANO ;	//step delay time in ns
-
-	m_pcoData->min_lat_time = (m_pcoData->stcPcoDescription.dwMinDelayDESC) * NANO ; // Minimum delay time in ns
-	valid_ranges.min_lat_time = m_pcoData->min_lat_time_err = 
-		(m_pcoData->min_lat_time < m_pcoData->step_lat_time) ? m_pcoData->min_lat_time : m_pcoData->min_lat_time - m_pcoData->step_lat_time ;
-
-	m_pcoData->max_lat_time = (m_pcoData->stcPcoDescription.dwMaxDelayDESC) * MILI ; // Maximum delay time in ms
-	valid_ranges.max_lat_time = m_pcoData->max_lat_time_err = m_pcoData->max_lat_time + m_pcoData->step_lat_time ;	
-
-
+    m_pcoData->max_lat_time = (m_pcoData->stcPcoDescription.dwMaxDelayDESC) *
+                              MILI; // Maximum delay time in ms
+    valid_ranges.max_lat_time = m_pcoData->max_lat_time_err =
+        m_pcoData->max_lat_time + m_pcoData->step_lat_time;
 }
 
 //=========================================================================================================
 //=========================================================================================================
 void SyncCtrlObj::startAcq()
 {
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
+    DEB_MEMBER_FUNCT();
+    DEF_FNID;
 
-	char msg[512];
+    char msg[512];
 
-	bool _started = getStarted();
+    bool _started = getStarted();
 
-	m_cam->_camInfo(msg, msg+sizeof(msg), CAMINFO_ACQ);
+    m_cam->_camInfo(msg, msg + sizeof(msg), CAMINFO_ACQ);
 
-	DEB_ALWAYS() 
-		<<"\n" << msg
-		<< m_cam->_sprintComment(false, fnId, "[ENTRY]");
+    DEB_ALWAYS() << "\n"
+                 << msg << m_cam->_sprintComment(false, fnId, "[ENTRY]");
 
-	DEB_TRACE() << ": SyncCtrlObj::startAcq() " << DEB_VAR1(_started);
+    DEB_TRACE() << ": SyncCtrlObj::startAcq() " << DEB_VAR1(_started);
 
-	if(!_started)
-	{
+    if (!_started)
+    {
+        if (m_buffer)
+        {
+            m_buffer->startAcq();
+        }
 
-		if(m_buffer) {
-			m_buffer->startAcq();
-		}
+        _setRequestStop(stopNone);
+        setExposing(pcoAcqStart);
+        m_cam->startAcq();
+        if (getExposing() == pcoAcqError)
+        {
+            setStarted(false);
+            return;
+        }
 
-		_setRequestStop(stopNone);
-		setExposing(pcoAcqStart);
-		m_cam->startAcq();
-		if(getExposing() == pcoAcqError)
-		{
-			setStarted(false);
-			return;
-		}
+        AutoMutex lock(m_cond.mutex());
 
-		AutoMutex lock(m_cond.mutex());
+        bool resWait;
+        int retry = 3;
+        int val, val0;
+        val0 = pcoAcqStart;
 
-		bool resWait;
-		int retry = 3;
-		int val, val0; val0 = pcoAcqStart;
+        while (((val = getExposing()) == val0) && retry--)
+        {
+            DEB_TRACE() << "+++ getExposing - WAIT for != pcoAcqStart - "
+                        << DEB_VAR3(val, val0, retry);
+            resWait = m_cond.wait(2.);
+        }
+        DEB_TRACE() << "+++ getExposing - EXIT - "
+                    << DEB_VAR3(val, val0, retry);
+        lock.unlock();
 
-		while( ((val =  getExposing()) == val0) && retry--)
-		{
-			DEB_TRACE() << "+++ getExposing - WAIT for != pcoAcqStart - " << DEB_VAR3(val, val0, retry);
-			resWait = m_cond.wait(2.);
-		}
-		DEB_TRACE() << "+++ getExposing - EXIT - " << DEB_VAR3(val, val0, retry);
-		lock.unlock();
-
-
-		setStarted(true);
+        setStarted(true);
+    }
 }
-}
-
 
 //=========================================================================================================
 //=========================================================================================================
-void SyncCtrlObj::setExposing(pcoAcqStatus exposing) 
+void SyncCtrlObj::setExposing(pcoAcqStatus exposing)
 {
-		
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	AutoMutex lock(m_cond.mutex());
+    DEB_MEMBER_FUNCT();
+    DEF_FNID;
+    AutoMutex lock(m_cond.mutex());
 
-	
-	m_exposing = exposing;
-	m_cond.broadcast();
+    m_exposing = exposing;
+    m_cond.broadcast();
 
-	DEB_TRACE() << DEB_VAR2(m_exposing, exposing);
+    DEB_TRACE() << DEB_VAR2(m_exposing, exposing);
 }
 
 //=========================================================================================================
 //=========================================================================================================
-pcoAcqStatus SyncCtrlObj::getExposing() 
+pcoAcqStatus SyncCtrlObj::getExposing()
 {
-		
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
+    DEB_MEMBER_FUNCT();
+    DEF_FNID;
 
-	
-	DEB_TRACE() << DEB_VAR1(m_exposing);
-	return m_exposing;
-
+    DEB_TRACE() << DEB_VAR1(m_exposing);
+    return m_exposing;
 }
 
 //=========================================================================================================
 //=========================================================================================================
-void SyncCtrlObj::setStarted(bool started) 
+void SyncCtrlObj::setStarted(bool started)
 {
+    DEB_MEMBER_FUNCT();
+    DEF_FNID;
+    AutoMutex lock(m_cond.mutex());
 
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
-	AutoMutex lock(m_cond.mutex());
+    m_started = started;
+    m_cond.broadcast();
 
-	
-	m_started = started;
-	m_cond.broadcast();
-
-	DEB_TRACE() << DEB_VAR2(m_started, started);
+    DEB_TRACE() << DEB_VAR2(m_started, started);
 }
 
 //=========================================================================================================
 //=========================================================================================================
-bool SyncCtrlObj::getStarted() 
+bool SyncCtrlObj::getStarted()
 {
+    DEB_MEMBER_FUNCT();
+    DEF_FNID;
 
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
+    DEB_TRACE() << DEB_VAR1(m_started);
 
-	DEB_TRACE() << DEB_VAR1(m_started);
-
-	return m_started;
-
+    return m_started;
 }
-
-
 
 //=========================================================================================================
 //=========================================================================================================
 void SyncCtrlObj::stopAcq(bool clearQueue)
 {
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
+    DEB_MEMBER_FUNCT();
+    DEF_FNID;
 
+    int _stopRequestIn, _stopRequestOut, _nrStop;
+    bool _started;
+    bool resWait;
 
-	int _stopRequestIn, _stopRequestOut, _nrStop;
-	bool _started;
-	bool resWait;
+    AutoMutex lock(m_cond.mutex());
 
-	AutoMutex lock(m_cond.mutex());
+    DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
 
-	DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
-	
-	_stopRequestIn = _getRequestStop(_nrStop);
-	
-	while( (_started = getStarted()) ) 
-	{
-		DEB_TRACE() << "[while]" << DEB_VAR1(_started);
-		_setRequestStop(stopRequest);
+    _stopRequestIn = _getRequestStop(_nrStop);
+
+    while ((_started = getStarted()))
+    {
+        DEB_TRACE() << "[while]" << DEB_VAR1(_started);
+        _setRequestStop(stopRequest);
         resWait = m_cond.wait(5.);
-	}
-	lock.unlock();
-	_stopRequestOut = _getRequestStop(_nrStop);
+    }
+    lock.unlock();
+    _stopRequestOut = _getRequestStop(_nrStop);
 
-	DEB_ALWAYS() << fnId << " [exit]" << ": " << DEB_VAR5(_started, _stopRequestIn, _stopRequestOut, _nrStop, resWait);
+    DEB_ALWAYS() << fnId << " [exit]"
+                 << ": "
+                 << DEB_VAR5(_started, _stopRequestIn, _stopRequestOut, _nrStop,
+                             resWait);
 }
 //=========================================================================================================
 //=========================================================================================================
-void SyncCtrlObj::getStatus(HwInterface::StatusType& status)
+void SyncCtrlObj::getStatus(HwInterface::StatusType &status)
 {
-	bool _started = getStarted();
-	DEB_MEMBER_FUNCT();
-	//DEB_TRACE() << DEB_VAR3(_started, m_buffer, m_exposing);
-	
-	if(_started){
-      if(m_buffer){
+    bool _started = getStarted();
+    DEB_MEMBER_FUNCT();
+    // DEB_TRACE() << DEB_VAR3(_started, m_buffer, m_exposing);
 
-		  switch(m_exposing) {
+    if (_started)
+    {
+        if (m_buffer)
+        {
+            switch (m_exposing)
+            {
+                case pcoAcqStart:
+                case pcoAcqRecordStart:
+                    status.acq = AcqRunning;
+                    status.det = DetExposure;
+                    break;
 
-			case pcoAcqStart: 
-			case pcoAcqRecordStart: 
-			  status.acq = AcqRunning;
-			  status.det = DetExposure;
-			  break;
+                case pcoAcqStop:
+                case pcoAcqTransferStop:
+                case pcoAcqIdle:
+                case pcoAcqTransferEnd:
+                case pcoAcqRecordEnd:
+                case pcoAcqTransferStart:
+                    status.acq = AcqRunning;
+                    status.det = DetIdle;
+                    break;
 
-			case pcoAcqStop: 
-			case pcoAcqTransferStop: 
-			case pcoAcqIdle: 
-			case pcoAcqTransferEnd: 
-			case pcoAcqRecordEnd:  
-			case pcoAcqTransferStart: 
-			  status.acq = AcqRunning;
-			  status.det = DetIdle;
-			  break;
-  
-			case pcoAcqRecordStop:
-			case pcoAcqRecordTimeout:
-			case pcoAcqWaitTimeout:
-			case pcoAcqWaitError:
-			case pcoAcqError:
-			case pcoAcqPcoError:
-			  status.acq = AcqFault;
-			  status.det = DetFault;
-			  break;
+                case pcoAcqRecordStop:
+                case pcoAcqRecordTimeout:
+                case pcoAcqWaitTimeout:
+                case pcoAcqWaitError:
+                case pcoAcqError:
+                case pcoAcqPcoError:
+                    status.acq = AcqFault;
+                    status.det = DetFault;
+                    break;
 
-
-			default:
-					THROW_HW_ERROR(NotSupported) << "Undefined value";
-		  } // sw
-		} // m_buffer
-    } else { // not started
-      status.acq = AcqReady;
-      status.det = DetIdle;
+                default:
+                    THROW_HW_ERROR(NotSupported) << "Undefined value";
+            } // sw
+        }     // m_buffer
+    }
+    else
+    { // not started
+        status.acq = AcqReady;
+        status.det = DetIdle;
     }
 
-  if(m_cam->_getDebug(DBG_STATUS)) {DEB_ALWAYS() << DEB_VAR2(m_exposing, status);}	
-
+    if (m_cam->_getDebug(DBG_STATUS))
+    {
+        DEB_ALWAYS() << DEB_VAR2(m_exposing, status);
+    }
 }
 
 //=========================================================================================================
 //=========================================================================================================
 int SyncCtrlObj::_getRequestStop(int &nrStop)
-{ 
-   	nrStop = m_requestStopRetry;
+{
+    nrStop = m_requestStopRetry;
 
-	return m_requestStop;
+    return m_requestStop;
 }
 
+void SyncCtrlObj::_setRequestStop(int requestStop)
+{
+    DEB_MEMBER_FUNCT();
 
-void SyncCtrlObj::_setRequestStop(int requestStop) 
-{ 
-	DEB_MEMBER_FUNCT();
+    int m_requestStop0 = m_requestStop;
 
-	int m_requestStop0 = m_requestStop;
+    switch (requestStop)
+    {
+        case stopNone:
+            m_requestStopRetry = 0;
+            m_requestStop = requestStop;
+            break;
 
-	switch(requestStop) {
-			case stopNone:
-				m_requestStopRetry = 0;
-				m_requestStop = requestStop;
-				break;
-
-			case stopRequest:
-				m_requestStopRetry++;
-				m_requestStop = requestStop;
-				break;
-
-	}
-	DEB_ALWAYS() 
-		<< DEB_VAR4(m_requestStop0, m_requestStop, m_requestStopRetry, requestStop);
-
+        case stopRequest:
+            m_requestStopRetry++;
+            m_requestStop = requestStop;
+            break;
+    }
+    DEB_ALWAYS() << DEB_VAR4(m_requestStop0, m_requestStop, m_requestStopRetry,
+                             requestStop);
 }
 //=========================================================================================================
 //=========================================================================================================

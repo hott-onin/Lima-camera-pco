@@ -29,98 +29,105 @@
 #include "lima/HwSyncCtrlObj.h"
 #include "lima/HwInterface.h"
 
-enum pcoAcqStatus {
-	pcoAcqOK = 0, 
-	pcoAcqIdle, 
-	pcoAcqStart, 
-	pcoAcqRecordStart, 
-	pcoAcqRecordEnd,  
-	pcoAcqRecordStop,  
-	pcoAcqRecordTimeout,
-	pcoAcqTransferStart, 
-	pcoAcqTransferEnd, 
-	pcoAcqStop, 
-	pcoAcqTransferStop, 
-	pcoAcqWaitTimeout,
-	pcoAcqWaitError,
-	pcoAcqError,
-	pcoAcqPcoError,
+enum pcoAcqStatus
+{
+    pcoAcqOK = 0,
+    pcoAcqIdle,
+    pcoAcqStart,
+    pcoAcqRecordStart,
+    pcoAcqRecordEnd,
+    pcoAcqRecordStop,
+    pcoAcqRecordTimeout,
+    pcoAcqTransferStart,
+    pcoAcqTransferEnd,
+    pcoAcqStop,
+    pcoAcqTransferStop,
+    pcoAcqWaitTimeout,
+    pcoAcqWaitError,
+    pcoAcqError,
+    pcoAcqPcoError,
 };
 
 namespace lima
 {
-  namespace Pco
-  {
-    class Camera;
-    class BufferCtrlObj;
-
-    class  DLL_EXPORT  SyncCtrlObj : public HwSyncCtrlObj
+    namespace Pco
     {
-      DEB_CLASS_NAMESPC(DebModCamera,"SyncCtrlObj","Pco");
-    public:
-		SyncCtrlObj(Camera*, BufferCtrlObj*);
-		virtual ~SyncCtrlObj();
+        class Camera;
+        class BufferCtrlObj;
 
-		virtual bool checkTrigMode(TrigMode trig_mode);
-		virtual void setTrigMode(TrigMode  trig_mode);
-		virtual void getTrigMode(TrigMode& trig_mode);
+        class DLL_EXPORT SyncCtrlObj : public HwSyncCtrlObj
+        {
+            DEB_CLASS_NAMESPC(DebModCamera, "SyncCtrlObj", "Pco");
 
-		virtual void setExpTime(double  exp_time);
-		virtual void getExpTime(double& exp_time);
+          public:
+            SyncCtrlObj(Camera *, BufferCtrlObj *);
+            virtual ~SyncCtrlObj();
 
-		virtual void setLatTime(double  lat_time);
-		virtual void getLatTime(double& lat_time);
+            virtual bool checkTrigMode(TrigMode trig_mode);
+            virtual void setTrigMode(TrigMode trig_mode);
+            virtual void getTrigMode(TrigMode &trig_mode);
 
-		virtual void setNbFrames(int  nb_frames);
-		virtual void getNbFrames(int& nb_frames);
-			// these two functions calls the upper ones get/setNbFrames
-		virtual void setNbHwFrames(int  nb_frames);
-		virtual void getNbHwFrames(int& nb_frames);
+            virtual void setExpTime(double exp_time);
+            virtual void getExpTime(double &exp_time);
 
-		void setAcqFrames(int  nb_acq_frames) { m_nb_acq_frames = nb_acq_frames; }
-		void getAcqFrames(int& nb_acq_frames){ nb_acq_frames = m_nb_acq_frames; }
+            virtual void setLatTime(double lat_time);
+            virtual void getLatTime(double &lat_time);
 
-		virtual void getValidRanges(ValidRangesType& valid_ranges);
+            virtual void setNbFrames(int nb_frames);
+            virtual void getNbFrames(int &nb_frames);
+            // these two functions calls the upper ones get/setNbFrames
+            virtual void setNbHwFrames(int nb_frames);
+            virtual void getNbHwFrames(int &nb_frames);
 
-		void startAcq();
-		void stopAcq(bool clearQueue = true);
+            void setAcqFrames(int nb_acq_frames)
+            {
+                m_nb_acq_frames = nb_acq_frames;
+            }
+            void getAcqFrames(int &nb_acq_frames)
+            {
+                nb_acq_frames = m_nb_acq_frames;
+            }
 
-		void getStatus(HwInterface::StatusType&);
+            virtual void getValidRanges(ValidRangesType &valid_ranges);
 
-		void xlatLimaTrigMode2Pco(
-	        lima::TrigMode limaTrigMode, WORD &pcoTrigMode, WORD &pcoAcqMode, bool &extTrig, int &err);
+            void startAcq();
+            void stopAcq(bool clearQueue = true);
 
-		//BufferCtrlObj* _getBufferCtrlObj() {return m_buffer;}
-		void setExposing(pcoAcqStatus exposing);
-		void setStarted(bool started); 
-		bool getStarted();
-		pcoAcqStatus getExposing();
+            void getStatus(HwInterface::StatusType &);
 
-		int _getRequestStop(int &nrStop);
-		void _setRequestStop(int requestStop);
+            void xlatLimaTrigMode2Pco(lima::TrigMode limaTrigMode,
+                                      WORD &pcoTrigMode, WORD &pcoAcqMode,
+                                      bool &extTrig, int &err);
 
-	
-	private:
-		double	m_exp_time;			/* exposure time in s */
-		double	m_lat_time;			/* lattency - delay? */
+            // BufferCtrlObj* _getBufferCtrlObj() {return m_buffer;}
+            void setExposing(pcoAcqStatus exposing);
+            void setStarted(bool started);
+            bool getStarted();
+            pcoAcqStatus getExposing();
 
-		Camera*		m_cam;
-		HANDLE&	m_handle;
-		TrigMode		m_trig_mode;
-		BufferCtrlObj*	m_buffer;
-		int		m_nb_frames;
-		int m_nb_acq_frames;
-		bool		m_started;
-		pcoAcqStatus m_exposing;
-		struct stcPcoData *m_pcoData;
-		Cond  m_cond;
-		int m_requestStop, m_requestStopRetry;
+            int _getRequestStop(int &nrStop);
+            void _setRequestStop(int requestStop);
 
-		bool m_extTrigSingle_eq_Multi;
+          private:
+            double m_exp_time; /* exposure time in s */
+            double m_lat_time; /* lattency - delay? */
 
-	};
+            Camera *m_cam;
+            HANDLE &m_handle;
+            TrigMode m_trig_mode;
+            BufferCtrlObj *m_buffer;
+            int m_nb_frames;
+            int m_nb_acq_frames;
+            bool m_started;
+            pcoAcqStatus m_exposing;
+            struct stcPcoData *m_pcoData;
+            Cond m_cond;
+            int m_requestStop, m_requestStopRetry;
 
-  } // namespace Pco
+            bool m_extTrigSingle_eq_Multi;
+        };
+
+    } // namespace Pco
 } // namespace lima
 
 #endif // PCOSYNCCTRLOBJ_H

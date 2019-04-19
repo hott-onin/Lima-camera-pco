@@ -31,102 +31,111 @@
 
 #define PCO_MAX_NR_ALLOCATED_BUFFERS 8
 
-struct stcAllocBuff {
-		bool pcoAllocBufferDone;
-		bool createEventsDone;
-		
-		SHORT	pcoAllocBufferNr[PCO_MAX_NR_ALLOCATED_BUFFERS];				// bufnrM buffer number allocated by PCO_AllocateBuffer
-        WORD	*pcoAllocBufferPtr[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by PCO_AllocateBuffer
-        DWORD	dwPcoAllocBufferSize[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by PCO_AllocateBuffer
+struct stcAllocBuff
+{
+    bool pcoAllocBufferDone;
+    bool createEventsDone;
 
-		WORD	*limaAllocBufferPtr[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
-		WORD	*limaAllocBufferPtr1[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
-        DWORD	dwLimaAllocBufferSize[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer allocated by Lima
-		int 	limaAllocBufferNr[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer nr allocated by Lima
-		int 	limaAllocBufferNr1[PCO_MAX_NR_ALLOCATED_BUFFERS];			// buffer nr allocated by Lima
+    SHORT pcoAllocBufferNr[PCO_MAX_NR_ALLOCATED_BUFFERS]; // bufnrM buffer
+                                                          // number allocated by
+                                                          // PCO_AllocateBuffer
+    WORD *pcoAllocBufferPtr[PCO_MAX_NR_ALLOCATED_BUFFERS]; // buffer allocated
+                                                           // by
+                                                           // PCO_AllocateBuffer
+    DWORD dwPcoAllocBufferSize
+        [PCO_MAX_NR_ALLOCATED_BUFFERS]; // buffer allocated by
+                                        // PCO_AllocateBuffer
 
+    WORD *limaAllocBufferPtr[PCO_MAX_NR_ALLOCATED_BUFFERS];  // buffer allocated
+                                                             // by Lima
+    WORD *limaAllocBufferPtr1[PCO_MAX_NR_ALLOCATED_BUFFERS]; // buffer allocated
+                                                             // by Lima
+    DWORD dwLimaAllocBufferSize[PCO_MAX_NR_ALLOCATED_BUFFERS]; // buffer
+                                                               // allocated by
+                                                               // Lima
+    int limaAllocBufferNr[PCO_MAX_NR_ALLOCATED_BUFFERS];  // buffer nr allocated
+                                                          // by Lima
+    int limaAllocBufferNr1[PCO_MAX_NR_ALLOCATED_BUFFERS]; // buffer nr allocated
+                                                          // by Lima
 
-		DWORD	dwStatus[8];			// PCO_AddBufferEx status/error return
+    DWORD dwStatus[8]; // PCO_AddBufferEx status/error return
 
-        //HANDLE bufferAllocEvent[PCO_MAX_NR_ALLOCATED_BUFFERS];
-        void* bufferAllocEvent[PCO_MAX_NR_ALLOCATED_BUFFERS];
+    // HANDLE bufferAllocEvent[PCO_MAX_NR_ALLOCATED_BUFFERS];
+    void *bufferAllocEvent[PCO_MAX_NR_ALLOCATED_BUFFERS];
 
-        DWORD bufferAssignedFrameFirst[PCO_MAX_NR_ALLOCATED_BUFFERS];
-        DWORD bufferAssignedFrameLast[PCO_MAX_NR_ALLOCATED_BUFFERS];
-        int bufferReady[PCO_MAX_NR_ALLOCATED_BUFFERS];
-
-
+    DWORD bufferAssignedFrameFirst[PCO_MAX_NR_ALLOCATED_BUFFERS];
+    DWORD bufferAssignedFrameLast[PCO_MAX_NR_ALLOCATED_BUFFERS];
+    int bufferReady[PCO_MAX_NR_ALLOCATED_BUFFERS];
 };
 
 namespace lima
 {
-  namespace Pco
-  {
-    class Camera;
-    class SyncCtrlObj;
-    class Interface;
-
-	//int Camera::pcoGetError();
-
-    class DLL_EXPORT BufferCtrlObj : public SoftBufferCtrlObj
+    namespace Pco
     {
-      friend class Interface;
-	  friend class Camera;
+        class Camera;
+        class SyncCtrlObj;
+        class Interface;
 
-      DEB_CLASS_NAMESPC(DebModCamera,"BufferCtrlObj","Pco");
-	
-    
-	private:
-		Camera* m_cam;
-		struct stcPcoData *m_pcoData;
+        // int Camera::pcoGetError();
 
-		SoftBufferCtrlObj::Sync *m_bufferSync;
-		Cond cond;
-		struct stcAllocBuff m_allocBuff;
-		unsigned long	m_frames_per_buffer;
-		//-------------------------------------------------------------
+        class DLL_EXPORT BufferCtrlObj : public SoftBufferCtrlObj
+        {
+            friend class Interface;
+            friend class Camera;
 
-		int        	m_frame[2];
-		SyncCtrlObj* 	m_sync;
-		int m_requestStop, m_requestStopRetry;
-		int m_ImageBufferSize;
+            DEB_CLASS_NAMESPC(DebModCamera, "BufferCtrlObj", "Pco");
 
-	public:
-		BufferCtrlObj(Camera *cam);
-		void prepareAcq();
-		void startAcq();
-		//void getStatus(int &err,bool& exposing) {err = m_status,exposing = m_exposing;}
-		void getStatus(int &err) {err = m_cam->pcoGetError();}
-		//void setStatus(int status) {m_status = status;}
+          private:
+            Camera *m_cam;
+            struct stcPcoData *m_pcoData;
 
+            SoftBufferCtrlObj::Sync *m_bufferSync;
+            Cond cond;
+            struct stcAllocBuff m_allocBuff;
+            unsigned long m_frames_per_buffer;
+            //-------------------------------------------------------------
 
-		void _setNewFrameReady(int iLimaFrame);	  
-		int _xferImagMultDoubleImage();
-		int _xferImagDoubleImage();
-		int _xferImag();
+            int m_frame[2];
+            SyncCtrlObj *m_sync;
+            int m_requestStop, m_requestStopRetry;
+            int m_ImageBufferSize;
 
-		int _xferImag_buff2lima(DWORD &dwFrameIdx, int &bufIdx);
+          public:
+            BufferCtrlObj(Camera *cam);
+            void prepareAcq();
+            void startAcq();
+            // void getStatus(int &err,bool& exposing) {err = m_status,exposing
+            // = m_exposing;}
+            void getStatus(int &err)
+            {
+                err = m_cam->pcoGetError();
+            }
+            // void setStatus(int status) {m_status = status;}
 
+            void _setNewFrameReady(int iLimaFrame);
+            int _xferImagMultDoubleImage();
+            int _xferImagDoubleImage();
+            int _xferImag();
 
-		int _xferImag_getImage();
-		int _xferImag_getImage_edge();
-		int _xferImagMult();
-		void *_getLimaBuffer(int lima_buffer_nb, Sync::Status &status);
-		void _pcoAllocBuffersFree();
-		void _pcoAllocBuffersInfo(int &nr, DWORD &size);
+            int _xferImag_buff2lima(DWORD &dwFrameIdx, int &bufIdx);
 
-		void *_getFrameBufferPtr(int nb_frame, int &nb_allocated_buffers);
+            int _xferImag_getImage();
+            int _xferImag_getImage_edge();
+            int _xferImagMult();
+            void *_getLimaBuffer(int lima_buffer_nb, Sync::Status &status);
+            void _pcoAllocBuffersFree();
+            void _pcoAllocBuffersInfo(int &nr, DWORD &size);
 
-	
-	private:
-		int _assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast, 
-			DWORD dwRequestedFrames, int bufIdx, bool live_mode, WORD wDoubleImage=0);
-		
-		void _pcoAllocBuffers(bool max = false);
-		//-------------------------------------------------------------
+            void *_getFrameBufferPtr(int nb_frame, int &nb_allocated_buffers);
 
+          private:
+            int _assignImage2Buffer(DWORD &dwFrameFirst, DWORD &dwFrameLast,
+                                    DWORD dwRequestedFrames, int bufIdx,
+                                    bool live_mode, WORD wDoubleImage = 0);
 
-	};
-  }
-}
+            void _pcoAllocBuffers(bool max = false);
+            //-------------------------------------------------------------
+        };
+    } // namespace Pco
+} // namespace lima
 #endif

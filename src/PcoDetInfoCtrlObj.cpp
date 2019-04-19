@@ -29,19 +29,20 @@
 #include "PcoCamera.h"
 #include "PcoDetInfoCtrlObj.h"
 
-
 using namespace lima;
 using namespace lima::Pco;
 
 //=========================================================================================================
-const char* _timestamp_pcodetinfoctrlobj() {return ID_FILE_TIMESTAMP ;}
+const char *_timestamp_pcodetinfoctrlobj()
+{
+    return ID_FILE_TIMESTAMP;
+}
 //=========================================================================================================
 
 //=========================================================================================================
 //=========================================================================================================
-DetInfoCtrlObj::DetInfoCtrlObj(Camera *cam):
-  m_cam(cam),
-  m_handle(cam->getHandle())
+DetInfoCtrlObj::DetInfoCtrlObj(Camera *cam)
+    : m_cam(cam), m_handle(cam->getHandle())
 {
 }
 
@@ -53,88 +54,77 @@ DetInfoCtrlObj::~DetInfoCtrlObj()
 
 //=========================================================================================================
 //=========================================================================================================
-void DetInfoCtrlObj::getMaxImageSize(Size& max_image_size)
+void DetInfoCtrlObj::getMaxImageSize(Size &max_image_size)
 {
-	  m_cam->_get_MaxImageSize(max_image_size); 
+    m_cam->_get_MaxImageSize(max_image_size);
 }
 
-
 //=========================================================================================================
 //=========================================================================================================
-void DetInfoCtrlObj::getDetectorImageSize(Size& det_image_size)
+void DetInfoCtrlObj::getDetectorImageSize(Size &det_image_size)
 {
-	m_cam->_get_RoiSize(det_image_size);
+    m_cam->_get_RoiSize(det_image_size);
 }
 
-
 //=========================================================================================================
 //=========================================================================================================
-void DetInfoCtrlObj::getDefImageType(ImageType& def_image_type)
+void DetInfoCtrlObj::getDefImageType(ImageType &def_image_type)
 {
-	m_cam->_get_ImageType( def_image_type);
+    m_cam->_get_ImageType(def_image_type);
 }
 
-
 //=========================================================================================================
 //=========================================================================================================
-void DetInfoCtrlObj::getCurrImageType(ImageType& curr_image_type)
+void DetInfoCtrlObj::getCurrImageType(ImageType &curr_image_type)
 {
     // ---- DONE
-  getDefImageType(curr_image_type);
+    getDefImageType(curr_image_type);
 }
-
 
 //=========================================================================================================
 //=========================================================================================================
 void DetInfoCtrlObj::setCurrImageType(ImageType curr_image_type)
 {
-	m_cam->_set_ImageType(curr_image_type);
+    m_cam->_set_ImageType(curr_image_type);
 }
 
-
 //=========================================================================================================
 //=========================================================================================================
 
-void DetInfoCtrlObj::getPixelSize(double& x_size,double &y_size)
-{  
-	m_cam->_get_PixelSize(x_size, y_size);
-}
-
-
-
-//=========================================================================================================
-//=========================================================================================================
-void DetInfoCtrlObj::getDetectorType(std::string& det_type)
+void DetInfoCtrlObj::getPixelSize(double &x_size, double &y_size)
 {
-	m_cam->_get_DetectorType(det_type);
+    m_cam->_get_PixelSize(x_size, y_size);
 }
 
+//=========================================================================================================
+//=========================================================================================================
+void DetInfoCtrlObj::getDetectorType(std::string &det_type)
+{
+    m_cam->_get_DetectorType(det_type);
+}
 
 //=========================================================================================================
 //=========================================================================================================
-void DetInfoCtrlObj::getDetectorModel(std::string& det_model)
+void DetInfoCtrlObj::getDetectorModel(std::string &det_model)
 {
     // ---- DONE
-  m_cam->getCameraName(det_model);
+    m_cam->getCameraName(det_model);
 }
 
-
-
 //=========================================================================================================
 //=========================================================================================================
-void DetInfoCtrlObj::registerMaxImageSizeCallback(HwMaxImageSizeCallback& cb)
+void DetInfoCtrlObj::registerMaxImageSizeCallback(HwMaxImageSizeCallback &cb)
 {
-	// TOCHECK
-	// will not be used - from HwMaxImageSizeCallbackGen::registerMaxImageSizeCallback
-  m_cam->registerMaxImageSizeCallback(cb);
+    // TOCHECK
+    // will not be used - from
+    // HwMaxImageSizeCallbackGen::registerMaxImageSizeCallback
+    m_cam->registerMaxImageSizeCallback(cb);
 }
 
-
 //=========================================================================================================
 //=========================================================================================================
-void DetInfoCtrlObj::unregisterMaxImageSizeCallback(HwMaxImageSizeCallback& cb)
+void DetInfoCtrlObj::unregisterMaxImageSizeCallback(HwMaxImageSizeCallback &cb)
 {
-	// TOCHECK
-  m_cam->unregisterMaxImageSizeCallback(cb);
+    // TOCHECK
+    m_cam->unregisterMaxImageSizeCallback(cb);
 }
-

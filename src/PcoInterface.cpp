@@ -35,194 +35,193 @@
 using namespace lima;
 using namespace lima::Pco;
 
-
 //=========================================================================================================
-const char* _timestamp_pcointerface() {return ID_FILE_TIMESTAMP ;}
-//=========================================================================================================
-
-
-//=========================================================================================================
-//=========================================================================================================
-Interface::Interface(Camera *cam) :
-  m_cam(cam)
+const char *_timestamp_pcointerface()
 {
-  DEB_CONSTRUCTOR();
-  
-  //cam->m_HwEventCtrlObj = m_HwEventCtrlObj = new PcoHwEventCtrlObj(cam);
-  cam->m_HwEventCtrlObj = m_HwEventCtrlObj = new PcoHwEventCtrlObj();
-  
-  m_BinCtrlObj = new BinCtrlObj(*cam);
-  m_RoiCtrlObj = new RoiCtrlObj(cam);
-  m_det_info = new DetInfoCtrlObj(cam);
+    return ID_FILE_TIMESTAMP;
+}
+//=========================================================================================================
 
-  cam->m_buffer = m_buffer = new BufferCtrlObj(cam);
-  
-  cam->m_sync = m_sync = new SyncCtrlObj(cam, m_buffer);
-   
-  DEB_TRACE() << DEB_VAR5(cam, m_buffer, m_sync, m_det_info, m_RoiCtrlObj);
+//=========================================================================================================
+//=========================================================================================================
+Interface::Interface(Camera *cam) : m_cam(cam)
+{
+    DEB_CONSTRUCTOR();
 
-  if(m_buffer){
-    m_buffer->m_sync = m_sync;
-  }
+    // cam->m_HwEventCtrlObj = m_HwEventCtrlObj = new PcoHwEventCtrlObj(cam);
+    cam->m_HwEventCtrlObj = m_HwEventCtrlObj = new PcoHwEventCtrlObj();
 
+    m_BinCtrlObj = new BinCtrlObj(*cam);
+    m_RoiCtrlObj = new RoiCtrlObj(cam);
+    m_det_info = new DetInfoCtrlObj(cam);
+
+    cam->m_buffer = m_buffer = new BufferCtrlObj(cam);
+
+    cam->m_sync = m_sync = new SyncCtrlObj(cam, m_buffer);
+
+    DEB_TRACE() << DEB_VAR5(cam, m_buffer, m_sync, m_det_info, m_RoiCtrlObj);
+
+    if (m_buffer)
+    {
+        m_buffer->m_sync = m_sync;
+    }
 }
 
 //=========================================================================================================
 //=========================================================================================================
-  
-  Interface::~Interface()
+
+Interface::~Interface()
 {
-	DEB_DESTRUCTOR();
-	delete m_HwEventCtrlObj;
-	delete m_RoiCtrlObj;
-	delete m_BinCtrlObj;
-	delete m_buffer;
-	delete m_det_info;
-	delete m_sync;
+    DEB_DESTRUCTOR();
+    delete m_HwEventCtrlObj;
+    delete m_RoiCtrlObj;
+    delete m_BinCtrlObj;
+    delete m_buffer;
+    delete m_det_info;
+    delete m_sync;
 }
 
 //=========================================================================================================
 //=========================================================================================================
 void Interface::getCapList(CapList &cap_list) const
 {
-	cap_list.push_back(HwCap(m_HwEventCtrlObj));
-	cap_list.push_back(HwCap(m_RoiCtrlObj));
-	cap_list.push_back(HwCap(m_BinCtrlObj));
-	cap_list.push_back(HwCap(m_sync));
-	cap_list.push_back(HwCap(m_det_info));
-	cap_list.push_back(HwCap(m_buffer));
+    cap_list.push_back(HwCap(m_HwEventCtrlObj));
+    cap_list.push_back(HwCap(m_RoiCtrlObj));
+    cap_list.push_back(HwCap(m_BinCtrlObj));
+    cap_list.push_back(HwCap(m_sync));
+    cap_list.push_back(HwCap(m_det_info));
+    cap_list.push_back(HwCap(m_buffer));
 }
 
 //=========================================================================================================
 //=========================================================================================================
 void Interface::reset(ResetLevel reset_level)
 {
-  DEB_MEMBER_FUNCT();
-  DEF_FNID;
+    DEB_MEMBER_FUNCT();
+    DEF_FNID;
 
-  int intLevel = reset_level;
+    int intLevel = reset_level;
 
-  m_cam->_setActionTimestamp(tsReset);
+    m_cam->_setActionTimestamp(tsReset);
 
-  DEB_TRACE() << fnId << ": " DEB_VAR2(reset_level, intLevel);
+    DEB_TRACE() << fnId << ": " DEB_VAR2(reset_level, intLevel);
 
-  m_sync->stopAcq();
-  m_cam->reset(intLevel);
+    m_sync->stopAcq();
+    m_cam->reset(intLevel);
 }
-
-
 
 //=========================================================================================================
 //=========================================================================================================
 void Interface::prepareAcq()
 {
-	DEB_MEMBER_FUNCT();
-	DEF_FNID;
+    DEB_MEMBER_FUNCT();
+    DEF_FNID;
 
-	DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
+    DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
 
-	m_cam->_setActionTimestamp(tsPrepareAcq);
+    m_cam->_setActionTimestamp(tsPrepareAcq);
 
-	if(m_buffer)
-	{
-		m_buffer->prepareAcq();
-	}
-	m_cam->prepareAcq();
-
+    if (m_buffer)
+    {
+        m_buffer->prepareAcq();
+    }
+    m_cam->prepareAcq();
 }
 
 //=========================================================================================================
 //=========================================================================================================
 void Interface::startAcq()
 {
-  DEB_MEMBER_FUNCT();
-  DEF_FNID;
+    DEB_MEMBER_FUNCT();
+    DEF_FNID;
 
-	DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
+    DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
 
-	m_cam->_setActionTimestamp(tsStartAcq);
+    m_cam->_setActionTimestamp(tsStartAcq);
 
-  if(m_buffer)
-    m_buffer->getBuffer().setStartTimestamp(Timestamp::now());
-  m_sync->startAcq();
+    if (m_buffer)
+        m_buffer->getBuffer().setStartTimestamp(Timestamp::now());
+    m_sync->startAcq();
 }
 
 //=========================================================================================================
 //=========================================================================================================
 void Interface::stopAcq()
 {
-  DEB_MEMBER_FUNCT();
-  DEF_FNID;
+    DEB_MEMBER_FUNCT();
+    DEF_FNID;
 
-	DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
+    DEB_ALWAYS() << m_cam->_sprintComment(false, fnId, "[ENTRY]");
 
-	m_cam->_setActionTimestamp(tsStopAcq);
-	m_sync->stopAcq();
+    m_cam->_setActionTimestamp(tsStopAcq);
+    m_sync->stopAcq();
 }
 
 //=========================================================================================================
 //=========================================================================================================
-void Interface::getStatus(StatusType& status)
+void Interface::getStatus(StatusType &status)
 {
-  DEB_MEMBER_FUNCT();
+    DEB_MEMBER_FUNCT();
 
 #ifndef __linux__
-	if(m_cam->_isConfig()){
-		status.acq = AcqConfig;
-		status.det = DetIdle;
-	} else {
-		m_sync->getStatus(status);
-	}
+    if (m_cam->_isConfig())
+    {
+        status.acq = AcqConfig;
+        status.det = DetIdle;
+    }
+    else
+    {
+        m_sync->getStatus(status);
+    }
 
 #else
 
-  Camera::Status _status = Camera::Ready;
-  m_cam->getStatus(_status);
-  switch (_status)
+    Camera::Status _status = Camera::Ready;
+    m_cam->getStatus(_status);
+    switch (_status)
     {
-    case Camera::Fault:
-      status.set(HwInterface::StatusType::Fault);   // 0
-      break;
-    case Camera::Ready:
-      status.set(HwInterface::StatusType::Ready);   // 1
-      break;
-    case Camera::Exposure:
-      status.set(HwInterface::StatusType::Exposure);   // 2
-      break;
-    case Camera::Readout:
-      status.set(HwInterface::StatusType::Readout);   // 3
-      break;
-    case Camera::Latency:
-      status.set(HwInterface::StatusType::Latency);   // 4
-      break;
-    case Camera::Config:
-      status.set(HwInterface::StatusType::Config);   // 5
-      break;
+        case Camera::Fault:
+            status.set(HwInterface::StatusType::Fault); // 0
+            break;
+        case Camera::Ready:
+            status.set(HwInterface::StatusType::Ready); // 1
+            break;
+        case Camera::Exposure:
+            status.set(HwInterface::StatusType::Exposure); // 2
+            break;
+        case Camera::Readout:
+            status.set(HwInterface::StatusType::Readout); // 3
+            break;
+        case Camera::Latency:
+            status.set(HwInterface::StatusType::Latency); // 4
+            break;
+        case Camera::Config:
+            status.set(HwInterface::StatusType::Config); // 5
+            break;
     }
 
 #endif
 
-	//DEB_RETURN() << DEB_VAR1(status);
+    // DEB_RETURN() << DEB_VAR1(status);
 }
 
 //=========================================================================================================
 //=========================================================================================================
 int Interface::getNbAcquiredFrames()
 {
-  DEB_MEMBER_FUNCT();
+    DEB_MEMBER_FUNCT();
 
-  int aNbAcquiredFrames = getNbHwAcquiredFrames();
+    int aNbAcquiredFrames = getNbHwAcquiredFrames();
 
-  DEB_RETURN() << DEB_VAR1(aNbAcquiredFrames);
-  return aNbAcquiredFrames;
+    DEB_RETURN() << DEB_VAR1(aNbAcquiredFrames);
+    return aNbAcquiredFrames;
 }
 
 //=========================================================================================================
 //=========================================================================================================
 int Interface::getNbHwAcquiredFrames()
 {
-	int nb_acq_frames;
-	m_sync->getAcqFrames(nb_acq_frames);
-	return nb_acq_frames;
+    int nb_acq_frames;
+    m_sync->getAcqFrames(nb_acq_frames);
+    return nb_acq_frames;
 }
-

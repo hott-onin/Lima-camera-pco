@@ -30,30 +30,30 @@
 
 namespace lima
 {
-  namespace Pco
-  {
-    class Camera;
-	class DLL_EXPORT  PcoHwEventCtrlObj : public HwEventCtrlObj
+    namespace Pco
     {
-      DEB_CLASS_NAMESPC(DebModCamera, "PcoHwEventCtrlObj","Pco");
+        class Camera;
+        class DLL_EXPORT PcoHwEventCtrlObj : public HwEventCtrlObj
+        {
+            DEB_CLASS_NAMESPC(DebModCamera, "PcoHwEventCtrlObj", "Pco");
 
-    public:
-      PcoHwEventCtrlObj();
-      //PcoHwEventCtrlObj(Camera*);
-      //virtual ~PcoHwEventCtrlObj();
+          public:
+            PcoHwEventCtrlObj();
+            // PcoHwEventCtrlObj(Camera*);
+            // virtual ~PcoHwEventCtrlObj();
 
-	  //virtual void   registerEventCallback(EventCallback& cb);
-	  //virtual void unregisterEventCallback(EventCallback& cb);
-	  //virtual bool hasRegisteredCallback();
+            // virtual void   registerEventCallback(EventCallback& cb);
+            // virtual void unregisterEventCallback(EventCallback& cb);
+            // virtual bool hasRegisteredCallback();
 
-	  //virtual void reportEvent(Event *event);
+            // virtual void reportEvent(Event *event);
 
-    private:
-      //Camera* 			m_cam;
-      //HANDLE& 		m_handle;
-    };
+          private:
+            // Camera* 			m_cam;
+            // HANDLE& 		m_handle;
+        };
 
-  } // namespace Pco
+    } // namespace Pco
 } // namespace lima
 
 #endif // PCOHWEVENTCTRLOBJ_H

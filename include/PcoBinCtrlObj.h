@@ -31,27 +31,29 @@ namespace lima
 {
     namespace Pco
     {
+        /*******************************************************************
+         * \class BinCtrlObj
+         * \brief Control object providing Pco Bin interface
+         *******************************************************************/
+        class DLL_EXPORT BinCtrlObj : public HwBinCtrlObj
+        {
+            DEB_CLASS_NAMESPC(DebModCamera, "BinCtrlObj", "Pco");
 
-/*******************************************************************
- * \class BinCtrlObj
- * \brief Control object providing Pco Bin interface
- *******************************************************************/
-	class DLL_EXPORT BinCtrlObj : public HwBinCtrlObj
-	{
-	    DEB_CLASS_NAMESPC(DebModCamera, "BinCtrlObj", "Pco");
-	  public:
-	    BinCtrlObj(Camera& cam);
-	    virtual ~BinCtrlObj() {}
-	    
-	    virtual void setBin(const Bin& bin);
-	    virtual void getBin(Bin& bin);
-	    //allow all binning
-	    virtual void checkBin(Bin& bin);
-	  private:
-	    Camera& m_cam;
+          public:
+            BinCtrlObj(Camera &cam);
+            virtual ~BinCtrlObj()
+            {
+            }
 
-	};
-    
+            virtual void setBin(const Bin &bin);
+            virtual void getBin(Bin &bin);
+            // allow all binning
+            virtual void checkBin(Bin &bin);
+
+          private:
+            Camera &m_cam;
+        };
+
     } // namespace Pco
 } // namespace lima
 

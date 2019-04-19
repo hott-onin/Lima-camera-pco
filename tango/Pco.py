@@ -62,7 +62,7 @@ from Lima.Server import AttrHelper
 # linux / server version
 #VERSION_ATT ="20190405"
 #VERSION_ATT ="tango/Pco.py: 2019/04/08"
-VERSION_ATT ="tango/Pco.py: 2019/04/18"
+VERSION_ATT ="tango/Pco.py: 2019/04/25"
 
 RESET_CLOSE_INTERFACE	= 100
 
@@ -123,6 +123,7 @@ class Pco(PyTango.Device_4Impl):
             'timestampMode': 'TimestampMode',
             'generalCAPS1': 'GeneralCAPS1',
             'rollingShutterStr': 'RollingShutterStr',
+            'paramsInfo': 'ParamsInfo',
 
             }
         
@@ -667,7 +668,20 @@ class PcoClass(PyTango.DeviceClass):
              'description': 'set rolling shutter'
              }],
 
+         'paramsInfo':	  
+         [[PyTango.DevString,
+           PyTango.SCALAR,
+           PyTango.READ],
+           {
+             'unit': 'N/A',
+             'format': '%s',
+             'description': 'params info'
+             }],
+
+
         }
+
+
 
 #------------------------------------------------------------------
 #    PcoClass Constructor
