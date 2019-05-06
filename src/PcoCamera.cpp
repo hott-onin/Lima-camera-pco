@@ -1212,11 +1212,9 @@ int Camera::PcoCheckError(int line, const char *file, int err, const char *fn,
         {
             DEB_WARNING() << fnId << ": --- WARNING - IGNORED --- "
                           << DEB_VAR1(m_pcoData->pcoErrorMsg);
-            // DEB_TRACE() << fnId << ": --- WARNING - IGNORED --- " <<
-            // DEB_VAR1(m_pcoData->pcoErrorMsg);
             return 0;
         }
-        DEB_TRACE() << fnId << ":\n   " << msg << "\n    " << tmpMsg;
+        DEB_WARNING() << fnId << ":\n... " << msg << "\n... " << tmpMsg;
         return (err);
     }
     return (err);
