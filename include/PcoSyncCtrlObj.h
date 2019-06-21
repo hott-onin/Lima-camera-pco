@@ -63,7 +63,7 @@ const char *sPcoAcqStatus[] ={
 	"pcoAcqWaitError,"
 	"pcoAcqError,"
 	"pcoAcqPcoError,"
-}
+};
 
 namespace lima
 {
