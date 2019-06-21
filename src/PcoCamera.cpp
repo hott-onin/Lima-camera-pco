@@ -1080,23 +1080,23 @@ void Camera::prepareAcq()
 //==========================================================================================================
 //==========================================================================================================
 
-#if 0
 const char *sPcoAcqStatus[] ={
-	"pcoAcqIdle", 
-	"pcoAcqStart", 
-	"pcoAcqRecordStart", 
-	"pcoAcqRecordEnd",  
-	"pcoAcqTransferStart", 
-	"pcoAcqTransferEnd", 
-	"pcoAcqStop", 
-	"pcoAcqTransferStop", 
-	"pcoAcqRecordTimeout",
-	"pcoAcqWaitTimeout",
-	"pcoAcqWaitError",
-	"pcoAcqError",
-	"pcoAcqPcoError",
+	"pcoAcqOK," 
+	"pcoAcqIdle," 
+	"pcoAcqStart," 
+	"pcoAcqRecordStart," 
+	"pcoAcqRecordEnd,"  
+	"pcoAcqRecordStop,"  
+	"pcoAcqRecordTimeout,"
+	"pcoAcqTransferStart," 
+	"pcoAcqTransferEnd," 
+	"pcoAcqStop," 
+	"pcoAcqTransferStop," 
+	"pcoAcqWaitTimeout,"
+	"pcoAcqWaitError,"
+	"pcoAcqError,"
+	"pcoAcqPcoError,"
 };
-#endif
 
 
 //=====================================================================

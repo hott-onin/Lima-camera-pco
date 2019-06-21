@@ -47,23 +47,6 @@ enum pcoAcqStatus {
 	pcoAcqPcoError,
 };
 
-const char *sPcoAcqStatus[] ={
-	"pcoAcqOK," 
-	"pcoAcqIdle," 
-	"pcoAcqStart," 
-	"pcoAcqRecordStart," 
-	"pcoAcqRecordEnd,"  
-	"pcoAcqRecordStop,"  
-	"pcoAcqRecordTimeout,"
-	"pcoAcqTransferStart," 
-	"pcoAcqTransferEnd," 
-	"pcoAcqStop," 
-	"pcoAcqTransferStop," 
-	"pcoAcqWaitTimeout,"
-	"pcoAcqWaitError,"
-	"pcoAcqError,"
-	"pcoAcqPcoError,"
-};
 
 namespace lima
 {
