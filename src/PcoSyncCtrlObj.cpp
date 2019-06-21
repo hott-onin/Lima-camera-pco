@@ -623,7 +623,7 @@ void SyncCtrlObj::getStatus(HwInterface::StatusType& status)
 			case pcoAcqRecordEnd:  
 			case pcoAcqTransferStart: 
 			  status.acq = AcqRunning;
-			  #status.det = DetIdle;
+			  //status.det = DetIdle;
               status.det = DetLatency;
 			  break;
   
