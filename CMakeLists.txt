@@ -1,25 +1,25 @@
 ###########################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2009-2017
-# European Synchrotron Radiation Facility
-# CS40220 38043 Grenoble Cedex 9
-# FRANCE
+#  Copyright (C) : 2009-2017
+#  European Synchrotron Radiation Facility
+#  BP 220, Grenoble 38043
+#  FRANCE
 #
-# Contact: lima@esrf.fr
+#  Contact: lima@esrf.fr
 #
-# This is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
+#  This is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 3 of the License, or
+#  (at your option) any later version.
 #
-# This software is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  This software is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
 cmake_minimum_required(VERSION 3.1)
@@ -61,12 +61,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${LIMA_CMAKE_INCLUDE_DIR
 # Set version
 include(project_version)
 
-# Enable python binding code compilation using sip generator
-if (CAMERA_MASTER_PROJECT)
-  option(LIMA_ENABLE_PYTHON "compile python binding code?" OFF)
-endif()
+# Enable git hash in the version
+option(WITH_GIT_VERSION "compile python binding code?" OFF)
 
-if (LIMA_ENABLE_PYTHON)
+# Enable python binding code compilation using sip generator
+option(CAMERA_ENABLE_PYTHON "compile python binding code?" LIMA_ENABLE_PYTHON)
+
+if (CAMERA_ENABLE_PYTHON)
   # Find python interpreter and libs
   find_package(PythonInterp)
   find_package(PythonLibs)
@@ -94,8 +95,6 @@ endif()
 find_package(Pco REQUIRED)
 
 file(GLOB_RECURSE PCO_INCS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
-
-# Library definition
 
 IF(WIN32)
   add_library(pco SHARED
@@ -134,12 +133,6 @@ endif()
 # Generate export macros
 generate_export_header(pco)
 
-# Set version and output name
-set_target_properties(pco PROPERTIES
-  OUTPUT_NAME "lima${PROJECT_NAME_LOWER}"
-  VERSION "${PROJECT_VERSION}"
-  SOVERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}")
-
 # Add dependencies
 target_include_directories(pco
     PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
@@ -147,11 +140,29 @@ target_include_directories(pco
     PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
+if(WITH_GIT_VERSION)
+	target_compile_definitions(pco PUBLIC WITH_GIT_VERSION)
+endif()
+
+# Set LIMA_NO_DEBUG if LIMA_ENABLE_DEBUG is set
+if(NOT LIMA_ENABLE_DEBUG)
+    target_compile_definitions(pco PUBLIC LIMA_NO_DEBUG)
+endif()
+
+
+
+# Set version and output name
+set_target_properties(pco PROPERTIES
+  OUTPUT_NAME "lima${PROJECT_NAME_LOWER}"
+  VERSION "${PROJECT_VERSION}"
+  SOVERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}")
 
 target_link_libraries(pco PUBLIC limacore)
 
 target_compile_definitions(pco PUBLIC ${PCO_DEFINITIONS})
+
 target_include_directories(pco PUBLIC $<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}>)
+
 target_link_libraries(pco PUBLIC ${PCO_LIBRARIES})
 
 if(WIN32)
@@ -162,17 +173,17 @@ if(WIN32)
 endif()
 
 # Binding code for python
-if(LIMA_ENABLE_PYTHON)
+if(CAMERA_ENABLE_PYTHON)
   include(LimaTools)
   limatools_run_sip_for_camera(pco)
 endif()
 
 # Generate and install package config file and version
 if(CAMERA_MASTER_PROJECT)
-  set (PROJECT_LIBRARIES pco)
-  set(SIP_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/sip/lima)
-  set(CMAKE_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/cmake/lima)
-  include(package_config)
+    set(PROJECT_LIBRARIES pco)
+    set(SIP_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/sip/lima)
+    set(CMAKE_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/cmake/lima)
+    include(package_config)
 endif()
 
 ## Installation
@@ -201,19 +212,10 @@ install(
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-if(LIMA_ENABLE_PYTHON)
+if(CAMERA_ENABLE_PYTHON)
   install(
-    FILES 
-      python/__init__.py
+    FILES python/__init__.py
     DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco"
-  )
-endif()
-
-if(LIMA_ENABLE_PYTANGO_SERVER)
-  install(
-    FILES 
-      tango/Pco.py
-    DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Server/camera"
   )
 endif()
 

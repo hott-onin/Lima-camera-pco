@@ -2419,7 +2419,8 @@ void print_hex_dump_buff(void *ptr_buff, size_t len)
     BYTE *ptr = (BYTE *)ptr_buff;
     ;
 
-    printf("dump buff / len: %ld\n", len);
+    //printf("dump buff / len: %ld\n", len);
+    printf("dump buff / len: %zd\n", len);
 
     while (len > 0)
     {
