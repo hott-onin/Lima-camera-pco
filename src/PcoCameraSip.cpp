@@ -1066,8 +1066,16 @@ void Camera::getGeneralCAPS1(std::string &o_sn)
     char *ptr = buff;
     char *ptrMax = buff + sizeof(buff);
 
-    DWORD dwGeneralCaps1 = m_pcoData->stcPcoDescription.dwGeneralCaps1;
+    DWORD dwGeneralCaps1;
     DWORD dwVal;
+
+#ifndef __linux__
+    dwGeneralCaps1 = m_pcoData->stcPcoDescription.dwGeneralCapsDESC1;
+#else
+    dwGeneralCaps1 = m_pcoData->stcPcoDescription.dwGeneralCaps1;
+#endif
+
+
 
     int nib[8];
     int i, j;

@@ -77,26 +77,37 @@ const char *_timestamp_pcocamera()
 }
 
 #ifdef WITH_GIT_VERSION
-#    include "PcoGitVersion.h"
+#include "PcoGitVersion.h"
 
-char *_timestamp_gitversion(char *buffVersion, int len)
+char * _timestamp_gitversion(char *buffVersion, int len)
 {
-    __sprintfSExt(buffVersion, len,
-                  PCO_GIT_VERSION "\n" PROCLIB_GIT_VERSION
-                                  "\n" LIBCONFIG_GIT_VERSION
-                                  "\n" LIMA_GIT_VERSION "\n" TANGO_GIT_VERSION
-                                  "\n" SPEC_GIT_VERSION "\n"
-
-#    ifndef __linux__
-                  PCO_SDK_WIN_VERSION "\n"
-#    else
-                  PCO_SDK_LIN_VERSION "\n"
-#    endif
-
-    );
-    return buffVersion;
+	__sprintfSExt(buffVersion, len,  
+#ifdef PCO_GIT_VERSION
+		PCO_GIT_VERSION "\n"
+#endif
+#ifdef PCO_SDK_VERSION
+		PCO_SDK_VERSION "\n"
+#endif
+#ifdef PROCLIB_GIT_VERSION
+		PROCLIB_GIT_VERSION "\n"
+#endif
+#ifdef LIBCONFIG_GIT_VERSION
+		LIBCONFIG_GIT_VERSION "\n"
+#endif
+#ifdef LIMA_GIT_VERSION
+		LIMA_GIT_VERSION "\n"
+#endif
+#ifdef TANGO_GIT_VERSION
+		TANGO_GIT_VERSION "\n"
+#endif
+#ifdef SPEC_GIT_VERSION
+		SPEC_GIT_VERSION "\n"
+#endif
+	"\n");
+	return buffVersion;
 }
 #endif
+
 
 //=========================================================================================================
 
