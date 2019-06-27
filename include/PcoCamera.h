@@ -1187,8 +1187,8 @@ namespace lima
             void getDebugInt(std::string &o_sn);
             void setDebugInt(std::string &i_sn);
 
-            void setTest(int val);
-            void getTest(int &val);
+            void setTest(std::string &i_sn);
+            void getTest(std::string &o_sn);
 
             void setTimestampMode(int mode);
             void getTimestampMode(int &mode);
@@ -1222,6 +1222,11 @@ namespace lima
 void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase);
 
 int __sprintfSExt(char *ptr, size_t nrMax, const char *format, ...);
+
+char *str_trim_left(char *s);
+char *str_trim_right(char *s);
+char *str_trim(char *s);
+char *str_toupper(char *s);
 
 //================================================================
 // LINUX

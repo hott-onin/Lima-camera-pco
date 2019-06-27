@@ -168,7 +168,7 @@ time_t getTimestamp()
 //(..\..\..\..\src\PcoCamera.cpp) $
 
 #define LEN_BUFF_DATE 128
-#define LEN_BUFF_PATH 260 // Same as MAX_PATH under Windows
+#define LEN_BUFF_PATH PATH_MAX   // 260 in win
 #define TOKNR_DT 5
 
 int __xlat_date(char *s1, char &ptrTo, int lenTo)
@@ -2737,7 +2737,7 @@ char *_getDllPath(const char *pzFileName, char *path, size_t strLen)
 #    pragma comment(lib, "version.lib")
 
 #    define LEN_DRIVE 7
-#    define LEN_DIR MAX_PATH
+#    define LEN_DIR PATH_MAX
 
 //====================================================================
 //====================================================================
@@ -2747,8 +2747,8 @@ char *_getDllPath(const char *pzFileName, char *path, size_t strLen)
 
     char drive[LEN_DRIVE + 1];
     char dir[LEN_DIR + 1];
-    char _pathFn[MAX_PATH + 1];
-    char _pathFnInstall[MAX_PATH + 1];
+    char _pathFn[PATH_MAX + 1];
+    char _pathFnInstall[PATH_MAX + 1];
     char *ptr;
     size_t nr;
     FILE *stream;
@@ -2761,7 +2761,7 @@ char *_getDllPath(const char *pzFileName, char *path, size_t strLen)
     return path;
 #    endif
 
-    GetModuleFileName(GetModuleHandle(pzFileName), _pathFn, MAX_PATH);
+    GetModuleFileName(GetModuleHandle(pzFileName), _pathFn, PATH_MAX);
 
     err =
         _splitpath_s(_pathFn, drive, LEN_DRIVE, dir, LEN_DIR, NULL, 0, NULL, 0);
@@ -2773,7 +2773,7 @@ char *_getDllPath(const char *pzFileName, char *path, size_t strLen)
     *ptr = 0;
 
     ptr = path;
-    err = _makepath_s(_pathFnInstall, MAX_PATH, drive, dir,
+    err = _makepath_s(_pathFnInstall, PATH_MAX, drive, dir,
                       FILENAME_INSTALL_VERSION, FILEEXT_INSTALL_VERSION);
     printf("----- path[%s] path1[%s] drive[%s] dir[%s]\n", _pathFn,
            _pathFnInstall, drive, dir);

@@ -94,8 +94,8 @@ namespace Pco
 		void getDebugInt(std::string &o_sn /Out/);
 		void setDebugInt(std::string &i_sn); 
 		
-		void setTest(int val) ;
-		void getTest(int &val /Out/) ;
+		void setTest(std::string &i_sn) ;
+		void getTest(std::string &o_sn /Out/) ;
  
 		void setTimestampMode(int mode);
 		void getTimestampMode(int &mode /Out/);

@@ -758,30 +758,6 @@ void Camera::getDebugIntTypes(std::string &o_sn)
 //====================================================================
 // SIP - attrib
 //====================================================================
-void Camera::setTest(int val)
-{
-    DEB_MEMBER_FUNCT();
-
-    int val0 = val;
-    val *= 2;
-
-    DEB_ALWAYS() << DEB_VAR2(val0, val);
-}
-
-void Camera::getTest(int &val)
-{
-    DEB_MEMBER_FUNCT();
-    int valIn;
-
-    valIn = val;
-    val += 10;
-
-    DEB_ALWAYS() << DEB_VAR2(valIn, val);
-}
-
-//====================================================================
-// SIP - attrib
-//====================================================================
 void Camera::setTimestampMode(int val)
 {
     DEB_MEMBER_FUNCT();
@@ -1159,3 +1135,100 @@ void Camera::getParamsInfo(std::string &o_sn)
 
     o_sn = buff;
 }
+
+//====================================================================
+// SIP - attrib
+//====================================================================
+#define NRTOK 10
+void Camera::setTest(std::string &i_sn)
+{
+    DEB_MEMBER_FUNCT();
+
+    const char *cmd, *cmd0;
+    char msg[MSG1K];
+
+    int ikey = 0;
+    const char *tok[NRTOK];
+    int tokNr;
+
+    char *ptr = msg;
+    char *ptrMax = msg + sizeof(msg);
+
+    cmd0 = i_sn.c_str();
+    strncpy_s(buff, sizeof(buff), cmd0, sizeof(buff) - 1);
+    cmd = str_trim(buff);
+
+    tokNr = -1;
+    if (*cmd)
+    {
+        char *tokContext;
+        for (int i = 0; i < NRTOK; i++)
+        {
+            if ((tok[i] = strtok_s((char *)cmd, " ", &tokContext)) == NULL)
+                break;
+            cmd = NULL;
+            tokNr = i;
+        }
+        cmd = tok[0];
+    }
+    tokNr++;
+
+    // DEB_ALWAYS() << DEB_VAR2(cmd0, tokNr);
+
+    if (tokNr == 0)
+        return;
+
+    //------------------------------------------------
+    // syntax:  mode  0x123
+    // mode 0x1234
+    //------------------------------------------------
+    if (_stricmp(cmd, "mode") == 0)
+    {
+        ptr += __sprintfSExt(ptr, ptrMax - ptr, "testCmdMode [0x%llx]",
+                             m_pcoData->testCmdMode);
+        if (tokNr > 1)
+        {
+            int nr;
+            unsigned long long _testCmdMode;
+
+            nr = sscanf_s(tok[1], "0x%llx", &_testCmdMode);
+
+            if (nr == 1)
+            {
+                m_pcoData->testCmdMode = _testCmdMode;
+                ptr += __sprintfSExt(ptr, ptrMax - ptr, "   changed OK>  ");
+            }
+            else
+            {
+                ptr += __sprintfSExt(ptr, ptrMax - ptr,
+                                     "   ERROR - NOT changed>  ");
+            }
+            ptr += __sprintfSExt(ptr, ptrMax - ptr, "testCmdMode [0x%llx]",
+                                 m_pcoData->testCmdMode);
+        }
+        DEB_ALWAYS() << msg;
+        return;
+    }
+
+    //------------------------------------------------
+    //------------------------------------------------
+
+    //------------------------------------------------
+    // NOT FOUND
+    //------------------------------------------------
+    DEB_ALWAYS() << " command NOT FOUND " << cmd0;
+}
+
+void Camera::getTest(std::string &o_sn)
+{
+    DEB_MEMBER_FUNCT();
+    char *ptr = buff;
+    char *ptrMax = buff + sizeof(buff);
+
+    ptr += __sprintfSExt(ptr, ptrMax - ptr, "valid commands:\n");
+
+    o_sn = buff;
+}
+
+//====================================================================
+//====================================================================

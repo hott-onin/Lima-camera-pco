@@ -1,4 +1,19 @@
 
+
+2019/06/27 19:32:22 ==========================================
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.23] $"
+#define     PCO_SDK_LIN_VERSION "$Id: PCOSDK_LIN [pcoDev.1.1.14] $"
+#define        PCO_GIT_VERSION "$Id:         PCO rev[2019-04-25 18:18:51 +0200] head[3decc7b][3decc7b375a7c9ba5bdb385dab568ec5ed63c2cb] ref[ (HEAD -> sytle, master)] at [2019/06/27 19:32:21] [/c/Users/homsrego/git/lima/camera/pco] $"
+#define       LIMA_GIT_VERSION "$Id:        LIMA rev[2019-06-26 18:23:14 +0200] head[4dc67845][4dc67845beacff954622af761532b8fc618add8e] ref[ (HEAD -> tmp-nogsl)] at [2019/06/27 19:32:21] [/c/Users/homsrego/git/lima] $"
+#define    PROCLIB_GIT_VERSION "$Id:     PROCLIB rev[2019-01-18 10:01:50 +0100] head[e327bd4][e327bd4df46572e606a614cfcdf165b04da5f69b] ref[ (HEAD, tag: v1.6.0)] at [2019/06/27 19:32:21] [/c/Users/homsrego/git/lima/third-party/Processlib] $"
+#define  LIBCONFIG_GIT_VERSION "$Id:   LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2019/06/27 19:32:21] [] $"
+#define       HDF5_GIT_VERSION "$Id:        HDF5 rev[2019-04-25 18:18:51 +0200] head[3decc7b][3decc7b375a7c9ba5bdb385dab568ec5ed63c2cb] ref[ (HEAD -> sytle, master)] at [2019/06/27 19:32:21] [/c/Users/homsrego/git/lima/camera/pco] $"
+#define BITSHUFFLE_GIT_VERSION "$Id:  BITSHUFFLE rev[2017-11-09 08:44:35 -0800] head[9ffba9d][9ffba9de83036a91d345fa2f62fcaedf55f54c5f] ref[ (HEAD, tag: 0.3.4)] at [2019/06/27 19:32:21] [/c/Users/homsrego/git/lima/third-party/bitshuffle] $"
+#define      TANGO_GIT_VERSION "$Id:       TANGO rev[2019-02-07 12:30:06 +0100] head[9a88145][9a88145bf0ef63ea079dc0db9904d9ef6dd25918] ref[ (HEAD, tag: v1.8.0)] at [2019/06/27 19:32:21] [/c/Users/homsrego/git/lima/applications/tango/python] $"
+#define       SPEC_GIT_VERSION "$Id:        SPEC rev[2018-10-09 10:13:21 +0200] head[91d21e0][91d21e0b8cc84f16de506b8a2b57d4c31f37b0f2] ref[ (HEAD, origin/master, origin/HEAD, master)] at [2019/06/27 19:32:21] [/c/Users/homsrego/git/lima/applications/spec] $"
+
+
+
 2018/11/07 17:36:17 ==========================================
 scp: copied local directory to segfs and /tmp_14_days:
 from: [../../install/] and [./bat/]
