@@ -609,12 +609,12 @@ class PcoClass(PyTango.DeviceClass):
              }],
 
          'test':	  
-         [[PyTango.DevLong,
+         [[PyTango.DevString,
            PyTango.SCALAR,
            PyTango.READ_WRITE], 
            {
              'unit': 'N/A',
-             'format': '%d',
+             'format': '%s',
              'description': 'test'
 			}],
 

@@ -148,6 +148,7 @@ DECLARE_HANDLE(HWND);
 //-------------------- win
 #ifndef __linux__
 #    define UNUSED
+#    define PATH_MAX MAX_PATH
 #endif
 
 //-------------------- linux / win
