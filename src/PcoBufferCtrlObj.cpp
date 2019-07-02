@@ -627,7 +627,7 @@ int BufferCtrlObj::_xferImag_buff2lima(DWORD &dwFrameIdx, int &bufIdx)
         memcpy(ptrDest, ptrSrc, size);
     }
 
-    //----- the image dwFrameIdx is already in the buffer -> callback
+	//----- the image dwFrameIdx is already in the buffer -> callback
     // newFrameReady
     //----- lima frame (0 ... N-1) PCO frame (1 ... N)
     HwFrameInfoType frame_info;
@@ -1005,7 +1005,17 @@ int BufferCtrlObj::_xferImag()
                           dwStatusDrv, errPco, iLoopsPolled);
             DEB_ALWAYS() << msg;
         }
-        int xferRet = _xferImag_buff2lima(dwFrameIdx, bufIdx);
+		
+		if (dwFrameIdx >= dwRequestedFrames)
+		{
+			int error;
+			// ------------- stop the recording and clear buffers
+			m_cam->_pco_SetRecordingState(0, error);
+		}
+
+		
+	
+		int xferRet = _xferImag_buff2lima(dwFrameIdx, bufIdx);
         if (dbgTraceFifo)
         {
             printf("---TRACE  _xferImag_buff2lima sBufNr[%d] dwFrameIdx[%d]\n",
