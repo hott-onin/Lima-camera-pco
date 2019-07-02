@@ -31,9 +31,8 @@ set(PCO_SDKLIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPcoLin" CACHE PATH "location 
 
 if(WIN32)
   find_path(PCO_INCLUDE_DIRS "PcoSdkVersion.h" ${PCO_SDKWIN_DIR})
-  find_library(PCO_LIBRARIES SC2_Cam ${PCO_SDKWIN_DIR}/lib64)
+  find_library(PCO_LIBRARIES NAMES SC2_Cam.lib HINTS ${PCO_SDKWIN_DIR}/lib64)
   list(APPEND PCO_INCLUDE_DIRS 
-    ${PCO_INCLUDE_DIRS} 
     ${PCO_INCLUDE_DIRS}/include
     )
 else()
@@ -80,7 +79,8 @@ endif()
 
 
 message("PCO_LIBRARIES ============================================")
-message("${PCO_LIBRARIES}")
+message("PCO_INCLUDE_DIRS: ${PCO_INCLUDE_DIRS}")
+message("PCO_LIBRARIES: ${PCO_LIBRARIES}")
 message("==========================================================")
 
 include(FindPackageHandleStandardArgs)

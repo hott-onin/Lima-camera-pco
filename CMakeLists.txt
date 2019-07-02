@@ -161,7 +161,10 @@ target_link_libraries(pco PUBLIC limacore)
 
 target_compile_definitions(pco PUBLIC ${PCO_DEFINITIONS})
 
-target_include_directories(pco PUBLIC $<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}>)
+message("PCO_INCLUDE_DIRS: ${PCO_INCLUDE_DIRS}")
+
+#target_include_directories(pco PUBLIC $<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}>)
+target_include_directories(pco PUBLIC ${PCO_INCLUDE_DIRS})
 
 target_link_libraries(pco PUBLIC ${PCO_LIBRARIES})
 
