@@ -5,5 +5,8 @@ rem cmake -Bbuild -H. -G "%CMAKE_GENERATOR%" -DCAMERA_ENABLE_PYTHON=1 -DCAMERA_E
 cmake -Bbuild -H. -G "%CMAKE_GENERATOR%" -DCAMERA_ENABLE_PYTHON=1 -DWITH_GIT_VERSION=1 -DLIMA_ENABLE_DEBUG=0 -DCAMERA_ENABLE_TESTS=1 -DCMAKE_INSTALL_PREFIX=%LIBRARY_PREFIX% -DPYTHON_SITE_PACKAGES_DIR=%SP_DIR% -DCMAKE_FIND_ROOT_PATH=%LIBRARY_PREFIX%
 IF %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
+
+rem cmake --build build --config Release --target install -- /verbosity:detailed
+
 cmake --build build --config Release --target install -- /verbosity:minimal
 IF %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
