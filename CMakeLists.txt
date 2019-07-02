@@ -163,8 +163,9 @@ target_compile_definitions(pco PUBLIC ${PCO_DEFINITIONS})
 
 message("PCO_INCLUDE_DIRS: ${PCO_INCLUDE_DIRS}")
 
-target_include_directories(pco PUBLIC $<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}>)
-#target_include_directories(pco PUBLIC ${PCO_INCLUDE_DIRS})
+target_include_directories(pco
+	PUBLIC "$<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}>"
+	PUBLIC "$<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}/include>")
 
 target_link_libraries(pco PUBLIC ${PCO_LIBRARIES})
 
