@@ -1013,7 +1013,6 @@ int BufferCtrlObj::_xferImag()
 			m_cam->_pco_SetRecordingState(0, error);
 		}
 
-		
 	
 		int xferRet = _xferImag_buff2lima(dwFrameIdx, bufIdx);
         if (dbgTraceFifo)
