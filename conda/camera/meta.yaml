@@ -20,7 +20,7 @@ requirements:
     - python {{ python }}
     - numpy
     - sip 4.19.8              # For compatibility with pyqt 5.9.2
-    - lima-core 1.8
+    - lima-core
     - pco-sdk
   build:
     - git
