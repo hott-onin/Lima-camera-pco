@@ -159,7 +159,7 @@ if(WIN32)
 endif()
 
 # Binding code for python
-if(CAMERA_ENABLE_PYTHON)
+if(LIMA_ENABLE_PYTHON)
   limatools_run_sip_for_camera(pco)
 endif()
 
