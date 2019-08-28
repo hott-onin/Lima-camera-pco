@@ -670,7 +670,7 @@ void  Camera::_init_dimax() {
 
 	DEB_CONSTRUCTOR();
 	char msg[MSG_SIZE + 1];
-	const char *pcoFn;
+	const char *pcoFn = "Not initialized"; // CC
 
 	int error=0;
 	DWORD _dwValidImageCnt, _dwMaxImageCnt;
