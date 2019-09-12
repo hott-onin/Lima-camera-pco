@@ -1075,8 +1075,6 @@ void Camera::getGeneralCAPS1(std::string &o_sn)
     dwGeneralCaps1 = m_pcoData->stcPcoDescription.dwGeneralCaps1;
 #endif
 
-
-
     int nib[8];
     int i, j;
 

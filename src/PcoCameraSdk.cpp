@@ -351,7 +351,13 @@ const char *Camera::_pco_SetRecordingState(int state, int &err)
     usElapsedTimeSet(usStart);
 #endif
 
-    // if(wRecState_new == wRecState_actual) {error = 0; return fnId; }
+    if (wRecState_new == wRecState_actual)
+    {
+        DEB_TRACE() << "  SetRecordingState - BYPASSED "
+                    << DEB_VAR2(wRecState_new, wRecState_actual);
+        err = 0;
+        return fnId;
+    }
 
     // ------------------------------------------ cancel images
     if (wRecState_new == 0)
