@@ -96,12 +96,13 @@ clXferPar               ro      DevString               General CameraLink param
 cocRunTime              ro      DevDouble               cocRunTime (s) - only valid after the camera is armed
 coolingTemperature      ro      DevDouble               Cooling Temperature
 debugInt                rw      DevString               PCO plugin internal debug level (hex format: 0x....)
-debugIntTypes           r0      DevString               PCO plugin internal debug types
+debugIntTypes           ro      DevString               PCO plugin internal debug types
 doubleImageMode         rw      DevLong                 Double Image Mode
                                                          - enabled/disabled = 1/0 (rw)
                                                          - not allowed = -1 (ro)
 firmwareInfo            ro      DevString               Firmware info
 frameRate               ro      DevDouble               Framerate, calculated as: 1/cocRunTime (1/s)
+generalCAPS1            ro      DevString               General PCO CAPS1 value (hex and bin)
 info                    ro      DevString               General camera parameters information
 lastError               ro      DevString               The last PCO error message
 lastImgAcquired         ro      DevLong                 Last image acquired (during recording)
@@ -109,18 +110,21 @@ lastImgRecorded         ro      DevLong                 Last image recorded (dur
 logMsg                  ro      DevString               Last Log msgs
 logPcoEnabled           ro      DevLong                 PCO logs are enabled
 maxNbImages             ro      DevLong                 The maximum number of images which can be acquired by the camera (recording mode)
+paramsInfo              ro      DevString               Values of the PCO properties **params**
 pixelRate               ro      DevLong                 Actual Pixel Rate (Hz)
 pixelRateInfo           ro      DevString               Pixel Rate information
 pixelRateValidValues    ro      DevString               Allowed Pixel Rates
 recorderForcedFifo      rw      DevLong                 Forced Fifo Mode (**only for recording cams**)
 roiInfo                 ro      DevString               PCO ROI info
 roiLastFixed            ro      DevString               Last fixed ROI info
-rollingShutter          rw      DevLong                 Rolling Shutter Mode (**only for some types of EDGE**)
+rollingShutter          rw      DevLong                 Rolling Shutter Mode as int (**only for some types of EDGE**)
                                                          - 1 = ROLLING
                                                          - 2 = GLOBAL
                                                          - 4 = GLOBAL RESET
 rollingShutterInfo      ro      DevString               Rolling Shutter info
+rollingShutterStr       rw      DevLong                 Rolling Shutter Mode as str (**only for some types of EDGE**)
 temperatureInfo         ro      DevString               Temperature info
+test                    rw      DevString               Debug test function (**do not use it**)
 timestampMode           rw      DevLong                 Timestamp mode
                                                          - 0 = none
                                                          - 1 = BCD coded stamp in the first 14 pixel

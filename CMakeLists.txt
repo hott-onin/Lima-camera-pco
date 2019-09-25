@@ -1,9 +1,9 @@
 ###########################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-#  Copyright (C) : 2009-2017
+#  Copyright (C) : 2009-2019
 #  European Synchrotron Radiation Facility
-#  BP 220, Grenoble 38043
+#  CS40220 38043 Grenoble Cedex 9
 #  FRANCE
 #
 #  Contact: lima@esrf.fr
@@ -25,8 +25,6 @@
 cmake_minimum_required(VERSION 3.1)
 
 project(pco)
-
-set(NAME "pco") # This is used by LimaTools
 
 # Include additional modules that are used inconditionnaly
 include(GNUInstallDirs)
@@ -52,44 +50,28 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif()
 
 if (CAMERA_MASTER_PROJECT)
-  find_package(Lima REQUIRED)
+  find_package(Lima REQUIRED COMPONENTS devel tools)
 endif()
 
 # CMake additional macros
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${LIMA_CMAKE_INCLUDE_DIRS} ${CMAKE_MODULE_PATH})
 
+include(LimaTools)
+
 # Set version
 include(project_version)
 
 # Enable git hash in the version
-option(WITH_GIT_VERSION "compile python binding code?" OFF)
+option(WITH_GIT_VERSION "include the git commit hash" OFF)
 
 # Enable python binding code compilation using sip generator
-option(CAMERA_ENABLE_PYTHON "compile python binding code?" LIMA_ENABLE_PYTHON)
+if (CAMERA_MASTER_PROJECT)
+  option(LIMA_ENABLE_PYTHON "compile python binding code?" OFF)
+  option(LIMA_ENABLE_PYTANGO_SERVER "install python tango server?" OFF)
 
-if (CAMERA_ENABLE_PYTHON)
-  # Find python interpreter and libs
-  find_package(PythonInterp)
-  find_package(PythonLibs)
-  if(${PYTHONINTERP_FOUND})
-    # python site-packages folder
-    execute_process(
-      COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print (get_python_lib())"
-      OUTPUT_VARIABLE _PYTHON_SITE_PACKAGES_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if (LIMA_ENABLE_PYTHON)
+    limatools_find_python_and_sip()
   endif()
-
-  set(PYTHON_SITE_PACKAGES_DIR ${_PYTHON_SITE_PACKAGES_DIR} CACHE PATH "where should python modules be installed?")
-
-  find_package(SIP REQUIRED)
-  include(SIPMacros)
-  if(WIN32)
-    set(SIP_TAGS WIN32_PLATFORM)
-  elseif(UNIX)
-    set(SIP_TAGS POSIX_PLATFORM)
-  endif(WIN32)
-  set(SIP_EXTRA_OPTIONS -e -g)
-
-  find_package(NumPy REQUIRED)
 endif()
 
 find_package(Pco REQUIRED)
@@ -161,7 +143,7 @@ target_link_libraries(pco PUBLIC limacore)
 
 target_compile_definitions(pco PUBLIC ${PCO_DEFINITIONS})
 
-message("PCO_INCLUDE_DIRS: ${PCO_INCLUDE_DIRS}")
+message("... PCO_INCLUDE_DIRS: ${PCO_INCLUDE_DIRS}")
 
 target_include_directories(pco
 	PUBLIC "$<BUILD_INTERFACE:${PCO_INCLUDE_DIRS}>"
@@ -177,8 +159,7 @@ if(WIN32)
 endif()
 
 # Binding code for python
-if(CAMERA_ENABLE_PYTHON)
-  include(LimaTools)
+if(LIMA_ENABLE_PYTHON)
   limatools_run_sip_for_camera(pco)
 endif()
 
@@ -216,11 +197,16 @@ install(
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-if(CAMERA_ENABLE_PYTHON)
+message("... LIMA_ENABLE_PYTHON: [${LIMA_ENABLE_PYTHON}]")
+message("... PYTHON_SITE_PACKAGES_DIR: [${PYTHON_SITE_PACKAGES_DIR}]")
+if(LIMA_ENABLE_PYTHON)
   install(
-    FILES python/__init__.py
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python/
     DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Pco"
-  )
+    )
+  if (LIMA_ENABLE_PYTANGO_SERVER)
+    add_subdirectory(tango)
+  endif()
 endif()
 
 ## Tests

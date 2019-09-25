@@ -77,37 +77,36 @@ const char *_timestamp_pcocamera()
 }
 
 #ifdef WITH_GIT_VERSION
-#include "PcoGitVersion.h"
+#    include "PcoGitVersion.h"
 
-char * _timestamp_gitversion(char *buffVersion, int len)
+char *_timestamp_gitversion(char *buffVersion, int len)
 {
-	__sprintfSExt(buffVersion, len,  
-#ifdef PCO_GIT_VERSION
-		PCO_GIT_VERSION "\n"
-#endif
-#ifdef PCO_SDK_VERSION
-		PCO_SDK_VERSION "\n"
-#endif
-#ifdef PROCLIB_GIT_VERSION
-		PROCLIB_GIT_VERSION "\n"
-#endif
-#ifdef LIBCONFIG_GIT_VERSION
-		LIBCONFIG_GIT_VERSION "\n"
-#endif
-#ifdef LIMA_GIT_VERSION
-		LIMA_GIT_VERSION "\n"
-#endif
-#ifdef TANGO_GIT_VERSION
-		TANGO_GIT_VERSION "\n"
-#endif
-#ifdef SPEC_GIT_VERSION
-		SPEC_GIT_VERSION "\n"
-#endif
-	"\n");
-	return buffVersion;
+    __sprintfSExt(buffVersion, len,
+#    ifdef PCO_GIT_VERSION
+                  PCO_GIT_VERSION "\n"
+#    endif
+#    ifdef PCO_SDK_VERSION
+                  PCO_SDK_VERSION "\n"
+#    endif
+#    ifdef PROCLIB_GIT_VERSION
+                  PROCLIB_GIT_VERSION "\n"
+#    endif
+#    ifdef LIBCONFIG_GIT_VERSION
+                  LIBCONFIG_GIT_VERSION "\n"
+#    endif
+#    ifdef LIMA_GIT_VERSION
+                  LIMA_GIT_VERSION "\n"
+#    endif
+#    ifdef TANGO_GIT_VERSION
+                  TANGO_GIT_VERSION "\n"
+#    endif
+#    ifdef SPEC_GIT_VERSION
+                  SPEC_GIT_VERSION "\n"
+#    endif
+                                  "\n");
+    return buffVersion;
 }
 #endif
-
 
 //=========================================================================================================
 
@@ -1141,10 +1140,20 @@ void Camera::prepareAcq()
 //==========================================================================================================
 
 const char *sPcoAcqStatus[] = {
-    "pcoAcqIdle",        "pcoAcqStart",         "pcoAcqRecordStart",
-    "pcoAcqRecordEnd",   "pcoAcqTransferStart", "pcoAcqTransferEnd",
-    "pcoAcqStop",        "pcoAcqTransferStop",  "pcoAcqRecordTimeout",
-    "pcoAcqWaitTimeout", "pcoAcqWaitError",     "pcoAcqError",
+    "pcoAcqOK",
+    "pcoAcqIdle",
+    "pcoAcqStart",
+    "pcoAcqRecordStart",
+    "pcoAcqRecordEnd",
+    "pcoAcqRecordStop",
+    "pcoAcqRecordTimeout",
+    "pcoAcqTransferStart",
+    "pcoAcqTransferEnd",
+    "pcoAcqStop",
+    "pcoAcqTransferStop",
+    "pcoAcqWaitTimeout",
+    "pcoAcqWaitError",
+    "pcoAcqError",
     "pcoAcqPcoError",
 };
 

@@ -168,7 +168,7 @@ time_t getTimestamp()
 //(..\..\..\..\src\PcoCamera.cpp) $
 
 #define LEN_BUFF_DATE 128
-#define LEN_BUFF_PATH PATH_MAX   // 260 in win
+#define LEN_BUFF_PATH PATH_MAX // 260 in win
 #define TOKNR_DT 5
 
 int __xlat_date(char *s1, char &ptrTo, int lenTo)
@@ -2419,7 +2419,7 @@ void print_hex_dump_buff(void *ptr_buff, size_t len)
     BYTE *ptr = (BYTE *)ptr_buff;
     ;
 
-    //printf("dump buff / len: %ld\n", len);
+    // printf("dump buff / len: %ld\n", len);
     printf("dump buff / len: %zd\n", len);
 
     while (len > 0)

@@ -351,7 +351,13 @@ const char *Camera::_pco_SetRecordingState(int state, int &err)
     usElapsedTimeSet(usStart);
 #endif
 
-    // if(wRecState_new == wRecState_actual) {error = 0; return fnId; }
+    if (wRecState_new == wRecState_actual)
+    {
+        DEB_TRACE() << "  SetRecordingState - BYPASSED "
+                    << DEB_VAR2(wRecState_new, wRecState_actual);
+        err = 0;
+        return fnId;
+    }
 
     // ------------------------------------------ cancel images
     if (wRecState_new == 0)
@@ -3154,6 +3160,7 @@ void Camera::getBytesPerPixel(unsigned int &pixbytes)
 void Camera::getBitsPerPixel(WORD &pixbits)
 {
     pixbits = m_pcoData->stcPcoDescription.wDynResDESC;
+    m_pcoData->m_wBitPerPixel = pixbits;
 }
 
 //=================================================================================================
@@ -3200,9 +3207,19 @@ void Camera::_pco_GetSizes(WORD *wXResActual, WORD *wYResActual, WORD *wXResMax,
     if (error)
     {
         DEB_ALWAYS() << "ERROR - PCO_GetSizes";
-        *wXResActual = *wYResActual = 0;
+        //*wXResActual = *wYResActual = 0;
+        *wXResActual = m_pcoData->m_wArmWidth;
+        *wYResActual = m_pcoData->m_wArmHeight;
+        *wXResMax = m_pcoData->m_wMaxWidth;
+        *wYResMax = m_pcoData->m_wMaxHeight;
     }
 #endif
+
+    m_pcoData->m_wArmWidth = *wXResActual;
+    m_pcoData->m_wArmHeight = *wYResActual;
+    m_pcoData->m_wMaxWidth = *wXResMax;
+    m_pcoData->m_wMaxHeight = *wYResMax;
+
 
     return;
 }

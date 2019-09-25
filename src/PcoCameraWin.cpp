@@ -406,11 +406,11 @@ void _pco_acq_thread_dimax(void *argin)
     m_sync->setStarted(false);
 
 #if 0
-	if(requestStop == stopRequest) 
-	{
-		Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamFault, errMsg);
-		m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
-	}
+    if (requestStop == stopRequest)
+    {
+        Event* ev = new Event(Hardware, Event::Error, Event::Camera, Event::CamFault, errMsg);
+        m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
+    }
 
 #endif
 
@@ -636,11 +636,11 @@ void _pco_acq_thread_dimax_trig_single(void *argin)
     m_sync->setStarted(false);
 
 #if 0
-	if(requestStop == stopRequest) 
-	{
-		Event *ev = new Event(Hardware,Event::Error,Event::Camera,Event::CamFault, errMsg);
-		m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
-	}
+    if (requestStop == stopRequest)
+    {
+        Event* ev = new Event(Hardware, Event::Error, Event::Camera, Event::CamFault, errMsg);
+        m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
+    }
 
 #endif
 
@@ -689,6 +689,9 @@ void _pco_acq_thread_edge(void *argin)
 
     m_sync->setExposing(status);
     // m_sync->stopAcq();
+
+    printf("=== %s [%d]> _pco_SetRecordingState(0)\n", fnId, __LINE__);
+
     const char *msg = m_cam->_pco_SetRecordingState(0, error);
     if (error)
     {
@@ -726,14 +729,17 @@ void _pco_acq_thread_edge(void *argin)
         case pcoAcqPcoError:
             errMsg = "pcoAcqPcoError";
             break;
+        default:
+            errMsg = NULL;
     }
 
-    if (errMsg)
+    if (errMsg != NULL)
     {
         Event *ev = new Event(Hardware, Event::Error, Event::Camera,
                               Event::CamFault, errMsg);
-        m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
     }
+
+    printf("=== %s [%d]> TRACE %s\n", fnId, __LINE__, "exit thread");
 
     _endthread();
 }
@@ -762,6 +768,8 @@ void _pco_acq_thread_dimax_live(void *argin)
     long msXfer;
     int requestStop = stopNone;
 
+    pcoAcqStatus status;
+
     m_cam->_sprintComment(true, fnId, "[ENTRY]");
 
     HANDLE m_handle = m_cam->getHandle();
@@ -772,7 +780,21 @@ void _pco_acq_thread_dimax_live(void *argin)
     m_pcoData->msAcqRec = 0;
     m_pcoData->msAcqRecTimestamp = getTimestamp();
 
-    pcoAcqStatus status = (pcoAcqStatus)m_buffer->_xferImag();
+    //status = (pcoAcqStatus)m_buffer->_xferImag();
+    
+    if ( !(m_pcoData->testCmdMode & TESTCMDMODE_DIMAX_XFERMULTI))
+    {
+        // _xferImagMult [PCO_GetImageEx]
+        status = (pcoAcqStatus)m_buffer->_xferImagMult();
+    }
+    else
+    {
+        // TODO wDoubleImage
+        
+        // _xferImag [WaitForMultipleObjects]
+        status = (pcoAcqStatus) m_buffer->_xferImag();
+    }
+    
     m_sync->setExposing(status);
     // m_sync->stopAcq();
     const char *msg = m_cam->_pco_SetRecordingState(0, error);
@@ -1066,19 +1088,19 @@ void Camera::startAcq()
         _beginthread(_pco_acq_thread_edge, 0, (void *)this);
 
 #if 0
-		AutoMutex lock(m_cond.mutex());
+        AutoMutex lock(m_cond.mutex());
 
-		bool resWait;
-		int retry = 3;
-		int val, val0; val0 = pcoAcqRecordStart;
+        bool resWait;
+        int retry = 3;
+        int val, val0; val0 = pcoAcqRecordStart;
 
-		while( ((val =  m_sync->getExposing()) != val0) && retry--)
-		{
-			DEB_TRACE() << "+++ getExposing / pcoAcqRecordStart - WAIT - " << DEB_VAR3(val, val0, retry);
-			resWait = m_cond.wait(2.);
-		}
-		DEB_TRACE() << "+++ getExposing / pcoAcqRecordStart - EXIT - " << DEB_VAR3(val, val0, retry);
-		lock.unlock();
+        while (((val = m_sync->getExposing()) != val0) && retry--)
+        {
+            DEB_TRACE() << "+++ getExposing / pcoAcqRecordStart - WAIT - " << DEB_VAR3(val, val0, retry);
+            resWait = m_cond.wait(2.);
+        }
+        DEB_TRACE() << "+++ getExposing / pcoAcqRecordStart - EXIT - " << DEB_VAR3(val, val0, retry);
+        lock.unlock();
 #endif
 
         m_pcoData->traceAcq.msStartAcqEnd = msElapsedTime(tStart);
@@ -1086,11 +1108,11 @@ void Camera::startAcq()
     }
 
 #if 0
-	if(_isCameraType(Pco2k | Pco4k)){
-		_beginthread( _pco_acq_thread_ringBuffer, 0, (void*) this);
-		m_pcoData->traceAcq.msStartAcqEnd = msElapsedTime(tStart);
-		return;
-	}
+    if (_isCameraType(Pco2k | Pco4k)) {
+        _beginthread(_pco_acq_thread_ringBuffer, 0, (void*)this);
+        m_pcoData->traceAcq.msStartAcqEnd = msElapsedTime(tStart);
+        return;
+    }
 #endif
 
     if (_isCameraType(Dimax | Pco2k | Pco4k))
