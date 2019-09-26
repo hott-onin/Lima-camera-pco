@@ -339,7 +339,7 @@ stcPcoData::stcPcoData()
     ptr += __sprintfSExt(ptr, ptrMax - ptr, "              OS: %s\n", _getOs());
     ptr += __sprintfSExt(ptr, ptrMax - ptr, "       user name: %s\n",
                          _getUserName(buff, BUFFER_LEN));
-    ptr += __sprintfSExt(ptr, ptrMax - ptr, "VS configuration: %s\n",
+    ptr += __sprintfSExt(ptr, ptrMax - ptr, "   configuration: %s\n",
                          _getVSconfiguration(buff, BUFFER_LEN));
     ptr += __sprintfSExt(ptr, ptrMax - ptr, "        SISO dir: %s\n",
                          _getEnviroment("SISODIR5"));
