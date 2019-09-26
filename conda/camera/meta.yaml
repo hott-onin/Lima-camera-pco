@@ -21,7 +21,7 @@ requirements:
     - numpy
     - sip 4.19.8              # For compatibility with pyqt 5.9.2
     - lima-core
-    - pco-sdk
+    #- pco-sdk
   build:
     - git
     - cmake
