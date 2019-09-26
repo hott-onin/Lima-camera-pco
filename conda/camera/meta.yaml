@@ -32,15 +32,15 @@ requirements:
     - {{ pin_compatible('lima-core', max_pin='x.x') }}
     - pco-sdk
 
-test:
-  requires:
-    - cmake
-  imports:
-    - Lima.Pco
-  commands:
-    - cmake --version
-    - ctest --version
-    - cpack --version
+#test:
+  #requires:
+    #- cmake
+  #imports:
+    #- Lima.Pco
+  #commands:
+    #- cmake --version
+    #- ctest --version
+    #- cpack --version
 
 about:
   home: https://github.com/esrf-bliss/Lima
