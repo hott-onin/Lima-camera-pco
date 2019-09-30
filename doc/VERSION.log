@@ -1,3 +1,129 @@
+
+
+2019/10/02 10:36:40 ==========================================
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.23] $"
+#define        PCO_GIT_VERSION "$Id:         PCO rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:36:40] [/users/homsrego/git/Lima/camera/pco] $"
+#define       LIMA_GIT_VERSION "$Id:        LIMA rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:36:40] [/users/homsrego/git/Lima] $"
+#define    PROCLIB_GIT_VERSION "$Id:     PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD, v1.5.2)] at [2019/10/02 10:36:40] [/users/homsrego/git/Lima/third-party/Processlib] $"
+#define  LIBCONFIG_GIT_VERSION "$Id:   LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2019/10/02 10:36:40] [] $"
+#define       HDF5_GIT_VERSION "$Id:        HDF5 rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:36:40] [/users/homsrego/git/Lima/camera/pco] $"
+#define BITSHUFFLE_GIT_VERSION "$Id:  BITSHUFFLE rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:36:40] [/users/homsrego/git/Lima/third-party/bitshuffle] $"
+#define      TANGO_GIT_VERSION "$Id:       TANGO rev[2019-03-25 17:29:05 +0100] head[975f498][975f498bac07fa58a5e1fbac81886bb086ee1574] ref[ (HEAD, gitlab/pco-1.7.5_lid193, pco-1.7.5_lid193)] at [2019/10/02 10:36:40] [/users/homsrego/git/Lima/applications/tango/python] $"
+#define       SPEC_GIT_VERSION "$Id:        SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, master)] at [2019/10/02 10:36:40] [/users/homsrego/git/Lima/applications/spec] $"
+
+
+
+
+2019/10/02 10:35:17 ==========================================
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.23] $"
+#define        PCO_GIT_VERSION "$Id:         PCO rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:35:17] [/users/homsrego/git/Lima/camera/pco] $"
+#define       LIMA_GIT_VERSION "$Id:        LIMA rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:35:17] [/users/homsrego/git/Lima] $"
+#define    PROCLIB_GIT_VERSION "$Id:     PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD, v1.5.2)] at [2019/10/02 10:35:17] [/users/homsrego/git/Lima/third-party/Processlib] $"
+#define  LIBCONFIG_GIT_VERSION "$Id:   LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2019/10/02 10:35:17] [] $"
+#define       HDF5_GIT_VERSION "$Id:        HDF5 rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:35:17] [/users/homsrego/git/Lima/camera/pco] $"
+#define BITSHUFFLE_GIT_VERSION "$Id:  BITSHUFFLE rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:35:17] [/users/homsrego/git/Lima/third-party/bitshuffle] $"
+#define      TANGO_GIT_VERSION "$Id:       TANGO rev[2019-03-25 17:29:05 +0100] head[975f498][975f498bac07fa58a5e1fbac81886bb086ee1574] ref[ (HEAD, gitlab/pco-1.7.5_lid193, pco-1.7.5_lid193)] at [2019/10/02 10:35:17] [/users/homsrego/git/Lima/applications/tango/python] $"
+#define       SPEC_GIT_VERSION "$Id:        SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, master)] at [2019/10/02 10:35:17] [/users/homsrego/git/Lima/applications/spec] $"
+
+
+
+
+2019/10/02 10:34:49 ==========================================
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.23] $"
+#define        PCO_GIT_VERSION "$Id:         PCO rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:34:49] [/users/homsrego/git/Lima/camera/pco] $"
+#define       LIMA_GIT_VERSION "$Id:        LIMA rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:34:49] [/users/homsrego/git/Lima] $"
+#define    PROCLIB_GIT_VERSION "$Id:     PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD, v1.5.2)] at [2019/10/02 10:34:49] [/users/homsrego/git/Lima/third-party/Processlib] $"
+#define  LIBCONFIG_GIT_VERSION "$Id:   LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2019/10/02 10:34:49] [] $"
+#define       HDF5_GIT_VERSION "$Id:        HDF5 rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:34:49] [/users/homsrego/git/Lima/camera/pco] $"
+#define BITSHUFFLE_GIT_VERSION "$Id:  BITSHUFFLE rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:34:49] [/users/homsrego/git/Lima/third-party/bitshuffle] $"
+#define      TANGO_GIT_VERSION "$Id:       TANGO rev[2019-03-25 17:29:05 +0100] head[975f498][975f498bac07fa58a5e1fbac81886bb086ee1574] ref[ (HEAD, gitlab/pco-1.7.5_lid193, pco-1.7.5_lid193)] at [2019/10/02 10:34:49] [/users/homsrego/git/Lima/applications/tango/python] $"
+#define       SPEC_GIT_VERSION "$Id:        SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, master)] at [2019/10/02 10:34:49] [/users/homsrego/git/Lima/applications/spec] $"
+
+
+
+
+2019/10/02 10:32:36 ==========================================
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.23] $"
+#define        PCO_GIT_VERSION "$Id:         PCO rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:32:36] [/users/homsrego/git/Lima/camera/pco] $"
+#define       LIMA_GIT_VERSION "$Id:        LIMA rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:32:36] [/users/homsrego/git/Lima] $"
+#define    PROCLIB_GIT_VERSION "$Id:     PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD, v1.5.2)] at [2019/10/02 10:32:36] [/users/homsrego/git/Lima/third-party/Processlib] $"
+#define  LIBCONFIG_GIT_VERSION "$Id:   LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2019/10/02 10:32:36] [] $"
+#define       HDF5_GIT_VERSION "$Id:        HDF5 rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:32:36] [/users/homsrego/git/Lima/camera/pco] $"
+#define BITSHUFFLE_GIT_VERSION "$Id:  BITSHUFFLE rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:32:36] [/users/homsrego/git/Lima/third-party/bitshuffle] $"
+#define      TANGO_GIT_VERSION "$Id:       TANGO rev[2019-03-25 17:29:05 +0100] head[975f498][975f498bac07fa58a5e1fbac81886bb086ee1574] ref[ (HEAD, gitlab/pco-1.7.5_lid193, pco-1.7.5_lid193)] at [2019/10/02 10:32:36] [/users/homsrego/git/Lima/applications/tango/python] $"
+#define       SPEC_GIT_VERSION "$Id:        SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, master)] at [2019/10/02 10:32:36] [/users/homsrego/git/Lima/applications/spec] $"
+
+
+
+
+2019/10/02 10:32:00 ==========================================
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.23] $"
+#define        PCO_GIT_VERSION "$Id:         PCO rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:32:00] [/users/homsrego/git/Lima/camera/pco] $"
+#define       LIMA_GIT_VERSION "$Id:        LIMA rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:32:00] [/users/homsrego/git/Lima] $"
+#define    PROCLIB_GIT_VERSION "$Id:     PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD, v1.5.2)] at [2019/10/02 10:32:00] [/users/homsrego/git/Lima/third-party/Processlib] $"
+#define  LIBCONFIG_GIT_VERSION "$Id:   LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2019/10/02 10:32:00] [] $"
+#define       HDF5_GIT_VERSION "$Id:        HDF5 rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:32:00] [/users/homsrego/git/Lima/camera/pco] $"
+#define BITSHUFFLE_GIT_VERSION "$Id:  BITSHUFFLE rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:32:00] [/users/homsrego/git/Lima/third-party/bitshuffle] $"
+#define      TANGO_GIT_VERSION "$Id:       TANGO rev[2019-03-25 17:29:05 +0100] head[975f498][975f498bac07fa58a5e1fbac81886bb086ee1574] ref[ (HEAD, gitlab/pco-1.7.5_lid193, pco-1.7.5_lid193)] at [2019/10/02 10:32:00] [/users/homsrego/git/Lima/applications/tango/python] $"
+#define       SPEC_GIT_VERSION "$Id:        SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, master)] at [2019/10/02 10:32:00] [/users/homsrego/git/Lima/applications/spec] $"
+
+
+
+
+2019/10/02 10:29:33 ==========================================
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.23] $"
+#define        PCO_GIT_VERSION "$Id:         PCO rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:29:33] [/users/homsrego/git/Lima/camera/pco] $"
+#define       LIMA_GIT_VERSION "$Id:        LIMA rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:29:33] [/users/homsrego/git/Lima] $"
+#define    PROCLIB_GIT_VERSION "$Id:     PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD, v1.5.2)] at [2019/10/02 10:29:33] [/users/homsrego/git/Lima/third-party/Processlib] $"
+#define  LIBCONFIG_GIT_VERSION "$Id:   LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2019/10/02 10:29:33] [] $"
+#define       HDF5_GIT_VERSION "$Id:        HDF5 rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:29:33] [/users/homsrego/git/Lima/camera/pco] $"
+#define BITSHUFFLE_GIT_VERSION "$Id:  BITSHUFFLE rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:29:33] [/users/homsrego/git/Lima/third-party/bitshuffle] $"
+#define      TANGO_GIT_VERSION "$Id:       TANGO rev[2019-03-25 17:29:05 +0100] head[975f498][975f498bac07fa58a5e1fbac81886bb086ee1574] ref[ (HEAD, gitlab/pco-1.7.5_lid193, pco-1.7.5_lid193)] at [2019/10/02 10:29:33] [/users/homsrego/git/Lima/applications/tango/python] $"
+#define       SPEC_GIT_VERSION "$Id:        SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, master)] at [2019/10/02 10:29:33] [/users/homsrego/git/Lima/applications/spec] $"
+
+
+
+
+2019/10/02 10:24:32 ==========================================
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.23] $"
+#define        PCO_GIT_VERSION "$Id:         PCO rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:24:32] [/users/homsrego/git/Lima/camera/pco] $"
+#define       LIMA_GIT_VERSION "$Id:        LIMA rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:24:32] [/users/homsrego/git/Lima] $"
+#define    PROCLIB_GIT_VERSION "$Id:     PROCLIB rev[2018-01-12 12:04:00 +0100] head[8175ab6][8175ab6cef2b729d69449e2845483df01262ee04] ref[ (HEAD, v1.5.2)] at [2019/10/02 10:24:32] [/users/homsrego/git/Lima/third-party/Processlib] $"
+#define  LIBCONFIG_GIT_VERSION "$Id:   LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2019/10/02 10:24:32] [] $"
+#define       HDF5_GIT_VERSION "$Id:        HDF5 rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:24:32] [/users/homsrego/git/Lima/camera/pco] $"
+#define BITSHUFFLE_GIT_VERSION "$Id:  BITSHUFFLE rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:24:32] [/users/homsrego/git/Lima/third-party/bitshuffle] $"
+#define      TANGO_GIT_VERSION "$Id:       TANGO rev[2019-03-25 17:29:05 +0100] head[975f498][975f498bac07fa58a5e1fbac81886bb086ee1574] ref[ (HEAD, gitlab/pco-1.7.5_lid193, pco-1.7.5_lid193)] at [2019/10/02 10:24:32] [/users/homsrego/git/Lima/applications/tango/python] $"
+#define       SPEC_GIT_VERSION "$Id:        SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, master)] at [2019/10/02 10:24:32] [/users/homsrego/git/Lima/applications/spec] $"
+
+
+
+
+2019/10/02 10:16:09 ==========================================
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.23] $"
+#define        PCO_GIT_VERSION "$Id:         PCO rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:16:09] [/users/homsrego/git/Lima/camera/pco] $"
+#define       LIMA_GIT_VERSION "$Id:        LIMA rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:16:09] [/users/homsrego/git/Lima] $"
+#define    PROCLIB_GIT_VERSION "$Id:     PROCLIB rev[2019-01-18 10:01:50 +0100] head[e327bd4][e327bd4df46572e606a614cfcdf165b04da5f69b] ref[ (HEAD, v1.6.0)] at [2019/10/02 10:16:09] [/users/homsrego/git/Lima/third-party/Processlib] $"
+#define  LIBCONFIG_GIT_VERSION "$Id:   LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2019/10/02 10:16:09] [] $"
+#define       HDF5_GIT_VERSION "$Id:        HDF5 rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:16:09] [/users/homsrego/git/Lima/camera/pco] $"
+#define BITSHUFFLE_GIT_VERSION "$Id:  BITSHUFFLE rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:16:09] [/users/homsrego/git/Lima/third-party/bitshuffle] $"
+#define      TANGO_GIT_VERSION "$Id:       TANGO rev[2019-04-08 16:02:34 +0200] head[8cae823][8cae82389f7dee525d9c18a087549498ceb8d03f] ref[ (HEAD, gitlab/pco_v1.8, pco_v1.8)] at [2019/10/02 10:16:09] [/users/homsrego/git/Lima/applications/tango/python] $"
+#define       SPEC_GIT_VERSION "$Id:        SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, master)] at [2019/10/02 10:16:09] [/users/homsrego/git/Lima/applications/spec] $"
+
+
+
+
+2019/10/02 10:14:38 ==========================================
+#define     PCO_SDK_WIN_VERSION "$Id: PCOSDK_WIN [1.23] $"
+#define        PCO_GIT_VERSION "$Id:         PCO rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:14:36] [/users/homsrego/git/Lima/camera/pco] $"
+#define       LIMA_GIT_VERSION "$Id:        LIMA rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:14:36] [/users/homsrego/git/Lima] $"
+#define    PROCLIB_GIT_VERSION "$Id:     PROCLIB rev[2019-01-18 10:01:50 +0100] head[e327bd4][e327bd4df46572e606a614cfcdf165b04da5f69b] ref[ (HEAD, v1.6.0)] at [2019/10/02 10:14:36] [/users/homsrego/git/Lima/third-party/Processlib] $"
+#define  LIBCONFIG_GIT_VERSION "$Id:   LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2019/10/02 10:14:36] [] $"
+#define       HDF5_GIT_VERSION "$Id:        HDF5 rev[2019-10-02 10:12:20 +0200] head[5e825a6][5e825a636f3eeecae31528fe0a734eb56a9ba231] ref[ (HEAD, gitlab/imgNr, imgNr)] at [2019/10/02 10:14:36] [/users/homsrego/git/Lima/camera/pco] $"
+#define BITSHUFFLE_GIT_VERSION "$Id:  BITSHUFFLE rev[2019-02-08 15:45:56 +0100] head[39540d3][39540d311784a2595054fb28cb30f77f2618964c] ref[ (HEAD, v1.8.0)] at [2019/10/02 10:14:36] [/users/homsrego/git/Lima/third-party/bitshuffle] $"
+#define      TANGO_GIT_VERSION "$Id:       TANGO rev[2019-04-08 16:02:34 +0200] head[8cae823][8cae82389f7dee525d9c18a087549498ceb8d03f] ref[ (HEAD, gitlab/pco_v1.8, pco_v1.8)] at [2019/10/02 10:14:36] [/users/homsrego/git/Lima/applications/tango/python] $"
+#define       SPEC_GIT_VERSION "$Id:        SPEC rev[2018-02-20 19:16:00 +0100] head[043e98c][043e98cdab4c87a0e61dc0c89b46008785d13bf8] ref[ (HEAD, master)] at [2019/10/02 10:14:36] [/users/homsrego/git/Lima/applications/spec] $"
+
+
 2019/09/20 - dummy commit to test sync gitlab/github
 
 2019/06/27 19:32:22 ==========================================
