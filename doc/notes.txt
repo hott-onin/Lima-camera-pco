@@ -5,6 +5,212 @@
 #===================================================
 
 #===================================================
+# 2018/09/04 / upgrade of the firmware of pco edge hs (bm05)
+#  new fw for CLHS doesn't allow LUT functions
+#  fixed -> bypass LUT functions for CLHS
+#===================================================
+
+$Id: comp[2017/07/12 09:24:19] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoCamera.cpp] $
+$Id: comp[2017/07/12 09:14:15] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoSyncCtrlObj.cpp] $
+$Id: comp[2017/07/12 09:14:17] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoInterface.cpp] $
+$Id: comp[2017/07/12 09:14:28] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoBufferCtrlObj.cpp] $
+$Id: comp[2017/07/12 09:14:20] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoDetInfoCtrlObj.cpp] $
+$Id: comp[2017/07/12 09:14:21] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoCameraUtils.cpp] $
+$Id: comp[2017/07/12 09:14:16] file[2017/07/12 08:55:04] [..\..\..\..\src\PcoRoiCtrlObj.cpp] $
+$Id:       PCO rev[2017-07-12 08:15:38 +0200] head[eae3c10][eae3c108127ae99d6f68747a3240179147fa42f8] ref[ (HEAD, gitrh/pco-dev02, pco-dev02)] at [2017/07/12 09:22:50] $
+$Id:    PCOSDK [1.20] $
+$Id:   PROCLIB rev[2017-03-07 10:24:42 +0100] head[c80632d][c80632d5298bd81c4feb7cca52f7619884d9371e] ref[ (HEAD)] at [2017/07/12 09:22:50] $
+$Id: LIBCONFIG rev[2013-02-07 18:08:29 +0100] head[89c411a][89c411a541d4ab4d66257ccb85749853fd685cbb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/07/12 09:22:50] $
+$Id:      LIMA rev[2017-07-07 11:15:03 +0200] head[cb35d0f][cb35d0f3a77e09381c5e149d3463d28dd7870067] ref[ (HEAD, tag: tango-camera-pco-1.7.5, github/core-1.7, core-1.7)] at [2017/07/12 09:22:50] $
+$Id:     TANGO rev[2017-07-07 11:15:03 +0200] head[a0f38d2][a0f38d21199cc95f5e2a832478b534977b0249fb] ref[ (HEAD, github/master, github/HEAD, master)] at [2017/07/12 09:22:50] $
+$Id:      SPEC rev[2017-07-06 16:48:28 +0200] head[ea1013d][ea1013d3628c9cba1fd2491ebb4ed834e42eac24] ref[ (HEAD)] at [2017/07/12 09:22:50] $
+
+       timestamp: 2018/09/04 15:15:27
+   computer name: WBM05PCO3
+       user name: opd05
+VS configuration: platform[x64] configuration[Release]
+ PCO SDK version: file[sc2_cam.dll] ver[1.20.1]
+
+* PCO EDGE hs (EDGE_42) (I/F CAMERALINK_HS) (SN 61003169)
+
+--- 2018/09/04 15:21:38 lima::Pco::Camera::prepareAcq [ENTRY]
+
+lima::Pco::SyncCtrlObj::xlatLimaTrigMode2Pco (..\..\..\..\src\PcoSyncCtrlObj.cpp:290):
+ ... sLimaTriggerMode=IntTrig
+ ... sPcoTriggerMode=auto, pcoTrigMode=0, extTrig=0
+ ... sPcoAcqMode=acqEnbl_Ignored, pcoAcqMode=0
+lima::Pco::Camera::_pco_SetTransferParameter_SetActiveLookupTable (..\..\..\..\src\PcoCameraSdkAdd.cpp:2393): LIMA_HW_EXC ===> PCO_GetActiveLookupTable Pco
+Error[0x80031020][Firmware error 80031020 at device 'SC2 Main uP': Command/data not supported by this hardware. [..\..\..\..\src\PcoCameraSdkAdd.cpp][2392]
+] error[0x80031020]
+
+
+#===================================================
+# 2018/09/04 / new server directory struture
+#  new fw for CLHS doesn't allow LUT functions
+#===================================================
+
+shorcut:
+   %comspec% /k ""C:\blissadm\Lima\pco\bat\lima_pco_ds2.bat"" install-beta edgehs 160.103.125.104
+
+"install folders" dir --->  C:\blissadm\Lima\pco
+            "bat" dir --->  C:\blissadm\Lima\pco\bat  (copied from the "install file"
+
+C:\blissadm\Lima\pco>tree /F /A
++---bat                    <---- this file is a copy of the distributed in "install"
+|       lima_pco_ds.bat                                            |
+|       lima_pco_ds2.bat                                           |
+|       logsbackup.bat                                             |
+|       logsoff.bat                                                |
+|       logson.bat                                                 | 
+                                                                   | 
+                                                                   | 
+                                                                   | 
+                                                                   | 
+C:\blissadm\Lima\pco\install-beta>tree /F /A                       |
+                                                                   | 
+                                                                   | 
+|   INSTALL_VERSION.txt                                            |
+|   sip.pyd                                                        |
+|                                                                  | 
++---bat                    <---------------------------------------
+|       lima_pco_ds.bat
+|       lima_pco_ds2.bat
+|       logsbackup.bat
+|       logsoff.bat
+|       logson.bat
+|
+\---Lima
+    |   Core.py
+    |   Debug.py
+    |   libconfig++.dll
+    |   LibLimaCore.dll
+    |   liblimapco.dll
+    |   libprocesslib.dll
+    |   limacore.pyd
+    |   limapco.pyd
+    |   Pco.py
+    |   Pco.pyc
+    |   processlib.pyd
+    |   SC2_Cam.dll
+    |   sc2_clhs.dll            ---> copied from sc2_clhs_v1.3.32.dll 
+    |   sc2_clhs_org.dll        ---> sc2_clhs.dll original
+    |   sc2_clhs_v1.3.32.dll    ---> copied to sc2_clhs.dll
+    |   sc2_cl_me4.dll
+    |   __init__.py
+    |
+    \---Server
+        |   AttrHelper.py
+        |   AttrHelper.pyc
+        |   EnvHelper.py
+        |   EnvHelper.pyc
+        |   LimaCCDs.py
+        |   __init__.py
+        |
+        +---camera
+        |       Pco.py
+        |       __init__.py
+        |
+        \---plugins
+                AccThresholdExample.py
+                BackgroundSubstraction.py
+                FlatField.py
+                LimaTacoCCD.py
+                LiveViewer.py
+                Mask.py
+                PeakFinder.py
+                Roi2Spectrum.py
+                RoiCounter.py
+                Utils.py
+                __init__.py
+
+
+
+#===================================================
+# 2018/04/24 / RecorderForcedFifo
+#   requested by Solei
+#===================================================
+
+- with RAMCAM family, make and acq with more frames than allowed
+  the memory size
+  
+void Camera::setRecorderForcedFifo(int val) ; 
+void Camera::getRecorderForcedFifo(int &val) ;
+
+when this special mode is set the cam the live mode is set
+and the nr of img is set (Nr > maxNrImgInBuffer)
+
+live mode -> assign buffer 1rst img = last img = 0
+             "last img acquired"
+             
+NOTE:
+- if the readout time is higher than the acq time
+  some img will be lost
+  sdk return the LAST image acquired
+
+implemented in 
+int BufferCtrlObj::_xferImag()
+
+procedure:
+- set recorderForcedFifo to 1
+- set the nr of images (Nr > maxNrImgInBuffer)
+- make the acq at frame rate not higer than allowed by the readout
+
+tested by Solei OK
+
+
+#===================================================
+# 2016/01/20 / implement a trig start sequence in pco-dimax
+#
+#   https://jira.esrf.fr/browse/SID27-67
+#   https://jira.esrf.fr/browse/SID19-169
+#===================================================
+pco / properties
+  params    trigSingleMulti=1
+            -> m_extTrigSingle_eq_Multi 
+
+case ExtTrigSingle:
+  trig (at ACQ ENABLE) starts a sequence of int trigger (dimax only)
+    the cam is acquiring with int trigger in ring buffer
+    when cam receive a trig at ACQ ENABLE, it continues
+    acquiring images and STOP after N images
+    the last N images saved in the ram, can retrive from 1 .. N
+    
+  //   StorageMode 0 - record mode
+  //   RecorderSubmode 1 - ring buffer
+  //   Triggermode 0 - auto
+  //   Acquiremode 0 - auto / ignored
+  
+=== prepareAcq
+
+	// ------- set Record Stop Event (used for dimax for ExtTrigSingle)
+	if(_isCameraType(Dimax)) {
+		if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) {
+			wRecordStopEventMode = 0x0002;    // record stop by edge at the <acq. enbl.>
+			dwRecordStopDelayImages = iRequestedFrames;
+			_pco_SetRecordStopEvent(wRecordStopEventMode, dwRecordStopDelayImages, error);
+		}
+	}  
+
+    if(_isCameraType(Dimax | Pco4k | Pco2k)) {
+        if((trig_mode  == ExtTrigSingle) && (iRequestedFrames > 0)) 
+		{
+			mode = RecRing;
+		} 
+
+=== startAcq
+		if((iRequestedFrames > 0 ) && (forcedFifo == 0) ){
+			if((trig_mode  == ExtTrigSingle) ) {
+				_beginthread( _pco_acq_thread_dimax_trig_single, 0, (void*) this);
+				
+				
+=== checkTrigMode
+	switch(trig_mode){
+		case ExtTrigSingle:
+			if ((m_cam->_isCameraType(Dimax)) || m_extTrigSingle_eq_Multi) return true ;
+				break;
+		
+
+#===================================================
 #========= 2017/09/22 / lima patch for buff realloc
 #===================================================
 lima tag - tango-camera-pco-1.7.5

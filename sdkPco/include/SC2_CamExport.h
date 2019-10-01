@@ -146,7 +146,7 @@ extern "C" {                           //  Assume C declarations for C++
 #endif  //C++
 
 #define PCO_SDK_VERMAJOR 1             // Shows the current version of the sc2_cam.dll
-#define PCO_SDK_VERMINOR 20
+#define PCO_SDK_VERMINOR 23
 
 // VERY IMPORTANT INFORMATION:
 /*******************************************************************/
@@ -243,12 +243,6 @@ SC2_SDK_FUNC int WINAPI PCO_ResetSettingsToDefault(HANDLE ph);
 // Out: int -> Error message.
 /* Example: see PCO_CloseCamera */
 
-SC2_SDK_FUNC int WINAPI PCO_InitiateSelftestProcedure(HANDLE ph);
-// Starts a self test procedure.
-// In: HANDLE ph -> Handle to a previously opened camera.
-// Out: int -> Error message.
-/* Example: see PCO_CloseCamera */
-
 SC2_SDK_FUNC int WINAPI PCO_GetTemperature(HANDLE ph, SHORT* sCCDTemp, SHORT* sCamTemp, SHORT* sPowTemp);
 // Gets the actual temperatures of the camera and the power device.
 // In: HANDLE ph -> Handle to a previously opened camera.
@@ -260,7 +254,7 @@ SC2_SDK_FUNC int WINAPI PCO_GetTemperature(HANDLE ph, SHORT* sCCDTemp, SHORT* sC
 
 SC2_SDK_FUNC int WINAPI PCO_GetInfoString(HANDLE ph, DWORD dwinfotype,
                          char *buf_in, WORD size_in);
-// Gets the name of the camera.
+// Gets the name of the camera. Max 500 bytes.
 // In: HANDLE ph -> Handle to a previously opened camera.
 //     DWORD dwinfotype -> 0: Camera and interface name
 //                         1: Camera name only
@@ -270,7 +264,7 @@ SC2_SDK_FUNC int WINAPI PCO_GetInfoString(HANDLE ph, DWORD dwinfotype,
 // Out: int -> Error message.
 
 SC2_SDK_FUNC int WINAPI PCO_GetCameraName(HANDLE ph, char* szCameraName, WORD wSZCameraNameLen);
-// Gets the name of the camera.
+// Gets the name of the camera. Max 40 bytes.
 // Not applicable to all cameras.
 // In: HANDLE ph -> Handle to a previously opened camera.
 //     char *szCameraName -> Pointer to a string, to receive the camera name.
@@ -693,36 +687,6 @@ SC2_SDK_FUNC int WINAPI PCO_GetColorCorrectionMatrix(HANDLE ph, double* pdMatrix
 //                         9 double to receive the color matrix coefficients
 // Out: int -> Error message
 
-SC2_SDK_FUNC int WINAPI PCO_GetBayerMultiplier(HANDLE ph, WORD *wMode, WORD *wMul);
-// Requests the Bayer multipliers. The Bayer multipliers are used by cameras with color sensor in
-// order to compensate the color response of the sensor and the optical setup. Thus when exposed to
-// white light the R Gr Gb B pixels will ideally show the same amplitude.
-// This option is only available with a pco.dimax
-// In: HANDLE ph -> Handle to a proviously opened camera.
-//     WORD *wMode -> Mode = 0x0001: The returned values are changed, but not yet saved.
-//                    Mode = 0x0002: The returned values are saved.
-//     WORD *wMul -> Pointer to an array of four WORD;
-//                   Red/GreenRed/GreenBlue/Blue Multiplier: Number from 0 to 3999, where 1000
-//                   corresponds to multiplier of 1.0 (leave values unchanged).
-//                   Element 0 is the same as in the color descriptor. See wColorPatternDESC
-//                   in PCO_Description
-// Out: int -> Error message
-
-SC2_SDK_FUNC int WINAPI PCO_SetBayerMultiplier(HANDLE ph, WORD wMode, WORD *wMul);
-// Sets the RGB multipliers. The Bayer multipliers are used by cameras with color sensor in
-// order to compensate the color response of the sensor and the optical setup. Thus when exposed to
-// white light the R Gr Gb B pixels will ideally show the same amplitude.
-// This option is only available with a pco.dimax
-// In: HANDLE ph -> Handle to a proviously opened camera.
-//     WORD *wMode -> Mode = 0x0001: Set new values immediately but do not save.
-//                    Mode = 0x0002: Save values and set immediately.
-//     WORD *wMul -> Pointer to an array of four WORD;
-//                   Red/GreenRed/GreenBlue/Blue Multiplier: Number from 0 to 3999, where 1000
-//                   corresponds to multiplier of 1.0 (leave values unchanged).
-//                   Element 0 is the same as in the color descriptor. See wColorPatternDESC
-//                   in PCO_Description
-// Out: int -> Error message
-
 SC2_SDK_FUNC int WINAPI PCO_GetDSNUAdjustMode(HANDLE ph,
                                               WORD* wDSNUAdjustMode,
                                               WORD* wReserved);
@@ -800,18 +764,6 @@ SC2_SDK_FUNC int WINAPI PCO_SetActiveLookupTable(HANDLE ph,
   WORD        *wIdentifier,            // define LUT to be activated, 0x0000 for no LUT
   WORD        *wParameter);            // optional parameter
 // Sets the active lookup table in the camera, if available.
-// Only available with a pco.edge
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     see above.
-// Out: int -> Error message.
-
-SC2_SDK_FUNC int WINAPI PCO_LoadLookupTable(HANDLE ph,
-  WORD        *wIdentifier,            // define LUT to be loaded
-  WORD        *wPacketNum,             // for loading LUT in several steps
-  WORD        *wFormat,                // data structure in *bData (see defines)
-  WORD        *wLength,                // valid number of bytes within this call
-  BYTE        *bData);                 // data
-// Loads a lookup table to the camera, if available.
 // Only available with a pco.edge
 // In: HANDLE ph -> Handle to a previously opened camera.
 //     see above.
@@ -1111,9 +1063,6 @@ SC2_SDK_FUNC int WINAPI PCO_GetSensorSignalStatus(HANDLE hCam, DWORD* dwStatus, 
 //     DWORD* dwReserved -> DWORD pointer for future use (can be NULL).
 // Out: int -> Error message.
 
-SC2_SDK_FUNC int WINAPI PCO_GetHWLEDSignal(HANDLE hCam, DWORD* dwHWLEDSignal);
-SC2_SDK_FUNC int WINAPI PCO_SetHWLEDSignal(HANDLE hCam, DWORD dwHWLEDSignal);
-
 SC2_SDK_FUNC int WINAPI PCO_GetCmosLineTiming(HANDLE hCam, WORD* wParameter, WORD* wTimeBase,
                                               DWORD* dwLineTime, DWORD* dwReserved, WORD wReservedLen);
 // The line timing mode is a third possibility to set the exposure and delay timing of a camera. In order to 
@@ -1157,6 +1106,40 @@ SC2_SDK_FUNC int WINAPI PCO_SetCmosLineExposureDelay(HANDLE hCam, DWORD dwExposu
 //     DWORD dwDelayLines -> DWORD to set the number of lines for delay
 //     DWORD* dwReserved -> DWORD pointer for future use (can be NULL)
 //     WORD wReservedLen -> WORD variable to set the lenght of the dwReserved array in DWORDS
+
+SC2_SDK_FUNC int WINAPI PCO_GetFanControlParameters(HANDLE hCam, WORD* wMode, WORD* wValue, WORD* wReserved, WORD wNumReserved);
+// This command gets the fan control mode and the current fan speed if available.
+// In: HANDLE hCam -> Handle to a previously opened camera.
+//     WORD* wMode -> WORD pointer to receive the current fan control mode setting
+//                    If mode is FAN_CONTROL_MODE_AUTO the camera controls the fan speed.
+//                    If mode is FAN_CONTROL_MODE_USER the user controls the fan speed. 
+//     WORD* wValue -> WORD pointer to receive the current fan setting
+//                     Value ranges from 0...100, where 0 means off and 100 is highest speed.
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Use this function call only when you're absolutely sure what you do!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SC2_SDK_FUNC int WINAPI PCO_SetFanControlParameters(HANDLE hCam, WORD wMode, WORD wValue, WORD wReserved);
+// This command sets the fan control mode and the current fan speed if available.
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Setting the fan speed to a low value or off might expose the camera to overheating!
+// The specification regarding imaging quality are only valid when you operate the camera with the defined sensor temperature.
+// The camera will switch on the fan automatically before the camera is broken due to overheating.
+// When you set the fan speed it is strongly recommended to call PCO_GetCamerHealthStatus and to observe the
+// temperatures of the camera using PCO_GetTemperature.
+// Disclaimer: It is the users responsibility to take care for the camera. pco is not responsible 
+// for a bricked camera! Take care and do not fry your device!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ATTENTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+// In: HANDLE hCam -> Handle to a previously opened camera.
+//     WORD wMode -> WORD variable to set the current fan control mode setting
+//                    If mode is FAN_CONTROL_MODE_AUTO the camera controls the fan speed.
+//                    If mode is FAN_CONTROL_MODE_USER the user controls the fan speed.
+//     WORD wValue -> WORD variable to set the current fan setting
+//                    Value ranges from 0...100, where 0 means off and 100 is highest speed.
+
 
 /////////////////////////////////////////////////////////////////////
 /////// End: Timing commands ////////////////////////////////////////
@@ -1458,47 +1441,6 @@ SC2_SDK_FUNC int WINAPI PCO_SetBitAlignment(HANDLE ph, WORD wBitAlignment);
 // In: HANDLE ph -> Handle to a previously opened camera.
 //     WORD wBitAlignment-> WORD variable which holds the bit alignment.
 // Out: int -> Error message.
-
-SC2_SDK_FUNC int WINAPI PCO_WriteHotPixelList(HANDLE ph, WORD wListNo, WORD wNumValid,
-                                 WORD* wHotPixX, WORD* wHotPixY);
-// Writes a hot pixel list to the camera.
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     WORD wListNo -> WORD variable which holds the number of the list (zero based).
-//     WORD wNumValid -> WORD variable which holds the number of valid members
-//     WORD *wHotPixX -> WORD array which holds the x coordinates of a hotpixel list
-//     WORD *wHotPixY -> WORD array which holds the y coordinates of a hotpixel list
-//     x and y coordinates have to be consistent, that means corresponding coordinate pairs
-//     must have the same index!
-// Out: int -> Error message.
-
-SC2_SDK_FUNC int WINAPI PCO_ReadHotPixelList(HANDLE ph, WORD wListNo, WORD wArraySize, WORD* wNumValid, WORD* wNumMax,
-                                 WORD* wHotPixX, WORD* wHotPixY);
-// Reads a hot pixel list from the camera.
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     WORD wListNo -> WORD variable which holds the number of the list (zero based).
-//     WORD wArraySize -> WORD variable which holds the number of members, which can be transferred
-//                        to the list
-//     WORD *wNumValid -> Pointer to a WORD variable to receive the number of valid hotpixel.
-//     WORD *wNumMax -> Pointer to a WORD variable to receive the max. possible number of hotpixel.
-//     WORD *wHotPixX -> WORD array which gets the x coordinates of a hotpixel list
-//                       This ptr can be set to ZERO if only the valid and max number
-//                       have to be read.
-//     WORD *wHotPixY -> WORD array which gets the y coordinates of a hotpixel list
-//                       This ptr can be set to ZERO if only the valid and max number
-//                       have to be read.
-//     x and y coordinates are consistent, that means corresponding coordinate pairs
-//     have the same index!
-// Out: int -> Error message.
-
-SC2_SDK_FUNC int WINAPI PCO_ClearHotPixelList(HANDLE ph,
-                                              WORD wListNo,
-                                              DWORD dwMagic1,
-                                              DWORD dwMagic2);
-// Clears a hot pixel list in the camera.
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     WORD wListNo -> WORD variable which holds the number of the list (zero based).
-//     DWORD dwMagic1 -> DWORD variable which holds the unlock code 1.
-//     DWORD dwMagic2 -> DWORD variable which holds the unlock code 2.
 
 SC2_SDK_FUNC int WINAPI PCO_GetHotPixelCorrectionMode(HANDLE ph,
                                                       WORD *wHotPixelCorrectionMode);
@@ -1878,7 +1820,7 @@ SC2_SDK_FUNC int WINAPI PCO_SetTransferParametersAuto(HANDLE ph, void* buffer, i
 // and PCO_SetActiveLookupTable.
 // In: HANDLE ph -> Handle to a previously opened camera.
 //     void *buffer -> Pointer to an array to receive the transfer parameters. Should be set to NULL.
-//                     Can be set to receive current setting.
+//                     Can be set to receive current setting. Initialize all parameters to zero before
 //     int ilen -> Total length of the buffer in bytes. Should be set to 0.
 // Sample call:
 // HANDLE ph;
@@ -1886,6 +1828,7 @@ SC2_SDK_FUNC int WINAPI PCO_SetTransferParametersAuto(HANDLE ph, void* buffer, i
 // int err = PCO_SetTransferParametersAuto(ph, NULL, 0);
 // Out: int -> Error message.
 //      void *buffer -> Pointer to an array to receive the transfer parameters in case buffer is not NULL.
+//                      buffer must be initialized to zero before.
 //      int ilen -> Total length of the buffer in bytes.
 
 SC2_SDK_FUNC int WINAPI PCO_CamLinkSetImageParameters(HANDLE ph, WORD wxres, WORD wyres);
@@ -1927,31 +1870,6 @@ SC2_SDK_FUNC int WINAPI PCO_SetTimeouts(HANDLE ph, void *buf_in,unsigned int siz
 // [0]: command-timeout,   200ms default, Time to wait while a command is sent.
 // [1]: image-timeout,    3000ms default, Time to wait while an image is transferred.
 // [2]: transfer-timeout, 1000ms default, Time to wait till the transfer channel expires.
-// Out: int -> Error message.
-
-// Obsolete: Please use tools provided by pco (GigeCalib)
-//SC2_SDK_FUNC int WINAPI PCO_GetGigEIPAddress(HANDLE ph,
-//                         BYTE *BField0, BYTE *BField1, BYTE *BField2, BYTE *BField3);
-// Gets the IP address of the camera, e.g. 192.168.1.20
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     BYTE *BField0 -> Pointer to a BYTE, to receive the upper part of the IP adr., e.g. 192.
-//     BYTE *BField1 -> Pointer to a BYTE, to receive the upper mid part of the IP adr., e.g. 168.
-//     BYTE *BField2 -> Pointer to a BYTE, to receive the lower mid part of the IP adr., e.g. 1.
-//     BYTE *BField3 -> Pointer to a BYTE, to receive the lower part of the IP adr., e.g. 20.
-//     WORD size_in -> WORD variable which holds the maximum length of the string.
-// Out: int -> Error message.
-
-// Obsolete: Please use tools provided by pco (GigeCalib)
-//SC2_SDK_FUNC int WINAPI PCO_SetGigEIPAddress(HANDLE ph, DWORD dwFlags,
-//                         BYTE BField0, BYTE BField1, BYTE BField2, BYTE BField3);
-// Sets the IP address of the camera, e.g. 192.168.1.20
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     DWORD dwFlags -> DWORD flags, to avoid Messagebox set 0x01; others must be zero
-//     BYTE BField0 -> BYTE, to set the upper part of the IP adr., e.g. 192.
-//     BYTE BField1 -> BYTE, to set the upper mid part of the IP adr., e.g. 168.
-//     BYTE BField2 -> BYTE, to set the lower mid part of the IP adr., e.g. 1.
-//     BYTE BField3 -> BYTE, to set the lower part of the IP adr., e.g. 20.
-//     WORD size_in -> WORD variable which holds the maximum length of the string.
 // Out: int -> Error message.
 
 SC2_SDK_FUNC int WINAPI PCO_GetImageTransferMode(HANDLE ph, void *param, int ilen);
@@ -2020,10 +1938,6 @@ SC2_SDK_FUNC int WINAPI PCO_ControlCommandCall(HANDLE ph,
 // their purpose is easier to understand. Furthermore this function is not part of
 // the SDK description.
 
-SC2_SDK_FUNC int WINAPI PCO_EnableInterface(WORD wInterface, WORD wInterfaceEnabled);
-// Disables an interface. Set wInterface to the interface which should be disabled.
-// Set wInterfaceEnabled to 0.
-
 SC2_SDK_FUNC int WINAPI PCO_ResetLib();
 // Resets the sc2_cam internal enumerator and unloads all loaded interface dlls.
 
@@ -2051,35 +1965,11 @@ SC2_SDK_FUNC int WINAPI PCO_GetAPIManagement(HANDLE ph, WORD *wFlags, PCO_APIMan
 // Call this function to get information about API management.
 // In: HANDLE ph -> Handle to a previously opened camera.
 //     WORD wFlags -> Bit 0=true soft ROI is enabled / Bit 0=false soft-ROI is disabled
-//     PCO_APIManagement* pstrApi -> Pointer to a PCO_APIManagement structure (currently not used), set to NULL
+//     PCO_APIManagement* pstrApi -> Pointer to a PCO_APIManagement structure
 // Out: int -> Error message.
 
 /////////////////////////////////////////////////////////////////////
 /////// End: API Management commands ////////////////////////////////
-/////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////
-/////// FirmWare commands ///////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////
-
-SC2_SDK_FUNC int WINAPI PCO_ReadHeadEEProm(HANDLE ph, WORD wAddress, BYTE* bData, WORD wLen);
-// Reads an EEProm data byte at the requested address.
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     WORD wAddress -> WORD variable to hold the eeprom address
-//     BYTE* bData -> Pointer to a byte variable to receive the eeprom data.
-//     WORD wLen -> Length parameter (not used up to now)
-// Out: int -> Error message.
-
-SC2_SDK_FUNC int WINAPI PCO_WriteHeadEEProm(HANDLE ph, WORD wAddress, BYTE bData, WORD wLen);
-// Writes an EEProm data byte to the requested address.
-// In: HANDLE ph -> Handle to a previously opened camera.
-//     WORD wAddress -> WORD variable to hold the eeprom address
-//     BYTE bData -> Byte variable to hold the eeprom data.
-//     WORD wLen -> Length parameter (not used up to now)
-// Out: int -> Error message.
-
-/////////////////////////////////////////////////////////////////////
-/////// End: FirmWare commands //////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////
@@ -2216,6 +2106,122 @@ SC2_SDK_FUNC int WINAPI PCO_SetFlimRelativePhase(HANDLE ph,
 /////////////////////////////////////////////////////////////////////
 /////// End: Flim commands //////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////
+/////// Lens Control commands ///////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+SC2_SDK_FUNC int WINAPI PCO_InitLensControl(HANDLE hCamera, HANDLE *phLensControl);
+// Initializes a new lens control object and returns the handle to the internal structures when phLensControl is NULL.
+// Also reinitializes an already existing lens control object when called with a valid phLensControl.
+// E.g. when the lens is changed in front of the Birger ring the lens functions will return an error as there is no lens 
+// for a short time. To get the lens back after re-plug, call PCO_InitLensControl. You can use a windows timer function
+// in order to call the init function till it returns without error. Processing can be continued normally after successful
+// re-initialization.
+// Please query the descriptor for availability of the lens control functionality:
+//   if(strCamera->strSensor.strDescription.dwGeneralCapsDESC1 & GENERALCAPS1_USER_INTERFACE) == GENERALCAPS1_USER_INTERFACE)
+//     ...
+// In: HANDLE ph -> Handle to a previously opened camera.
+//     HANDLE *phLensControl -> Pointer to a PCO_LensControl structure, which holds all necessary parameters
+// Out: int -> Error message.
+//
+// Here's a short code listing on how to deal with a lens control device (Camera already opened, no error handling):
+// HANDLE hLensControl = NULL;
+// PCO_LensControl* phLensControl;
+// int err = PCO_InitLensControl(hCamera, (HANDLE*) &hLensControl);               // Initializes a lens control object
+// phLensControl = (PCO_LensControl*) hLensControl;                               // Cast the stuct ptr to get access to the values
+// DWORD dwflagsin = 0, dwflagsout = 0;
+// DWORD dwAperturePos = phLensControl->pstrLensControlParameters->dwApertures[0];// Gets the first F/n value
+// LONG lFocusPos = 0;
+// err = PCO_SetApertureF(phLensControl, &dwAperturePos, dwflagsin, &dwflagsout); // Sets the aperture as F/n value
+// err = PCO_GetAperture(phLensConrtol, &dwAperturePos, &dwflagsout);             // Gets the aperture as index value
+// err = PCO_GetFocus(phLensControl, &lFocusPos, &dwflagsout);                    // Gets the focus (0...0x3FFF)
+// err = PCO_SetFocus(phLensControl, &lFocusPos, dwflagsin, &dwflagsout);         // Sets the focus
+// err = PCO_CloseLensControl(hLensControl);                                      // Closes the lens control object
+
+SC2_SDK_FUNC int WINAPI PCO_CleanupLensControl();
+// Cleans up all internal lens control objects, which were created. It closes and deletes all lens control objects.
+// This is an internally used helper function, which is also exported.
+
+SC2_SDK_FUNC int WINAPI PCO_CloseLensControl(HANDLE hLensControl);
+// Closes and deletes a lens control object. The handle will be invalid afterwards.
+// In: HANDLE ph -> Handle to a previously opened lens control object.
+// Out: int -> Error message.
+
+SC2_SDK_FUNC int WINAPI PCO_GetLensFocus(HANDLE hLens, LONG *lFocusPos, DWORD *dwflags);
+// Gets the current focus of the lens control device as value between 0...0x3FFF.
+// In: HANDLE hLens -> Handle to a previously opened lens control object.
+//     LONG* lFocusPos -> Pointer to a long value to receive the current focus position
+//     DWORD* dwflags -> Pointer to a DWORD value to receive status flags
+// Out: int -> Error message.
+
+SC2_SDK_FUNC int WINAPI PCO_SetLensFocus(HANDLE hLens, LONG *lFocusPos, DWORD dwflagsin, DWORD *dwflagsout);
+// Sets the focus of the lens control device to a new position. Value must be between 0...0x3FFF.
+// In: HANDLE hLens -> Handle to a previously opened lens control object.
+//     LONG* lFocusPos -> Pointer to a long value to set the new and receive the current focus position
+//     DWORD dwflagsin -> DWORD variable to control the function
+//                        Set LENSCONTROL_IN_LENSVALUE_RELATIVE to change the focus relative to the current position 
+//     DWORD* dwflagsout -> Pointer to a DWORD value to receive status flags
+//                          LENSCONTROL_OUT_LENSWASCHANGED indicates that the focus changed
+//                          LENSCONTROL_OUT_LENSHITSTOP indicates that a stop was hit (either 0 or 0x3FFF)
+// Out: int -> Error message.
+
+SC2_SDK_FUNC int WINAPI PCO_GetAperture(HANDLE hLens, WORD *wAperturePos, DWORD *dwflags);
+// Gets the current aperture position of the lens control device in steps. Position ranging from 0...max steps (dwFNumberNumStops)
+// In: HANDLE hLens -> Handle to a previously opened lens control object.
+//     WORD* wAperturePos -> Pointer to a WORD value to receive the current aperture position
+//     DWORD* dwflags -> Pointer to a DWORD value to receive status flags
+// Out: int -> Error message.
+
+SC2_SDK_FUNC int WINAPI PCO_SetAperture(HANDLE hLens, WORD *wAperturePos, DWORD dwflagsin, DWORD *dwflagsout);
+// Sets the current aperture position of the lens control device in steps. Position ranging from 0...max steps (dwFNumberNumStops)
+// In: HANDLE hLens -> Handle to a previously opened lens control object.
+//     WORD* wAperturePos -> Pointer to a WORD value to set the new and receive the current aperture position
+//     DWORD dwflagsin -> DWORD variable to control the function
+//                        Set LENSCONTROL_IN_LENSVALUE_RELATIVE to change the aperture relative to the current position 
+//     DWORD* dwflagsout -> Pointer to a DWORD value to receive status flags
+//                          LENSCONTROL_OUT_LENSWASCHANGED indicates that the aperture changed
+// Out: int -> Error message.
+
+SC2_SDK_FUNC int WINAPI PCO_GetApertureF(HANDLE hLens, DWORD *dwfAperturePos, WORD *wAperturePos, DWORD *dwflags);
+// Gets the current aperture position of the lens control device in f/position * 10 (member of dwApertures)
+// The dwApertures array is reinitialized in case the zoom changes and either PCO_GetApertureF or PCO_SetApertureF are called.
+// Change in zoom will be shown in dwflags as LENSCONTROL_OUT_ZOOMHASCHANGED
+// In: HANDLE hLens -> Handle to a previously opened lens control object.
+//     DWORD* dwAperturePos -> Pointer to a DWORD value to receive the current aperture position in f/x * 10 (e.g. f/5.4 -> 54)
+//     WORD* wAperturePos -> Pointer to a WORD value to receive the current aperture position; Can be NULL
+//     DWORD* dwflags -> Pointer to a DWORD value to receive status flags:
+//                       LENSCONTROL_OUT_ZOOMHASCHANGED indicates that the dwApertures array was changed due to zoom change
+// Out: int -> Error message.
+
+SC2_SDK_FUNC int WINAPI PCO_SetApertureF(HANDLE hLens, DWORD *dwfAperturePos, DWORD dwflagsin, DWORD *dwflagsout);
+// Sets the current aperture position of the lens control device in f/position * 10 (member of dwApertures)
+// Please select a member of the current dwApertures array.
+// The dwApertures array is reinitialized in case the zoom changes and either PCO_GetApertureF or PCO_SetApertureF are called.
+// Change in zoom will be shown in dwflagsout as LENSCONTROL_OUT_ZOOMHASCHANGED
+// In: HANDLE hLens -> Handle to a previously opened lens control object.
+//     DWORD* dwAperturePos -> Pointer to a DWORD value to receive the current aperture position in f/x * 10 (e.g. f/5.4 -> 54)
+//     DWORD dwflagsin -> DWORD value to set control flags
+//     DWORD* dwflagsout -> Pointer to a DWORD value to receive status flags:
+//                       LENSCONTROL_OUT_ZOOMHASCHANGED indicates that the dwApertures array was changed due to zoom change
+//                       LENSCONTROL_OUT_LENSWASCHANGED indicates that the aperture changed
+// Out: int -> Error message.
+// DWOD dwAperturePosF = phLensControl->pstrLensControlParameters->dwApertures[wAperturePos++];
+// err = PCO_SetApertureF(phLensControl, &dwAperturePosF, dwflagsin, &dwflagsout);
+
+
+SC2_SDK_FUNC int WINAPI PCO_SendBirgerCommand(HANDLE hLens, PCO_Birger* pstrBirger, char* szcmd, int inumdelim);
+// Sends a telegram to a Birger ring device and returns the result in the PCO_Birger structure
+// Usually PCO_S(G)etFocus and PCO_S(G)etAperture are enough. However if you need to send your own command to the birger ring
+// you can use this function.
+// This is an internally used helper function, which is also exported.
+//     PCO_Birger *strBirger -> Pointer to a PCO_Birger structure, which will get all parameters for the corresponding command
+
+
+/////////////////////////////////////////////////////////////////////
+/////// End: Lens Control commands //////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
 
 #ifdef __cplusplus
 }       //  Assume C declarations for C++

@@ -683,6 +683,10 @@
 			Name="doc"
 			>
 			<File
+				RelativePath="..\..\..\..\1"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\CMakeLists.txt"
 				>
 			</File>
@@ -715,6 +719,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\doc\test_py.txt"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\src\unused.txt"
 				>
 			</File>
@@ -724,10 +732,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\useSdk118"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\..\VERSION"
 				>
 			</File>
 			<File

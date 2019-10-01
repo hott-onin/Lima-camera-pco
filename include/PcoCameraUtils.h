@@ -27,15 +27,16 @@
 #include <time.h>
 #include "processlib/Compatibility.h"
 
-#define FILE_PCO_DLL				"liblimapco.dll"
-#define FILENAME_INSTALL_VERSION	"INSTALL_VERSION"
-#define FILEEXT_INSTALL_VERSION		"txt"
+#define FILE_PCO_DLL "liblimapco.dll"
+#define FILENAME_INSTALL_VERSION "INSTALL_VERSION"
+#define FILEEXT_INSTALL_VERSION "txt"
 
-char * _getComputerName(char *infoBuff, DWORD  bufCharCount);
-char * _getUserName(char *infoBuff, DWORD  bufCharCount);
-char * _getVSconfiguration(char *infoBuff, DWORD  bufCharCount);
-char * _getPcoSdkVersion(char *infoBuff, int strLen, char *lib);
-char * _getDllPath(const char* pzFileName, char *path, size_t strLen);
-
+char *_getComputerName(char *infoBuff, DWORD bufCharCount);
+char *_getUserName(char *infoBuff, DWORD bufCharCount);
+char *_getVSconfiguration(char *infoBuff, DWORD bufCharCount);
+char *_getPcoSdkVersion(char *infoBuff, int strLen, char *lib);
+char *_getDllPath(const char *pzFileName, char *path, size_t strLen);
+const char *_getEnviroment(const char *env);
+const char *_getOs();
 
 #endif

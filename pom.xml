@@ -9,7 +9,7 @@
 
     <groupId>fr.soleil.lib.Lima.Camera</groupId>
     <artifactId>LimaPco-${aol}-shared-${mode}</artifactId>
-    <version>1.6.4</version>
+    <version>1.7.0</version>
 
     <packaging>nar</packaging>
     <name>LimaPco</name>
@@ -21,96 +21,95 @@
         <url>https://github.com/soleil-ica/Lima-camera-pco</url>
     </scm>
 	
-    <dependencies>
-        <dependency>
-            <groupId>fr.soleil.lib</groupId>
-            <artifactId>LimaCore-${aol}-shared-${mode}</artifactId>
-            <version>1.7.8</version>
-        </dependency>
+    <profiles>
+        <profile>
+            <id>win_32</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>                
+                <property>
+                    <name>env</name>
+                    <value>win_32</value>
+                </property>
+            </activation>
+			
+            <dependencies>
+                <dependency>
+                    <groupId>fr.soleil.lib</groupId>
+                    <artifactId>LimaCore-${aol}-shared-${mode}</artifactId>
+                    <version>1.7.9</version>
+                </dependency>
+                <dependency>
+                    <groupId>fr.soleil.lib</groupId>
+                    <artifactId>LimaProcesslib-${aol}-shared-${mode}</artifactId>
+                    <version>1.3.9</version>
+                </dependency>
+            </dependencies>
+        
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.freehep</groupId>
+                        <artifactId>freehep-nar-plugin</artifactId>
+                        <configuration>
+                            <cpp>
+                                <sourceDirectory>${project.basedir}</sourceDirectory>
+                                <includes>
+                                    <include>src/*.cpp</include>
+                                </includes>
+                                <includePaths>
+                                    <includePath>include</includePath>
+                                    <includePath>sdkPco/include</includePath>
+                                    <includePath>sdkPco</includePath>
+                                </includePaths>
+                                
+                                <excludes>
+                                    <exclude>src/PcoCameraWin.cpp</exclude> <!-- will be included by PcoCamera.cpp -->
+                                    <exclude>src/PcoCameraLin.cpp</exclude>	
+                                    <exclude>src/PcoCameraSdkLin.cpp</exclude>                              
+                                </excludes>
 
-        <dependency>
-            <groupId>fr.soleil.lib</groupId>
-            <artifactId>NexusCPP-${aol}-static-${mode}</artifactId>
-            <version>3.1.5-vc9</version>
-        </dependency>
-				
-        <dependency>
-            <groupId>fr.soleil.lib</groupId>
-            <artifactId>YAT-${aol}-static-${mode}</artifactId>
-            <version>1.13.4-vc9</version>
-        </dependency>
-            
-        <dependency>
-            <groupId>ncsa.uiuc.edu</groupId>
-            <artifactId>HDF5-${aol}-shared-release</artifactId>
-            <version>1.8.13-vc9</version>
-        </dependency>      
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.freehep</groupId>
-                <artifactId>freehep-nar-plugin</artifactId>
-                <configuration>
-                    <cpp>
-                        <sourceDirectory>${project.basedir}</sourceDirectory>
-                        <includes>
-                            <include>src/*.cpp</include>
-                        </includes>
-                        <includePaths>
-                            <includePath>include</includePath>
-                            <includePath>sdkPco/include</includePath>
-                            <includePath>sdkPco</includePath>
-                        </includePaths>
-                        
-                        <excludes>
-                            <exclude>src/PcoCameraWin.cpp</exclude> <!-- will be included by PcoCamera.cpp -->
-                            <exclude>src/PcoCameraLin.cpp</exclude>	
-                            <exclude>src/PcoCameraSdkLin.cpp</exclude>                              
-                        </excludes>
-
-                        <defines>
-                            <define>LIBLIMAPCO_EXPORTS</define>
-                            <define>WIN32</define>
-                            <define>NDEBUG</define>
-                            <define>_WINDOWS</define>
-                            <define>_USRDLL</define>
-                            <!-- <define>_WIN32_WINNT=_WIN32_WINNT_WS03</define> --> <!-- Windows XP SP2 -->
-                            <define>_WIN32_WINNT=_WIN32_WINNT_WIN7</define> <!-- Windows 7 -->
-                        </defines>
-                    </cpp>
-                    <linker>
-                        <libs>
-                            <lib>
-                                <name>SC2_Cam</name>
-                                <type>static</type>
-                                <directory>sdkPco/lib</directory>
-                            </lib>                      
-                        </libs>
-                        <sysLibs>
-                            <sysLib>
-                                <name>advapi32</name>
-                                <type>shared</type>
-                            </sysLib>
-                        </sysLibs>
-                    </linker>
-                    <libraries>
-                        <library>
-                            <type>shared</type>
-                        </library>                 
-                    </libraries>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>fr.soleil.maven.plugins</groupId>
-                <artifactId>maven-check-plugin</artifactId>
-                <configuration>
-                    <enable>false</enable>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+                                <defines>
+                                    <define>LIBLIMAPCO_EXPORTS</define>
+                                    <define>WIN32</define>
+                                    <define>NDEBUG</define>
+                                    <define>_WINDOWS</define>
+                                    <define>_USRDLL</define>
+                                    <define>_WIN32_WINNT=_WIN32_WINNT_WIN7</define> <!-- Windows 7 -->
+                                </defines>
+                            </cpp>
+                            <linker>
+                                <libs>
+                                    <lib>
+                                        <name>SC2_Cam</name>
+                                        <type>static</type>
+                                        <directory>sdkPco/lib</directory>
+                                    </lib>                      
+                                </libs>
+                                <sysLibs>
+                                    <sysLib>
+                                        <name>advapi32</name>
+                                        <type>shared</type>
+                                    </sysLib>
+                                </sysLibs>
+                            </linker>
+                            <libraries>
+                                <library>
+                                    <type>shared</type>
+                                </library>                 
+                            </libraries>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>fr.soleil.maven.plugins</groupId>
+                        <artifactId>maven-check-plugin</artifactId>
+                        <configuration>
+                            <enable>false</enable>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 	
     <developers>
         <developer>

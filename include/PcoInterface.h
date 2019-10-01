@@ -24,65 +24,69 @@
 #ifndef PCOINTERFACE_H
 #define PCOINTERFACE_H
 
-
-
 #include "lima/LimaCompatibility.h"
 
 #include "lima/Debug.h"
 #include "lima/HwInterface.h"
 #include "PcoCamera.h"
 
-
-
 namespace lima
 {
-  namespace Pco
-  {
-    class Camera;
-    class DetInfoCtrlObj;
-    class BufferCtrlObj;
-    class SyncCtrlObj;
-    class RoiCtrlObj;
-    class BinCtrlObj;
-    class PcoHwEventCtrlObj;
-
-    class  DLL_EXPORT Interface : public HwInterface
+    namespace Pco
     {
-      DEB_CLASS_NAMESPC(DebModCamera, "Interface", "Pco");
+        class Camera;
+        class DetInfoCtrlObj;
+        class BufferCtrlObj;
+        class SyncCtrlObj;
+        class RoiCtrlObj;
+        class BinCtrlObj;
+        class PcoHwEventCtrlObj;
 
-    public:
-      Interface(Camera*);
-      virtual ~Interface();
+        class DLL_EXPORT Interface : public HwInterface
+        {
+            DEB_CLASS_NAMESPC(DebModCamera, "Interface", "Pco");
 
-      virtual void getCapList(CapList &) const;
+          public:
+            Interface(Camera *);
+            virtual ~Interface();
 
-      virtual void reset(ResetLevel reset_level);
-      virtual void prepareAcq();
-      virtual void startAcq();
-      virtual void stopAcq();
-      virtual void getStatus(StatusType& status);
+            virtual void getCapList(CapList &) const;
 
-      virtual int getNbAcquiredFrames();
-      virtual int getNbHwAcquiredFrames();
+            virtual void reset(ResetLevel reset_level);
+            virtual void prepareAcq();
+            virtual void startAcq();
+            virtual void stopAcq();
+            virtual void getStatus(StatusType &status);
 
-      double getCocRunTime(){ return m_cam->pcoGetCocRunTime() ;};
-      double getFrameRate(){ return m_cam->pcoGetFrameRate() ;};
+            virtual int getNbAcquiredFrames();
+            virtual int getNbHwAcquiredFrames();
 
-      //! get the camera object to access it directly from client
-      Camera* getCamera() { return m_cam;}
+            double getCocRunTime()
+            {
+                return m_cam->pcoGetCocRunTime();
+            };
+            double getFrameRate()
+            {
+                return m_cam->pcoGetFrameRate();
+            };
 
+            //! get the camera object to access it directly from client
+            Camera *getCamera()
+            {
+                return m_cam;
+            }
 
-    private:
-      Camera* 		m_cam;
-      DetInfoCtrlObj* 	m_det_info;
-      BufferCtrlObj* 	m_buffer;
-      SyncCtrlObj* 	m_sync;
-      RoiCtrlObj*       m_RoiCtrlObj;
-      BinCtrlObj*       m_BinCtrlObj;
-      PcoHwEventCtrlObj*       m_HwEventCtrlObj;
-    };
+          private:
+            Camera *m_cam;
+            DetInfoCtrlObj *m_det_info;
+            BufferCtrlObj *m_buffer;
+            SyncCtrlObj *m_sync;
+            RoiCtrlObj *m_RoiCtrlObj;
+            BinCtrlObj *m_BinCtrlObj;
+            PcoHwEventCtrlObj *m_HwEventCtrlObj;
+        };
 
-  } // namespace Pco
+    } // namespace Pco
 
 } // namespace lima
 

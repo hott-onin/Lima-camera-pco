@@ -72,7 +72,7 @@
 //-----------------------------------------------------------------//
 
 #include "PCO_err.h"
-
+#include <string>
 #ifndef PCO_ERRT_H
 #define PCO_ERRT_H
 
@@ -92,7 +92,7 @@
 // Commmon error messages                                                                                 //
 //========================================================================================================//
 
-static char* PCO_ERROR_COMMON_TXT[] = 
+static const char* PCO_ERROR_COMMON_TXT[] =
 {
   "OK.",                                           // 0x00000000  PCO_NOERROR
   "Function call with wrong parameter.",           // 0xA0000001  PCO_ERROR_WRONGVALUE
@@ -123,8 +123,8 @@ const int COMMON_MSGNUM = sizeof(PCO_ERROR_COMMON_TXT) / sizeof(PCO_ERROR_COMMON
 //========================================================================================================//
 // Driver error messages                                                                                  //
 //========================================================================================================//
-  
-static char* PCO_ERROR_DRIVER_TXT[] = 
+
+static const char* PCO_ERROR_DRIVER_TXT[] =
 {
   "OK.",                                           // 0x00002000  PCO_NOERROR
   "Initialization failed; no camera connected.",   // 0x80002001  PCO_ERROR_DRIVER_NOTINIT
@@ -178,7 +178,7 @@ static char* PCO_ERROR_DRIVER_TXT[] =
   "firmware does not support camera head.",        // 0x8000202F  PCO_ERROR_DRIVER_HEAD_BOARD_MISMATCH
   "camera head is not connected.",                 // 0x80002030  PCO_ERROR_DRIVER_HEAD_LOST
   "camera head power down.",                       // 0x80002031  PCO_ERROR_DRIVER_HEAD_POWER_DOWN
-  "camera started."                                // 0x80002032  PCO_ERROR_DRIVER_CAMERA_BUSY
+  "camera started.",                               // 0x80002032  PCO_ERROR_DRIVER_CAMERA_BUSY
   "camera busy."                                   // 0x80002033  PCO_ERROR_DRIVER_BUFFERS_PENDING
 
 };
@@ -190,7 +190,7 @@ const int DRIVER_MSGNUM = sizeof(PCO_ERROR_DRIVER_TXT) / sizeof(PCO_ERROR_DRIVER
 // Error messages for errors in SDK DLL                                                                   //
 //========================================================================================================//
 
-static char* PCO_ERROR_SDKDLL_TXT[] = 
+static const char* PCO_ERROR_SDKDLL_TXT[] =
 {
   "OK.",                                           // 0x00000000  PCO_NOERROR
   "wSize of an embedded buffer is to small.",      // 0x80003001  PCO_ERROR_SDKDLL_NESTEDBUFFERSIZE
@@ -212,6 +212,12 @@ static char* PCO_ERROR_SDKDLL_TXT[] =
   "A DLL could not be found, due to div by zero.", // 0x80003011  PCO_ERROR_SDKDLL_DLLNOTFOUND_DIVZERO
   "Buffer is already queued.",                     // 0x80003012  PCO_ERROR_SDKDLL_BUFFERALREADYQUEUED
   "Buffer is not queued.",                         // 0x80003013  PCO_ERROR_SDKDLL_BUFFERNOTQUEUED
+  "", "", "", "", "", "", "", "", "", "", "", "",             // 0x80003014 - 0x8000301F
+  "",                                              // 0x80003020
+  "Recording of camera must be off for recorder",  // 0x80003021  PCO_ERROR_SDKDLL_RECORDER_RECORD_MUST_BE_OFF     
+  "Acquisition in Recorder must be off",           // 0x80003022  PCO_ERROR_SDKDLL_RECORDER_ACQUISITION_MUST_BE_OFF
+  "Camera settings changed outside of recorder",   // 0x80003023  PCO_ERROR_SDKDLL_RECORDER_SETTINGS_CHANGED       
+  "No acquired images available in recorder",      // 0x80003024  PCO_ERROR_SDKDLL_RECORDER_NO_IMAGES_AVAILABLE    
 };
 
 const int SDKDLL_MSGNUM = sizeof(PCO_ERROR_SDKDLL_TXT) / sizeof(PCO_ERROR_SDKDLL_TXT[0]);
@@ -221,7 +227,7 @@ const int SDKDLL_MSGNUM = sizeof(PCO_ERROR_SDKDLL_TXT) / sizeof(PCO_ERROR_SDKDLL
 // Application error messages                                                                             //
 //========================================================================================================//
 
-static char* PCO_ERROR_APPLICATION_TXT[] = 
+static const char* PCO_ERROR_APPLICATION_TXT[] =
 {
   "OK.",                                           // 0x00000000  PCO_NOERROR
   "Error while waiting for a picture.",            // 0x80004001  PCO_ERROR_APPLICATION_PICTURETIMEOUT
@@ -244,7 +250,7 @@ const int APPLICATION_MSGNUM = sizeof(PCO_ERROR_APPLICATION_TXT) / sizeof(PCO_ER
 // Firmware error messages                                                                                //
 //========================================================================================================//
 
-static char* PCO_ERROR_FIRMWARE_TXT[] = 
+static const char* PCO_ERROR_FIRMWARE_TXT[] =
 {
   "OK.",                                           // 0x00000000  PCO_NOERROR
   "Timeout in telegram.",                          // 0x80001001  PCO_ERROR_FIRMWARE_TELETIMEOUT
@@ -389,7 +395,7 @@ static char ERROR_CODE_OUTOFRANGE_TXT[] = "Error code out of range.";
 // warnings:
 /////////////////////////////////////////////////////////////////////
 
-static char* PCO_ERROR_FWWARNING_TXT[] = 
+static const char* PCO_ERROR_FWWARNING_TXT[] =
 {
   "OK.",
   "Function is already on.",                       // 0xC0001001 PCO_WARNING_FIRMWARE_FUNCALON     
@@ -400,7 +406,7 @@ static char* PCO_ERROR_FWWARNING_TXT[] =
 
 const int FWWARNING_MSGNUM = sizeof(PCO_ERROR_FWWARNING_TXT) / sizeof(PCO_ERROR_FWWARNING_TXT[0]);
 
-static char* PCO_ERROR_DRIVERWARNING_TXT[] = 
+static const char* PCO_ERROR_DRIVERWARNING_TXT[] =
 {
   "OK.",                                           // 0x00000000  PCO_NOERROR
 };
@@ -408,18 +414,21 @@ static char* PCO_ERROR_DRIVERWARNING_TXT[] =
 const int DRIVERWARNING_MSGNUM = sizeof(PCO_ERROR_DRIVERWARNING_TXT) / sizeof(PCO_ERROR_DRIVERWARNING_TXT[0]);
 
 
-static char* PCO_ERROR_SDKDLLWARNING_TXT[] = 
+static const char* PCO_ERROR_SDKDLLWARNING_TXT[] =
 {
   "OK.",                                           // 0x00000000  PCO_NOERROR
   "Buffers are still allocated",                   // 0xC0003001 PCO_WARNING_SDKDLL_BUFFER_STILL_ALLOKATED
   "No Images are in the board buffer",             // 0xC0003002 PCO_WARNING_SDKDLL_NO_IMAGE_BOARD
   "value change when testing COC",                 // 0xC0003003 PCO_WARNING_SDKDLL_COC_VALCHANGE
-  "string buffer to short for replacement"         // 0xC0003004 PCO_WARNING_SDKDLL_COC_STR_SHORT
+  "string buffer to short for replacement",        // 0xC0003004 PCO_WARNING_SDKDLL_COC_STR_SHORT
+  "", "", "", "", "", "", "", "", "", "", "",      // 0xC0003005 - 0xC000300F
+  "",                                              // 0xC0003010
+  "Files already exist"                            // 0xC0003011 PCO_WARNING_SDKDLL_RECORDER_FILES_EXIST
 };
 
 const int SDKDLLWARNING_MSGNUM = sizeof(PCO_ERROR_SDKDLLWARNING_TXT) / sizeof(PCO_ERROR_SDKDLLWARNING_TXT[0]);
 
-static char* PCO_ERROR_APPLICATIONWARNING_TXT[] = 
+static const char* PCO_ERROR_APPLICATIONWARNING_TXT[] =
 {
   "OK.",                                           // 0x00000000  PCO_NOERROR
   "Memory recorder buffer is full.",               // 0xC0004001  PCO_WARNING_APPLICATION_RECORDERFULL
@@ -447,20 +456,20 @@ int sprintf_s(char* buf, int dwlen, const char* cp, ...)
 
 void PCO_GetErrorText(DWORD dwerr, char* pbuf, DWORD dwlen)
 {
-  char* layertxt;
-  char* errortxt;
-  char* devicetxt;
+  std::string layertxt;
+  std::string errortxt;
+  std::string devicetxt;
   char  msg[200];
   int   index;
   DWORD device;
   DWORD layer;
 
-  if (dwlen < 40)
+  if(dwlen < 40)
     return;
 
   index = dwerr & PCO_ERROR_CODE_MASK;
 
-  if ((dwerr == PCO_NOERROR) || (index == 0))
+  if((dwerr == PCO_NOERROR) || (index == 0))
   {
     sprintf_s(pbuf, dwlen, "OK.");
     return;
@@ -472,7 +481,7 @@ void PCO_GetErrorText(DWORD dwerr, char* pbuf, DWORD dwlen)
 
   device = dwerr & PCO_ERROR_DEVICE_MASK;
   layer = dwerr & PCO_ERROR_LAYER_MASK;
-    
+
   // -- evaluate layer information within complete error code --- //
   // ------------------------------------------------------------ //
 
@@ -480,8 +489,8 @@ void PCO_GetErrorText(DWORD dwerr, char* pbuf, DWORD dwlen)
   {
     case PCO_ERROR_FIRMWARE:
     {
-      layertxt =  "Firmware";
-      switch(device)  
+      layertxt = "Firmware";
+      switch(device)
       {
         case SC2_ERROR_POWER_CPLD:   devicetxt = "SC2 Power CPLD";   break;
         case SC2_ERROR_HEAD_UP:      devicetxt = "SC2 Head uP";      break;
@@ -503,7 +512,7 @@ void PCO_GetErrorText(DWORD dwerr, char* pbuf, DWORD dwlen)
     }
     case PCO_ERROR_DRIVER:
     {
-      layertxt =  "Driver";
+      layertxt = "Driver";
       switch(device)
       {
         case PCI540_ERROR_DRIVER:          devicetxt = "Pixelfly driver";    break;
@@ -523,7 +532,7 @@ void PCO_GetErrorText(DWORD dwerr, char* pbuf, DWORD dwlen)
     }
     case PCO_ERROR_SDKDLL:
     {
-      layertxt =  "SDK DLL";
+      layertxt = "SDK DLL";
       switch(device)
       {
         case  PCO_ERROR_PCO_SDKDLL:    devicetxt = "camera sdk dll";    break;
@@ -537,7 +546,7 @@ void PCO_GetErrorText(DWORD dwerr, char* pbuf, DWORD dwlen)
     }
     case PCO_ERROR_APPLICATION:
     {
-      layertxt =  "Application";
+      layertxt = "Application";
       switch(device)
       {
         case PCO_ERROR_CAMWARE:    devicetxt = "CamWare";    break;
@@ -550,7 +559,7 @@ void PCO_GetErrorText(DWORD dwerr, char* pbuf, DWORD dwlen)
     }
     default:
     {
-      layertxt =  "Undefined layer";
+      layertxt = "Undefined layer";
       devicetxt = "Unknown device";
     }
   }
@@ -559,108 +568,108 @@ void PCO_GetErrorText(DWORD dwerr, char* pbuf, DWORD dwlen)
   // -- evaluate error information within complete error code --- //
   // ------------------------------------------------------------ //
 
-  if (dwerr & PCO_ERROR_IS_COMMON)
+  if(dwerr & PCO_ERROR_IS_COMMON)
   {
-    if (index < COMMON_MSGNUM)
+    if(index < COMMON_MSGNUM)
       errortxt = PCO_ERROR_COMMON_TXT[index];
     else
       errortxt = ERROR_CODE_OUTOFRANGE_TXT;
   }
   else
-  {     
+  {
     switch(dwerr & PCO_ERROR_LAYER_MASK)   // evaluate layer
     {
       case PCO_ERROR_FIRMWARE:
 
-        if (dwerr & PCO_ERROR_IS_WARNING)
-        {
-          if (index < FWWARNING_MSGNUM)
-            errortxt = PCO_ERROR_FWWARNING_TXT[index];
-          else
-            errortxt = ERROR_CODE_OUTOFRANGE_TXT;
-        }
+      if(dwerr & PCO_ERROR_IS_WARNING)
+      {
+        if(index < FWWARNING_MSGNUM)
+          errortxt = PCO_ERROR_FWWARNING_TXT[index];
         else
-        {
-          if (index < FIRMWARE_MSGNUM)
-            errortxt = PCO_ERROR_FIRMWARE_TXT[index];
-          else
-            errortxt = ERROR_CODE_OUTOFRANGE_TXT;
-        }
-        break;
+          errortxt = ERROR_CODE_OUTOFRANGE_TXT;
+      }
+      else
+      {
+        if(index < FIRMWARE_MSGNUM)
+          errortxt = PCO_ERROR_FIRMWARE_TXT[index];
+        else
+          errortxt = ERROR_CODE_OUTOFRANGE_TXT;
+      }
+      break;
 
 
       case PCO_ERROR_DRIVER:
 
-        if (dwerr & PCO_ERROR_IS_WARNING)
-        {
-          if (index < DRIVERWARNING_MSGNUM)
-            errortxt = PCO_ERROR_DRIVERWARNING_TXT[index];
-          else
-            errortxt = ERROR_CODE_OUTOFRANGE_TXT;
-        }
+      if(dwerr & PCO_ERROR_IS_WARNING)
+      {
+        if(index < DRIVERWARNING_MSGNUM)
+          errortxt = PCO_ERROR_DRIVERWARNING_TXT[index];
         else
-        {
-          if (index < DRIVER_MSGNUM)
-            errortxt = PCO_ERROR_DRIVER_TXT[index];
-          else
-            errortxt = ERROR_CODE_OUTOFRANGE_TXT;
-        }
-        break;
+          errortxt = ERROR_CODE_OUTOFRANGE_TXT;
+      }
+      else
+      {
+        if(index < DRIVER_MSGNUM)
+          errortxt = PCO_ERROR_DRIVER_TXT[index];
+        else
+          errortxt = ERROR_CODE_OUTOFRANGE_TXT;
+      }
+      break;
 
 
       case PCO_ERROR_SDKDLL:
 
-        if (dwerr & PCO_ERROR_IS_WARNING)
-        {
-          if (index < SDKDLLWARNING_MSGNUM)
-            errortxt = PCO_ERROR_SDKDLLWARNING_TXT[index];
-          else
-            errortxt = ERROR_CODE_OUTOFRANGE_TXT;
-        }
+      if(dwerr & PCO_ERROR_IS_WARNING)
+      {
+        if(index < SDKDLLWARNING_MSGNUM)
+          errortxt = PCO_ERROR_SDKDLLWARNING_TXT[index];
         else
-        {
-          if (index < SDKDLL_MSGNUM)
-            errortxt = PCO_ERROR_SDKDLL_TXT[index];
-          else
-            errortxt = ERROR_CODE_OUTOFRANGE_TXT;
-        }
-        break;
+          errortxt = ERROR_CODE_OUTOFRANGE_TXT;
+      }
+      else
+      {
+        if(index < SDKDLL_MSGNUM)
+          errortxt = PCO_ERROR_SDKDLL_TXT[index];
+        else
+          errortxt = ERROR_CODE_OUTOFRANGE_TXT;
+      }
+      break;
 
 
       case PCO_ERROR_APPLICATION:
 
-        if (dwerr & PCO_ERROR_IS_WARNING)
-        {
-          if (index < APPLICATIONWARNING_MSGNUM)
-            errortxt = PCO_ERROR_APPLICATIONWARNING_TXT[index];
-          else
-            errortxt = ERROR_CODE_OUTOFRANGE_TXT;
-        }
+      if(dwerr & PCO_ERROR_IS_WARNING)
+      {
+        if(index < APPLICATIONWARNING_MSGNUM)
+          errortxt = PCO_ERROR_APPLICATIONWARNING_TXT[index];
         else
-        {
-          if (index < APPLICATION_MSGNUM)
-            errortxt = PCO_ERROR_APPLICATION_TXT[index];
-          else
-            errortxt = ERROR_CODE_OUTOFRANGE_TXT;
-        }
-        break;
+          errortxt = ERROR_CODE_OUTOFRANGE_TXT;
+      }
+      else
+      {
+        if(index < APPLICATION_MSGNUM)
+          errortxt = PCO_ERROR_APPLICATION_TXT[index];
+        else
+          errortxt = ERROR_CODE_OUTOFRANGE_TXT;
+      }
+      break;
 
 
       default:
 
-        errortxt = "No error text available!";
-        break;
+      errortxt = "No error text available!";
+      break;
     }
   }
 
   if(dwerr & PCO_ERROR_IS_WARNING)
     sprintf_s(msg, 200, "%s warning %x at device '%s': %s",
-            layertxt, dwerr, devicetxt, errortxt);
+    layertxt.c_str(), dwerr, devicetxt.c_str(), errortxt.c_str());
   else
     sprintf_s(msg, 200, "%s error %x at device '%s': %s",
-            layertxt, dwerr, devicetxt, errortxt);
+    layertxt.c_str(), dwerr, devicetxt.c_str(), errortxt.c_str());
 
-  if (dwlen <= strlen(msg))    // 1 byte more for zero at end of string
+  if(dwlen <= strlen(msg))    // 1 byte more for zero at end of string
   {
     sprintf_s(pbuf, dwlen, "Error buffer too short. err: %x", dwerr);
     return;

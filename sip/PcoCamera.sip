@@ -8,14 +8,14 @@ namespace Pco
 %End
   public:
 
-        Camera(const char*);
+        Camera(const std::string&);
         ~Camera();
 
 
         void 	startAcq();
         void	reset(int);
 
-        const char *talk(const char *cmd);
+        std::string talk(const std::string& cmd);
 
         int getNbAcquiredFrames();
 
@@ -80,6 +80,7 @@ namespace Pco
 		void getRollingShutter(int & val /Out/);    // rollingShutter
 		void setRollingShutter(int val);
 		void getRollingShutterInfo(std::string &o_sn /Out/) ;       // rollingShutterInfo
+        void setRollingShutterStr(std::string &i_sn); // rollingShutter string
 
 		void getTemperatureInfo(std::string &o_sn /Out/);
 
@@ -93,8 +94,8 @@ namespace Pco
 		void getDebugInt(std::string &o_sn /Out/);
 		void setDebugInt(std::string &i_sn); 
 		
-		void setTest(int val) ;
-		void getTest(int &val /Out/) ;
+		void setTest(std::string &i_sn) ;
+		void getTest(std::string &o_sn /Out/) ;
  
 		void setTimestampMode(int mode);
 		void getTimestampMode(int &mode /Out/);
@@ -112,10 +113,13 @@ namespace Pco
 		void setRecorderStopRequest(int val);
 		
 		void getLastImgFifo(int & val /Out/);
+        
+        void getGeneralCAPS1(std::string &o_sn  /Out/);
+ 
+        void getParamsInfo(std::string &o_sn /Out/);
 
 
-
+	private:
+		Camera(const Pco::Camera&);
   };
 };
-
-

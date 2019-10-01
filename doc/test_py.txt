@@ -1,0 +1,82 @@
+#=====================================================
+import sys,os,glob
+import PyTango
+import weakref
+import itertools
+import numpy
+import struct
+import time
+import re
+from Lima import Core
+from Lima import Pco
+#=====================================================
+
+
+#setFormatFlags(0x31) -> dateTime function fileLine
+#setFormatFlags(0x30) ->          function fileLine
+
+from Lima import Core,Pco
+
+Core.DebParams.setFormatFlags(0x30)
+Core.DebParams.setTypeFlags(0xff)
+Core.DebParams.setModuleFlags(0xffff)
+
+Core.DebParams.setFormatFlags(Core.DebFmtFileLine)
+Core.DebParams.setModuleFlags(Core.DebModCamera)
+Core.DebParams.setTypeFlags(Core.DebTypeAlways)
+
+camera = Pco.Camera('sn = 451;testMode = 4;configEnable;testValue = 5.7;')
+cam = Pco.Camera("")
+
+
+ifc = Pco.Interface(cam)
+ct  = Core.CtControl(ifc)
+acq = ct.acquisition()
+sav = ct.saving()
+img = ct.image()
+
+#======================
+# img.getMode()
+# img.setMode( xxx )
+
+>>> img.HardOnly
+0
+>>> img.SoftOnly
+1
+>>> img.HardAndSoft
+2
+#======================
+
+
+
+ifc.getNbAcquiredFrames()
+ifc.getNbHwAcquiredFrames()
+ifc.getStatus()
+
+acq.getTriggerMode()
+
+acq.getTriggerModeList()
+
+acq.setAcqExpoTime(.1)
+acq.setAcqNbFrames(100)
+ct.prepareAcq()
+ct.startAcq()
+
+ifc.getNbAcquiredFrames()
+ifc.getNbHwAcquiredFrames()
+
+ct.stopAcq()
+acq.getAcqExpoTime(.1)
+
+acq.getAcqMode()
+acq.getLatencyTime()
+
+ct.prepareAcq()
+ct.startAcq()
+
+acq.getAcqExpoTime()
+
+ifc.getNbHwAcquiredFrames()
+ifc.getNbAcquiredFrames()
+
+ct.stopAcq()
