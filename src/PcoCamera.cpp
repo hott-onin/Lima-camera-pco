@@ -734,7 +734,7 @@ void Camera::_init_dimax()
 {
     DEB_CONSTRUCTOR();
     char msg[MSG_SIZE + 1];
-    const char *pcoFn;
+    const char *pcoFn = "Camera::_init_dimax";
 
     int error = 0;
     DWORD _dwValidImageCnt, _dwMaxImageCnt;
@@ -1729,7 +1729,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error)
 {
     DEB_MEMBER_FUNCT();
     DEF_FNID;
-    char *msg;
+    char *msg="none";
     const char *cmsg;
     char msgBuff[MSG_SIZE + 1];
 
