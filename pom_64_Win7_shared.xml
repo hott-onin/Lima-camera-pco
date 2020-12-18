@@ -14,8 +14,20 @@
     <packaging>nar</packaging>
     <name>LimaPco</name>
     <description>This module controls the Pco Camera</description>
-	
-	<dependencies>
+
+	<properties>
+		<sdkpco-lib>${project.basedir}\sdkPco\lib64\</sdkpco-lib>
+		<sdkpco-include-1>${project.basedir}\sdkPco\</sdkpco-include-1>
+		<sdkpco-include-2>${project.basedir}\sdkPco\include\</sdkpco-include-2>
+	</properties>
+    
+    <scm>
+        <connection>scm:git:git://github.com/soleil-ica/Lima-camera-pco.git</connection>
+        <developerConnection>scm:git:git://github.com/soleil-ica/Lima-camera-pco.git</developerConnection>
+        <url>https://github.com/soleil-ica/Lima-camera-pco</url>
+    </scm>
+    
+    <dependencies>
 		<dependency>
             <groupId>fr.soleil.lib</groupId>
             <artifactId>LimaCore-${aol}-shared-${mode}</artifactId>
@@ -23,28 +35,6 @@
 		</dependency>
 	</dependencies>
 
-<!--    <profiles>    
-        <profile>
-            <id>Windows7_x64</id>
-            <activation>
-            <os>
-                <family>windows</family>
-                <name>windows 7</name>
-            </os>
-            </activation>
-            
-      <properties>
-		    <FSOpt.value></FSOpt.value>
-      </properties>
-            
-        </profile>
-    </profiles>    -->
-	
-	<properties>
-		<sdkpco-lib>${project.basedir}\sdkPco\lib64\</sdkpco-lib>
-		<sdkpco-include-1>${project.basedir}\sdkPco\</sdkpco-include-1>
-		<sdkpco-include-2>${project.basedir}\sdkPco\include\</sdkpco-include-2>
-	</properties>
 	
     <build>
         <plugins>
