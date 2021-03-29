@@ -323,6 +323,7 @@ typedef struct
     long msTotal, msRecord, msRecordLoop, msXfer, msTout;
     long msStartAcqStart, msStartAcqEnd, msStartAcqNow;
     int checkImgNrPco, checkImgNrPcoTimestamp, checkImgNrLima, checkImgNrOrder;
+    bool checkImgNr;
 
 #define LEN_TRACEACQ_TRHEAD 11
     // long msThreadBeforeXfer, msThreadAfterXfer, msThreadEnd;
@@ -658,7 +659,11 @@ namespace lima
             ~CheckImgNr();
             void init(STC_traceAcq *traceAcq);
             void update(int iLimaFrame, void *ptrImage);
-            ;
+
+            int _get_imageNr_from_imageTimestamp(void *buf, int shift);
+#ifndef __linux__
+            int _get_time_from_imageTimestamp(void *buf, int shift, SYSTEMTIME *st);
+#endif
 
           private:
             Camera *m_cam;
@@ -668,6 +673,7 @@ namespace lima
             int pcoImgNrOrder;
             int pcoImgNrLast;
             int alignmentShift;
+            bool bNoTimestamp;            
         }; // class CheckImgNr
 
         //--------------------------------------- class Camera

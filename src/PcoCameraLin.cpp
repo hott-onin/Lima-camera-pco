@@ -163,7 +163,7 @@ void Camera::_AcqThread::threadFunction_Dimax()
     DEB_MEMBER_FUNCT();
     DEF_FNID;
 
-    const char *_msgAbort;
+    const char *_msgAbort = "notSet";
     TIME_USEC tStart;
     long long usStart, usStartTot;
 
@@ -222,6 +222,8 @@ void Camera::_AcqThread::threadFunction_Dimax()
 
         Camera::Status _statusReturn = Camera::Ready;
         bool continueAcq = true;
+
+        m_cam.m_checkImgNr->init(& m_cam.m_pcoData->traceAcq);
 
         bool bNoTimestamp;
         WORD wTimestampMode;
@@ -419,19 +421,13 @@ void Camera::_AcqThread::threadFunction_Dimax()
                     break;
                 }
 
-                pcoFrameNrTimestamp =
-                    image_nr_from_timestamp(limaBuffPtr, 0, bNoTimestamp);
-
                 m_cam.m_pcoData->traceAcq.usTicks[traceAcq_pcoSdk].value +=
                     usElapsedTime(usStart);
                 usElapsedTimeSet(usStart);
 
-                m_cam.m_pcoData->traceAcq.checkImgNrPcoTimestamp =
-                    pcoFrameNrTimestamp;
-                m_cam.m_pcoData->traceAcq.checkImgNrPco = pcoFrameNr;
-                m_cam.m_pcoData->traceAcq.checkImgNrLima = limaFrameNr;
-                m_cam.m_pcoData->traceAcq.checkImgNrLima = limaFrameNr;
-                m_cam.m_pcoData->traceAcq.msStartAcqNow = msElapsedTime(tStart);
+                // check PCO ImgNr with the limaFrame
+                m_cam.m_checkImgNr->update(limaFrameNr, limaBuffPtr);
+                pcoFrameNrTimestamp = m_cam.m_pcoData->traceAcq.checkImgNrPcoTimestamp;
 
                 HwFrameInfoType frame_info;
                 frame_info.acq_frame_nb = limaFrameNr;
@@ -557,7 +553,7 @@ void Camera::_AcqThread::threadFunction_Edge()
     DEB_MEMBER_FUNCT();
     DEF_FNID;
 
-    const char *_msgAbort;
+    const char *_msgAbort = "notSet";
     TIME_USEC tStart;
     long long usStart, usStartTot;
 
@@ -606,6 +602,8 @@ void Camera::_AcqThread::threadFunction_Edge()
         m_cam.m_thread_running = true;
         if (m_cam.m_quit)
             return;
+
+        m_cam.m_checkImgNr->init(& m_cam.m_pcoData->traceAcq);
 
         Camera::Status _statusReturn = Camera::Ready;
         bool continueAcq = true;
@@ -802,21 +800,15 @@ void Camera::_AcqThread::threadFunction_Edge()
             {
                 m_cam.grabber->Extract_Image(limaBuffPtr, pcoBuffPtr, width,
                                              height);
-                // pcoFrameNrTimestamp=image_nr_from_timestamp(limaBuffPtr,0);
-                pcoFrameNrTimestamp =
-                    image_nr_from_timestamp(limaBuffPtr, 0, bNoTimestamp);
 
                 m_cam.m_pcoData->traceAcq.usTicks[traceAcq_pcoSdk].value +=
                     usElapsedTime(usStart);
                 usElapsedTimeSet(usStart);
 
-                m_cam.m_pcoData->traceAcq.checkImgNrPcoTimestamp =
-                    pcoFrameNrTimestamp;
-                m_cam.m_pcoData->traceAcq.checkImgNrPco = pcoFrameNr;
-                m_cam.m_pcoData->traceAcq.checkImgNrLima = limaFrameNr;
-                m_cam.m_pcoData->traceAcq.checkImgNrLima = limaFrameNr;
-                m_cam.m_pcoData->traceAcq.msStartAcqNow = msElapsedTime(tStart);
-
+                // check PCO ImgNr with the limaFrame
+                m_cam.m_checkImgNr->update(limaFrameNr, limaBuffPtr);
+                pcoFrameNrTimestamp = m_cam.m_pcoData->traceAcq.checkImgNrPcoTimestamp;
+                    
                 HwFrameInfoType frame_info;
                 frame_info.acq_frame_nb = limaFrameNr;
                 continueAcq =
@@ -941,7 +933,9 @@ Camera::Camera(const std::string &camPar)
     DEB_CONSTRUCTOR();
 
     DEB_ALWAYS() << "... ::Camera [entry]";
-
+    
+    m_pco_buffer_nrevents = 0;
+    
     m_cam_connected = false;
     m_acq_frame_nb = 1;
     m_sync = NULL;
@@ -1143,7 +1137,8 @@ void Camera::_waitForRecording(int nrFrames, DWORD &_dwValidImageCnt,
     msElapsedTimeSet(tStart);
     tStart0 = tStart;
 
-    long timeout, timeout0, msNowRecordLoop, msRecord, msXfer, msTotal;
+    long timeout, timeout0, msNowRecordLoop, msXfer, msTotal;
+    long msRecord=0;
     int nb_acq_frames;
     int requestStop = stopNone;
 
@@ -1328,27 +1323,6 @@ void Camera::_waitForRecording(int nrFrames, DWORD &_dwValidImageCnt,
 // 2018/03/18
 //=========================================================================================================
 
-//=========================================================================================================
-//=========================================================================================================
-int image_nr_from_timestamp(void *buf, int shift, bool bDisable)
-{
-    unsigned short *b;
-    int y;
-    int image_nr = 0;
-
-    if (bDisable)
-        return -1;
-
-    b = (unsigned short *)(buf);
-    y = 100 * 100 * 100;
-    for (; y > 0; y /= 100)
-    {
-        *b >>= shift;
-        image_nr += (((*b & 0x00F0) >> 4) * 10 + (*b & 0x000F)) * y;
-        b++;
-    }
-    return image_nr;
-}
 
 //=================================================================================================
 //=================================================================================================
@@ -1624,7 +1598,8 @@ void Camera::_AcqThread::threadFunction_SwitchEdge()
     DEB_MEMBER_FUNCT();
     DEF_FNID;
 
-    const char *_msgAbort, *msg;
+    const char *_msgAbort = "notSet";
+    const char *msg;
     TIME_USEC tStart;
     long long usStart, usStartTot;
 

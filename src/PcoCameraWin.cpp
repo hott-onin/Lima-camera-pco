@@ -737,6 +737,7 @@ void _pco_acq_thread_edge(void *argin)
     {
         Event *ev = new Event(Hardware, Event::Error, Event::Camera,
                               Event::CamFault, errMsg);
+        //m_cam->_getPcoHwEventCtrlObj()->reportEvent(ev);
     }
 
     printf("=== %s [%d]> TRACE %s\n", fnId, __LINE__, "exit thread");

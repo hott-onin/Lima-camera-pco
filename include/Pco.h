@@ -260,10 +260,5 @@ DWORD WaitForMultipleObjects(DWORD, void **, bool, DWORD);
 
 #endif
 
-int _get_imageNr_from_imageTimestamp(void *buf, int shift);
-
-#ifndef __linux__
-int _get_time_from_imageTimestamp(void *buf, int shift, SYSTEMTIME *st);
-#endif
 
 #endif
