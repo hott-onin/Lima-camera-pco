@@ -694,6 +694,12 @@ void Camera::setDoubleImageMode(int mode)
     int error;
     WORD wMode = (WORD)mode;
 
+    // forcedfifo and double image are exclusive
+    if (wMode)
+    {
+        m_bRecorderForcedFifo = false;
+    }
+
     _pco_SetDoubleImageMode(wMode, error);
 }
 
@@ -839,6 +845,9 @@ void Camera::setBitAlignment(std::string &i_sn)
 void Camera::setRecorderForcedFifo(int val)
 {
     DEB_MEMBER_FUNCT();
+
+    int err = 0;
+    if(val) _pco_SetDoubleImageMode(0, err); // forcedfifo and double image are exclusive
 
     m_bRecorderForcedFifo = !!val;
 }

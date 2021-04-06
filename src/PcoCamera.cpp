@@ -1012,6 +1012,23 @@ void Camera::prepareAcq()
         }
     }
 
+    // Update the timeouts according the the exposure time
+    {
+        // Default PCO Timeouts
+        int ts[3] = {2000, 3000, 250};
+
+        // Getting exposure time from the sync control object
+        double _exposure;
+        m_sync->getExpTime(_exposure);
+
+        // New timeout: Exposure + 1s
+        ts[1] = static_cast<int>(_exposure * 1000.0) + 1000;
+
+        // Set the timeouts
+        _pco_SetTimeouts(&ts[0], sizeof(ts), error);
+        PCO_THROW_OR_TRACE(error, "PCO_SetTimeouts");
+    }
+
     //-------------------------------------------------
 
     //-----------------------------------------------------------------------------------------------
