@@ -366,8 +366,10 @@ void Camera::getTraceAcq(std::string &o_sn)
 
     ptr += __sprintfSExt(
         ptr, ptrMax - ptr,
-        "* ... checkImgNr pco[%d] lima[%d] diff[%d] order[%d]\n",
-        m_pcoData->traceAcq.checkImgNrPco, m_pcoData->traceAcq.checkImgNrLima,
+        "* ... checkImgNr[%s] pco[%d] lima[%d] diff[%d] order[%d]\n",
+        m_pcoData->traceAcq.checkImgNr ? "true" : "false",
+        m_pcoData->traceAcq.checkImgNrPco, 
+        m_pcoData->traceAcq.checkImgNrLima,
         m_pcoData->traceAcq.checkImgNrPco - m_pcoData->traceAcq.checkImgNrLima,
         m_pcoData->traceAcq.checkImgNrOrder);
 
@@ -692,6 +694,12 @@ void Camera::setDoubleImageMode(int mode)
     int error;
     WORD wMode = (WORD)mode;
 
+    // forcedfifo and double image are exclusive
+    if (wMode)
+    {
+        m_bRecorderForcedFifo = false;
+    }
+
     _pco_SetDoubleImageMode(wMode, error);
 }
 
@@ -837,6 +845,9 @@ void Camera::setBitAlignment(std::string &i_sn)
 void Camera::setRecorderForcedFifo(int val)
 {
     DEB_MEMBER_FUNCT();
+
+    int err = 0;
+    if(val) _pco_SetDoubleImageMode(0, err); // forcedfifo and double image are exclusive
 
     m_bRecorderForcedFifo = !!val;
 }

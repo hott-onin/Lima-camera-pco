@@ -361,6 +361,10 @@ std::string Camera::talk(const std::string &cmd)
 const char *Camera::_talk(const char *_cmd, char *output, int lg)
 {
     DEB_MEMBER_FUNCT();
+
+    char cMsg[MSG1K];
+    std::string stdMsg = cMsg;
+    
     char cmdBuff[BUFF_INFO_SIZE + 1];
     char cmdBuffAux[BUFF_INFO_SIZE + 1];
     const char *keys[NRCMDS];
@@ -368,7 +372,7 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg)
     const char *cmd;
     int ikey = 0;
     const char *tok[NRTOK];
-    int tokNr;
+    int tokNr=0;
     char *ptr, *ptrMax;
     // int segmentPco = m_pcoData->wActiveRamSegment;
     // int segmentArr = segmentPco -1;
@@ -414,22 +418,21 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg)
     //----------------------------------------------------------------------------------------------------------
 
 #ifndef __linux__
-#    define BUFFER_LEN 256
     key = keys[ikey] = "getVersionDLL";
     keys_desc[ikey++] = "(R) get verions of loaded DLLs";
     if (_stricmp(cmd, key) == 0)
     {
-        char buff[BUFFER_LEN + 1];
+        char buff[MSG1K];
 
         ptr += __sprintfSExt(
             ptr, ptrMax - ptr, "%s",
-            _getPcoSdkVersion(buff, BUFFER_LEN, (char *)"sc2_cam.dll"));
+            _getPcoSdkVersion(buff, sizeof(buff), (char *)"sc2_cam.dll"));
         ptr += __sprintfSExt(
             ptr, ptrMax - ptr, "%s",
-            _getPcoSdkVersion(buff, BUFFER_LEN, (char *)"sc2_cl_me4.dll"));
+            _getPcoSdkVersion(buff, sizeof(buff), (char *)"sc2_cl_me4.dll"));
         ptr += __sprintfSExt(
             ptr, ptrMax - ptr, "%s",
-            _getPcoSdkVersion(buff, BUFFER_LEN, (char *)"sc2_clhs.dll"));
+            _getPcoSdkVersion(buff, sizeof(buff), (char *)"sc2_clhs.dll"));
         return output;
     }
 #endif
@@ -668,143 +671,9 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg)
                                  "* ERROR - only for DIMAX / 2K");
             return output;
         }
-
-        ptr += __sprintfSExt(ptr, ptrMax - ptr,
-                             "\n"
-                             "* fnId[%s] nrEvents[%d]\n"
-                             "* ... fnIdXfer[%s]\n",
-                             m_pcoData->traceAcq.fnId, m_pco_buffer_nrevents,
-                             m_pcoData->traceAcq.fnIdXfer);
-
-        ptr += __sprintfSExt(ptr, ptrMax - ptr, "* ... testCmdMode [0x%llx]\n",
-                             m_pcoData->testCmdMode);
-
-        ptr += __sprintfSExt(ptr, ptrMax - ptr,
-                             "* ... msExposure[%g] msDelay[%g]\n",
-                             (double)(m_pcoData->traceAcq.sExposure * 1000.),
-                             (double)(m_pcoData->traceAcq.sDelay * 1000.));
-
-        ptr += __sprintfSExt(
-            ptr, ptrMax - ptr,
-            "* ... msLimaExposure[%g] Pco exposure[%d] base[%d]\n",
-            (double)(m_pcoData->traceAcq.dLimaExposure * 1000.),
-            m_pcoData->traceAcq.iPcoExposure,
-            m_pcoData->traceAcq.iPcoExposureBase);
-
-        ptr += __sprintfSExt(
-            ptr, ptrMax - ptr, "* ... msLimaDelay[%g] Pco delay[%d] base[%d]\n",
-            (double)(m_pcoData->traceAcq.dLimaDelay * 1000.),
-            m_pcoData->traceAcq.iPcoDelay, m_pcoData->traceAcq.iPcoDelayBase);
-
-        ptr += __sprintfSExt(ptr, ptrMax - ptr, "* pcoBin horz[%d] vert[%d]\n",
-                             m_pcoData->traceAcq.iPcoBinHorz,
-                             m_pcoData->traceAcq.iPcoBinVert);
-
-        Roi limaRoi;
-        int error;
-        _pco_GetROI(limaRoi, error);
-
-        Point top_left = limaRoi.getTopLeft();
-        Point bot_right = limaRoi.getBottomRight();
-        Size size = limaRoi.getSize();
-        unsigned int bytesPerPix;
-        getBytesPerPixel(bytesPerPix);
-
-        ptr += __sprintfSExt(ptr, ptrMax - ptr,
-                             "* limaRoi xy0[%d,%d] xy1[%d,%d] size[%d,%d]\n",
-                             top_left.x, top_left.y, bot_right.x, bot_right.y,
-                             size.getWidth(), size.getHeight());
-
-        ptr += __sprintfSExt(
-            ptr, ptrMax - ptr, "* ... pcoRoi x[%d,%d] y[%d,%d]\n",
-            m_pcoData->traceAcq.iPcoRoiX0, m_pcoData->traceAcq.iPcoRoiX1,
-            m_pcoData->traceAcq.iPcoRoiY0, m_pcoData->traceAcq.iPcoRoiY1);
-
-        long long imgSize = size.getWidth() * size.getHeight() * bytesPerPix;
-        long long totSize = imgSize * m_pcoData->traceAcq.nrImgRequested;
-        double mbTotSize = totSize / (1024. * 1024.);
-        double totTime = m_pcoData->traceAcq.msXfer / 1000.;
-        double xferSpeed = mbTotSize / totTime;
-        double framesPerSec = m_pcoData->traceAcq.nrImgRequested / totTime;
-        ptr += __sprintfSExt(ptr, ptrMax - ptr,
-                             "* ... imgSize[%lld B] totSize[%lld B][%g MB]\n",
-                             imgSize, totSize, mbTotSize);
-
-        ptr += __sprintfSExt(ptr, ptrMax - ptr,
-                             "* nrImgRequested[%d] nrImgAcquired[%d]\n",
-                             m_pcoData->traceAcq.nrImgRequested,
-                             m_pcoData->traceAcq.nrImgAcquired);
-
-        ptr += __sprintfSExt(
-            ptr, ptrMax - ptr,
-            "* ... nrImgRequested0[%d] nrImgRecorded[%d] maxImgCount[%d]\n",
-            m_pcoData->traceAcq.nrImgRequested0,
-            (int)m_pcoData->traceAcq.nrImgRecorded,
-            (int)m_pcoData->traceAcq.maxImgCount);
-
-        ptr += __sprintfSExt(ptr, ptrMax - ptr, "* limaTriggerMode[%s]\n",
-                             m_pcoData->traceAcq.sLimaTriggerMode);
-        ptr +=
-            __sprintfSExt(ptr, ptrMax - ptr, "* ... pcoTriggerMode[%s] [%d]\n",
-                          m_pcoData->traceAcq.sPcoTriggerMode,
-                          m_pcoData->traceAcq.iPcoTriggerMode);
-        ptr += __sprintfSExt(ptr, ptrMax - ptr, "* ... pcoAcqMode[%s] [%d]\n",
-                             m_pcoData->traceAcq.sPcoAcqMode,
-                             m_pcoData->traceAcq.iPcoAcqMode);
-
-        ptr += __sprintfSExt(ptr, ptrMax - ptr,
-                             "* msStartAcqStart[%ld]  msStartAcqEnd[%ld]\n",
-                             m_pcoData->traceAcq.msStartAcqStart,
-                             m_pcoData->traceAcq.msStartAcqEnd);
-
-        for (int _i = 0; _i < LEN_TRACEACQ_TRHEAD; _i++)
-        {
-            const char *desc = m_pcoData->traceAcq.usTicks[_i].desc;
-            if (desc != NULL)
-            {
-                ptr += __sprintfSExt(
-                    ptr, ptrMax - ptr, "* ... usTicks[%d][%5.3f] (ms)   (%s)\n",
-                    _i, (double)(m_pcoData->traceAcq.usTicks[_i].value / 1000.),
-                    desc);
-            }
-        }
-
-        _timet = m_pcoData->traceAcq.endRecordTimestamp;
-
-        ptr += __sprintfSExt(
-            ptr, ptrMax - ptr,
-            "* msImgCoc[%.3g] fps[%.3g] msTout[%ld] msTotal[%ld]\n",
-            m_pcoData->traceAcq.msImgCoc,
-            (double)(1000. / m_pcoData->traceAcq.msImgCoc),
-            m_pcoData->traceAcq.msTout, m_pcoData->traceAcq.msTotal);
-
-        ptr += __sprintfSExt(
-            ptr, ptrMax - ptr,
-            "* ... msRecordLoop[%ld] msRecord[%ld] endRecord[%s]\n",
-            m_pcoData->traceAcq.msRecordLoop, m_pcoData->traceAcq.msRecord,
-            _timet ? getTimestamp(Iso, _timet) : "");
-
-        ptr += __sprintfSExt(
-            ptr, ptrMax - ptr, "* ... msXfer[%ld] endXfer[%s]\n",
-            m_pcoData->traceAcq.msXfer,
-            getTimestamp(Iso, m_pcoData->traceAcq.endXferTimestamp));
-
-        ptr += __sprintfSExt(
-            ptr, ptrMax - ptr,
-            "* ... xferTimeTot[%g s] xferSpeed[%g MB/s][%g fps]\n", totTime,
-            xferSpeed, framesPerSec);
-
-        ptr += __sprintfSExt(
-            ptr, ptrMax - ptr,
-            "* ... checkImgNr pco[%d] lima[%d] diff[%d] order[%d]\n",
-            m_pcoData->traceAcq.checkImgNrPco,
-            m_pcoData->traceAcq.checkImgNrLima,
-            m_pcoData->traceAcq.checkImgNrPco -
-                m_pcoData->traceAcq.checkImgNrLima,
-            m_pcoData->traceAcq.checkImgNrOrder);
-
-        ptr +=
-            __sprintfSExt(ptr, ptrMax - ptr, "%s\n", m_pcoData->traceAcq.msg);
+        
+        getTraceAcq(stdMsg);
+        ptr += __sprintfSExt(ptr, ptrMax - ptr, "%s", stdMsg.c_str());
 
         return output;
     }
@@ -1402,10 +1271,8 @@ const char *Camera::_talk(const char *_cmd, char *output, int lg)
 
         if ((tokNr == 0))
         {
-            char msg[MSG1K];
-            std::string _msg = msg;
-            getDebugIntTypes(_msg);
-            ptr += __sprintfSExt(ptr, ptrMax - ptr, "%s", _msg.c_str());
+            getDebugIntTypes(stdMsg);
+            ptr += __sprintfSExt(ptr, ptrMax - ptr, "%s", stdMsg.c_str());
         }
 
         return output;
@@ -2430,74 +2297,8 @@ void print_hex_dump_buff(void *ptr_buff, size_t len)
     }
 }
 
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-
-CheckImgNr::CheckImgNr(Camera *cam)
-{
-    m_cam = cam;
-}
-
-CheckImgNr::~CheckImgNr()
-{
-}
-
-void CheckImgNr::update(int iLimaFrame, void *ptrImage)
-{
-    int pcoImgNr, diff;
-
-    if (!checkImgNr)
-        return;
-
-    pcoImgNr = _get_imageNr_from_imageTimestamp(ptrImage, alignmentShift);
-    if (pcoImgNr <= pcoImgNrLast)
-        pcoImgNrOrder++;
-    diff = pcoImgNr - iLimaFrame;
-    m_traceAcq->checkImgNrLima = iLimaFrame + 1;
-    m_traceAcq->checkImgNrPco = pcoImgNr;
-    m_traceAcq->checkImgNrOrder = pcoImgNrOrder;
-
-    if (diff > pcoImgNrDiff)
-    {
-        pcoImgNrDiff = diff;
-    }
-    pcoImgNrLast = pcoImgNr;
-}
-
-void CheckImgNr::init(STC_traceAcq *traceAcq)
-{
-    m_traceAcq = traceAcq;
-
-    checkImgNr = false;
-    pcoImgNrDiff = 1;
-    alignmentShift = 0;
-    int err;
-
-    WORD wTimeStampMode;
-
-    m_cam->_pco_GetTimestampMode(wTimeStampMode, err);
-
-    if (wTimeStampMode == 0)
-        return;
-
-    checkImgNr = true;
-    pcoImgNrLast = -1;
-    pcoImgNrOrder = 0;
-
-    int alignment;
-
-    m_cam->_pco_GetBitAlignment(alignment);
-
-    if (alignment == 0)
-        alignmentShift = (16 - m_cam->m_pcoData->stcPcoDescription.wDynResDESC);
-    else
-        alignmentShift = 0;
-
-    return;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
+//====================================================================
+//====================================================================
 
 ringLog::ringLog(int size)
 {
@@ -3400,129 +3201,6 @@ const char *Camera::_sprintComment(bool bAlways, const char *comment,
 //====================================================================
 //====================================================================
 
-/*************************************************************************
-#define TIMESTAMP_MODE_BINARY           1
-#define TIMESTAMP_MODE_BINARYANDASCII   2
-
-SYSTEMTIME st;
-int act_timestamp;
-int shift;
-
-if(camval.strImage.wBitAlignment==0)
-  shift = (16-camval.strSensor.strDescription.wDynResDESC);
-else
-  shift = 0;
-
-err=PCO_SetTimestampMode(hdriver,TIMESTAMP_MODE_BINARY); //Binary+ASCII
-
-grab image to adr
-
-time_from_timestamp(adr,shift,&st);
-act_timestamp=image_nr_from_timestamp(adr,shift);
-*************************************************************************/
-
-int _get_imageNr_from_imageTimestamp(void *buf, int shift)
-{
-    unsigned short *b;
-    unsigned short c;
-    int y;
-    int image_nr = 0;
-
-    b = (unsigned short *)(buf);
-    y = 100 * 100 * 100;
-
-    for (; y > 0; y /= 100)
-    {
-        c = *b >> shift;
-        image_nr += (((c & 0x00F0) >> 4) * 10 + (c & 0x000F)) * y;
-        b++;
-    }
-
-    return image_nr;
-}
-
-int _get_time_from_imageTimestamp(void *buf, int shift, SYSTEMTIME *st)
-{
-    unsigned short *b;
-    unsigned short c;
-    int x, us;
-
-    memset(st, 0, sizeof(SYSTEMTIME));
-    b = (unsigned short *)buf;
-
-    // counter
-    for (x = 0; x < 4; x++)
-    {
-        c = *(b + x) >> shift;
-    }
-
-    x = 4;
-    // year
-    c = *(b + x) >> shift;
-    st->wYear += (c >> 4) * 1000;
-    st->wYear += (c & 0x0F) * 100;
-    x++;
-
-    c = *(b + x) >> shift;
-    st->wYear += (c >> 4) * 10;
-    st->wYear += (c & 0x0F);
-    x++;
-
-    // month
-    c = *(b + x) >> shift;
-    st->wMonth += (c >> 4) * 10;
-    st->wMonth += (c & 0x0F);
-    x++;
-
-    // day
-    c = *(b + x) >> shift;
-    st->wDay += (c >> 4) * 10;
-    st->wDay += (c & 0x0F);
-    x++;
-
-    // hour
-    c = *(b + x) >> shift;
-    st->wHour += (c >> 4) * 10;
-    st->wHour += (c & 0x0F);
-    x++;
-
-    // min
-    c = *(b + x) >> shift;
-    st->wMinute += (c >> 4) * 10;
-    st->wMinute += (c & 0x0F);
-    x++;
-
-    // sec
-    c = *(b + x) >> shift;
-    st->wSecond += (c >> 4) * 10;
-    st->wSecond += (c & 0x0F);
-    x++;
-
-    // us
-    us = 0;
-    c = *(b + x) >> shift;
-    us += (c >> 4) * 100000;
-    us += (c & 0x0F) * 10000;
-    x++;
-
-    c = *(b + x) >> shift;
-    us += (c >> 4) * 1000;
-    us += (c & 0x0F) * 100;
-    x++;
-
-    c = *(b + x) >> shift;
-    us += (c >> 4) * 10;
-    us += (c & 0x0F);
-    x++;
-
-    st->wMilliseconds = us / 100;
-
-    return 0;
-}
-
-//====================================================================
-//====================================================================
-
 void usElapsedTimeSet(long long &us0)
 {
 #ifdef __linux__
@@ -3679,7 +3357,7 @@ const char *_getEnviroment(const char *env)
 //====================================================================
 const char *_getOs()
 {
-    static char os[256];
+    static char os[MSG1K];
 
 #ifndef __linux__
     return "WINDOWS";

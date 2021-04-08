@@ -87,6 +87,222 @@ void _pco_time2dwbase(double exp_time, DWORD &dwExp, WORD &wBase)
     return;
 }
 
+//====================================================================
+//====================================================================
+// extract image number and time from the image
+// timeStampMode must be enabled
+//====================================================================
+//====================================================================
+
+CheckImgNr::CheckImgNr(Camera *cam)
+{
+    DEF_FNID;
+    //printf("--- %s> [ENTRY]\n", fnId);
+
+    m_cam = cam;
+}
+
+CheckImgNr::~CheckImgNr()
+{
+    DEF_FNID;
+    //printf("--- %s> [ENTRY]\n", fnId);
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+void CheckImgNr::update(int iLimaFrame, void *ptrImage)
+{
+    DEF_FNID;
+    //printf("--- %s> [ENTRY]\n", fnId);
+
+    int pcoImgNr, diff;
+
+    if (!checkImgNr)
+        return;
+
+    pcoImgNr = _get_imageNr_from_imageTimestamp(ptrImage, alignmentShift);
+    if (pcoImgNr <= pcoImgNrLast)
+        pcoImgNrOrder++;
+    diff = pcoImgNr - iLimaFrame;
+    m_traceAcq->checkImgNrLima = iLimaFrame + 1;
+    m_traceAcq->checkImgNrPco = pcoImgNr;
+    m_traceAcq->checkImgNrOrder = pcoImgNrOrder;
+
+    if (diff > pcoImgNrDiff)
+    {
+        pcoImgNrDiff = diff;
+    }
+    pcoImgNrLast = pcoImgNr;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+void CheckImgNr::init(STC_traceAcq *traceAcq)
+{
+    DEF_FNID;
+    
+    m_traceAcq = traceAcq;
+
+    pcoImgNrDiff = 1;
+    alignmentShift = 0;
+
+    int err;
+    WORD wTimeStampMode;
+    m_cam->_pco_GetTimestampMode(wTimeStampMode, err);
+
+    bNoTimestamp = err || !wTimeStampMode;
+    checkImgNr = !bNoTimestamp;
+    m_traceAcq->checkImgNr = checkImgNr; 
+
+    //printf("--- %s> checkImgNr[%d], err[%d], wTimeStampMode[%d]\n", fnId, checkImgNr, err, wTimeStampMode);
+    
+    pcoImgNrLast = -1;
+    pcoImgNrOrder = 0;
+
+    int alignment;
+
+    m_cam->_pco_GetBitAlignment(alignment);
+
+    if (alignment == 0)
+        alignmentShift = (16 - m_cam->m_pcoData->stcPcoDescription.wDynResDESC);
+    else
+        alignmentShift = 0;
+
+    return;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+
+//*************************************************************************
+//#define TIMESTAMP_MODE_BINARY           1
+//#define TIMESTAMP_MODE_BINARYANDASCII   2
+//
+//SYSTEMTIME st;
+//int act_timestamp;
+//int shift;
+//
+//if(camval.strImage.wBitAlignment==0)
+//  shift = (16-camval.strSensor.strDescription.wDynResDESC);
+//else
+//  shift = 0;
+//
+//err=PCO_SetTimestampMode(hdriver,TIMESTAMP_MODE_BINARY); //Binary+ASCII
+//
+//grab image to adr
+//
+//time_from_timestamp(adr,shift,&st);
+//act_timestamp=image_nr_from_timestamp(adr,shift);
+//*************************************************************************
+
+int CheckImgNr::_get_imageNr_from_imageTimestamp(void *buf, int shift)
+{
+    DEF_FNID;
+    //printf("--- %s> [ENTRY]\n", fnId);
+
+    unsigned short *b;
+    unsigned short c;
+    int y;
+    int image_nr = 0;
+
+    if (bNoTimestamp) return -1;
+    
+    b = (unsigned short *)(buf);
+    y = 100 * 100 * 100;
+
+    for (; y > 0; y /= 100)
+    {
+        c = *b >> shift;
+        image_nr += (((c & 0x00F0) >> 4) * 10 + (c & 0x000F)) * y;
+        b++;
+    }
+
+    return image_nr;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+#ifndef __linux__
+int CheckImgNr::_get_time_from_imageTimestamp(void *buf, int shift, SYSTEMTIME *st)
+{
+    unsigned short *b;
+    unsigned short c;
+    int x, us;
+
+    memset(st, 0, sizeof(SYSTEMTIME));
+    b = (unsigned short *)buf;
+
+    // counter
+    for (x = 0; x < 4; x++)
+    {
+        c = *(b + x) >> shift;
+    }
+
+    x = 4;
+    // year
+    c = *(b + x) >> shift;
+    st->wYear += (c >> 4) * 1000;
+    st->wYear += (c & 0x0F) * 100;
+    x++;
+
+    c = *(b + x) >> shift;
+    st->wYear += (c >> 4) * 10;
+    st->wYear += (c & 0x0F);
+    x++;
+
+    // month
+    c = *(b + x) >> shift;
+    st->wMonth += (c >> 4) * 10;
+    st->wMonth += (c & 0x0F);
+    x++;
+
+    // day
+    c = *(b + x) >> shift;
+    st->wDay += (c >> 4) * 10;
+    st->wDay += (c & 0x0F);
+    x++;
+
+    // hour
+    c = *(b + x) >> shift;
+    st->wHour += (c >> 4) * 10;
+    st->wHour += (c & 0x0F);
+    x++;
+
+    // min
+    c = *(b + x) >> shift;
+    st->wMinute += (c >> 4) * 10;
+    st->wMinute += (c & 0x0F);
+    x++;
+
+    // sec
+    c = *(b + x) >> shift;
+    st->wSecond += (c >> 4) * 10;
+    st->wSecond += (c & 0x0F);
+    x++;
+
+    // us
+    us = 0;
+    c = *(b + x) >> shift;
+    us += (c >> 4) * 100000;
+    us += (c & 0x0F) * 10000;
+    x++;
+
+    c = *(b + x) >> shift;
+    us += (c >> 4) * 1000;
+    us += (c & 0x0F) * 100;
+    x++;
+
+    c = *(b + x) >> shift;
+    us += (c >> 4) * 10;
+    us += (c & 0x0F);
+    x++;
+
+    st->wMilliseconds = us / 100;
+
+    return 0;
+}
+#endif
+
 //=================================================================================================
 //=================================================================================================
 void Camera::_pco_GetAcqEnblSignalStatus(WORD &wAcquEnableState, int &error)
@@ -537,7 +753,7 @@ int Camera::_pco_GetADCOperation(int &adc_working, int &adc_max)
     DEB_MEMBER_FUNCT();
     DEF_FNID;
 
-    int error;
+    int error = 0;
     WORD wADCOperation;
 
     adc_max =

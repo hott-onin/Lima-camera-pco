@@ -26,53 +26,54 @@ set(PCO_INCLUDE_DIRS)
 set(PCO_LIBRARIES)
 set(PCO_DEFINITIONS)
 
-set(PCO_SDKWIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPco" CACHE PATH "location of PCO Windows SDK")
-set(PCO_SDKLIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPcoLin" CACHE PATH "location of PCO Linux SDK")
-
 if(WIN32)
-  find_path(PCO_INCLUDE_DIRS "PcoSdkVersion.h" ${PCO_SDKWIN_DIR})
-  list(APPEND PCO_INCLUDE_DIRS
-      ${PCO_INCLUDE_DIRS}/include
-      )
-  find_library(PCO_LIBRARIES NAMES SC2_Cam.lib HINTS ${PCO_SDKWIN_DIR}/lib64)
+
+    set(PCO_SDKWIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPco" CACHE PATH "location of PCO Windows SDK")
+
+    find_path(PCO_INCLUDE_DIRS "PcoSdkVersion.h" ${PCO_SDKWIN_DIR})
+    list(APPEND PCO_INCLUDE_DIRS
+        ${PCO_INCLUDE_DIRS}/include
+    )
+    find_library(PCO_LIBRARIES NAMES SC2_Cam.lib HINTS ${PCO_SDKWIN_DIR}/lib64)
+
 else()
-  set(PCO_SDK_LIB_DIR "${PCO_SDKLIN_DIR}/pco_common/pco_lib" CACHE PATH "location of pco sdklib-lin")
 
-  set(SISO_DIR "$ENV{SISODIR5}" CACHE PATH "SISO BASE DIR")
-  set(SISO_LIB_DIR "${SISO_DIR}/lib" CACHE PATH "SISO LIB DIR")
+    set(PCO_SDKLIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sdkPcoLin" CACHE PATH "location of PCO Linux SDK")
+    set(PCO_SDK_LIB_DIR "${PCO_SDKLIN_DIR}/pco_common/pco_lib" CACHE PATH "location of PCO Linux SDK LIBS")
 
-list(APPEND PCO_INCLUDE_DIRS
-  ${SISO_DIR}/include
-  ${PCO_SDKLIN_DIR}/include
-  ${PCO_SDKLIN_DIR}
-  ${PCO_SDKLIN_DIR}/pco_common/pco_include
-  ${PCO_SDKLIN_DIR}/pco_common/pco_classes
-  ${PCO_SDKLIN_DIR}/pco_me4/pco_classes
-  ${PCO_SDKWIN_DIR}/include
-  )
+    find_path(SISO_INCLUDE sisoboards.h)
 
+    list(APPEND PCO_INCLUDE_DIRS
+        ${SISO_INCLUDE}
 
- set(LP1)
- set(LP2)
- set(LP3)
- set(LP4)
- 
- find_library(LP1 pcocam_me4 HINTS ${PCO_SDK_LIB_DIR})
- find_library(LP2 pcofile HINTS ${PCO_SDK_LIB_DIR})
- find_library(LP3 pcolog HINTS ${PCO_SDK_LIB_DIR})
- find_library(LP4 reorderfunc HINTS ${PCO_SDK_LIB_DIR})
+        ${PCO_SDKLIN_DIR}
+        ${PCO_SDKLIN_DIR}/include
+        ${PCO_SDKLIN_DIR}/pco_common/pco_include
+        ${PCO_SDKLIN_DIR}/pco_common/pco_classes
+        ${PCO_SDKLIN_DIR}/pco_me4/pco_classes
 
- set(LS1)
- set(LS2)
- set(LS3)
- find_library(LS1 fglib5 HINTS ${SISO_LIB_DIR})
- find_library(LS2 clsersis HINTS ${SISO_LIB_DIR})
- find_library(LS3 haprt HINTS ${SISO_LIB_DIR})
- 
- 
- list(APPEND PCO_LIBRARIES 
-    ${LP1} ${LP2} ${LP3} ${LP4}
-    ${LS1} ${LS2} ${LS3}
+        ${PCO_SDKWIN_DIR}/include
+    )
+
+    set(PCOLIB1)
+    set(PCOLIB2)
+    set(PCOLIB3)
+    set(PCOLIB4)
+    find_library(PCOLIB1 pcocam_me4 HINTS ${PCO_SDK_LIB_DIR})
+    find_library(PCOLIB2 pcofile HINTS ${PCO_SDK_LIB_DIR})
+    find_library(PCOLIB3 pcolog HINTS ${PCO_SDK_LIB_DIR})
+    find_library(PCOLIB4 reorderfunc HINTS ${PCO_SDK_LIB_DIR})
+
+    set(SISOLIB1)
+    set(SISOLIB2)
+    set(SISOLIB3)
+    find_library(SISOLIB1 fglib5)
+    find_library(SISOLIB2 clsersis)
+    find_library(SISOLIB3 haprt)
+
+    list(APPEND PCO_LIBRARIES 
+        ${PCOLIB1} ${PCOLIB2} ${PCOLIB3} ${PCOLIB4}
+        ${SISOLIB1} ${SISOLIB2} ${SISOLIB3}
     )
 
 endif()

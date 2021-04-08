@@ -339,7 +339,7 @@ stcPcoData::stcPcoData()
     ptr += __sprintfSExt(ptr, ptrMax - ptr, "              OS: %s\n", _getOs());
     ptr += __sprintfSExt(ptr, ptrMax - ptr, "       user name: %s\n",
                          _getUserName(buff, BUFFER_LEN));
-    ptr += __sprintfSExt(ptr, ptrMax - ptr, "VS configuration: %s\n",
+    ptr += __sprintfSExt(ptr, ptrMax - ptr, "   configuration: %s\n",
                          _getVSconfiguration(buff, BUFFER_LEN));
     ptr += __sprintfSExt(ptr, ptrMax - ptr, "        SISO dir: %s\n",
                          _getEnviroment("SISODIR5"));
@@ -734,7 +734,7 @@ void Camera::_init_dimax()
 {
     DEB_CONSTRUCTOR();
     char msg[MSG_SIZE + 1];
-    const char *pcoFn;
+    const char *pcoFn = "Camera::_init_dimax";
 
     int error = 0;
     DWORD _dwValidImageCnt, _dwMaxImageCnt;
@@ -1010,6 +1010,23 @@ void Camera::prepareAcq()
                                     dwRecordStopDelayImages, error);
             PCO_THROW_OR_TRACE(error, "PCO_SetRecordStopEvent");
         }
+    }
+
+    // Update the timeouts according the the exposure time
+    {
+        // Default PCO Timeouts
+        int ts[3] = {2000, 3000, 250};
+
+        // Getting exposure time from the sync control object
+        double _exposure;
+        m_sync->getExpTime(_exposure);
+
+        // New timeout: Exposure + 1s
+        ts[1] = static_cast<int>(_exposure * 1000.0) + 1000;
+
+        // Set the timeouts
+        _pco_SetTimeouts(&ts[0], sizeof(ts), error);
+        PCO_THROW_OR_TRACE(error, "PCO_SetTimeouts");
     }
 
     //-------------------------------------------------
@@ -1729,7 +1746,7 @@ void Camera::_pco_set_shutter_rolling_edge(int &error)
 {
     DEB_MEMBER_FUNCT();
     DEF_FNID;
-    char *msg;
+    char *msg="none";
     const char *cmsg;
     char msgBuff[MSG_SIZE + 1];
 
